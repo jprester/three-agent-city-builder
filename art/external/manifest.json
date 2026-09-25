@@ -1,4 +1,37 @@
 {
   "$comment": "One entry per bought or downloaded file in art/external/. Required before the file is used anywhere.",
-  "assets": []
+  "assets": [
+    {
+      "files": "art/external/textures/osaka/*, osaka.json",
+      "source": "local: /Users/jankoprester/Projects/3d-modeling/blender/textures/generated-textures/generated-texture-atlas/High-Rise_Atlas4/highrise-atlas-v1_osaka-modern-02_bundle",
+      "notes": "High-Rise Atlas v1 'Osaka Modern 02'; emissive from B_fixed (A is a truncated PNG in the source).",
+      "license": "Owned by the project author (generated artwork), provided for this project on 2026-09-25",
+      "attribution": "Project author",
+      "importer": "tools/textures/import_highrise.py"
+    },
+    {
+      "files": "art/external/textures/real_glass/*, real_glass.json",
+      "source": "local: /Users/jankoprester/Projects/3d-modeling/blender/textures/generated-textures/generated-texture-atlas/highrise-v1-real-glass-02_bundle",
+      "notes": "High-Rise Atlas v1 'Real Glass 02'.",
+      "license": "Owned by the project author (generated artwork), provided for this project on 2026-09-25",
+      "attribution": "Project author",
+      "importer": "tools/textures/import_highrise.py"
+    },
+    {
+      "files": "art/external/textures/glass_sky/*, glass_sky.json",
+      "source": "local: /Users/jankoprester/Projects/3d-modeling/blender/textures/generated-textures/generated-texture-atlas/Skyscraper-Glass-Atlas1/highrise-v1-glass-skyscrapers-01_bundle",
+      "notes": "High-Rise Atlas v1 'Glass Skyscrapers 01'.",
+      "license": "Owned by the project author (generated artwork), provided for this project on 2026-09-25",
+      "attribution": "Project author",
+      "importer": "tools/textures/import_highrise.py"
+    },
+    {
+      "files": "art/external/textures/walls.webp, walls.json",
+      "source": "material tiles of the osaka and real_glass bundles above",
+      "notes": "Opaque material tiles repacked 4x2.",
+      "license": "Owned by the project author (generated artwork), provided for this project on 2026-09-25",
+      "attribution": "Project author",
+      "importer": "tools/textures/import_highrise.py"
+    }
+  ]
 }

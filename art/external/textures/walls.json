@@ -1,0 +1,16 @@
+{
+  "grid": [
+    4,
+    2
+  ],
+  "cells": [
+    "light_ceramic_tile",
+    "medium_concrete",
+    "charcoal_ribbed_metal",
+    "weathered_concrete",
+    "raw_concrete",
+    "white_panels",
+    "ribbed_metal",
+    "dark_slate"
+  ]
+}
