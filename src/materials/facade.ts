@@ -273,12 +273,13 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
   // Blinds (slats), curtains (fabric glowing through), or clear.
   if (hMod < 0.3) {
     float slat = 0.3 + 0.7 * smoothstep(0.3, 0.7, fract(q.y * 12.0));
+    slat = mix(slat, 0.65, smoothstep(0.015, 0.05, fw.y));   // slats ~13 cm: average before they alias
     float drawn = step(q.y, mix(0.35, 1.0, fract(hMod * 3.3)));
     inside = mix(inside, col * inten * 0.55 * slat, drawn);
   } else if (hMod < 0.55) {
     vec3 cloth = mix(vec3(0.9, 0.75, 0.55), vec3(0.8, 0.35, 0.3), fract(hMod * 17.0));
     float cover = fBox(q.x, hMod > 0.42 ? -0.1 : 0.5, hMod > 0.42 ? 0.5 : 1.1, 0.02);
-    float folds = 0.75 + 0.25 * sin(q.x * 40.0);
+    float folds = mix(0.75 + 0.25 * sin(q.x * 40.0), 0.75, smoothstep(0.02, 0.06, fw.x));
     inside = mix(inside, col * cloth * inten * 0.5 * folds, cover);
   }
 
@@ -400,7 +401,8 @@ if (fType == T_ATLAS) {
   fEmit = e;
   if (fType == T_CAGE) {
     float bars = max(1.0 - fBox(fract(fUv.x / 0.12), 0.15, 0.85, fFw.x / 0.12), 1.0 - fBox(fract(fUv.y / 0.4), 0.06, 0.94, fFw.y / 0.4));
-    bars = mix(bars, 0.45, smoothstep(0.1, 0.4, fFw.x / 0.12));
+    // Bars are 12 cm apart: fade to their average coverage before they alias (< ~8 px period).
+    bars = mix(bars, 0.45, smoothstep(0.04, 0.16, max(fFw.x / 0.12, fFw.y / 0.4)));
     fBase = mix(fBase * 0.6, P_METAL * 1.4, bars);
     fEmit *= (1.0 - bars) * 0.8;
     fRough = mix(0.7, 0.5, bars);
