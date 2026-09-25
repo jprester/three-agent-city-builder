@@ -59,3 +59,8 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 2026-09-25 | runtime | Sign light map (top-down, colored) lights facades and ground near signs | Motivated practical light; without it no wall material is visible at night.
 2026-09-25 | style | Added paint_mint/salmon/cream/blue to palette.json and the style bible table | Faded paint on old slabs for building variety (checkpoint 1 review); desaturated so they stay "not the base".
 2026-09-25 | viewpoints | Added `facade` viewpoint (hero-street slab, close) | Needed to judge window and wall detail; canyon/storefront are too wide for it.
+2026-09-25 | layout | Far field of ~1,400 buildings to 2.6 km around the city (no roads/signs) | The references read as city to the horizon; a finite city on an empty plane looked like a model.
+2026-09-25 | layout | Towers in the old core (slender, 90–230 m) as well as the tower district | Hong Kong mixes towers into old districts; the single cluster looked staged.
+2026-09-25 | style | sky and haze moved to cool blue (#0A0E18, #1B2431) | Human references are cool-atmosphere/warm-window; warm light stays practical (windows, sodium, neon).
+2026-09-25 | assets | Fixture colors by name (facade.json fixture_colors); LED strips flagged via tint | Accent strips must glow softly while point lamps burn hot.
+2026-09-25 | layout | Nested layout params merge with defaults | A def overriding one key of a group silently dropped the rest (far field produced nothing).

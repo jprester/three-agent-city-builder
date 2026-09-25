@@ -191,3 +191,36 @@ identical towers.
 - Towers repeat a facade texture on all four sides; corners don't wrap.
 - `rooftops` is very dark: roofs get almost no light; rooftop clutter barely reads.
 - The Osaka bundle uses its emissive B map (A is a truncated PNG in the source folder).
+
+## City look pass (human references, 2026-09-25)
+
+The human found the city still lacking in building variety and materials and supplied three
+references (`art/style/references/`). Comparing them with our shots, the gap was mostly
+composition, not texture: they are dense to the horizon, towers are slender and everywhere,
+a few towers carry thin LED lines or big screens, every roof has red aviation lights, and a
+cool blue/teal atmosphere sits against warm windows.
+
+### Changes
+- Towers in the old core too (37), slender (0.65–0.85 footprint scale, 90–230 m); tower
+  district taller (180–420 m) and denser; four new slender tower variants (12 total).
+- Far field: ~1,400 buildings on a jittered grid out to 2.6 km around the city, thinning
+  with distance, with seven dense tower clusters. Depth to the horizon.
+- Tower accents: LED corner strips / face stripes on a few variants (soft), video screens on
+  three variants (procedural animated content), red aviation lights on every tower and every
+  slab of 18+ floors. Named fixture colors (sodium, white, cyan, blue, red).
+- Palette: `sky` #140F16 → #0A0E18, `haze` #2A1E24 → #1B2431. The sky's horizon now equals
+  the fog color, so the fogged ground meets it without a line.
+
+### Critique rounds
+1. Every tower wore bright dashed LED lines; accents cut to four variants and made soft.
+2. Screens blew out to beige; dimmed and squared for saturation, still too pale.
+3. Brown/orange horizon band (sodium cloud glow) against blue fog; sky horizon now = fog.
+4. White strips still burned like point lamps (color code shared); strips now flagged
+   explicitly.
+
+### Remaining (harsh)
+- Screens are pale beige panels, not the vivid images of the references.
+- Far field has no streets or ground light; from above it is towers on dark ground.
+- Tower facades from the atlases are the only tower windows; up close some repeat per side.
+- Budget: up to 1.83M triangles in `aerial` (limit 3M); fine, but phase 6 LODs for the far
+  field would claw back a lot.
