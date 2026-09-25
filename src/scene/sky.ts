@@ -35,12 +35,13 @@ export function createSky(fogColor: THREE.Color): THREE.Mesh {
       }
       void main() {
         float y = max(vDir.y, 0.0);
-        vec3 col = mix(uHorizon, uZenith, smoothstep(0.0, 0.45, pow(y, 0.7)));
-        // Low cloud deck lit from below by the city: faint, only near the horizon.
+        // Horizon equals the fog color, so fogged distance meets the sky without a line.
+        vec3 col = mix(uHorizon, uZenith, smoothstep(0.0, 0.4, pow(y, 0.65)));
+        // Low cloud deck faintly lit from below by the city (mostly cool, a touch of sodium).
         vec2 q = vDir.xz / max(vDir.y + 0.08, 0.02) * 1.6;
         float cloud = noise(q) * 0.6 + noise(q * 2.3) * 0.4;
-        col += uGlow * 0.022 * smoothstep(0.45, 0.8, cloud) * exp(-y * 6.0);
-        col += uGlow * 0.035 * exp(-y * 9.0);
+        vec3 glow = mix(uHorizon * 2.2, uGlow, 0.18);
+        col += glow * 0.18 * smoothstep(0.45, 0.8, cloud) * smoothstep(0.0, 0.06, y) * exp(-y * 5.0);
         if (vDir.y < 0.0) col = uHorizon;
         gl_FragColor = vec4(col, 1.0);
         #include <colorspace_fragment>

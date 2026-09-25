@@ -50,8 +50,8 @@ runtime code. No hex literals in generators. Add a named color there first.
 | `tv_blue` | rare TV flicker |
 | `sign_red`, `sign_amber` | neon accents |
 | `sign_cyan` | neon accent, used sparingly |
-| `haze` | fog and street-level haze |
-| `sky` | night sky |
+| `haze` | fog and street-level haze (cool blue-grey since 2026-09-25, per the references) |
+| `sky` | night sky (deep blue) |
 | `concrete`, `concrete_dark`, `tile_stained` | facades |
 | `metal_dark` | frames, rails, rooftop units |
 | `glass_dark` | unlit glass |
@@ -68,3 +68,10 @@ kept as aliases of the colors above: `concrete_light` = `tile_stained`,
 ## References
 Mood images live in `references/`. Describe what each one is for in a line
 below, so agents know what to take from it.
+
+- `ref-skyline-blue.png` — skyline composition: many slender towers of very different
+  heights, thin vertical LED lines on a few, big screens on some faces, deep blue sky.
+- `ref-skyline-teal-fog.png` — depth: layers of towers fading into teal haze, red aviation
+  lights on almost every roof, warm windows against cool atmosphere.
+- `ref-aerial-dense.png` — density from above: no gaps, dark tower bodies with fine window
+  grids, warm streets glowing between them, city to the horizon.

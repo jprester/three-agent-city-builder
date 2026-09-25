@@ -70,6 +70,7 @@ const DEFINES = /* glsl */ `
 #define T_SOFFIT ${T.soffit}
 #define T_FIXTURE ${T.fixture}
 #define T_ATLAS ${T.atlas}
+#define T_SCREEN ${T.screen}
 const vec2 CELL_RES = vec2(${f(C.residential.w)}, ${f(C.residential.h)});
 const vec2 CELL_OFFICE = vec2(${f(C.office.w)}, ${f(C.office.h)});
 const vec2 CELL_CURTAIN = vec2(${f(C.curtain.w)}, ${f(C.curtain.h)});
@@ -86,6 +87,8 @@ const vec3 P_SODIUM = ${glslColor('sodium')};
 const vec3 P_RED = ${glslColor('sign_red')};
 const vec3 P_HAZE = ${glslColor('haze')};
 const vec3 P_SKY = ${glslColor('sky')};
+const vec3 P_CYAN = ${glslColor('sign_cyan')};
+const vec3 P_AMBER = ${glslColor('sign_amber')};
 const vec3 P_PAINT[4] = vec3[4](${glslColor('paint_mint')}, ${glslColor('paint_salmon')}, ${glslColor('paint_cream')}, ${glslColor('paint_blue')});
 const vec4 TF_RECT[${TF_COUNT}] = vec4[${TF_COUNT}](
   ${TF_RECT});
@@ -100,6 +103,7 @@ varying vec3 vSurf;
 varying float vInstSeed;
 varying vec3 vFWorld;
 varying vec3 vFNormal;
+varying vec2 vRawUv;
 `;
 
 // After batching_vertex: the instance matrix is known; derive scale compensation and seed.
@@ -120,6 +124,7 @@ float fSu = fAlongX ? fScale.x : fScale.z;
 float fSv = abs(normal.y) > 0.7 ? (fAlongX ? fScale.z : fScale.x) : fScale.y;
 vFacadeUv = vec2(uv.x * fSu, (1.0 - uv.y) * fSv);   // glTF stores 1 - v
 vSurf = color.rgb;
+vRawUv = vec2(uv.x, 1.0 - uv.y);
 vInstSeed = fract(sin(dot(fInst[3].xz, vec2(12.9898, 78.233)) + uSeed * 0.0137) * 43758.5453);
 vFNormal = normalize(mat3(fInst) * normal);
 `;
@@ -147,6 +152,7 @@ varying vec3 vSurf;
 varying float vInstSeed;
 varying vec3 vFWorld;
 varying vec3 vFNormal;
+varying vec2 vRawUv;
 
 // World-space shading normal chosen by the surface code, applied in normal_fragment_maps.
 vec3 fNormalW;
@@ -446,11 +452,37 @@ if (fType == T_ATLAS) {
     * step(0.25, fHash(vec2(floor(fUv.x / 1.8), fSeed * 11.0)));
   fBase = P_CONCRETE_DARK;
   fEmit = P_FLUORESCENT * (0.04 + 1.3 * tubes);
+} else if (fType == T_SCREEN) {
+  // Video screen: abstract animated content (no real ads), LED pixel grid up close.
+  vec2 sp = vRawUv;
+  float sid = fFill * 17.0 + fTint * 5.0 + fSeed * 3.0;
+  float clip = floor(uTime / 7.0 + sid);
+  float ct = fract(uTime / 7.0 + sid);
+  float pick = fHash(vec2(clip, sid));
+  vec3 ca = pick < 0.3 ? P_RED : pick < 0.55 ? P_CYAN : pick < 0.8 ? P_AMBER : P_TV;
+  vec3 cb = fHash(vec2(clip, sid + 1.0)) < 0.5 ? P_FLUORESCENT : P_TV * 0.6;
+  vec3 img = mix(ca, cb, smoothstep(0.0, 1.0, sp.y + 0.3 * sin(ct * 6.28 + sp.x * 3.0)));
+  vec2 blob = vec2(0.3 + 0.4 * fHash(vec2(clip, sid + 2.0)) + 0.1 * sin(ct * 6.28), 0.55);
+  img = mix(img, vec3(1.0, 0.95, 0.9), smoothstep(0.28, 0.2, length((sp - blob) * vec2(1.0, 1.6))) * 0.8);
+  float lines = fBox(sp.y, 0.08, 0.3, 0.004) * step(0.35, fNoise(vec2(floor(sp.x * 18.0 - ct * 12.0), floor(sp.y * 14.0) + clip)));
+  img = mix(img, vec3(1.0), lines * 0.7);
+  img *= 0.8 + 0.2 * smoothstep(0.0, 0.1, ct) ;
+  // LED pixels: visible up close, averaged away with distance.
+  vec2 led = fract(sp * vec2(160.0, 240.0));
+  float px = max(fwidth(sp.x) * 160.0, fwidth(sp.y) * 240.0);
+  float dots = mix(fBox(led.x, 0.15, 0.85, 0.05) * fBox(led.y, 0.15, 0.85, 0.05), 0.5, smoothstep(0.3, 0.8, px));
+  fBase = P_METAL;
+  fEmit = img * img * dots * 1.6;
+  fRough = 0.3;
+  fNormalW = normalize(vFNormal);
 } else if (fType == T_FIXTURE) {
-  vec3 fc = fFill < 0.25 ? P_SODIUM : fFill < 0.75 ? P_FLUORESCENT : P_RED;
-  float blink = fFill > 0.75 ? step(0.5, fract(uTime * 0.9 + fSeed * 3.0)) : 1.0;
+  // fixture_colors in facade.json: sodium 0, white 0.25, cyan 0.5, blue 0.75, red 1.
+  vec3 fc = fFill < 0.125 ? P_SODIUM : fFill < 0.375 ? P_FLUORESCENT : fFill < 0.625 ? P_CYAN : fFill < 0.875 ? P_TV : P_RED;
+  float blink = fFill > 0.875 ? step(0.5, fract(uTime * 0.9 + fSeed * 3.0)) : 1.0;
   fBase = fc * 0.2;
-  fEmit = fc * 4.0 * blink;
+  // Accent strips glow softly; small point fixtures (lamps, aviation lights) burn hot.
+  bool strip = fTint > 0.5;   // lib/surface.py fixture(strip=True)
+  fEmit = fc * (strip ? 1.4 : 4.0) * blink;
   fNormalW = normalize(vFNormal);
 }
 
@@ -462,7 +494,7 @@ fEmit += fBase * P_SODIUM * fLamp * 1.5 * exp(-max(vFWorld.y - 1.0, 0.0) / 7.0);
 vec3 fSign = texture2D(uSignMap, (vFWorld.xz + vFNormal.xz * 1.5 - uLampRect.xy) * uLampRect.zw).rgb;
 fEmit += fBase * fSign * 0.85 * exp(-max(vFWorld.y - 14.0, 0.0) / 8.0) * smoothstep(0.0, 3.0, vFWorld.y);
 
-fEmit *= fType == T_FIXTURE || fType == T_SOFFIT ? 1.0 : uWindowGain;
+fEmit *= fType == T_FIXTURE || fType == T_SOFFIT || fType == T_SCREEN ? 1.0 : uWindowGain;
 diffuseColor.rgb = fBase;
 `;
 
