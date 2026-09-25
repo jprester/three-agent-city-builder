@@ -51,3 +51,40 @@ export function createLampMap(layout: Layout): LampMap {
   texture.minFilter = THREE.LinearMipmapLinearFilter;
   return { texture, rect: new THREE.Vector4(minX, minZ, 1 / sizeX, 1 / sizeZ) };
 }
+
+/**
+ * Top-down colored glow of every sign (additive, radius from the sign's size), on the same
+ * world rectangle as the lamp map. Facades read it as colored spill up to sign height, the
+ * wet ground as colored pools.
+ */
+export function createSignLightMap(layout: Layout, lights: { x: number; z: number; size: number; color: THREE.Color; strength: number }[]): THREE.CanvasTexture {
+  const [w, d] = layout.size;
+  const sizeX = w + 2 * MARGIN, sizeZ = d + 2 * MARGIN;
+  const scale = Math.min(1 / METERS_PER_TEXEL, MAX_SIZE / Math.max(sizeX, sizeZ));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.ceil(sizeX * scale);
+  canvas.height = Math.ceil(sizeZ * scale);
+  const g = canvas.getContext('2d')!;
+  g.fillStyle = '#000';
+  g.fillRect(0, 0, canvas.width, canvas.height);
+  g.globalCompositeOperation = 'lighter';
+  const minX = -w / 2 - MARGIN, minZ = -d / 2 - MARGIN;
+  for (const l of lights) {
+    const c = l.color.clone().convertLinearToSRGB();
+    const rgb = `${Math.round(c.r * 255)},${Math.round(c.g * 255)},${Math.round(c.b * 255)}`;
+    const cx = (l.x - minX) * scale, cz = (l.z - minZ) * scale;
+    const r = (5 + l.size * 1.1) * scale;
+    const grad = g.createRadialGradient(cx, cz, 0, cx, cz, r);
+    grad.addColorStop(0, `rgba(${rgb},${(0.55 * l.strength).toFixed(3)})`);
+    grad.addColorStop(0.4, `rgba(${rgb},${(0.22 * l.strength).toFixed(3)})`);
+    grad.addColorStop(1, `rgba(${rgb},0)`);
+    g.fillStyle = grad;
+    g.fillRect(cx - r, cz - r, 2 * r, 2 * r);
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.flipY = false;
+  texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  return texture;
+}

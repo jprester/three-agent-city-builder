@@ -4,9 +4,10 @@ import { AssetLoader, hasAnyAssets, layoutUrl } from './assets/registry';
 import { createDebugGui } from './debug/gui';
 import { applyViewpoint } from './debug/viewpoints';
 import { createFacadeMaterial, createFacadeUniforms } from './materials/facade';
+import { loadFacadeTextures } from './materials/textures';
 import { createGroundUniforms } from './materials/ground';
 import { createRenderer, createScene } from './scene/environment';
-import { createLampMap } from './scene/lampmap';
+import { createLampMap, createSignLightMap } from './scene/lampmap';
 import { createPost } from './scene/post';
 import { PlanarReflection } from './scene/reflection';
 import { createStreets } from './scene/streets';
@@ -78,7 +79,8 @@ async function main() {
 
   // Shared inputs of the city's shaders: one clock, one seed, one street-light map.
   const lamps = layout ? createLampMap(layout) : null;
-  const facadeUniforms = createFacadeUniforms(clock.uniform, layout?.seed ?? 0);
+  const facadeTextures = await loadFacadeTextures(Math.min(8, renderer.capabilities.getMaxAnisotropy()));
+  const facadeUniforms = createFacadeUniforms(clock.uniform, layout?.seed ?? 0, facadeTextures);
   const groundUniforms = createGroundUniforms(facadeUniforms.uLampRect);
   const reflection = new PlanarReflection(quality.reflectionScale);
   groundUniforms.uReflection.value = reflection.target.texture;
@@ -98,7 +100,12 @@ async function main() {
     const atlas = createSignAtlas(layout.seed);
     signUniforms.uAtlas.value = atlas.texture;
     const signs = createSigns(layout, atlas, signUniforms);
-    if (signs) scene.add(signs);
+    if (signs) {
+      scene.add(signs.mesh);
+      const signMap = createSignLightMap(layout, signs.lights);
+      facadeUniforms.uSignMap.value = signMap;
+      groundUniforms.uSignMap.value = signMap;
+    }
   }
   const streets = createStreets(layout, groundUniforms);
   scene.add(streets);

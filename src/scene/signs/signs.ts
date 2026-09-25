@@ -20,9 +20,20 @@ const col = (name: string) => new THREE.Color(palette[name as keyof typeof palet
  * is a dark metal frame. Per instance: atlas rect, tube/box colors, and flicker/broken-tube
  * parameters, all derived from the sign's layout seed.
  */
-export function createSigns(layout: Layout, atlas: SignAtlas, uniforms: SignUniforms): THREE.InstancedMesh | null {
+/** Where a sign throws light: position, size and its dominant color (for the sign light map). */
+export interface SignLight {
+  x: number;
+  y: number;
+  z: number;
+  size: number;
+  color: THREE.Color;
+  strength: number;
+}
+
+export function createSigns(layout: Layout, atlas: SignAtlas, uniforms: SignUniforms): { mesh: THREE.InstancedMesh; lights: SignLight[] } | null {
   const signs = layout.signs ?? [];
   if (!signs.length) return null;
+  const lights: SignLight[] = [];
   const geometry = new THREE.BoxGeometry(1, 1, 1);
   const n = signs.length;
   const rect = new Float32Array(n * 4);
@@ -39,8 +50,16 @@ export function createSigns(layout: Layout, atlas: SignAtlas, uniforms: SignUnif
     const designs = s.size[1] > s.size[0] ? atlas.blades : atlas.panels;
     const d = designs[Math.floor(rng() * designs.length)];
     d.rect.toArray(rect, i * 4);
-    col(weightedChoice(rng, TUBE_COLORS)).toArray(tube, i * 3);
-    col(weightedChoice(rng, BOX_COLORS)).toArray(back, i * 3);
+    const tubeCol = col(weightedChoice(rng, TUBE_COLORS));
+    const backCol = col(weightedChoice(rng, BOX_COLORS));
+    tubeCol.toArray(tube, i * 3);
+    backCol.toArray(back, i * 3);
+    lights.push({
+      x: s.position[0], y: s.position[1], z: s.position[2],
+      size: Math.max(s.size[0], s.size[1]),
+      color: d.boxed ? backCol.clone().lerp(new THREE.Color(1, 1, 1), 0.3) : tubeCol,
+      strength: d.boxed ? 0.6 : 1,
+    });
     const broken = rng() < 0.3 ? 0.15 + 0.35 * rng() : 0;
     const flicker = rng() < 0.2 ? 0.1 + 0.3 * rng() : 0;
     params.set([d.boxed ? 1 : 0, rng(), broken, flicker], i * 4);
@@ -53,7 +72,7 @@ export function createSigns(layout: Layout, atlas: SignAtlas, uniforms: SignUnif
   geometry.setAttribute('aParams', new THREE.InstancedBufferAttribute(params, 4));
   mesh.instanceMatrix.needsUpdate = true;
   mesh.computeBoundingSphere();
-  return mesh;
+  return { mesh, lights };
 }
 
 const metal = col('metal_dark');

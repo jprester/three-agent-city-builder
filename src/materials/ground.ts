@@ -8,6 +8,8 @@ export interface GroundUniforms {
   uReflMatrix: { value: THREE.Matrix4 };
   /** Overall reflection strength (debug tuning; 0 disables). */
   uWet: { value: number };
+  /** Top-down colored sign glow (see src/scene/lampmap.ts). */
+  uSignMap: { value: THREE.Texture | null };
 }
 
 const sodium = new THREE.Color(palette.sodium);
@@ -34,6 +36,7 @@ uniform vec4 uLampRect;
 uniform sampler2D uReflection;
 uniform mat4 uReflMatrix;
 uniform float uWet;
+uniform sampler2D uSignMap;
 varying vec3 vGWorld;
 float gHash(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 float gNoise(vec2 p) {
@@ -51,6 +54,7 @@ roughnessFactor = mix(roughnessFactor, 0.08, gPuddle);`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
 float gLamp = texture2D(uLampMap, (vGWorld.xz - uLampRect.xy) * uLampRect.zw).r;
 totalEmissiveRadiance += diffuseColor.rgb * ${v3(sodium)} * gLamp * gLamp * ${(6 * pool).toFixed(2)};
+totalEmissiveRadiance += diffuseColor.rgb * texture2D(uSignMap, (vGWorld.xz - uLampRect.xy) * uLampRect.zw).rgb * ${(3 * pool).toFixed(2)};
 
 // Wet reflection. The noise normal breaks the mirror up; taps spread along the reflection
 // image's vertical axis give the long smears of lights on wet roads.
@@ -86,5 +90,6 @@ export function createGroundUniforms(lampRect: { value: THREE.Vector4 }): Ground
     uReflection: { value: null },
     uReflMatrix: { value: new THREE.Matrix4() },
     uWet: { value: 1 },
+    uSignMap: { value: null },
   };
 }
