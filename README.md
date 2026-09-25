@@ -9,7 +9,7 @@ brief and its phases are in `docs/PLAN.md`.
 ## First run
 
 ```bash
-git init && git lfs install
+git init
 npm install
 npx playwright install chromium
 npm run assets        # first run pins your Blender version in pipeline.config.json

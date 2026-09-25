@@ -81,4 +81,5 @@ Keep commits scoped to one asset family or one feature.
 ## Environment
 - Blender: version pinned in `pipeline.config.json`. Binary from `BLENDER_BIN`, then
   config `blender.path`, then the macOS default, then `blender` on PATH.
-- Node 22+. Git LFS required (`git lfs install`).
+- Node 22+. No Git LFS: generated GLBs and screenshots are small and committed as regular files.
+- Blender is transient: generators run headless and export GLB; `.blend` files are never saved or committed.
