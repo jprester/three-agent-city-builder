@@ -4,29 +4,64 @@ This file is binding for every visual decision. The human owns it; agents
 propose changes to it but never silently deviate from it. When the same
 feedback comes up twice in review, it becomes a rule here.
 
-## Mood
-Placeholder, replace per project. Example: dense, rain-soaked late-night
-city. Oppressive verticality, most light coming from windows and signage
-rather than the sky. Lived-in and worn, never showroom-clean.
+## Reference world
+
+The reference is a late-20th-century Asian megacity pushed one step into the
+future: Mong Kok, Kowloon and Nathan Road density; Y2K techno-optimism gone
+shabby; wet streets at 2 a.m. The city is old, crowded and lived-in, with newer
+glass towers rising out of it. It should not read as clean chrome.
+
+## The one bold element
+
+The hero element is the street canyon. At street level, looking up through a
+narrow gap, neon signs project over the road from both sides. The wet asphalt
+reflects all of it as long vertical smears.
+
+Everything else supports this shot and stays comparatively quiet.
+
+## Light
+
+Light should mostly be practical and motivated: sodium lamps, fluorescent tubes
+in apartments, warm tungsten, TV flicker. Saturated neon is an accent, not the
+base.
+
+Do not default to magenta and cyan everywhere.
+
+## Details that sell it
+
+- rooftop clutter
+- AC units dotting facades
+- blinds in some windows
+- a TV-blue flicker in a few
+- elevated walkways or a flyover
+- steam or haze at street level
+- rain
 
 ## Palette
+
 Colors come only from `palette.json`, referenced by name in generators and
-runtime code. No hex literals in generators. Add a named color here first.
+runtime code. No hex literals in generators. Add a named color there first.
 
-## Materials
-- Concrete: rough (0.8-0.95), never pure flat grey; vary between the three
-  concrete tones per building.
-- Metal: dark, semi-rough (0.4-0.6), used for frames, rails, rooftop units.
-- Glass: dark and slightly reflective when unlit; lit windows are emissive,
-  mostly warm interior tones with neon as the minority accent.
+| Name | Use |
+|---|---|
+| `sodium` | street lamps, lamp pools |
+| `fluorescent` | apartment tube light |
+| `tungsten` | warm interior light |
+| `tv_blue` | rare TV flicker |
+| `sign_red`, `sign_amber` | neon accents |
+| `sign_cyan` | neon accent, used sparingly |
+| `haze` | fog and street-level haze |
+| `sky` | night sky |
+| `concrete`, `concrete_dark`, `tile_stained` | facades |
+| `metal_dark` | frames, rails, rooftop units |
+| `glass_dark` | unlit glass |
+| `road_wet` | asphalt |
+| `sidewalk` | pavements |
 
-## Do
-- Break up large flat surfaces with ledges, setbacks, rooftop clutter.
-- Keep emissive accents sparse enough that they read as accents.
-
-## Don't
-- No saturated colors on large surfaces.
-- No perfectly regular window lighting; lit ratio is always randomized.
+Legacy keys still referenced by the template's sample generators and defs are
+kept as aliases of the colors above: `concrete_light` = `tile_stained`,
+`warm_interior` = `tungsten`, `neon_amber` = `sign_amber`, `neon_cyan` =
+`sign_cyan`, `neon_magenta` = `sign_red`. New code uses the new names.
 
 ## References
 Mood images live in `references/`. Describe what each one is for in a line

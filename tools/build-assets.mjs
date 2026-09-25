@@ -70,11 +70,13 @@ function pythonDeps(file, seen = new Set()) {
     const base = path.join(P.generators, ...mod.split('.'));
     for (const cand of [`${base}.py`, path.join(base, '__init__.py')]) pythonDeps(cand, seen);
   };
-  for (const m of src.matchAll(/^\s*from\s+([\w.]+)\s+import\s+\(?([\w\s,]+)\)?/gm)) {
+  // [ \t] rather than \s: \s spans newlines, which let one match swallow the next import line.
+  for (const m of src.matchAll(/^[ \t]*from[ \t]+([\w.]+)[ \t]+import[ \t]+(\([^)]*\)|[^\n#]+)/gm)) {
     resolve(m[1]);
-    for (const name of m[2].split(',').map((s) => s.trim().split(/\s+/)[0]).filter(Boolean)) resolve(`${m[1]}.${name}`);
+    const names = m[2].replace(/[()]/g, '').split(',').map((s) => s.trim().split(/\s+/)[0]).filter(Boolean);
+    for (const name of names) resolve(`${m[1]}.${name}`);
   }
-  for (const m of src.matchAll(/^\s*import\s+([\w.,\s]+)$/gm)) {
+  for (const m of src.matchAll(/^[ \t]*import[ \t]+([\w., \t]+)$/gm)) {
     for (const mod of m[1].split(',').map((s) => s.trim().split(/\s+/)[0]).filter(Boolean)) resolve(mod);
   }
   return seen;

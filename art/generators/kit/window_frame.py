@@ -20,11 +20,18 @@ def lit_material(ctx, color_name, strength=4.0):
 
 
 def build_window(mb, u0, u1, z0, z1, frame_mat, pane_mat, xf=None, frame=0.08, depth=0.12):
-    """Frame protrudes `depth` in front of the wall plane; pane sits just in front of it.
+    """Frame protrudes `depth` in front of the wall plane. Its front is a ring of four
+    trapezoids around the pane, coplanar with it and sharing its corners, so nothing
+    overlaps the pane (no z-fighting) and there are no T-junctions.
     Back face is skipped (it is inside the wall)."""
-    mb.box(u0 - frame, u1 + frame, -depth, 0.0, z0 - frame, z1 + frame, frame_mat, xf, skip=("back",))
-    y = -depth - 0.005
-    mb.quad([(u0, y, z0), (u1, y, z0), (u1, y, z1), (u0, y, z1)], pane_mat, xf)
+    mb.box(u0 - frame, u1 + frame, -depth, 0.0, z0 - frame, z1 + frame, frame_mat, xf, skip=("back", "front"))
+    y = -depth
+    outer = [(u0 - frame, y, z0 - frame), (u1 + frame, y, z0 - frame), (u1 + frame, y, z1 + frame), (u0 - frame, y, z1 + frame)]
+    inner = [(u0, y, z0), (u1, y, z0), (u1, y, z1), (u0, y, z1)]
+    for i in range(4):
+        j = (i + 1) % 4
+        mb.quad([outer[i], outer[j], inner[j], inner[i]], frame_mat, xf)
+    mb.quad(inner, pane_mat, xf)
 
 
 def generate(ctx):

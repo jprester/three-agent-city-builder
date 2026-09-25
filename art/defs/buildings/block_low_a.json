@@ -11,6 +11,8 @@
     "lit_colors": { "warm_interior": 5, "neon_amber": 1 },
     "ledge_every": 1,
     "sign_color": "neon_amber",
-    "roof_units": 2
+    "roof_units": 2,
+    "emission_strength": 1.5,
+    "sign_strength": 2.5
   }
 }

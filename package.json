@@ -1,5 +1,5 @@
 {
-  "name": "three-agent-template",
+  "name": "night-city",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -17,9 +17,12 @@
     "shots": "playwright test",
     "shots:approve": "playwright test --update-snapshots=all",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "check": "npm run typecheck && npm run budgets"
   },
   "dependencies": {
+    "lil-gui": "0.21.0",
+    "postprocessing": "6.39.5",
     "three": "0.186.1"
   },
   "devDependencies": {
@@ -31,6 +34,7 @@
     "@types/three": "0.186.0",
     "meshoptimizer": "1.2.0",
     "typescript": "7.0.2",
-    "vite": "8.3.1"
+    "vite": "8.3.1",
+    "vitest": "5.0.2"
   }
 }

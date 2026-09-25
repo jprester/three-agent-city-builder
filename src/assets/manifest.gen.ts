@@ -2,9 +2,15 @@
 import type { AssetEntry } from './types';
 
 export const ASSETS = {
+  "buildings/block_low_a": { url: "assets/buildings/block_low_a.glb", category: "buildings" },
+  "buildings/tower_a": { url: "assets/buildings/tower_a.glb", category: "buildings" },
+  "buildings/tower_b": { url: "assets/buildings/tower_b.glb", category: "buildings" },
+  "kit/wall_panel_a": { url: "assets/kit/wall_panel_a.glb", category: "kit" },
+  "kit/window_a": { url: "assets/kit/window_a.glb", category: "kit" },
 } as const satisfies Record<string, AssetEntry>;
 
 export const LAYOUTS = {
+  "district_a": "layouts/district_a.json",
 } as const satisfies Record<string, string>;
 
 export type AssetId = keyof typeof ASSETS;

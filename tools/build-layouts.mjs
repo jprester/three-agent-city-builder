@@ -9,7 +9,9 @@ import { P, isMain, listDefs, listFiles, readJson, writeJson } from './lib/commo
 function assertBrowserSafe() {
   for (const file of listFiles(P.layoutGenerators, '.mjs')) {
     const src = fs.readFileSync(file, 'utf8');
-    const hit = src.match(/from\s+['"]node:|require\(|\bprocess\.|import\(['"]node:/);
+    // Also catches bare builtin specifiers (`from 'fs'`), which Node resolves but browsers cannot.
+    const builtins = 'fs|path|os|url|crypto|child_process|util|stream|buffer|module|worker_threads';
+    const hit = src.match(new RegExp(`from\\s+['"](node:|(${builtins})(/[\\w/]*)?['"])|require\\(|\\bprocess\\b|import\\(\\s*['"](node:|(${builtins})['"])`));
     if (hit) throw new Error(`${path.relative(P.layoutGenerators, file)} uses a Node API (${hit[0]}); layout generators must be browser-safe.`);
   }
 }

@@ -1,0 +1,1184 @@
+{
+  "name": "district_a",
+  "version": 1,
+  "generator": "grid_district",
+  "seed": 7,
+  "size": [
+    232,
+    232
+  ],
+  "blocks": [
+    {
+      "min": [
+        -104,
+        -104
+      ],
+      "max": [
+        -72,
+        -72
+      ]
+    },
+    {
+      "min": [
+        -104,
+        -60
+      ],
+      "max": [
+        -72,
+        -28
+      ]
+    },
+    {
+      "min": [
+        -104,
+        -16
+      ],
+      "max": [
+        -72,
+        16
+      ]
+    },
+    {
+      "min": [
+        -104,
+        28
+      ],
+      "max": [
+        -72,
+        60
+      ]
+    },
+    {
+      "min": [
+        -104,
+        72
+      ],
+      "max": [
+        -72,
+        104
+      ]
+    },
+    {
+      "min": [
+        -60,
+        -104
+      ],
+      "max": [
+        -28,
+        -72
+      ]
+    },
+    {
+      "min": [
+        -60,
+        -60
+      ],
+      "max": [
+        -28,
+        -28
+      ]
+    },
+    {
+      "min": [
+        -60,
+        -16
+      ],
+      "max": [
+        -28,
+        16
+      ]
+    },
+    {
+      "min": [
+        -60,
+        28
+      ],
+      "max": [
+        -28,
+        60
+      ]
+    },
+    {
+      "min": [
+        -60,
+        72
+      ],
+      "max": [
+        -28,
+        104
+      ]
+    },
+    {
+      "min": [
+        -16,
+        -104
+      ],
+      "max": [
+        16,
+        -72
+      ]
+    },
+    {
+      "min": [
+        -16,
+        -60
+      ],
+      "max": [
+        16,
+        -28
+      ]
+    },
+    {
+      "min": [
+        -16,
+        -16
+      ],
+      "max": [
+        16,
+        16
+      ]
+    },
+    {
+      "min": [
+        -16,
+        28
+      ],
+      "max": [
+        16,
+        60
+      ]
+    },
+    {
+      "min": [
+        -16,
+        72
+      ],
+      "max": [
+        16,
+        104
+      ]
+    },
+    {
+      "min": [
+        28,
+        -104
+      ],
+      "max": [
+        60,
+        -72
+      ]
+    },
+    {
+      "min": [
+        28,
+        -60
+      ],
+      "max": [
+        60,
+        -28
+      ]
+    },
+    {
+      "min": [
+        28,
+        -16
+      ],
+      "max": [
+        60,
+        16
+      ]
+    },
+    {
+      "min": [
+        28,
+        28
+      ],
+      "max": [
+        60,
+        60
+      ]
+    },
+    {
+      "min": [
+        28,
+        72
+      ],
+      "max": [
+        60,
+        104
+      ]
+    },
+    {
+      "min": [
+        72,
+        -104
+      ],
+      "max": [
+        104,
+        -72
+      ]
+    },
+    {
+      "min": [
+        72,
+        -60
+      ],
+      "max": [
+        104,
+        -28
+      ]
+    },
+    {
+      "min": [
+        72,
+        -16
+      ],
+      "max": [
+        104,
+        16
+      ]
+    },
+    {
+      "min": [
+        72,
+        28
+      ],
+      "max": [
+        104,
+        60
+      ]
+    },
+    {
+      "min": [
+        72,
+        72
+      ],
+      "max": [
+        104,
+        104
+      ]
+    }
+  ],
+  "instances": [
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        -80,
+        0,
+        -96
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        -80,
+        0,
+        -80
+      ],
+      "rotationY": 0,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        -96,
+        0,
+        -52
+      ],
+      "rotationY": -1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        -96,
+        0,
+        -36
+      ],
+      "rotationY": -1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        -80,
+        0,
+        -52
+      ],
+      "rotationY": 3.142,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        -80,
+        0,
+        -36
+      ],
+      "rotationY": 0,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        -96,
+        0,
+        -8
+      ],
+      "rotationY": -1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        -96,
+        0,
+        8
+      ],
+      "rotationY": 0,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        -80,
+        0,
+        -8
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        -80,
+        0,
+        8
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        -96,
+        0,
+        36
+      ],
+      "rotationY": -1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        -96,
+        0,
+        52
+      ],
+      "rotationY": -1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        -80,
+        0,
+        36
+      ],
+      "rotationY": 3.142,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        -96,
+        0,
+        80
+      ],
+      "rotationY": -1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        -96,
+        0,
+        96
+      ],
+      "rotationY": 0,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        -80,
+        0,
+        80
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        -80,
+        0,
+        96
+      ],
+      "rotationY": 0,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        -52,
+        0,
+        -96
+      ],
+      "rotationY": 3.142,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        -52,
+        0,
+        -80
+      ],
+      "rotationY": 0,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        -36,
+        0,
+        -96
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        -36,
+        0,
+        -80
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        -52,
+        0,
+        -52
+      ],
+      "rotationY": -1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        -52,
+        0,
+        -36
+      ],
+      "rotationY": -1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        -36,
+        0,
+        -52
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        -36,
+        0,
+        -36
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        -52,
+        0,
+        -8
+      ],
+      "rotationY": 3.142,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        -52,
+        0,
+        8
+      ],
+      "rotationY": -1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        -36,
+        0,
+        -8
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        -36,
+        0,
+        8
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        -52,
+        0,
+        36
+      ],
+      "rotationY": 3.142,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        -36,
+        0,
+        36
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        -52,
+        0,
+        80
+      ],
+      "rotationY": -1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        -52,
+        0,
+        96
+      ],
+      "rotationY": 0,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        -36,
+        0,
+        80
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        -36,
+        0,
+        96
+      ],
+      "rotationY": 0,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        -8,
+        0,
+        -96
+      ],
+      "rotationY": -1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        -8,
+        0,
+        -80
+      ],
+      "rotationY": 0,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        8,
+        0,
+        -96
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        8,
+        0,
+        -80
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        -8,
+        0,
+        -52
+      ],
+      "rotationY": 3.142,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        -8,
+        0,
+        -36
+      ],
+      "rotationY": -1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        8,
+        0,
+        -52
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        8,
+        0,
+        -36
+      ],
+      "rotationY": 0,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        -8,
+        0,
+        -8
+      ],
+      "rotationY": 3.142,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        8,
+        0,
+        -8
+      ],
+      "rotationY": 3.142,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        8,
+        0,
+        8
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        -8,
+        0,
+        36
+      ],
+      "rotationY": 3.142,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        -8,
+        0,
+        52
+      ],
+      "rotationY": 0,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        8,
+        0,
+        36
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        8,
+        0,
+        52
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        -8,
+        0,
+        80
+      ],
+      "rotationY": 3.142,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        -8,
+        0,
+        96
+      ],
+      "rotationY": 0,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        8,
+        0,
+        80
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        8,
+        0,
+        96
+      ],
+      "rotationY": 0,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        36,
+        0,
+        -96
+      ],
+      "rotationY": 3.142,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        36,
+        0,
+        -80
+      ],
+      "rotationY": 0,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        52,
+        0,
+        -96
+      ],
+      "rotationY": 3.142,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        52,
+        0,
+        -80
+      ],
+      "rotationY": 0,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        36,
+        0,
+        -52
+      ],
+      "rotationY": -1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        36,
+        0,
+        -36
+      ],
+      "rotationY": 0,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        52,
+        0,
+        -52
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        52,
+        0,
+        -36
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        36,
+        0,
+        -8
+      ],
+      "rotationY": -1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        36,
+        0,
+        8
+      ],
+      "rotationY": 0,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        52,
+        0,
+        -8
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        52,
+        0,
+        8
+      ],
+      "rotationY": 0,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        36,
+        0,
+        36
+      ],
+      "rotationY": -1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        36,
+        0,
+        52
+      ],
+      "rotationY": 0,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        52,
+        0,
+        36
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        52,
+        0,
+        52
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        36,
+        0,
+        80
+      ],
+      "rotationY": -1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        36,
+        0,
+        96
+      ],
+      "rotationY": -1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        52,
+        0,
+        80
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        52,
+        0,
+        96
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        80,
+        0,
+        -96
+      ],
+      "rotationY": 3.142,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        80,
+        0,
+        -80
+      ],
+      "rotationY": -1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        96,
+        0,
+        -96
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        96,
+        0,
+        -80
+      ],
+      "rotationY": 0,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        80,
+        0,
+        -52
+      ],
+      "rotationY": -1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        80,
+        0,
+        -36
+      ],
+      "rotationY": -1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        96,
+        0,
+        -52
+      ],
+      "rotationY": 3.142,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        96,
+        0,
+        -36
+      ],
+      "rotationY": 0,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        80,
+        0,
+        -8
+      ],
+      "rotationY": 3.142,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        80,
+        0,
+        8
+      ],
+      "rotationY": -1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        96,
+        0,
+        8
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        80,
+        0,
+        36
+      ],
+      "rotationY": 3.142,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        80,
+        0,
+        52
+      ],
+      "rotationY": 0,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_a",
+      "position": [
+        96,
+        0,
+        36
+      ],
+      "rotationY": 3.142,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        96,
+        0,
+        52
+      ],
+      "rotationY": 0,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        80,
+        0,
+        80
+      ],
+      "rotationY": -1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/block_low_a",
+      "position": [
+        96,
+        0,
+        80
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    },
+    {
+      "asset": "buildings/tower_b",
+      "position": [
+        96,
+        0,
+        96
+      ],
+      "rotationY": 1.571,
+      "scale": 1
+    }
+  ]
+}

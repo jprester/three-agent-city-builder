@@ -12,6 +12,8 @@ export interface Layout {
   size: [number, number];
   blocks: { min: [number, number]; max: [number, number] }[];
   instances: LayoutInstance[];
+  /** Camera path for the cinematic flythrough (three.js space). Optional until the city layout provides it. */
+  flythrough?: { points: [number, number, number][]; closed?: boolean };
 }
 
 export async function fetchLayout(url: string): Promise<Layout> {

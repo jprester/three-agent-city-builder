@@ -4,9 +4,12 @@ import type { Layout } from '../systems/layout';
 
 const color = (name: keyof typeof palette) => new THREE.Color(palette[name]);
 
-export function createRenderer(): THREE.WebGLRenderer {
+/** Ground plane edge length (m). Larger than twice the camera far plane so its edge is never on screen. */
+const GROUND_SIZE = 5000;
+
+export function createRenderer(maxPixelRatio: number): THREE.WebGLRenderer {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxPixelRatio));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.1;
@@ -17,7 +20,7 @@ export function createRenderer(): THREE.WebGLRenderer {
 export function createScene(): THREE.Scene {
   const scene = new THREE.Scene();
   scene.background = color('sky');
-  scene.fog = new THREE.FogExp2(color('fog'), 0.0022);
+  scene.fog = new THREE.FogExp2(color('haze'), 0.0022);
 
   scene.add(new THREE.HemisphereLight(0x3a4a66, 0x0a0b0f, 0.6));
   const moon = new THREE.DirectionalLight(0x8fa6d8, 0.5);
@@ -29,10 +32,9 @@ export function createScene(): THREE.Scene {
 /** Ground plane plus raised sidewalk slabs for each block in the layout. */
 export function createGround(layout: Layout | null): THREE.Group {
   const group = new THREE.Group();
-  const [w, d] = layout?.size ?? [400, 400];
   const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(w * 3, d * 3),
-    new THREE.MeshStandardMaterial({ color: color('road'), roughness: 0.6, metalness: 0.1 }),
+    new THREE.PlaneGeometry(GROUND_SIZE, GROUND_SIZE),
+    new THREE.MeshStandardMaterial({ color: color('road_wet'), roughness: 0.6, metalness: 0.1 }),
   );
   ground.rotation.x = -Math.PI / 2;
   group.add(ground);
