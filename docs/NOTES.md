@@ -271,3 +271,10 @@ wanted; we keep our palette. New viewpoint `skyline` matches the screenshot's fr
 - Canyon walls are still evenly brown-lit end to end; real streets have pools and shadow.
 - Rooflines are still clean boxes (step 3: tanks on stands, antennas, cranes, skybridges).
 - Screens still pale; no mid-height vertical signs (step 4).
+
+### Human review: window spill (chat, 2026-09-25)
+- Window light spread "in a weird discrete way" around each window. Cause: the glow was cut
+  at the cell border and its falloff followed the window rectangle, so each lit window wore
+  a square frame of light. Fix: faint elliptical glow summed over the 3×3 neighboring
+  windows (seamless), and most of the light moved to the lit reveal (recess) right around
+  the opening, which is where real window light lands.

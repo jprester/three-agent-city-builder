@@ -239,6 +239,23 @@ vec3 room(vec2 wp, vec2 wsize, vec3 vt, vec3 col, float h) {
   return col * paint * c * light;
 }
 
+// Light of the window in cell cid (0 if unlit): same hashes and rules as windowLayer, so
+// neighboring cells can contribute spill without seams at cell borders.
+vec3 cellLight(int type, vec2 cid, float fill, float seed) {
+  float s = seed * 97.13;
+  if (fHash(cid + s) > fill) return vec3(0.0);
+  float litRatio = mix(0.25, 0.55, fract(seed * 7.31));
+  if (type == T_OFFICE || type == T_CURTAIN) {
+    litRatio *= type == T_CURTAIN ? 0.3 : 0.5;
+    float floorOn = fHash(vec2(cid.y, floor(cid.x / 7.0) + s + 3.1));
+    litRatio *= floorOn < 0.45 ? 0.0 : floorOn > 0.9 ? 3.0 : 1.0;
+  }
+  if (fHash(cid + s + 17.7) > litRatio) return vec3(0.0);
+  float hTemp = fHash(cid + s + 5.3);
+  vec3 col = hTemp < 0.62 ? P_TUNGSTEN : hTemp < 0.8 ? mix(P_TUNGSTEN, P_SODIUM, 0.55) : hTemp < 0.94 ? P_FLUORESCENT : P_TV;
+  return col * mix(0.9, 2.2, fHash(cid + s + 2.9));
+}
+
 // Window layer for residential / office / curtain facades (cage reuses residential).
 void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, out vec3 emit, out float mask, out float frame,
                  out vec3 cellEmit, out vec3 rowEmit, out vec3 avgEmit, out float windowFrac, out float around,
@@ -300,11 +317,20 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
   // Recess shadow just around the opening.
   around = present * max(fBox(p.x, r.x - 0.14, r.y + 0.14, fw.x) * fBox(p.y, r.z - 0.1, r.w + 0.12, fw.y) - mask, 0.0);
 
-  // Light from a lit window falls on the wall around it: falloff from the opening's edge.
+  // Light from lit windows: a faint round glow on the wall from every window in the 3×3
+  // neighborhood (elliptical falloff from the window center, so no rectangular contours),
+  // plus the lit reveal: the recess right around this cell's own opening.
   vec2 wc = (r.xz + r.yw) * 0.5, wh = (r.yw - r.xz) * 0.5;
-  float wd = length(max(abs(p - wc) - wh, 0.0));
-  spill = lit * col * inten * 0.55 * exp(-wd / 0.22) * (1.0 - mask) * (0.6 + 0.4 * step(p.y, wc.y));
-  avgSpill = fill * min(litRatio, 1.0) * mix(P_TUNGSTEN, P_SODIUM, 0.2) * 1.45 * 0.06;
+  spill = vec3(0.0);
+  for (int j = -1; j <= 1; j++) for (int i = -1; i <= 1; i++) {
+    vec2 o = vec2(float(i), float(j));
+    vec3 L = cellLight(type, cid + o, fill, seed);
+    vec2 q2 = (p - (wc + o * cell)) / (wh + vec2(0.9, 0.8));
+    spill += L * exp(-dot(q2, q2) * 2.2);
+  }
+  spill *= 0.035 * (1.0 - mask);
+  spill += lit * col * inten * 0.3 * around;
+  avgSpill = fill * min(litRatio, 1.0) * mix(P_TUNGSTEN, P_SODIUM, 0.2) * 1.45 * 0.03;
 
   // Unlit glass reflects the sky glow; lit glass shows the room.
   vec3 rv = reflect(-vt, vec3(0.0, 0.0, 1.0));
