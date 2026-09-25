@@ -1,0 +1,36 @@
+{
+  "name": "three-agent-template",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "assets": "node tools/build-assets.mjs",
+    "layouts": "node tools/build-layouts.mjs && node tools/manifest.mjs",
+    "manifest": "node tools/manifest.mjs",
+    "budgets": "node tools/check-budgets.mjs",
+    "shots": "playwright test",
+    "shots:approve": "playwright test --update-snapshots=all",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run budgets"
+  },
+  "dependencies": {
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "@gltf-transform/core": "4.5.0",
+    "@gltf-transform/extensions": "4.5.0",
+    "@gltf-transform/functions": "4.5.0",
+    "@playwright/test": "1.63.0",
+    "@types/node": "26.6.2",
+    "@types/three": "0.186.0",
+    "meshoptimizer": "1.2.0",
+    "typescript": "7.0.2",
+    "vite": "8.3.1"
+  }
+}

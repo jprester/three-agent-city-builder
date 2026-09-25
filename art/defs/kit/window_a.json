@@ -1,0 +1,10 @@
+{
+  "generator": "kit/window_frame",
+  "seed": 1,
+  "params": {
+    "width": 1.4,
+    "height": 1.8,
+    "lit": true,
+    "lit_color": "warm_interior"
+  }
+}

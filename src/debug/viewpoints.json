@@ -1,0 +1,5 @@
+[
+  { "name": "overview", "position": [-150, 110, 170], "target": [0, 10, 0] },
+  { "name": "street", "position": [22, 1.7, 110], "target": [22, 22, 0] },
+  { "name": "rooftops", "position": [40, 85, 40], "target": [0, 40, -40] }
+]

@@ -1,0 +1,15 @@
+{
+  "concrete": "#3b3e44",
+  "concrete_dark": "#2a2c31",
+  "concrete_light": "#55585e",
+  "metal_dark": "#1c1e22",
+  "glass_dark": "#0d1520",
+  "neon_cyan": "#22e5ff",
+  "neon_magenta": "#ff2bd6",
+  "neon_amber": "#ffb347",
+  "warm_interior": "#ffd9a0",
+  "sky": "#060910",
+  "fog": "#0b1019",
+  "road": "#0f1115",
+  "sidewalk": "#1e2026"
+}

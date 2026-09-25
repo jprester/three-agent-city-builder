@@ -1,0 +1,9 @@
+{
+  "generator": "kit/wall_panel",
+  "seed": 1,
+  "params": {
+    "width": 4.0,
+    "height": 3.2,
+    "ribs": 3
+  }
+}

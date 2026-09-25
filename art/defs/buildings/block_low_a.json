@@ -1,0 +1,16 @@
+{
+  "generator": "buildings/tower",
+  "seed": 555,
+  "params": {
+    "width": 14,
+    "depth": 12,
+    "floors": 5,
+    "body_color": "concrete_light",
+    "window_spacing": 2.6,
+    "lit_ratio": 0.5,
+    "lit_colors": { "warm_interior": 5, "neon_amber": 1 },
+    "ledge_every": 1,
+    "sign_color": "neon_amber",
+    "roof_units": 2
+  }
+}

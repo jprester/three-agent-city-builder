@@ -1,0 +1,25 @@
+{
+  "blender": {
+    "version": null,
+    "path": null
+  },
+  "previews": {
+    "enabled": true,
+    "engine": "workbench",
+    "resolution": 768
+  },
+  "budgets": {
+    "kit": {
+      "maxTriangles": 1500,
+      "maxKB": 64
+    },
+    "props": {
+      "maxTriangles": 3000,
+      "maxKB": 128
+    },
+    "buildings": {
+      "maxTriangles": 12000,
+      "maxKB": 512
+    }
+  }
+}
