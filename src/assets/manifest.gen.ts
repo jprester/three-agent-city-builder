@@ -2,10 +2,17 @@
 import type { AssetEntry } from './types';
 
 export const ASSETS = {
+  "buildings/carpark_a": { url: "assets/buildings/carpark_a.glb", category: "buildings", meta: {"footprint":[25.6,19.200000000000003],"height":21,"top":25.05,"family":"carpark","scalable":false,"shader":"facade"} },
+  "buildings/carpark_b": { url: "assets/buildings/carpark_b.glb", category: "buildings", meta: {"footprint":[32,22.400000000000002],"height":27,"top":31.05,"family":"carpark","scalable":false,"shader":"facade"} },
+  "buildings/estate_a": { url: "assets/buildings/estate_a.glb", category: "buildings", meta: {"footprint":[35.2,25.6],"height":81.60000000000001,"top":84.4,"family":"estate","scalable":false,"shader":"facade"} },
+  "buildings/estate_b": { url: "assets/buildings/estate_b.glb", category: "buildings", meta: {"footprint":[44.800000000000004,28.8],"height":99.60000000000001,"top":102.4,"family":"estate","scalable":false,"shader":"facade"} },
   "buildings/midrise_a": { url: "assets/buildings/midrise_a.glb", category: "buildings", meta: {"billboard":{"width":12,"height":5,"z":39.2,"y":-3.8000000000000007},"footprint":[22.400000000000002,16],"height":38.2,"top":44.2,"family":"midrise","scalable":false,"shader":"facade"} },
   "buildings/midrise_b": { url: "assets/buildings/midrise_b.glb", category: "buildings", meta: {"footprint":[19.200000000000003,19.200000000000003],"height":49,"top":50.8,"family":"midrise","scalable":false,"shader":"facade"} },
   "buildings/midrise_c": { url: "assets/buildings/midrise_c.glb", category: "buildings", meta: {"footprint":[32,25.6],"height":11.8,"top":13.833941896159873,"family":"midrise","scalable":false,"shader":"facade"} },
   "buildings/midrise_d": { url: "assets/buildings/midrise_d.glb", category: "buildings", meta: {"footprint":[25.6,19.200000000000003],"height":8.2,"top":10,"family":"midrise","scalable":false,"shader":"facade"} },
+  "buildings/midrise_e": { url: "assets/buildings/midrise_e.glb", category: "buildings", meta: {"billboard":{"width":12,"height":5,"z":46.4,"y":-3.8000000000000007},"footprint":[22.400000000000002,16],"height":45.4,"top":51.4,"family":"midrise","scalable":false,"shader":"facade"} },
+  "buildings/midrise_f": { url: "assets/buildings/midrise_f.glb", category: "buildings", meta: {"footprint":[25.6,22.400000000000002],"height":50.8,"top":52.599999999999994,"family":"midrise","scalable":false,"shader":"facade"} },
+  "buildings/midrise_g": { url: "assets/buildings/midrise_g.glb", category: "buildings", meta: {"footprint":[19.200000000000003,16],"height":55,"top":56.8,"family":"midrise","scalable":false,"shader":"facade"} },
   "buildings/slab_a": { url: "assets/buildings/slab_a.glb", category: "buildings", meta: {"footprint":[19.200000000000003,12.8],"height":53.8,"top":55.811382622798625,"family":"slab","scalable":false,"shader":"facade"} },
   "buildings/slab_b": { url: "assets/buildings/slab_b.glb", category: "buildings", meta: {"footprint":[16,12.8],"height":65.8,"top":67.8,"family":"slab","scalable":false,"shader":"facade"} },
   "buildings/slab_c": { url: "assets/buildings/slab_c.glb", category: "buildings", meta: {"footprint":[12.8,16],"height":44.8,"top":46.8,"family":"slab","scalable":false,"shader":"facade"} },
@@ -30,6 +37,10 @@ export const ASSETS = {
   "buildings/tower_j": { url: "assets/buildings/tower_j.glb", category: "buildings", meta: {"footprint":[27,24],"height":227.99999999999997,"family":"tower","scalable":true,"shader":"facade"} },
   "buildings/tower_k": { url: "assets/buildings/tower_k.glb", category: "buildings", meta: {"footprint":[21,21],"height":261.19999999999993,"family":"tower","scalable":true,"shader":"facade"} },
   "buildings/tower_l": { url: "assets/buildings/tower_l.glb", category: "buildings", meta: {"footprint":[30,21],"height":222.79999999999998,"family":"tower","scalable":true,"shader":"facade"} },
+  "buildings/walkup_a": { url: "assets/buildings/walkup_a.glb", category: "buildings", meta: {"footprint":[9.600000000000001,12.8],"height":23.900000000000002,"top":25.6,"family":"walkup","scalable":false,"shader":"facade"} },
+  "buildings/walkup_b": { url: "assets/buildings/walkup_b.glb", category: "buildings", meta: {"footprint":[6.4,16],"height":26.900000000000002,"top":28.376605498481947,"family":"walkup","scalable":false,"shader":"facade"} },
+  "buildings/walkup_c": { url: "assets/buildings/walkup_c.glb", category: "buildings", meta: {"footprint":[12.8,12.8],"height":20.900000000000002,"top":22.6,"family":"walkup","scalable":false,"shader":"facade"} },
+  "buildings/walkup_d": { url: "assets/buildings/walkup_d.glb", category: "buildings", meta: {"footprint":[9.600000000000001,9.600000000000001],"height":29.900000000000002,"top":31.6,"family":"walkup","scalable":false,"shader":"facade"} },
   "kit/wall_panel_a": { url: "assets/kit/wall_panel_a.glb", category: "kit", meta: {} },
   "kit/window_a": { url: "assets/kit/window_a.glb", category: "kit", meta: {} },
   "props/street_lamp": { url: "assets/props/street_lamp.glb", category: "props", meta: {"height":8,"shader":"facade","family":"lamp"} },

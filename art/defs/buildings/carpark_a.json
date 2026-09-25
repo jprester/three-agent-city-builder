@@ -1,0 +1,10 @@
+{
+  "generator": "buildings/carpark",
+  "seed": 501,
+  "params": {
+    "width_bays": 8,
+    "depth_bays": 6,
+    "decks": 5,
+    "tint": 0.6
+  }
+}

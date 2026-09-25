@@ -1,0 +1,11 @@
+{
+  "generator": "buildings/estate",
+  "seed": 601,
+  "params": {
+    "width_bays": 11,
+    "depth_bays": 8,
+    "towers": 2,
+    "floors": 26,
+    "tint": 0.7
+  }
+}

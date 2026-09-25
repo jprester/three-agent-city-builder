@@ -45,13 +45,33 @@ def generate(ctx):
     cy = setback / 2
     top = ptop + floors * bh
     fill = ctx.p("fill", 1.0 if podium_floors > 0 else 0.35)
-    if body == "office" and podium_floors > 0:
+    step_every = ctx.p("step_every", 0)
+    kinds = [(body, fill, tint), (body, fill * ctx.p("side_fill", 0.5), tint),
+             (body, fill * 0.8, tint), (body, fill * ctx.p("side_fill", 0.5), tint)]
+    if body == "office" and podium_floors > 0 and not ctx.p("procedural", False):
         # Office bodies take a photographic facade like the towers.
         walls(mb, ctx, bw, bd, ptop, top, ptop, [("atlas", 1.0, tint)] * 4, 0.0, cy)
+    elif step_every:
+        # Wedding-cake body: steps in by one cell on every side every `step_every` floors.
+        z, k = ptop, 0
+        while z < top - 1e-6:
+            z1 = min(top, z + step_every * bh)
+            walls(mb, ctx, bw, bd, z, z1, ptop, kinds, 0.0, cy)
+            if z1 < top - 1e-6:
+                flat_roof(mb, ctx, bw, bd, z1, tint, 0.0, cy, parapet=0.9)
+                bw, bd = bw - 2 * rw, bd - 2 * rw
+            z = z1
     else:
-        walls(mb, ctx, bw, bd, ptop, top, ptop, [
-            (body, fill, tint), (body, fill * ctx.p("side_fill", 0.5), tint),
-            (body, fill * 0.8, tint), (body, fill * ctx.p("side_fill", 0.5), tint)], 0.0, cy)
+        walls(mb, ctx, bw, bd, ptop, top, ptop, kinds, 0.0, cy)
+    if ctx.p("fins", False):
+        # Vertical concrete fins on the front, every other cell.
+        fw, xf = side_frame(0, bw, bd, 0.0, cy)
+        tm, ts = surf(ctx, "trim", 0.0, tint)
+        n = int(fw // (rw / 2))
+        for k in range(1, n):
+            u = -fw / 2 + k * rw / 2
+            if k % 2 == 0:
+                mb.box(u - 0.15, u + 0.15, -0.8, 0.0, ptop, top, tm, xf, ("back", "bottom"), ts, facade_uv(fw, ptop))
 
     if podium_floors == 0:
         # Industrial ground floor: roller doors and a lamp over each.

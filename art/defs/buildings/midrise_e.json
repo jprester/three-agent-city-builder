@@ -1,0 +1,15 @@
+{
+  "generator": "buildings/midrise",
+  "seed": 205,
+  "params": {
+    "width_bays": 7,
+    "depth_bays": 5,
+    "podium_floors": 2,
+    "floors": 10,
+    "body": "office",
+    "procedural": true,
+    "fins": true,
+    "tint": 0.35,
+    "billboard": true
+  }
+}

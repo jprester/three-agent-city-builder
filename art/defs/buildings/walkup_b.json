@@ -1,0 +1,11 @@
+{
+  "generator": "buildings/walkup",
+  "seed": 402,
+  "params": {
+    "bays": 2,
+    "depth_bays": 5,
+    "floors": 7,
+    "tint": 0.8,
+    "enclosed": 0.7
+  }
+}

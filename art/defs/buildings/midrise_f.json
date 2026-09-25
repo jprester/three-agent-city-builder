@@ -1,0 +1,14 @@
+{
+  "generator": "buildings/midrise",
+  "seed": 206,
+  "params": {
+    "width_bays": 8,
+    "depth_bays": 7,
+    "podium_floors": 1,
+    "floors": 15,
+    "body": "residential",
+    "step_every": 5,
+    "tint": 0.65,
+    "setback_bays": 0
+  }
+}
