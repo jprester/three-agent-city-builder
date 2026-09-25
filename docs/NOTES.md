@@ -155,3 +155,39 @@ Families (`node tools/debug/sheet.mjs 'buildings/*'`): 8 old slabs, 4 mid-rise/i
   don't read as emissive/real windows.
 - Towers look uniform: every one has the same ring on top.
 - Priority: better building materials/textures and more variety.
+
+## Building pass (after checkpoint 1, before phase 3)
+
+Addresses the checkpoint 1 review: flat buildings, windows not reading as lit windows,
+identical towers.
+
+### What changed
+- Towers and mid-rise office bodies: photographic facades from the human's High-Rise Atlas v1
+  bundles (21 facades), mapped at real floor height, offset per building by whole bays and
+  floors, with emissive interiors, normals and sky reflection in the glass. Eight tower
+  variants with six crown types; only two keep a lit band.
+- Residential/office windows: interior-mapped rooms (tinted walls, furniture, ceiling lamp,
+  parallax), frames with mullion and transom, recess shadow, blinds and curtains.
+- Walls: image materials (mosaic tile, concretes, panels, ribbed metal, slate) with
+  luminance relief, faded paint on ~45% of old slabs (new palette names), floor bands,
+  pilasters, grime streaks.
+- Sign light: a colored top-down sign map lights facades up to sign height and the wet
+  ground below. This is what finally makes the wall materials visible at night.
+- Slabs: floor ledges, bay-window runs, stepped tops; 12 slab variants (was 8).
+- New viewpoint `facade`: close detail of a hero-street slab.
+
+### Critique rounds
+1. Materials were invisible: nothing lit the walls. Sign spill fixed it, then overdid it
+   (walls near signs read like dusk); spill cut to ~40% and fades above ~14 m.
+2. Photographic albedo is daylight-bright; walls scaled down so they only show where light
+   reaches them.
+3. Moiré from cage bars, blinds and curtain folds at mid distance; each now fades to its
+   average coverage before aliasing.
+
+### Remaining (harsh)
+- Rooms behind lit windows are still a bit bright and similar; no people, no clutter.
+- Paint and tile are chosen per building but uniform over the whole building; real slabs
+  have patched, repainted, differently tiled floors.
+- Towers repeat a facade texture on all four sides; corners don't wrap.
+- `rooftops` is very dark: roofs get almost no light; rooftop clutter barely reads.
+- The Osaka bundle uses its emissive B map (A is a truncated PNG in the source folder).
