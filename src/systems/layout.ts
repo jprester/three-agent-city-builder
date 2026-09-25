@@ -66,6 +66,8 @@ export interface Layout {
   /** [x, z, arm angle, road id] */
   lamps?: [number, number, number, number][];
   signs?: LayoutSign[];
+  /** Enclosed bridges: centerline a→b on the ground plane, floor at y, `depth` tall. */
+  bridges?: { kind: 'sky' | 'foot'; a: Vec2; b: Vec2; y: number; width: number; depth: number }[];
   anchors?: Record<string, LayoutAnchor>;
   /** Camera path for the cinematic flythrough; `look` holds a look-at target per control point. */
   flythrough?: { points: Vec3[]; look?: Vec3[]; closed?: boolean };

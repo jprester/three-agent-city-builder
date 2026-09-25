@@ -85,6 +85,34 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     expect(bad.map((s) => s.position)).toEqual([]);
   });
 
+  it('keeps bridges clear of other buildings and the flythrough', async () => {
+    const L = await get();
+    expect(L.bridges!.length).toBeGreaterThan(5);
+    const boxes = L.instances.map(box);
+    const fly = L.flythrough!;
+    const curve = new THREE.CatmullRomCurve3(fly.points.map((p) => new THREE.Vector3(...p)), fly.closed ?? true);
+    const hits: string[] = [];
+    for (const b of L.bridges!) {
+      const d = G.norm(G.sub(b.b, b.a));
+      // Ends sit inside the buildings they connect: test the middle stretch only.
+      const inner = G.obb(G.lerp(b.a, b.b, 0.5), d, Math.max(G.dist(b.a, b.b) / 2 - (b.kind === 'sky' ? 0 : 1.0), 0.5), b.width / 2);
+      const ends = [b.a, b.b];
+      boxes.forEach((bx, k) => {
+        if (L.instances[k].h! < b.y) return;
+        if (ends.some((e) => G.insideConvex(bx.corners, e, 0.01))) return;   // a connected building
+        if (G.obbOverlap(bx, inner, 0.05)) hits.push(`${b.kind} bridge hits ${L.instances[k].asset}`);
+      });
+      for (let k = 0; k < 2000; k++) {
+        const p = curve.getPointAt(k / 2000);
+        if (p.y > b.y - 1.5 && p.y < b.y + b.depth + 3 && G.insideConvex(G.obb(inner.c, inner.u, inner.hu + 3, inner.hv + 3).corners, [p.x, p.z])) {
+          hits.push(`flythrough t=${(k / 2000).toFixed(3)} passes through a ${b.kind} bridge`);
+          break;
+        }
+      }
+    }
+    expect(hits.slice(0, 10)).toEqual([]);
+  });
+
   it('flies the camera around buildings, never through them', async () => {
     const L = await get();
     const fly = L.flythrough!;

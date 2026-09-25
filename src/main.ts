@@ -12,6 +12,7 @@ import { CityHazeEffect } from './scene/haze';
 import { createPost } from './scene/post';
 import { PlanarReflection } from './scene/reflection';
 import { createStreets } from './scene/streets';
+import { createBridges } from './scene/bridges';
 import { createSignAtlas } from './scene/signs/atlas';
 import { createSigns } from './scene/signs/signs';
 import { Clock, parseFrozenTime } from './systems/clock';
@@ -92,8 +93,11 @@ async function main() {
     groundUniforms.uLampMap.value = lamps.texture;
   }
   if (layout) {
-    const { group, missing } = await buildInstances(layout, new AssetLoader(), createFacadeMaterial(facadeUniforms));
+    const facadeMaterial = createFacadeMaterial(facadeUniforms);
+    const { group, missing } = await buildInstances(layout, new AssetLoader(), facadeMaterial);
     scene.add(group);
+    const bridges = createBridges(layout, facadeMaterial);
+    if (bridges) scene.add(bridges);
     if (missing.length) problems.push(`Layout references unbuilt assets: ${missing.join(', ')}`);
   }
   let signMap: THREE.Texture | null = null;

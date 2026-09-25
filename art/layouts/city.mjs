@@ -39,6 +39,11 @@ const DEFAULTS = {
   lampSpacing: { arterial: 30, secondary: 26, hero: 15, alley: 24 },
   flythrough: { cruise: 190, wide: 430 },
   // Signs per frontage building: hero street dense, old core sparse, elsewhere none.
+  // Enclosed bridges: skybridges between nearby towers, footbridges over core streets.
+  bridges: {
+    sky: { max: 7, perTower: 2, dist: [30, 95], height: [0.2, 0.5], width: 4.5, depth: 4.2 },
+    foot: { max: 16, hero: 2, perRoad: 2, spacing: 70, floor: [6.5, 9.0], width: 3.2, depth: 3.0, overlap: 4 },
+  },
   signs: {
     hero: { blades: [2, 5], bladeChance: 1, panelChance: 0.7 },
     core: { blades: [1, 1], bladeChance: 0.16, panelChance: 0.22 },
@@ -51,7 +56,7 @@ const EDGE_PRIORITY = { hero: 0, arterial: 1, secondary: 2, edge: 3, alley: 4 };
 export function generate({ params, seed, assets = {} }) {
   const P = { ...DEFAULTS, ...params };
   // Nested option groups merge with their defaults instead of replacing them.
-  for (const k of ['roads', 'sidewalks', 'lampSpacing', 'flythrough', 'signs']) P[k] = { ...DEFAULTS[k], ...(params[k] ?? {}) };
+  for (const k of ['roads', 'sidewalks', 'lampSpacing', 'flythrough', 'signs', 'bridges']) P[k] = { ...DEFAULTS[k], ...(params[k] ?? {}) };
   const D = {};
   for (const k of Object.keys(DISTRICT_DEFAULTS)) D[k] = { ...DISTRICT_DEFAULTS[k], ...(params.districts?.[k] ?? {}) };
   const rng = mulberry32(seed);
@@ -289,6 +294,18 @@ export function generate({ params, seed, assets = {} }) {
     }
   }
 
+  // ---- flythrough and bridges come before signs: bridges are structure, signs avoid them.
+  const flythrough = hero ? buildFlythrough(hero, instances, P, W, Dp) : undefined;
+  const bridges = buildBridges(P.bridges, instances, roads, [], lamps, hero, flythrough, rng);
+  const footBoxes = bridges.filter((b) => b.kind === 'foot').map((b) => ({
+    box: G.obb(G.lerp(b.a, b.b, 0.5), G.norm(G.sub(b.b, b.a)), G.dist(b.a, b.b) / 2 + 0.5, b.width / 2 + 0.6),
+    y0: b.y - 0.6, y1: b.y + b.depth + 0.6,
+  }));
+  const hitsBridge = (pos, rotationY, size) => {
+    const sb = G.obb([pos[0], pos[2]], [Math.cos(rotationY), -Math.sin(rotationY)], size[0] / 2, size[2] / 2);
+    return footBoxes.some((f) => pos[1] + size[1] / 2 > f.y0 && pos[1] - size[1] / 2 < f.y1 && G.obbOverlap(f.box, sb, 0));
+  };
+
   // ---- signs: blades project from the front face over the street, panels sit flat on it
   const signs = [];
   instances.forEach((inst, index) => {
@@ -315,14 +332,14 @@ export function generate({ params, seed, assets = {} }) {
         if (h < 1.2) continue;
         const y = rand(5.4, top - h) + h / 2;
         const out = 0.3 + w / 2;
-        signs.push({
+        const sgn = {
           building: index, kind: 'blade',
           position: [r3(front[0] + u[0] * off + v[0] * out), r3(y), r3(front[1] + u[1] * off + v[1] * out)],
           // A blade's faces look along the street: its normal is the facade's u axis.
           rotationY: r3(Math.atan2(u[0], u[1])),
           size: [r3(w), r3(h), 0.28],
-          seed: Math.floor(rng() * 2 ** 31),
-        });
+          seed: Math.floor(rng() * 2 ** 31),};
+        if (!hitsBridge(sgn.position, sgn.rotationY, sgn.size)) signs.push(sgn);
       }
     }
     if (rng() < cfg.panelChance && hu > 2.5) {
@@ -332,13 +349,13 @@ export function generate({ params, seed, assets = {} }) {
       const y = aboveCanopy ? 5.2 + h / 2 + rand(0, 1.5) : 3.4 + h / 2;
       const off = rand(-hu + w / 2 + 0.3, hu - w / 2 - 0.3);
       const out = aboveCanopy ? 0.2 : 0.12;
-      signs.push({
+      const sgn = {
         building: index, kind: 'panel',
         position: [r3(front[0] + u[0] * off + v[0] * out), r3(y), r3(front[1] + u[1] * off + v[1] * out)],
         rotationY: r3(t),
         size: [r3(w), r3(h), 0.2],
-        seed: Math.floor(rng() * 2 ** 31),
-      });
+        seed: Math.floor(rng() * 2 ** 31),};
+      if (!hitsBridge(sgn.position, sgn.rotationY, sgn.size)) signs.push(sgn);
     }
   });
 
@@ -354,7 +371,6 @@ export function generate({ params, seed, assets = {} }) {
     port: { origin: [portOrigin[0], 0, portOrigin[1]], x: G.norm(G.sub(P.towers.center, portOrigin)).map(r3) },
   };
 
-  const flythrough = hero ? buildFlythrough(hero, instances, P, W, Dp) : undefined;
 
   return {
     version: 2,
@@ -370,6 +386,7 @@ export function generate({ params, seed, assets = {} }) {
     anchors,
     instances,
     flythrough,
+    bridges,
   };
 }
 
@@ -428,6 +445,126 @@ function buildFlythrough(hero, instances, P, W, Dp) {
   key(entry, Math.max(150, clearance(wide, entry) + 40), at(40), 0);
   key(at(-7), 45, at(80), 8);
   return { points: pts, look, closed: true };
+}
+
+/** Oriented box of a layout instance's footprint. */
+function instanceBox(i) {
+  const t = i.rotationY;
+  return G.obb([i.position[0], i.position[2]], [Math.cos(t), -Math.sin(t)], i.fp[0], i.fp[1]);
+}
+
+/** Dense samples of the flythrough (uniform Catmull-Rom through the control points). */
+function sampleFlythrough(fly) {
+  if (!fly) return [];
+  const P = fly.points, n = P.length, out = [];
+  for (let k = 0; k < n; k++) {
+    const p0 = P[(k - 1 + n) % n], p1 = P[k], p2 = P[(k + 1) % n], p3 = P[(k + 2) % n];
+    for (let s = 0; s < 1; s += 0.02) {
+      const s2 = s * s, s3 = s2 * s;
+      out.push([0, 1, 2].map((c) => 0.5 * (2 * p1[c] + (-p0[c] + p2[c]) * s + (2 * p0[c] - 5 * p1[c] + 4 * p2[c] - p3[c]) * s2 + (-p0[c] + 3 * p1[c] - 3 * p2[c] + p3[c]) * s3)));
+    }
+  }
+  return out;
+}
+
+/**
+ * Enclosed bridges. Each is { kind, a, b, y, width, depth }: centerline from a to b ([x, z]),
+ * floor at y, `depth` tall, `width` wide. Skybridges run between tower centers (their ends are
+ * hidden inside the towers); footbridges run from one shopfront across the street to the one
+ * opposite. Rejected when they would hit another building, a sign, a lamp, another bridge or
+ * the flythrough.
+ */
+function buildBridges(cfg, instances, roads, signs, lamps, hero, fly, rng) {
+  const rand = (lo, hi) => lo + (hi - lo) * rng();
+  const flyPts = sampleFlythrough(fly);
+  const boxes = instances.map(instanceBox);
+  const out = [];
+  const bridgeBox = (a, b, w) => G.obb(G.lerp(a, b, 0.5), G.norm(G.sub(b, a)), G.dist(a, b) / 2, w / 2);
+  const clearOf = (box, y0, y1, skip) => {
+    for (let k = 0; k < instances.length; k++) {
+      if (skip.includes(k) || instances[k].h < y0 - 0.5) continue;
+      if (G.dist(boxes[k].c, box.c) < 400 && G.obbOverlap(boxes[k], box, 0.3)) return false;
+    }
+    for (const o of out) {
+      if (o.y < y1 + 3 && o.y + o.depth > y0 - 3 && G.obbOverlap(bridgeBox(o.a, o.b, o.width + 2), box, 0)) return false;
+    }
+    for (const p of flyPts) {
+      // The camera may pass under a bridge with 2.5 m headroom, never through or just over it.
+      if (p[1] > y0 - 2.5 && p[1] < y1 + 5 && G.insideConvex(G.obb(box.c, box.u, box.hu + 4, box.hv + 4).corners, [p[0], p[2]])) return false;
+    }
+    return true;
+  };
+
+  // Skybridges between towers.
+  const towers = instances.map((i, k) => ({ i, k })).filter(({ i }) => i.district === 'towers' && i.h > 120);
+  const pairs = [];
+  for (let x = 0; x < towers.length; x++) for (let y = x + 1; y < towers.length; y++) {
+    const d = G.dist([towers[x].i.position[0], towers[x].i.position[2]], [towers[y].i.position[0], towers[y].i.position[2]]);
+    if (d >= cfg.sky.dist[0] && d <= cfg.sky.dist[1]) pairs.push([towers[x], towers[y], d + rng() * 20]);
+  }
+  pairs.sort((p, q) => p[2] - q[2]);
+  const uses = new Map();
+  for (const [A, B] of pairs) {
+    if (out.length >= cfg.sky.max) break;
+    if ((uses.get(A.k) ?? 0) >= cfg.sky.perTower || (uses.get(B.k) ?? 0) >= cfg.sky.perTower) continue;
+    const a = [A.i.position[0], A.i.position[2]], b = [B.i.position[0], B.i.position[2]];
+    const y = Math.min(A.i.h, B.i.h) * rand(cfg.sky.height[0], cfg.sky.height[1]);
+    if (!clearOf(bridgeBox(a, b, cfg.sky.width), y, y + cfg.sky.depth, [A.k, B.k])) continue;
+    out.push({ kind: 'sky', a: a.map(r3), b: b.map(r3), y: r3(y), width: cfg.sky.width, depth: cfg.sky.depth });
+    uses.set(A.k, (uses.get(A.k) ?? 0) + 1);
+    uses.set(B.k, (uses.get(B.k) ?? 0) + 1);
+  }
+
+  // Footbridges over core streets, between facing shopfronts.
+  const nSky = out.length;
+  const perRoad = new Map();
+  const front = instances.map((i, k) => ({ i, k })).filter(({ i }) => !i.interior && i.road >= 0 && i.district === 'core' && i.h >= 14);
+  // Visit hero-street buildings first, then the rest in a seeded order.
+  const order = front.map((f) => ({ f, key: (hero && f.i.road === hero.id ? 0 : 1) + rng() })).sort((p, q) => p.key - q.key).map((o) => o.f);
+  const signBoxes = signs.map((sg) => ({ box: G.obb([sg.position[0], sg.position[2]], [Math.cos(sg.rotationY), -Math.sin(sg.rotationY)], sg.size[0] / 2 + 0.4, sg.size[2] / 2 + 0.4), y0: sg.position[1] - sg.size[1] / 2, y1: sg.position[1] + sg.size[1] / 2 }));
+  let heroCount = 0;
+  for (const B of order) {
+    if (out.length - nSky >= cfg.foot.max) break;
+    const r = roads[B.i.road];
+    if (!r || r.cls === 'arterial' || r.cls === 'alley') continue;
+    const isHero = hero && r.id === hero.id;
+    if (isHero && heroCount >= cfg.foot.hero) continue;
+    const list = perRoad.get(r.id) ?? [];
+    if (list.length >= cfg.foot.perRoad) continue;
+    const d = G.norm(G.sub(r.b, r.a)), n = G.perp(d);
+    const at = (i) => G.dot(G.sub([i.position[0], i.position[2]], r.a), d);
+    const side = (i) => Math.sign(G.dot(G.sub([i.position[0], i.position[2]], r.a), n));
+    const faceOff = (i) => {
+      const t = i.rotationY;
+      const v = [Math.sin(t), Math.cos(t)];
+      return G.dot(G.sub(G.add([i.position[0], i.position[2]], G.mul(v, i.fp[1])), r.a), n);
+    };
+    const sB = at(B.i), sideB = side(B.i);
+    let best = null;
+    for (const C of front) {
+      if (C.i.road !== r.id || side(C.i) === sideB) continue;
+      const lo = Math.max(sB - B.i.fp[0], at(C.i) - C.i.fp[0]), hi = Math.min(sB + B.i.fp[0], at(C.i) + C.i.fp[0]);
+      if (hi - lo >= cfg.foot.overlap && (!best || hi - lo > best.span)) best = { C, s: (lo + hi) / 2, span: hi - lo };
+    }
+    if (!best) continue;
+    if (list.some((s0) => Math.abs(s0 - best.s) < cfg.foot.spacing)) continue;
+    const base = G.add(r.a, G.mul(d, best.s));
+    const oB = faceOff(B.i), oC = faceOff(best.C.i);
+    const a = G.add(base, G.mul(n, oB - Math.sign(oB) * 0.4)), b = G.add(base, G.mul(n, oC - Math.sign(oC) * 0.4));
+    const y = rand(cfg.foot.floor[0], cfg.foot.floor[1]);
+    const y1 = y + cfg.foot.depth;
+    const box = bridgeBox(a, b, cfg.foot.width);
+    if (y1 > Math.min(B.i.h, best.C.i.h) - 3) continue;
+    if (signBoxes.some((sb) => sb.y1 > y - 0.3 && sb.y0 < y1 + 0.3 && G.obbOverlap(sb.box, box, 0))) continue;
+    if ((lamps ?? []).some((l) => G.segDist([l[0], l[1]], a, b) < cfg.foot.width / 2 + 2.6)) continue;
+    // The bridge ends sit 0.4 m inside the two facades; clearance ignores those two buildings.
+    if (!clearOf(G.obb(box.c, box.u, Math.max(box.hu - 1.0, 0.5), box.hv), y, y1, [B.k, best.C.k])) continue;
+    out.push({ kind: 'foot', a: a.map(r3), b: b.map(r3), y: r3(y), width: cfg.foot.width, depth: cfg.foot.depth });
+    list.push(best.s);
+    perRoad.set(r.id, list);
+    if (isHero) heroCount++;
+  }
+  return out;
 }
 
 function centroidOf(pts) {
