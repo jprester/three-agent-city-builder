@@ -1,0 +1,14 @@
+{
+  "generator": "buildings/slab",
+  "seed": 105,
+  "params": {
+    "bays": 3,
+    "depth_bays": 4,
+    "floors": 18,
+    "tint": 0.4,
+    "balcony_ratio": 0.34,
+    "cage_ratio": 0.25,
+    "ac_ratio": 0.3,
+    "canopy_depth": 2.0
+  }
+}

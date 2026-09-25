@@ -1,0 +1,13 @@
+{
+  "generator": "buildings/midrise",
+  "seed": 203,
+  "params": {
+    "width_bays": 10,
+    "depth_bays": 8,
+    "podium_floors": 0,
+    "floors": 3,
+    "body": "office",
+    "tint": 0.7,
+    "clutter": 0.6
+  }
+}

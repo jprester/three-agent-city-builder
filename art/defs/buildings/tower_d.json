@@ -1,0 +1,21 @@
+{
+  "generator": "buildings/tower",
+  "seed": 304,
+  "params": {
+    "width_cells": 30,
+    "depth_cells": 22,
+    "height": 160,
+    "tint": 0.45,
+    "tiers": [
+      [
+        0.9,
+        1
+      ],
+      [
+        0.1,
+        6
+      ]
+    ],
+    "base_floors": 3
+  }
+}
