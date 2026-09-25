@@ -21,6 +21,7 @@
       ]
     ],
     "crown": "spire",
-    "spire": 45
+    "spire": 45,
+    "screen": 0.55
   }
 }

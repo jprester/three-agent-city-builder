@@ -5,7 +5,7 @@ it becomes an industrial block: roller doors at street level, sparse office wind
 Width and depth are whole residential cells (3.2 m), which are also whole office cells."""
 from lib.building import cell, flat_roof, roof_clutter, side_frame, walls
 from lib.mesh import MeshBuilder
-from lib.surface import facade_uv, surf
+from lib.surface import facade_uv, fixture, surf
 
 
 def generate(ctx):
@@ -57,7 +57,7 @@ def generate(ctx):
         # Industrial ground floor: roller doors and a lamp over each.
         fw, xf = side_frame(0, bw, bd, 0.0, cy)
         mm, ms = surf(ctx, "metal", 0.0, 0.2)
-        fm, fs = surf(ctx, "fixture", 0.0, 0.0)
+        fm, fs = fixture(ctx, "sodium")
         uvf = facade_uv(fw, ptop)
         n = max(1, int(fw // 8))
         for k in range(n):

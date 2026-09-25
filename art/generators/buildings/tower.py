@@ -10,10 +10,14 @@ Crowns (param "crown"):
   spire     slim spire with an aviation light
   plant     tall louvred mechanical floor
   slant     roof sloping down to one side
+Accents (param "accent"): "corners" (LED strips on every tier's vertical edges) or
+"stripes" (two vertical LED stripes on the front and back faces), in "accent_color"
+(facade.json fixture_colors). "screen": a video screen on the lowest tier's front,
+covering that fraction of the face width. Every crown gets red aviation lights.
 Width and depth are whole curtain cells (1.5 m)."""
-from lib.building import ac_cluster, cell, flat_roof, mast, walls
+from lib.building import ac_cluster, aviation_lights, cell, corner_strips, face_stripes, flat_roof, mast, screen, walls
 from lib.mesh import MeshBuilder
-from lib.surface import plan_uv, surf
+from lib.surface import fixture, plan_uv, surf
 
 
 def generate(ctx):
@@ -40,12 +44,21 @@ def generate(ctx):
         w, d = W - 2 * inset * cw, D - 2 * inset * cw
         h = max(ch, round(frac * shaft / ch) * ch)
         walls(mb, ctx, w, d, z, z + h, z, [("atlas", 1.0, tint)] * 4)
+        accent = ctx.p("accent", None)
+        if accent == "corners":
+            corner_strips(mb, ctx, w, d, z, z + h, ctx.p("accent_color", "white"))
+        elif accent == "stripes":
+            face_stripes(mb, ctx, w, d, z, z + h, ctx.p("accent_color", "white"))
+        if ctx.p("screen", 0) and frac == tiers[0][0]:
+            sh = min(h * 0.45, w * ctx.p("screen", 0.6) * 1.5)
+            screen(mb, ctx, w, d, z + h - sh - 6.0, z + h - 6.0, ctx.p("screen", 0.6))
         z += h
         # A dark mechanical band between tiers hides the facade texture's vertical wrap.
         if ctx.p("bands", True):
             walls(mb, ctx, w, d, z, z + 1.2, z, [("metal", 0.0, tint)] * 4)
             z += 1.2
 
+    aviation_lights(mb, ctx, w, d, z)
     top = _crown(mb, ctx, crown, w, d, z, tint)
     mb.finish()
     ctx.meta.update(footprint=[W, D], height=top, family="tower", scalable=True, shader="facade")
@@ -54,7 +67,8 @@ def generate(ctx):
 def _crown(mb, ctx, crown, w, d, z, tint):
     rng = ctx.rng
     if crown == "band":
-        walls(mb, ctx, w, d, z, z + 1.2, z, [("fixture", ctx.p("band_color", 0.5), 0.0)] * 4)
+        fcol = ctx.facade["fixture_colors"][ctx.p("band_color", "white")]
+        walls(mb, ctx, w, d, z, z + 1.2, z, [("fixture", fcol, 0.0)] * 4)
         walls(mb, ctx, w, d, z + 1.2, z + 4.0, z, [("trim", 0.0, tint)] * 4)
         z += 4.0
         flat_roof(mb, ctx, w, d, z, tint, parapet=0.0)

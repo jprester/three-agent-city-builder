@@ -5,7 +5,7 @@ shack. Windows are shaded at runtime; geometry only carries what protrudes.
 
 Width and depth are whole residential cells so shaded windows align with the
 balconies, cages and AC units placed here. All tunables are def params."""
-from lib.building import cell, flat_roof, roof_clutter, side_frame, walls
+from lib.building import aviation_lights, cell, flat_roof, roof_clutter, side_frame, walls
 from lib.mesh import MeshBuilder
 from lib.surface import facade_uv, surf
 
@@ -118,5 +118,7 @@ def generate(ctx):
         flat_roof(mb, ctx, sw, sd, top + ch, tint, sx, sy, parapet=0.0)
         roof_top = max(roof_top, top + ch)
 
+    if floors >= 18:
+        aviation_lights(mb, ctx, W, roof_d, top + 1.0, 0.0, roof_cy)
     mb.finish()
     ctx.meta.update(footprint=[W, D], height=top + 1.0, top=roof_top, family="slab", scalable=False, shader="facade")

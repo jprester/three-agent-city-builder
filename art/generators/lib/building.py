@@ -1,7 +1,7 @@
 """Parts shared by the building families: walls on a box, flat roofs with parapets,
 rooftop clutter. Everything is facade-shaded (lib/surface.py). Coordinates are Blender
 building space: origin at the footprint center on the ground, front facing -Y."""
-from lib.surface import facade_uv, plan_uv, surf
+from lib.surface import facade_uv, fixture, plan_uv, surf
 from lib.transforms import facade_width, facade_xf
 
 
@@ -59,7 +59,7 @@ def stair_hut(mb, ctx, x, y, z, w, d, h, tint):
     """Roof access hut with a lit door lamp on its front (-Y) face."""
     m, s = surf(ctx, "trim", 0.0, tint)
     mb.box(x - w / 2, x + w / 2, y - d / 2, y + d / 2, z, z + h, m, None, ("bottom",), s, plan_uv)
-    fm, fs = surf(ctx, "fixture", 0.5, 0.0)
+    fm, fs = fixture(ctx, "white")
     yy = y - d / 2 - 0.02
     mb.quad([(x - 0.25, yy, z + h - 0.7), (x + 0.25, yy, z + h - 0.7), (x + 0.25, yy, z + h - 0.45), (x - 0.25, yy, z + h - 0.45)], fm, None, fs, plan_uv)
 
@@ -75,7 +75,7 @@ def mast(mb, ctx, x, y, z, h, red=True):
     """Antenna mast with a light at the top (red aviation light or sodium work light)."""
     m, s = surf(ctx, "metal", 0.0, 0.0)
     mb.box(x - 0.07, x + 0.07, y - 0.07, y + 0.07, z, z + h, m, None, ("bottom",), s, plan_uv)
-    fm, fs = surf(ctx, "fixture", 1.0 if red else 0.0, 0.0)
+    fm, fs = fixture(ctx, "red" if red else "sodium")
     mb.box(x - 0.18, x + 0.18, y - 0.18, y + 0.18, z + h, z + h + 0.3, fm, None, ("bottom",), fs, plan_uv)
 
 
@@ -108,3 +108,46 @@ def roof_clutter(mb, ctx, W, D, z, tint, density=1.0, cx=0.0, cy=0.0, margin=1.2
             mast(mb, ctx, x, y, z, h, red=h > 8)
         # else: leave the slot empty
     return top
+
+
+def aviation_lights(mb, ctx, W, D, z, cx=0.0, cy=0.0):
+    """Red obstruction lights on the four roof corners (almost every tall roof has them)."""
+    fm, fs = fixture(ctx, "red")
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            x, y = cx + sx * (W / 2 - 0.4), cy + sy * (D / 2 - 0.4)
+            mb.box(x - 0.2, x + 0.2, y - 0.2, y + 0.2, z, z + 0.4, fm, None, ("bottom",), fs, plan_uv)
+
+
+def corner_strips(mb, ctx, w, d, z0, z1, color, cx=0.0, cy=0.0, t=0.22):
+    """Vertical LED strips on the four vertical edges of a w×d box."""
+    fm, fs = fixture(ctx, color, strip=True)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            x, y = cx + sx * w / 2, cy + sy * d / 2
+            mb.box(x - t, x + t, y - t, y + t, z0, z1, fm, None, ("bottom", "top"), fs, plan_uv)
+
+
+def face_stripes(mb, ctx, w, d, z0, z1, color, sides=(0, 2), n=2, cx=0.0, cy=0.0):
+    """n vertical LED stripes on the given faces, standing just proud of the wall."""
+    fm, fs = fixture(ctx, color, strip=True)
+    for side in sides:
+        fw, xf = side_frame(side, w, d, cx, cy)
+        for k in range(n):
+            u = -fw / 2 + (k + 1) * fw / (n + 1)
+            mb.box(u - 0.15, u + 0.15, -0.25, 0.0, z0, z1, fm, xf, ("back", "bottom", "top"), fs, facade_uv(fw, z0))
+
+
+def screen(mb, ctx, w, d, z0, z1, frac=0.6, side=0, cx=0.0, cy=0.0):
+    """Video screen on a face: a quad 0.3 m off the wall with UVs normalized over the screen,
+    plus a dark frame. Content is animated in the shader."""
+    fw, xf = side_frame(side, w, d, cx, cy)
+    sw = fw * frac
+    x0, x1 = -sw / 2, sw / 2
+    sm, ss = surf(ctx, "screen", ctx.rng.random(), ctx.rng.random())
+
+    def uvn(pts, n):
+        return [((x - x0) / sw, (z - z0) / (z1 - z0)) for x, y, z in pts]
+    mm, ms = surf(ctx, "metal", 0.0, 0.1)
+    mb.box(x0 - 0.4, x1 + 0.4, -0.3, 0.0, z0 - 0.4, z1 + 0.4, mm, xf, ("back",), ms, facade_uv(fw, z0))
+    mb.quad([(x0, -0.32, z0), (x1, -0.32, z0), (x1, -0.32, z1), (x0, -0.32, z1)], sm, xf, ss, uvn)

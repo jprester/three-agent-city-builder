@@ -20,6 +20,8 @@
         4
       ]
     ],
-    "crown": "stepped"
+    "crown": "stepped",
+    "accent": "stripes",
+    "accent_color": "blue"
   }
 }

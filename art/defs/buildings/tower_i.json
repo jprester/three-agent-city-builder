@@ -1,0 +1,28 @@
+{
+  "generator": "buildings/tower",
+  "seed": 309,
+  "params": {
+    "width_cells": 16,
+    "depth_cells": 14,
+    "height": 240,
+    "tint": 0.4,
+    "tiers": [
+      [
+        0.7,
+        0
+      ],
+      [
+        0.2,
+        1
+      ],
+      [
+        0.1,
+        3
+      ]
+    ],
+    "crown": "spire",
+    "spire": 35,
+    "accent": "corners",
+    "accent_color": "white"
+  }
+}

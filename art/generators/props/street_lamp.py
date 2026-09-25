@@ -2,14 +2,14 @@
 fixture surfaces), so every lamp in the city joins the buildings' single batched draw.
 The arm points to -Y in Blender (+Z at runtime); the layout rotates it over the road."""
 from lib.mesh import MeshBuilder
-from lib.surface import plan_uv, surf
+from lib.surface import fixture, plan_uv, surf
 
 
 def generate(ctx):
     h = ctx.p("height", 8.0)
     reach = ctx.p("reach", 2.2)
     mm, ms = surf(ctx, "metal", 0.0, 0.4)
-    fm, fs = surf(ctx, "fixture", 0.0, 0.0)
+    fm, fs = fixture(ctx, "sodium")
     mb = MeshBuilder(ctx.name)
     r = ctx.p("pole_radius", 0.09)
     mb.box(-r, r, -r, r, 0.0, h, mm, None, ("bottom",), ms, plan_uv)

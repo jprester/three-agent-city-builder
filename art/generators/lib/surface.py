@@ -27,6 +27,7 @@ _PREVIEW = {
     "soffit": "fluorescent",
     "fixture": "sodium",
     "atlas": "glass_dark",
+    "screen": "sign_cyan",
 }
 
 ATTRIBUTE = "Surface"
@@ -65,3 +66,10 @@ def plan_uv(pts, n):
     if abs(n[0]) >= abs(n[1]):
         return [(y, z) for x, y, z in pts]
     return [(x, z) for x, y, z in pts]
+
+
+def fixture(ctx, color, strip=False):
+    """(material, surface) for a light fixture of a named color (facade.json fixture_colors).
+    strip=True marks long LED strips (tint 1), which the shader lights softly; point fixtures
+    (lamps, aviation lights) burn hot."""
+    return surf(ctx, "fixture", ctx.facade["fixture_colors"][color], 1.0 if strip else 0.0)
