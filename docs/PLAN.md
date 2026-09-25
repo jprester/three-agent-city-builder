@@ -12,6 +12,12 @@ Place this file at `docs/PLAN.md`. Read all of it, plus `AGENTS.md`, before chan
 
 These rules apply on top of `AGENTS.md`.
 
+- **This plan is a starting point, not a spec** (human, 2026-09-25). Phases, techniques, file
+  layout and the template itself may change when a different approach gives a better-looking
+  city through the same script-driven workflow. Log each deviation in `docs/DECISIONS.md` with
+  its reason. The goal (Appendix A look, 60 fps, budgets), checkpoints, and "never approve
+  baselines" still hold.
+
 - Work phase by phase (section 8). Do not start a phase until the previous phase's acceptance criteria pass.
 - End every phase with the following sequence:
   1. Run `npm run check`.
