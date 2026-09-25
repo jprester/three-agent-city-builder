@@ -65,3 +65,6 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 2026-09-25 | assets | Fixture colors by name (facade.json fixture_colors); LED strips flagged via tint | Accent strips must glow softly while point lamps burn hot.
 2026-09-25 | layout | Nested layout params merge with defaults | A def overriding one key of a group silently dropped the rest (far field produced nothing).
 2026-09-25 | layout | Removed the far field and the towers scattered in the old core (human review) | From above they read as pins on an empty plane and broke the city's cohesion; the original district structure stays. Variety goes into mid-rises instead.
+2026-09-25 | runtime | City haze as a depth-based post effect (ray march through height fog, lit by lamp/sign maps) | Custom uniforms can't be injected into every material's fog chunk; in post it covers everything, including the sky, in one pass.
+2026-09-25 | runtime | Facade gains a wall-light term (window spill, canyon glow, sky rim, cool bounce) applied to albedo | Buildings were black silhouettes between windows (human comparison with a generated reference).
+2026-09-25 | viewpoints | Added `skyline` (matches the human's comparison screenshot) | To measure progress against the reference image.

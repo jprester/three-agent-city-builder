@@ -8,6 +8,7 @@ import { loadFacadeTextures } from './materials/textures';
 import { createGroundUniforms } from './materials/ground';
 import { createRenderer, createScene } from './scene/environment';
 import { createLampMap, createSignLightMap } from './scene/lampmap';
+import { CityHazeEffect } from './scene/haze';
 import { createPost } from './scene/post';
 import { PlanarReflection } from './scene/reflection';
 import { createStreets } from './scene/streets';
@@ -95,6 +96,7 @@ async function main() {
     scene.add(group);
     if (missing.length) problems.push(`Layout references unbuilt assets: ${missing.join(', ')}`);
   }
+  let signMap: THREE.Texture | null = null;
   const signUniforms = { uTime: clock.uniform, uAtlas: { value: null as THREE.Texture | null }, uSignGain: { value: 1 } };
   if (layout) {
     const atlas = createSignAtlas(layout.seed);
@@ -102,7 +104,7 @@ async function main() {
     const signs = createSigns(layout, atlas, signUniforms);
     if (signs) {
       scene.add(signs.mesh);
-      const signMap = createSignLightMap(layout, signs.lights);
+      signMap = createSignLightMap(layout, signs.lights);
       facadeUniforms.uSignMap.value = signMap;
       groundUniforms.uSignMap.value = signMap;
     }
@@ -112,7 +114,8 @@ async function main() {
   if (!applyViewpoint(viewpoint, camera, controls, layout)) problems.push(`Unknown viewpoint "${viewpoint}".`);
   setStatus(problems.join(' '));
 
-  const post = createPost(renderer, scene, camera, quality);
+  const haze = lamps ? new CityHazeEffect(camera, lamps.texture, signMap, lamps.rect) : undefined;
+  const post = createPost(renderer, scene, camera, quality, haze);
   const size = renderer.getDrawingBufferSize(new THREE.Vector2());
   reflection.setSize(size.x, size.y);
   await post.ready;

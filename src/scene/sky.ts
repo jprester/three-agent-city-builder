@@ -40,8 +40,10 @@ export function createSky(fogColor: THREE.Color): THREE.Mesh {
         // Low cloud deck faintly lit from below by the city (mostly cool, a touch of sodium).
         vec2 q = vDir.xz / max(vDir.y + 0.08, 0.02) * 1.6;
         float cloud = noise(q) * 0.6 + noise(q * 2.3) * 0.4;
-        vec3 glow = mix(uHorizon * 2.2, uGlow, 0.18);
-        col += glow * 0.18 * smoothstep(0.45, 0.8, cloud) * smoothstep(0.0, 0.06, y) * exp(-y * 5.0);
+        // Cloud undersides lit by the city: cool fill everywhere, a warm sodium tint low down.
+        float deck = smoothstep(0.42, 0.8, cloud) * smoothstep(0.0, 0.05, y);
+        col += uHorizon * 0.5 * deck * exp(-y * 3.0);
+        col += uGlow * 0.045 * deck * exp(-y * 7.0);
         if (vDir.y < 0.0) col = uHorizon;
         gl_FragColor = vec4(col, 1.0);
         #include <colorspace_fragment>

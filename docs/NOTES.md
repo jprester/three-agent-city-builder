@@ -239,3 +239,35 @@ cool blue/teal atmosphere sits against warm windows.
   From above the core has a varied height profile instead of uniform slab tops.
 - Remaining: walk-up verandas read mostly as enclosed boxes from afar; estates are rare
   (big footprint, few blocks fit); car parks only show up in the industrial strip.
+
+## Lighting and atmosphere pass (human request, 2026-09-25)
+
+The human compared a screenshot with an AI-generated "high quality" version of the same
+view. Main gaps: our buildings were black silhouettes (theirs are lit by windows, streets
+and sky), our windows were small pale dots (theirs glow warm with halos), and our air was
+one flat darkness (theirs has depth and glowing street canyons). Purple look explicitly not
+wanted; we keep our palette. New viewpoint `skyline` matches the screenshot's framing.
+
+### Step 1 — facade lighting (facade shader, no extra draw calls)
+- Window spill: light from each lit window falls on the wall around it (0.22 m falloff);
+  tower atlases spill via a blurred emissive sample.
+- Windows warmer (62% tungsten, 18% sodium-warm, 14% fluorescent, 6% TV) and brighter.
+- Canyon glow: blurred lamp and sign maps light facades from below, fading over ~20 m.
+- Sky rim on grazing faces; cool city bounce fill so walls never go fully black.
+
+### Step 2 — atmosphere
+- `CityHazeEffect` (src/scene/haze.ts): per-pixel ray march (18 steps) through the height
+  fog, scattering light read from the lamp and sign maps. Streets glow up into the haze,
+  the city gets a glow dome, distance gets aerial perspective. One extra pass (31 calls).
+- Cloud deck lit from below (cool fill, a little sodium low down).
+
+### Critique rounds
+1. Spill filled whole cells (glowing squares) and walls read like dusk; tightened.
+2. Bounce fill too weak to register; raised. Then too warm (everything brown); made cool.
+3. Haze tinted the whole sky brown and milked out the canyon; wide glow lowered and halved,
+   street-level haze cut to a third.
+
+### Remaining (harsh)
+- Canyon walls are still evenly brown-lit end to end; real streets have pools and shadow.
+- Rooflines are still clean boxes (step 3: tanks on stands, antennas, cranes, skybridges).
+- Screens still pale; no mid-height vertical signs (step 4).

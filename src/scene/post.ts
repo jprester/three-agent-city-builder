@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {
-  BloomEffect, ChromaticAberrationEffect, EffectComposer, EffectPass, NoiseEffect, BlendFunction,
+  BloomEffect, ChromaticAberrationEffect, type Effect, EffectComposer, EffectPass, NoiseEffect, BlendFunction,
   RenderPass, SMAAEffect, ToneMappingEffect, ToneMappingMode, VignetteEffect,
 } from 'postprocessing';
 import type { QualityPreset } from '../systems/quality';
@@ -18,10 +18,12 @@ export interface Post {
  * vignette, grain and chromatic aberration, then SMAA on the tone-mapped image.
  * Half-float buffers throughout. Only one convolution effect per pass, hence three passes.
  */
-export function createPost(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, quality: QualityPreset): Post {
+export function createPost(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, quality: QualityPreset, haze?: Effect): Post {
   renderer.toneMapping = THREE.NoToneMapping;
   const composer = new EffectComposer(renderer, { frameBufferType: THREE.HalfFloatType });
   composer.addPass(new RenderPass(scene, camera));
+  // Scattered city light first, in HDR, so bloom picks it up.
+  if (haze) composer.addPass(new EffectPass(camera, haze));
 
   const bloom = new BloomEffect({
     mipmapBlur: true,

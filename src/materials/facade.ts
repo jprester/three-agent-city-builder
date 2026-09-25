@@ -513,7 +513,7 @@ vec3 fStreet = P_SODIUM * texture(uLampMap, fWideUv, 4.5).r * 0.5 + texture(uSig
 float fUpFacing = fType == T_ROOF ? 0.25 : 1.0;
 fWallLight += fStreet * 0.5 * exp(-max(vFWorld.y, 0.0) / 20.0) * fUpFacing;
 // City bounce: a faint warm fill from everything lit around, so walls never go fully black.
-fWallLight += mix(P_HAZE, P_SODIUM * 0.25, 0.35) * 0.75;
+fWallLight += mix(P_HAZE * 2.2, P_SODIUM * 0.25, 0.12) * 0.45;
 // Sky rim: grazing faces catch the glowing sky, separating silhouettes in depth.
 float fRim = pow(1.0 - max(fVt.z, 0.0), 3.0) * (0.5 + 0.5 * normalize(vFNormal).y + 0.5);
 fWallLight += skyRefl(vec3(0.0, 0.05, 0.0)) * fRim * 0.35 + P_HAZE * 0.05;
