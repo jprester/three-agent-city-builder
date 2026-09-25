@@ -92,3 +92,59 @@ the template towers.
 - **Budget miss:** ~4.1M triangles in every view (budget 3M), all from 1,500 placeholder
   towers with modeled windows and no culling. Phase 2 replaces them (shaded windows) and
   adds BatchedMesh culling; re-check there.
+
+## Phase 2 — Canyon slice
+
+Families (`node tools/debug/sheet.mjs 'buildings/*'`): 8 old slabs, 4 mid-rise/industrial,
+4 setback towers, plus a street lamp. All facade-shaded, 130–1,330 triangles each.
+
+### Round 1 — first facade-shader shots
+- Walls glowed orange-brown: hemisphere light 0.9 plus lamp spill; the night was a dusk.
+  Ambient cut to 0.3, spill reduced.
+- Storefront interiors were blocky noise (JPEG-artifact look); canopy soffits were grey
+  slabs with harsh tubes. Rewritten: racks, counter band, strip light, colored goods; tubes
+  dimmer and broken into fittings.
+- Towers read as beige zebra stripes: curtain walls borrowed the concrete base, and whole
+  floors switched off together.
+
+### Round 2
+- Facades still glowed beige: my anti-aliasing faded windows to a per-cell average while a
+  cell was still ~16 px wide, lighting whole cells as blocks. Thresholds now keep windows
+  sharp down to ~2 px, then fade per cell, per floor (rows survive as bands on towers), then
+  per facade.
+- Towers now 30% of the residential lit ratio with floors on/off in runs: `fly-50` finally
+  reads as office towers at 2 a.m.
+- Far ground hazed out fully with a thin uniform fog floor; horizon still shows a darker
+  ground/brighter sky band from above (realistic, keep).
+
+### Round 3 — reflections and signs
+- First reflection was a flooded canal: sideways noise wobble reads as water. Now mostly
+  vertical jitter and smear, grainy dull film, clean only in puddles.
+- Signs were pale pink/white (tube cores too hot for AgX) and timid (1–3 m blades). Now
+  saturated cores, blades up to 3.2 m and "arms" up to 7.5 m over the street, 2–5 per hero
+  building. Backlit boxes were blank white boards: now colored faces with light characters,
+  or pale faces with saturated characters. Cyan halved.
+- Bugs found and fixed: sky black from above (dome matrix lagged after the reflection pass
+  moved it); mottled ground from sub-pixel puddle noise (now fades to its mean).
+
+### Where it stands (checkpoint 1)
+- `canyon` is the strongest shot: stacked signs from both sides, red neon, shopfronts,
+  sodium lamps, streaks in the wet asphalt, towers closing the vista. `storefront` and
+  `fly-0` share its read.
+- Remaining weaknesses, harshly:
+  - Walls are still one flat brown-grey plane between windows. No stains, no tiles, no
+    per-floor variation beyond grime noise. Concrete reads as cardboard up close.
+  - Windows are all the same size and position per cell; no mullions, no curtains' color, no
+    visible interiors. The slab fronts look stamped.
+  - Signs have no brackets or frames (boxes float a few cm off the wall), no light spill
+    onto the facades or the street next to them, and the reflection of a sign is the only
+    color on the ground.
+  - Street level is empty: no props, no haze, no rain, no traffic. The road between the
+    lamps is black.
+  - Tower crowns (the lit fixture band) are too bright and too uniform: every tower wears
+    the same white ring (`fly-25`).
+  - `aerial`: towers still slightly beige when windows average out; the core reads well.
+  - Shimmer cannot be judged from static SwiftShader stills; the facade shader fades
+    detail by pixel footprint, but it needs a look in motion (`npm run dev`, orbit).
+  - Flythrough climbs vertically at the canyon's end; masts pass close to the camera
+    (`fly-25`). Phase 5.

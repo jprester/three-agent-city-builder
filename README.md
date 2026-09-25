@@ -32,6 +32,12 @@ npm run shots:approve # create initial screenshot baselines once the scene looks
 Blender is found via `BLENDER_BIN`, then `blender.path` in `pipeline.config.json`,
 then `/Applications/Blender.app/Contents/MacOS/Blender`, then `blender` on PATH.
 
+## Debug tools
+
+- `node tools/debug/plan.mjs` — top-down plan of the city layout (`build/debug/city-plan.png`).
+- `node tools/debug/sheet.mjs 'buildings/*'` — contact sheet of Blender previews.
+- `node tools/debug/attrs.mjs public/assets/<id>.glb` — GLB attributes and generator metadata.
+
 ## How it fits together
 
 ```
