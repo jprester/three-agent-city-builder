@@ -1,6 +1,6 @@
 [
   { "name": "canyon", "anchor": "hero", "position": [40, 1.7, 2.0], "target": [170, 26, -0.5] },
-  { "name": "storefront", "anchor": "hero", "position": [90, 1.7, 3.2], "target": [100, 4.0, 9.5] },
+  { "name": "storefront", "anchor": "hero", "position": [60, 1.7, 5.0], "target": [84, 3.6, 9.8] },
   { "name": "rooftops", "anchor": "core", "position": [-140, 62, 40], "target": [160, 40, 0] },
   { "name": "aerial", "anchor": "center", "position": [-520, 400, 640], "target": [20, 40, -80] },
   { "name": "horizon", "anchor": "port", "position": [0, 8, 0], "target": [300, 55, 0] },

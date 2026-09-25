@@ -2,11 +2,25 @@
 import type { AssetEntry } from './types';
 
 export const ASSETS = {
-  "buildings/block_low_a": { url: "assets/buildings/block_low_a.glb", category: "buildings", meta: {"footprint":[14,12],"height":20.9,"scalable":false} },
-  "buildings/tower_a": { url: "assets/buildings/tower_a.glb", category: "buildings", meta: {"footprint":[12,10],"height":49.7,"scalable":false} },
-  "buildings/tower_b": { url: "assets/buildings/tower_b.glb", category: "buildings", meta: {"footprint":[10,10],"height":75.30000000000001,"scalable":true} },
+  "buildings/midrise_a": { url: "assets/buildings/midrise_a.glb", category: "buildings", meta: {"billboard":{"width":12,"height":5,"z":39.2,"y":-3.8000000000000007},"footprint":[22.400000000000002,16],"height":38.2,"top":44.2,"family":"midrise","scalable":false,"shader":"facade"} },
+  "buildings/midrise_b": { url: "assets/buildings/midrise_b.glb", category: "buildings", meta: {"footprint":[19.200000000000003,19.200000000000003],"height":49,"top":50.8,"family":"midrise","scalable":false,"shader":"facade"} },
+  "buildings/midrise_c": { url: "assets/buildings/midrise_c.glb", category: "buildings", meta: {"footprint":[32,25.6],"height":11.8,"top":13.833941896159873,"family":"midrise","scalable":false,"shader":"facade"} },
+  "buildings/midrise_d": { url: "assets/buildings/midrise_d.glb", category: "buildings", meta: {"footprint":[25.6,19.200000000000003],"height":8.2,"top":10,"family":"midrise","scalable":false,"shader":"facade"} },
+  "buildings/slab_a": { url: "assets/buildings/slab_a.glb", category: "buildings", meta: {"footprint":[19.200000000000003,12.8],"height":53.8,"top":55.599999999999994,"family":"slab","scalable":false,"shader":"facade"} },
+  "buildings/slab_b": { url: "assets/buildings/slab_b.glb", category: "buildings", meta: {"footprint":[16,12.8],"height":65.8,"top":67.6,"family":"slab","scalable":false,"shader":"facade"} },
+  "buildings/slab_c": { url: "assets/buildings/slab_c.glb", category: "buildings", meta: {"footprint":[12.8,16],"height":44.8,"top":46.8,"family":"slab","scalable":false,"shader":"facade"} },
+  "buildings/slab_d": { url: "assets/buildings/slab_d.glb", category: "buildings", meta: {"footprint":[22.400000000000002,12.8],"height":71.8,"top":73.84407775836256,"family":"slab","scalable":false,"shader":"facade"} },
+  "buildings/slab_e": { url: "assets/buildings/slab_e.glb", category: "buildings", meta: {"footprint":[9.600000000000001,12.8],"height":59.8,"top":61.8,"family":"slab","scalable":false,"shader":"facade"} },
+  "buildings/slab_f": { url: "assets/buildings/slab_f.glb", category: "buildings", meta: {"footprint":[25.6,9.600000000000001],"height":38.8,"top":40.599999999999994,"family":"slab","scalable":false,"shader":"facade"} },
+  "buildings/slab_g": { url: "assets/buildings/slab_g.glb", category: "buildings", meta: {"footprint":[16,16],"height":77.8,"top":79.6,"family":"slab","scalable":false,"shader":"facade"} },
+  "buildings/slab_h": { url: "assets/buildings/slab_h.glb", category: "buildings", meta: {"footprint":[12.8,9.600000000000001],"height":50.8,"top":52.599999999999994,"family":"slab","scalable":false,"shader":"facade"} },
+  "buildings/tower_a": { url: "assets/buildings/tower_a.glb", category: "buildings", meta: {"footprint":[33,30],"height":179.39999999999998,"family":"tower","scalable":true,"shader":"facade"} },
+  "buildings/tower_b": { url: "assets/buildings/tower_b.glb", category: "buildings", meta: {"footprint":[39,27],"height":187,"family":"tower","scalable":true,"shader":"facade"} },
+  "buildings/tower_c": { url: "assets/buildings/tower_c.glb", category: "buildings", meta: {"footprint":[27,27],"height":168,"family":"tower","scalable":true,"shader":"facade"} },
+  "buildings/tower_d": { url: "assets/buildings/tower_d.glb", category: "buildings", meta: {"footprint":[45,33],"height":160.2,"family":"tower","scalable":true,"shader":"facade"} },
   "kit/wall_panel_a": { url: "assets/kit/wall_panel_a.glb", category: "kit", meta: {} },
   "kit/window_a": { url: "assets/kit/window_a.glb", category: "kit", meta: {} },
+  "props/street_lamp": { url: "assets/props/street_lamp.glb", category: "props", meta: {"height":8,"shader":"facade","family":"lamp"} },
 } as const satisfies Record<string, AssetEntry>;
 
 export const LAYOUTS = {

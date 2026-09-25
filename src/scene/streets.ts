@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import palette from '../../art/style/palette.json';
+import { createGroundMaterial, type GroundUniforms } from '../materials/ground';
 import type { Layout, Vec2 } from '../systems/layout';
 
 const color = (name: keyof typeof palette) => new THREE.Color(palette[name]);
@@ -14,13 +15,13 @@ const PAINT_LIFT = 0.02;
  * Asphalt ground, raised sidewalks (every block polygon, with curbs) and lane markings,
  * each merged into one mesh. Geometry is in world space; UVs are world XZ in meters.
  */
-export function createStreets(layout: Layout | null): THREE.Group {
+export function createStreets(layout: Layout | null, uniforms: GroundUniforms): THREE.Group {
   const group = new THREE.Group();
   group.name = 'streets';
 
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(GROUND_SIZE, GROUND_SIZE).rotateX(-Math.PI / 2),
-    new THREE.MeshStandardMaterial({ color: color('road_wet'), roughness: 0.35, metalness: 0.0 }),
+    createGroundMaterial(color('road_wet'), 0.35, uniforms),
   );
   ground.name = 'ground';
   group.add(ground);
@@ -28,7 +29,7 @@ export function createStreets(layout: Layout | null): THREE.Group {
 
   const sidewalks = new THREE.Mesh(
     sidewalkGeometry(layout.blocks.map((b) => b.points)),
-    new THREE.MeshStandardMaterial({ color: color('sidewalk'), roughness: 0.8 }),
+    createGroundMaterial(color('sidewalk'), 0.8, uniforms, 0.8, 0.35),
   );
   sidewalks.name = 'sidewalks';
   group.add(sidewalks);
@@ -36,7 +37,7 @@ export function createStreets(layout: Layout | null): THREE.Group {
   if (layout.roads?.length) {
     const paint = new THREE.Mesh(
       markingGeometry(layout),
-      new THREE.MeshStandardMaterial({ color: color('paint'), roughness: 0.7 }),
+      createGroundMaterial(color('paint'), 0.7, uniforms, 1, 0.5),
     );
     paint.name = 'markings';
     group.add(paint);

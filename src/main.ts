@@ -3,8 +3,15 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { AssetLoader, hasAnyAssets, layoutUrl } from './assets/registry';
 import { createDebugGui } from './debug/gui';
 import { applyViewpoint } from './debug/viewpoints';
+import { createFacadeMaterial, createFacadeUniforms } from './materials/facade';
+import { createGroundUniforms } from './materials/ground';
 import { createRenderer, createScene } from './scene/environment';
+import { createLampMap } from './scene/lampmap';
+import { createPost } from './scene/post';
+import { PlanarReflection } from './scene/reflection';
 import { createStreets } from './scene/streets';
+import { createSignAtlas } from './scene/signs/atlas';
+import { createSigns } from './scene/signs/signs';
 import { Clock, parseFrozenTime } from './systems/clock';
 import { buildInstances } from './systems/instancing';
 import { fetchLayout, generateLayout, type Layout } from './systems/layout';
@@ -23,7 +30,7 @@ declare global {
   interface Window {
     /** Set once the scene is fully loaded and rendered; Playwright waits on it. */
     __READY?: boolean;
-    /** renderer.info for the ready frame; read by tests/visual/shots.spec.ts. */
+    /** renderer.info for the ready frame (all passes); read by tests/visual/shots.spec.ts. */
     __STATS?: SceneStats;
   }
 }
@@ -67,27 +74,62 @@ async function main() {
   } else {
     // ?seed= regenerates the layout in the browser; otherwise load the prebuilt JSON.
     layout = seed !== null ? await generateLayout(layoutId, seed) : await fetchLayout(url!);
-    const { group, missing } = await buildInstances(layout, new AssetLoader());
+  }
+
+  // Shared inputs of the city's shaders: one clock, one seed, one street-light map.
+  const lamps = layout ? createLampMap(layout) : null;
+  const facadeUniforms = createFacadeUniforms(clock.uniform, layout?.seed ?? 0);
+  const groundUniforms = createGroundUniforms(facadeUniforms.uLampRect);
+  const reflection = new PlanarReflection(quality.reflectionScale);
+  groundUniforms.uReflection.value = reflection.target.texture;
+  groundUniforms.uReflMatrix.value = reflection.matrix;
+  if (lamps) {
+    facadeUniforms.uLampMap.value = lamps.texture;
+    facadeUniforms.uLampRect.value.copy(lamps.rect);
+    groundUniforms.uLampMap.value = lamps.texture;
+  }
+  if (layout) {
+    const { group, missing } = await buildInstances(layout, new AssetLoader(), createFacadeMaterial(facadeUniforms));
     scene.add(group);
     if (missing.length) problems.push(`Layout references unbuilt assets: ${missing.join(', ')}`);
   }
-  scene.add(createStreets(layout));
+  const signUniforms = { uTime: clock.uniform, uAtlas: { value: null as THREE.Texture | null }, uSignGain: { value: 1 } };
+  if (layout) {
+    const atlas = createSignAtlas(layout.seed);
+    signUniforms.uAtlas.value = atlas.texture;
+    const signs = createSigns(layout, atlas, signUniforms);
+    if (signs) scene.add(signs);
+  }
+  const streets = createStreets(layout, groundUniforms);
+  scene.add(streets);
   if (!applyViewpoint(viewpoint, camera, controls, layout)) problems.push(`Unknown viewpoint "${viewpoint}".`);
   setStatus(problems.join(' '));
 
-  const debug = params.get('debug') === '1' ? await createDebugGui(renderer, scene, clock) : null;
+  const post = createPost(renderer, scene, camera, quality);
+  const size = renderer.getDrawingBufferSize(new THREE.Vector2());
+  reflection.setSize(size.x, size.y);
+  await post.ready;
+  const debug = params.get('debug') === '1' ? await createDebugGui(renderer, scene, clock, { post, facade: facadeUniforms, ground: groundUniforms }) : null;
 
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    post.composer.setSize(window.innerWidth, window.innerHeight);
+    const size = renderer.getDrawingBufferSize(new THREE.Vector2());
+    reflection.setSize(size.x, size.y);
   });
 
   let frames = 0;
+  let last = clock.time;
   renderer.setAnimationLoop(() => {
-    clock.tick();
+    const now = clock.tick();
+    const delta = now - last;
+    last = now;
     controls.update();
-    renderer.render(scene, camera);
+    renderer.info.reset();
+    reflection.update(renderer, scene, camera, [streets]);
+    post.composer.render(delta);
     debug?.update();
     if (++frames === READY_FRAME) {
       const { info } = renderer;
