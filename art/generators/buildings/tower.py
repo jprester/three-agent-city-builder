@@ -68,3 +68,5 @@ def generate(ctx):
         mb.box(ax - 0.08, ax + 0.08, ay - 0.08, ay + 0.08, top, top + ctx.rng.uniform(4, 9), metal, skip=("bottom",))
 
     mb.finish()
+    # Blender X/Y become three.js X/Z; front (-Y) becomes +Z.
+    ctx.meta.update(footprint=[w, d], height=top, scalable=ctx.p("scalable", False))

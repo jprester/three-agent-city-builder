@@ -1,12 +1,14 @@
-// Emits src/assets/manifest.gen.ts: typed ids for every built asset and layout.
+// Emits src/assets/manifest.gen.ts: typed ids for every built asset and layout,
+// with each asset's generator metadata (see tools/lib/catalog.mjs).
 import fs from 'node:fs';
 import path from 'node:path';
-import { P, assetOutPath, isMain, listDefs, listFiles, toPosix } from './lib/common.mjs';
+import { readCatalog } from './lib/catalog.mjs';
+import { P, isMain, listFiles, toPosix } from './lib/common.mjs';
 
-export function writeManifest() {
-  const assets = listDefs()
-    .filter(({ id }) => fs.existsSync(assetOutPath(id)))
-    .map(({ id, category }) => `  ${JSON.stringify(id)}: { url: ${JSON.stringify(`assets/${id}.glb`)}, category: ${JSON.stringify(category)} },`);
+export async function writeManifest() {
+  const catalog = await readCatalog();
+  const assets = Object.entries(catalog).map(([id, { category, meta }]) =>
+    `  ${JSON.stringify(id)}: { url: ${JSON.stringify(`assets/${id}.glb`)}, category: ${JSON.stringify(category)}, meta: ${JSON.stringify(meta)} },`);
   const layouts = listFiles(P.layoutsOut, '.json')
     .map((f) => toPosix(path.relative(P.layoutsOut, f)).replace(/\.json$/, ''))
     .map((id) => `  ${JSON.stringify(id)}: ${JSON.stringify(`layouts/${id}.json`)},`);
@@ -30,6 +32,6 @@ export type LayoutId = keyof typeof LAYOUTS;
 }
 
 if (isMain(import.meta.url)) {
-  const r = writeManifest();
+  const r = await writeManifest();
   console.log(`manifest: ${r.assets} assets, ${r.layouts} layouts`);
 }

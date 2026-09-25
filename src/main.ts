@@ -3,7 +3,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { AssetLoader, hasAnyAssets, layoutUrl } from './assets/registry';
 import { createDebugGui } from './debug/gui';
 import { applyViewpoint } from './debug/viewpoints';
-import { createGround, createRenderer, createScene } from './scene/environment';
+import { createRenderer, createScene } from './scene/environment';
+import { createStreets } from './scene/streets';
 import { Clock, parseFrozenTime } from './systems/clock';
 import { buildInstances } from './systems/instancing';
 import { fetchLayout, generateLayout, type Layout } from './systems/layout';
@@ -32,7 +33,7 @@ const READY_FRAME = 3;
 
 async function main() {
   const params = new URLSearchParams(location.search);
-  const layoutId = params.get('layout') ?? 'district_a';
+  const layoutId = params.get('layout') ?? 'city';
   const viewpoint = params.get('viewpoint') ?? 'aerial';
   const problems: string[] = [];
 
@@ -49,7 +50,7 @@ async function main() {
 
   const renderer = createRenderer(quality.pixelRatio);
   const scene = createScene();
-  const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
+  const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.3, 4000);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = !params.has('viewpoint');
 
@@ -70,7 +71,7 @@ async function main() {
     scene.add(group);
     if (missing.length) problems.push(`Layout references unbuilt assets: ${missing.join(', ')}`);
   }
-  scene.add(createGround(layout));
+  scene.add(createStreets(layout));
   if (!applyViewpoint(viewpoint, camera, controls, layout)) problems.push(`Unknown viewpoint "${viewpoint}".`);
   setStatus(problems.join(' '));
 

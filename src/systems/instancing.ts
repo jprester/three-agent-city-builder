@@ -4,11 +4,12 @@ import type { Layout, LayoutInstance } from './layout';
 
 const Y = new THREE.Vector3(0, 1, 0);
 
-function instanceMatrix(i: LayoutInstance): THREE.Matrix4 {
+export function instanceMatrix(i: LayoutInstance): THREE.Matrix4 {
+  const s = typeof i.scale === 'number' ? new THREE.Vector3(i.scale, i.scale, i.scale) : new THREE.Vector3(...i.scale);
   return new THREE.Matrix4().compose(
     new THREE.Vector3(...i.position),
     new THREE.Quaternion().setFromAxisAngle(Y, i.rotationY),
-    new THREE.Vector3(i.scale, i.scale, i.scale),
+    s,
   );
 }
 

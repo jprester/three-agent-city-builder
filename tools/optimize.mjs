@@ -21,7 +21,8 @@ export async function getIO() {
   return ioPromise;
 }
 
-export async function optimize(inPath, outPath) {
+/** `meta` (generator ctx.meta) is stored in the root extras as { meta }. */
+export async function optimize(inPath, outPath, meta = {}) {
   const io = await getIO();
   const doc = await io.read(inPath);
   doc.setLogger(new Logger(Logger.Verbosity.WARN));
@@ -34,6 +35,7 @@ export async function optimize(inPath, outPath) {
     prune({ keepAttributes: true }),
     meshopt({ encoder: MeshoptEncoder, level: 'medium' }),
   );
+  doc.getRoot().setExtras({ meta });
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   await io.write(outPath, doc);
 }

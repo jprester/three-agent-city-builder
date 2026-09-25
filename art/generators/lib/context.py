@@ -21,6 +21,9 @@ class GenContext:
         self.seed = seed
         self.rng = random.Random(seed)
         self.palette = palette
+        # JSON-serializable facts about the asset for the layout and runtime
+        # (e.g. body footprint, height). Embedded in the GLB, exposed in the manifest.
+        self.meta = {}
 
     def p(self, key, default):
         """Read a param with a default. Every tunable belongs in the def, not in code."""

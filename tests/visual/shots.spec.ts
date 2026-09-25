@@ -8,7 +8,7 @@ const VIEWPOINTS: Viewpoint[] = JSON.parse(readFileSync('src/debug/viewpoints.js
 const SCENE_BUDGET: { maxDrawCalls: number; maxTriangles: number; maxPrograms: number } =
   JSON.parse(readFileSync('pipeline.config.json', 'utf8')).scene;
 
-const LAYOUT = process.env.LAYOUT ?? 'district_a';
+const LAYOUT = process.env.LAYOUT ?? 'city';
 /** Every shot freezes the shared clock here so animated scenes are reproducible. */
 const FROZEN_TIME = 12;
 const OUT_DIR = `build/shots/${LAYOUT}`;

@@ -22,7 +22,7 @@ npm run shots:approve # create initial screenshot baselines once the scene looks
 
 | Parameter | Effect |
 |---|---|
-| `?layout=<id>` | Layout from `public/layouts/` (default `district_a`). |
+| `?layout=<id>` | Layout from `public/layouts/` (default `city`). |
 | `?viewpoint=<name>` | Camera from `src/debug/viewpoints.json` (default `aerial`). |
 | `?seed=<int>` | Regenerate the layout in the browser with this seed. |
 | `?t=<seconds>` | Freeze the shared clock at this time. |

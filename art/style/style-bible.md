@@ -57,6 +57,7 @@ runtime code. No hex literals in generators. Add a named color there first.
 | `glass_dark` | unlit glass |
 | `road_wet` | asphalt |
 | `sidewalk` | pavements |
+| `paint` | worn road markings |
 
 Legacy keys still referenced by the template's sample generators and defs are
 kept as aliases of the colors above: `concrete_light` = `tile_stained`,

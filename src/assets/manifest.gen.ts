@@ -2,15 +2,15 @@
 import type { AssetEntry } from './types';
 
 export const ASSETS = {
-  "buildings/block_low_a": { url: "assets/buildings/block_low_a.glb", category: "buildings" },
-  "buildings/tower_a": { url: "assets/buildings/tower_a.glb", category: "buildings" },
-  "buildings/tower_b": { url: "assets/buildings/tower_b.glb", category: "buildings" },
-  "kit/wall_panel_a": { url: "assets/kit/wall_panel_a.glb", category: "kit" },
-  "kit/window_a": { url: "assets/kit/window_a.glb", category: "kit" },
+  "buildings/block_low_a": { url: "assets/buildings/block_low_a.glb", category: "buildings", meta: {"footprint":[14,12],"height":20.9,"scalable":false} },
+  "buildings/tower_a": { url: "assets/buildings/tower_a.glb", category: "buildings", meta: {"footprint":[12,10],"height":49.7,"scalable":false} },
+  "buildings/tower_b": { url: "assets/buildings/tower_b.glb", category: "buildings", meta: {"footprint":[10,10],"height":75.30000000000001,"scalable":true} },
+  "kit/wall_panel_a": { url: "assets/kit/wall_panel_a.glb", category: "kit", meta: {} },
+  "kit/window_a": { url: "assets/kit/window_a.glb", category: "kit", meta: {} },
 } as const satisfies Record<string, AssetEntry>;
 
 export const LAYOUTS = {
-  "district_a": "layouts/district_a.json",
+  "city": "layouts/city.json",
 } as const satisfies Record<string, string>;
 
 export type AssetId = keyof typeof ASSETS;

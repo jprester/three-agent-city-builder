@@ -13,6 +13,7 @@
     "sign_color": "neon_cyan",
     "roof_units": 5,
     "emission_strength": 1.5,
-    "sign_strength": 2.5
+    "sign_strength": 2.5,
+    "scalable": true
   }
 }

@@ -1,19 +1,59 @@
+import { ASSETS } from '../assets/manifest.gen';
+
+export type Vec2 = [number, number];
+export type Vec3 = [number, number, number];
+
 export interface LayoutInstance {
   asset: string;
-  position: [number, number, number];
+  position: Vec3;
   rotationY: number;
-  scale: number;
+  /** Uniform or per-axis scale. */
+  scale: number | Vec3;
+  /** Per-instance seed for runtime variation. */
+  seed?: number;
+  district?: string;
+  /** Roof height (m) after scaling. */
+  h?: number;
+  /** Footprint half-extents [along local x, along local z] after scaling. */
+  fp?: Vec2;
+}
+
+export interface LayoutRoad {
+  id: number;
+  cls: 'arterial' | 'secondary' | 'alley' | 'hero';
+  width: number;
+  a: Vec2;
+  b: Vec2;
+}
+
+export interface LayoutBlock {
+  district: string;
+  /** Convex CCW polygon in (x, z): the sidewalk outline. */
+  points: Vec2[];
+  /** Road id bordering each edge (points[i] -> points[i+1]), -1 for the city edge. */
+  edges?: number[];
+}
+
+/** Named frame on the ground: origin and forward axis (x, z). Viewpoints can be relative to it. */
+export interface LayoutAnchor {
+  origin: Vec3;
+  x: Vec2;
 }
 
 export interface Layout {
   name: string;
   version: number;
   seed: number;
-  size: [number, number];
-  blocks: { min: [number, number]; max: [number, number] }[];
+  size: Vec2;
+  blocks: LayoutBlock[];
   instances: LayoutInstance[];
-  /** Camera path for the cinematic flythrough (three.js space). Optional until the city layout provides it. */
-  flythrough?: { points: [number, number, number][]; closed?: boolean };
+  roads?: LayoutRoad[];
+  hero?: { road: number; width: number; a: Vec2; b: Vec2 } | null;
+  /** [x, z, arm angle, road id] */
+  lamps?: [number, number, number, number][];
+  anchors?: Record<string, LayoutAnchor>;
+  /** Camera path for the cinematic flythrough; `look` holds a look-at target per control point. */
+  flythrough?: { points: Vec3[]; look?: Vec3[]; closed?: boolean };
 }
 
 export async function fetchLayout(url: string): Promise<Layout> {
@@ -34,7 +74,7 @@ interface LayoutDef {
 }
 
 interface LayoutGeneratorModule {
-  generate(input: { params: Record<string, unknown>; seed: number }): Omit<Layout, 'name'>;
+  generate(input: { params: Record<string, unknown>; seed: number; assets: typeof ASSETS }): Omit<Layout, 'name'>;
 }
 
 export async function generateLayout(id: string, seed: number): Promise<Layout> {
@@ -44,5 +84,5 @@ export async function generateLayout(id: string, seed: number): Promise<Layout> 
   const loadGen = layoutGenerators[`/art/layouts/${def.generator}.mjs`];
   if (!loadGen) throw new Error(`Layout generator "${def.generator}" not found in art/layouts/`);
   const mod = (await loadGen()) as LayoutGeneratorModule;
-  return { name: id, ...mod.generate({ params: def.params ?? {}, seed }) };
+  return { name: id, ...mod.generate({ params: def.params ?? {}, seed, assets: ASSETS }) };
 }

@@ -159,7 +159,7 @@ async function main() {
     const t0 = Date.now();
     try {
       const result = await runBlender(bin, argv);
-      await optimize(raw, out);
+      await optimize(raw, out, result.meta ?? {});
       cache[entry.id] = hash;
       writeJson(P.cache, cache);
       built++;
@@ -172,7 +172,7 @@ async function main() {
 
   pruneOrphans(all.map((e) => e.id));
   for (const l of await buildLayouts()) console.log(`  layout ${l.name}: ${l.instances} instances`);
-  const m = writeManifest();
+  const m = await writeManifest();
   console.log(`  manifest: ${m.assets} assets, ${m.layouts} layouts`);
   console.log('Budgets:');
   const over = printBudgets(await checkBudgets());

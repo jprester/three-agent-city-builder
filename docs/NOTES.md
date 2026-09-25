@@ -58,3 +58,37 @@ because no layout has a flythrough spline yet.
 - Remaining for later phases (unchanged): silhouette facades, blue-tinted template lights,
   grid regularity, empty street level, no culling. `canyon` is still the weakest shot and
   should become the strongest by phase 5.
+
+## Phase 1 — Layout
+
+Plan view: `node tools/debug/plan.mjs` → `build/debug/city-plan.png` (roads, districts,
+footprints shaded by height, fronts, lamps, flythrough). Placeholder buildings are still
+the template towers.
+
+### Round 1 critique (plan view)
+- Road net looked like shattered glass: every cut took a random angle, so blocks were
+  triangles and long diagonals. Irregular, but not a city anyone lives in. Fixed: cuts follow
+  a per-district grid angle (core 8°, towers 30°, industrial −6°) with a few degrees of jitter,
+  and only the first arterial may run diagonally.
+- Too many arterials (26 m roads everywhere). Fixed: arterial superblocks 90k → 150k m².
+- The hero street ran along the port edge, half in the industrial district. Fixed: the hero
+  superblock is weighted by the fraction of its area that is old core.
+
+### Round 2 critique (shots)
+- `canyon` already has the right bones: a ~600 m straight street, walls on both sides, the
+  tower cluster closing the far end of the view. It is still black-on-black with the
+  placeholders' red sign strips as the only accent.
+- `aerial` was drowned in fog (density 0.0022 was tuned for the 232 m template grid); halved
+  to 0.0011 until phase 2's height fog. Now the tower cluster, core grid, arterials and the
+  sparse industrial edge all read. Still: a hard horizon band where fog-lit ground meets the
+  darker sky, and the core looks like dotted boxes with courtyards — blocks are only
+  perimeter-built, because the placeholders are 10–14 m deep. Phase 2 slabs should be
+  deeper and the interior fill denser.
+- `fly-25`/`fly-50` looked away from the city along the path tangent. Fixed: the flythrough
+  carries a look-at track (one target per control point).
+- The flythrough climbs almost vertically at the canyon's end, because the hero street ends
+  at the tower cluster (the clearance rule lifts it to ~420 m). Phase 5 should thread it
+  between the towers instead of over them.
+- **Budget miss:** ~4.1M triangles in every view (budget 3M), all from 1,500 placeholder
+  towers with modeled windows and no culling. Phase 2 replaces them (shaded windows) and
+  adds BatchedMesh culling; re-check there.

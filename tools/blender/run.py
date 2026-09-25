@@ -52,7 +52,7 @@ def main():
         previews.render(Path(args.previews), engine=args.preview_engine, resolution=args.preview_res)
 
     # Single machine-readable line for the orchestrator.
-    print("ASSET_RESULT " + json.dumps({"id": args.id, "triangles": tris}))
+    print("ASSET_RESULT " + json.dumps({"id": args.id, "triangles": tris, "meta": ctx.meta}))
 
 
 main()

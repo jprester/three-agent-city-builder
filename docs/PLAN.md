@@ -310,6 +310,40 @@ Judge each shot against the style bible:
 - Let the layout mix pack buildings into matching tiers.
 - Skip this phase if the pack is not provided.
 
+## 8b. Revised phase order (2026-09-25, agent proposal accepted by the human)
+
+This order **supersedes section 8** from phase 1 on. Section 8's acceptance criteria still
+apply; they are regrouped here. Reasons are in `docs/DECISIONS.md`.
+
+**Phase 1 — Layout.** `art/layouts/city.mjs` as in section 8 phase 1 (road hierarchy,
+blocks, frontage-packed buildings, three districts, hero street, lamps, anchors for
+viewpoints, a first flythrough spline), runtime roads and sidewalks, layout tests including
+the spline test. Placeholder buildings.
+Accept when `aerial` reads as a city with hierarchy and districts and budgets hold.
+
+**Phase 2 — Canyon slice.** A rough version of every layer, judged mainly in the hero canyon:
+building families (slab, mid-rise, setback tower) with surface-type and facade-UV helpers,
+the facade shader (scale compensation, anti-aliasing), BatchedMesh, sky, height fog, the
+post stack, a first wet-street reflection, lamp pools, a first sign atlas with signs on
+the hero street.
+Accept when `canyon` and `storefront` show believable varied windows, signs and reflections,
+`aerial` shows no shimmer, and the Blender previews show distinct families.
+**Checkpoint 1.**
+
+**Phase 3 — Widen.** Props (rooftop clutter, AC units, street props), skyline ring, sign
+placement everywhere (dense on the hero street, sparse elsewhere), flicker and broken tubes,
+street haze, district detail. Refine the canyon.
+Accept when `canyon` is the strongest shot, street level no longer looks empty, and
+`horizon`/`aerial` show clear depth layering. **Checkpoint 2.**
+
+**Phase 4 — Motion.** Section 8 phase 6.
+
+**Phase 5 — Cameras.** Section 8 phase 7. **Checkpoint 3.**
+
+**Phase 6 — Performance and polish.** Section 8 phase 8.
+
+**Phase 7 (optional) — External assets.** Section 8 phase 9.
+
 ## 9. Out of scope
 
 Gameplay, audio, touch controls, pedestrians, physically accurate lighting and any server component are out of scope.
