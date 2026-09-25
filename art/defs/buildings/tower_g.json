@@ -17,6 +17,8 @@
       ]
     ],
     "crown": "flat",
-    "screen": 0.7
+    "screen": 0.7,
+    "crane": true,
+    "crane_angle": 2.2
   }
 }

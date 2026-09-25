@@ -17,6 +17,9 @@
       ]
     ],
     "base_floors": 3,
-    "crown": "plant"
+    "crown": "plant",
+    "crane": true,
+    "crane_angle": 4.0,
+    "crane_jib": 40
   }
 }

@@ -6,6 +6,7 @@
     "depth_bays": 5,
     "floors": 7,
     "tint": 0.8,
-    "enclosed": 0.7
+    "enclosed": 0.7,
+    "railing": 0.8
   }
 }

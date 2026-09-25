@@ -45,14 +45,111 @@ def flat_roof(mb, ctx, W, D, z, tint, cx=0.0, cy=0.0, parapet=1.0, thick=0.25):
         mb.box(bx[0], bx[1], bx[2], bx[3], z, z + parapet, tm, None, ("bottom",), ts, plan_uv)
 
 
+def prism(mb, m, s, x, y, z0, z1, r, n=8, top=True, r_top=None):
+    """Vertical n-sided prism (a cheap cylinder), optionally tapering to r_top, capped on top."""
+    import math
+    rt = r if r_top is None else r_top
+    ring = [(math.cos(2 * math.pi * k / n), math.sin(2 * math.pi * k / n)) for k in range(n)]
+    for k in range(n):
+        (c0, s0), (c1, s1) = ring[k], ring[(k + 1) % n]
+        mb.quad([(x + c0 * r, y + s0 * r, z0), (x + c1 * r, y + s1 * r, z0),
+                 (x + c1 * rt, y + s1 * rt, z1), (x + c0 * rt, y + s0 * rt, z1)], m, None, s, plan_uv)
+    if top and rt > 0.01:
+        mb.quad([(x + c * rt, y + sn * rt, z1) for c, sn in ring], m, None, s, plan_uv)
+
+
 def water_tank(mb, ctx, x, y, z, size):
+    """Cylindrical tank on a braced steel stand, with a shallow conical lid: the rooftop
+    silhouette of old Hong Kong."""
+    rng = ctx.rng
     m, s = surf(ctx, "metal", 0.0, 0.3)
-    legs = 0.6
-    mb.box(x - size / 2, x + size / 2, y - size / 2, y + size / 2, z + legs, z + legs + size * 0.9, m, None, (), s, plan_uv)
+    tm, ts = surf(ctx, "trim", 0.0, rng.random())
+    stand = rng.uniform(1.2, 3.2)
+    r = size / 2
+    h = size * rng.uniform(0.9, 1.3)
+    leg = r * 0.75
     for dx in (-1, 1):
         for dy in (-1, 1):
-            lx, ly = x + dx * size * 0.4, y + dy * size * 0.4
-            mb.box(lx - 0.08, lx + 0.08, ly - 0.08, ly + 0.08, z, z + legs, m, None, ("bottom", "top"), s, plan_uv)
+            lx, ly = x + dx * leg, y + dy * leg
+            mb.box(lx - 0.07, lx + 0.07, ly - 0.07, ly + 0.07, z, z + stand, m, None, ("bottom", "top"), s, plan_uv)
+    # Cross braces at mid height and a platform ring under the tank.
+    zb = z + stand * 0.5
+    for dy in (-1, 1):
+        mb.box(x - leg, x + leg, y + dy * leg - 0.04, y + dy * leg + 0.04, zb - 0.04, zb + 0.04, m, None, (), s, plan_uv)
+    for dx in (-1, 1):
+        mb.box(x + dx * leg - 0.04, x + dx * leg + 0.04, y - leg, y + leg, zb - 0.04, zb + 0.04, m, None, (), s, plan_uv)
+    mb.box(x - r * 0.9, x + r * 0.9, y - r * 0.9, y + r * 0.9, z + stand, z + stand + 0.15, m, None, (), s, plan_uv)
+    body = tm if rng.random() < 0.6 else m
+    bs = ts if body is tm else s
+    prism(mb, body, bs, x, y, z + stand + 0.15, z + stand + 0.15 + h, r, 8, top=False)
+    prism(mb, body, bs, x, y, z + stand + 0.15 + h, z + stand + 0.45 + h, r, 8, r_top=r * 0.2)
+    return z + stand + 0.45 + h
+
+
+def antenna_cluster(mb, ctx, x, y, z):
+    """Two to four masts of different heights with crossarms and small dishes; one may carry
+    a red light. Returns the top."""
+    rng = ctx.rng
+    m, s = surf(ctx, "metal", 0.0, 0.0)
+    top = z
+    for k in range(rng.randint(2, 4)):
+        mx, my = x + rng.uniform(-1.2, 1.2), y + rng.uniform(-1.2, 1.2)
+        h = rng.uniform(3.0, 12.0)
+        mb.box(mx - 0.05, mx + 0.05, my - 0.05, my + 0.05, z, z + h, m, None, ("bottom",), s, plan_uv)
+        for a in range(rng.randint(0, 3)):
+            za = z + h * rng.uniform(0.5, 0.95)
+            w = rng.uniform(0.6, 1.6)
+            if rng.random() < 0.5:
+                mb.box(mx - w, mx + w, my - 0.03, my + 0.03, za - 0.03, za + 0.03, m, None, (), s, plan_uv)
+            else:
+                mb.box(mx - 0.03, mx + 0.03, my - w, my + w, za - 0.03, za + 0.03, m, None, (), s, plan_uv)
+        if rng.random() < 0.35:
+            # Small dish: a thin tilted plate approximated by a box on an arm.
+            zd = z + h * rng.uniform(0.3, 0.7)
+            d = rng.uniform(0.35, 0.7)
+            mb.box(mx + 0.1, mx + 0.25, my - d, my + d, zd - d, zd + d, m, None, (), s, plan_uv)
+        if h > 8 and rng.random() < 0.6:
+            fm, fs = fixture(ctx, "red")
+            mb.box(mx - 0.14, mx + 0.14, my - 0.14, my + 0.14, z + h, z + h + 0.25, fm, None, ("bottom",), fs, plan_uv)
+        top = max(top, z + h)
+    return top
+
+
+def railing(mb, ctx, W, D, z, cx=0.0, cy=0.0, h=1.1, post=2.5):
+    """Pipe railing on top of a parapet: a top rail and posts every `post` meters."""
+    m, s = surf(ctx, "metal", 0.0, 0.2)
+    x0, x1, y0, y1 = cx - W / 2 + 0.12, cx + W / 2 - 0.12, cy - D / 2 + 0.12, cy + D / 2 - 0.12
+    t = 0.035
+    for (ax, ay, bx, by) in ((x0, y0, x1, y0), (x1, y0, x1, y1), (x1, y1, x0, y1), (x0, y1, x0, y0)):
+        mb.box(min(ax, bx) - t, max(ax, bx) + t, min(ay, by) - t, max(ay, by) + t, z + h - t, z + h + t, m, None, (), s, plan_uv)
+        L = max(abs(bx - ax), abs(by - ay))
+        n = max(1, int(L // post))
+        for k in range(n):
+            px, py = ax + (bx - ax) * k / n, ay + (by - ay) * k / n
+            mb.box(px - t, px + t, py - t, py + t, z, z + h, m, None, ("bottom", "top"), s, plan_uv)
+
+
+def crane(mb, ctx, x, y, z, height, jib, angle=0.0):
+    """Tower crane: lattice mast (a slim box), operator cab, jib and counter-jib with a
+    counterweight, red lights at the tips. `angle` turns the jib (radians). Returns the top."""
+    import math
+    m, s = surf(ctx, "metal", 0.0, 0.8)
+    fm, fs = fixture(ctx, "red")
+    w = 0.9
+    mb.box(x - w, x + w, y - w, y + w, z, z + height, m, None, ("bottom",), s, plan_uv)
+    zt = z + height
+    c, sn = math.cos(angle), math.sin(angle)
+
+    def xf(px, py, pz):
+        return (x + c * px - sn * py, y + sn * px + c * py, pz)
+    mb.box(-1.2, 1.2, -1.0, 1.0, zt, zt + 2.0, m, xf, (), s, plan_uv)
+    mb.box(-jib * 0.28, jib, -0.45, 0.45, zt + 2.0, zt + 3.0, m, xf, (), s, plan_uv)
+    mb.box(-jib * 0.28, -jib * 0.18, -0.8, 0.8, zt + 0.6, zt + 2.0, m, xf, (), s, plan_uv)
+    mb.box(-0.3, 0.3, -0.3, 0.3, zt + 3.0, zt + 6.5, m, xf, ("bottom",), s, plan_uv)
+    for px in (jib - 0.3, -jib * 0.28 + 0.3):
+        mb.box(px - 0.2, px + 0.2, -0.2, 0.2, zt + 3.0, zt + 3.35, fm, xf, ("bottom",), fs, plan_uv)
+    mb.box(-0.2, 0.2, -0.2, 0.2, zt + 6.5, zt + 6.85, fm, xf, ("bottom",), fs, plan_uv)
+    return zt + 6.85
 
 
 def stair_hut(mb, ctx, x, y, z, w, d, h, tint):
@@ -79,34 +176,37 @@ def mast(mb, ctx, x, y, z, h, red=True):
     mb.box(x - 0.18, x + 0.18, y - 0.18, y + 0.18, z + h, z + h + 0.3, fm, None, ("bottom",), fs, plan_uv)
 
 
-def roof_clutter(mb, ctx, W, D, z, tint, density=1.0, cx=0.0, cy=0.0, margin=1.2):
-    """Scatter tanks, huts, AC clusters and masts over a W×D roof on a coarse grid, so
-    pieces never overlap. Returns the tallest point added."""
+def roof_clutter(mb, ctx, W, D, z, tint, density=1.0, cx=0.0, cy=0.0, margin=1.2, rail=None):
+    """Scatter tanks on stands, huts, AC clusters, antenna clusters and masts over a W×D
+    roof on a coarse grid, so pieces never overlap; optionally a railing on the parapet
+    (`rail`: chance, default param "railing"). Returns the tallest point added."""
     rng = ctx.rng
     top = z
-    step = 4.2
+    step = 4.2 if W * D > 300 else 3.3   # small tenement roofs get a tighter grid
     nx, ny = max(1, int((W - 2 * margin) // step)), max(1, int((D - 2 * margin) // step))
     slots = [(i, j) for i in range(nx) for j in range(ny)]
     rng.shuffle(slots)
     ox, oy = cx - (nx - 1) * step / 2, cy - (ny - 1) * step / 2
     hut = False
-    for i, j in slots[: max(1, int(len(slots) * 0.35 * density))]:
+    for i, j in slots[: max(1, int(round(len(slots) * 0.55 * density)))]:
         x, y = ox + i * step, oy + j * step
         r = rng.random()
-        if not hut and W > 8:
+        if not hut and W > 8 and len(slots) >= 3:
             stair_hut(mb, ctx, x, y, z, 3.0, 2.6, 2.8, tint)
             hut, top = True, max(top, z + 2.8)
         elif r < 0.3:
-            size = rng.uniform(1.8, 2.8)
-            water_tank(mb, ctx, x, y, z, size)
-            top = max(top, z + 0.6 + size)
-        elif r < 0.75:
+            top = max(top, water_tank(mb, ctx, x, y, z, rng.uniform(1.8, 2.8)))
+        elif r < 0.6:
             ac_cluster(mb, ctx, x, y, z, rng.randint(1, 3))
             top = max(top, z + 0.9)
+        elif r < 0.82:
+            top = max(top, antenna_cluster(mb, ctx, x, y, z))
         elif r < 0.9:
             h = rng.uniform(4, 11)
             mast(mb, ctx, x, y, z, h, red=h > 8)
         # else: leave the slot empty
+    if rng.random() < (ctx.p("railing", 0.5) if rail is None else rail):
+        railing(mb, ctx, W, D, z + 1.0, cx, cy)
     return top
 
 

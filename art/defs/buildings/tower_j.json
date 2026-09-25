@@ -12,6 +12,9 @@
         0
       ]
     ],
-    "crown": "flat"
+    "crown": "flat",
+    "crane": true,
+    "crane_angle": 0.4,
+    "crane_height": 18
   }
 }

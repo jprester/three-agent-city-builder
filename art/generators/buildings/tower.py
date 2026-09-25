@@ -15,7 +15,7 @@ Accents (param "accent"): "corners" (LED strips on every tier's vertical edges) 
 (facade.json fixture_colors). "screen": a video screen on the lowest tier's front,
 covering that fraction of the face width. Every crown gets red aviation lights.
 Width and depth are whole curtain cells (1.5 m)."""
-from lib.building import ac_cluster, aviation_lights, cell, corner_strips, face_stripes, flat_roof, mast, screen, walls
+from lib.building import ac_cluster, antenna_cluster, aviation_lights, cell, corner_strips, crane, face_stripes, flat_roof, mast, screen, walls
 from lib.mesh import MeshBuilder
 from lib.surface import fixture, plan_uv, surf
 
@@ -60,6 +60,10 @@ def generate(ctx):
 
     aviation_lights(mb, ctx, w, d, z)
     top = _crown(mb, ctx, crown, w, d, z, tint)
+    if ctx.p("crane", False):
+        # Still being topped out: a crane on the roof, jib swung over one side.
+        top = max(top, crane(mb, ctx, w * 0.2, d * 0.15, top if crown != "spire" else z + 3.0,
+                             ctx.p("crane_height", 22.0), ctx.p("crane_jib", 34.0), ctx.p("crane_angle", 0.6)))
     mb.finish()
     ctx.meta.update(footprint=[W, D], height=top, family="tower", scalable=True, shader="facade")
 
@@ -124,6 +128,7 @@ def _crown(mb, ctx, crown, w, d, z, tint):
     flat_roof(mb, ctx, w, d, z, tint, parapet=0.9)
     for k in range(4):
         ac_cluster(mb, ctx, rng.uniform(-w / 3, w / 3), rng.uniform(-d / 3, d / 3), z, rng.randint(1, 3))
+    antenna_cluster(mb, ctx, -w * 0.25, d * 0.25, z)
     if rng.random() < 0.5:
         mast(mb, ctx, w * 0.3, -d * 0.3, z, rng.uniform(6, 14), red=True)
     return z
