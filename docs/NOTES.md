@@ -148,3 +148,10 @@ Families (`node tools/debug/sheet.mjs 'buildings/*'`): 8 old slabs, 4 mid-rise/i
     detail by pixel footprint, but it needs a look in motion (`npm run dev`, orbit).
   - Flythrough climbs vertically at the canyon's end; masts pass close to the camera
     (`fly-25`). Phase 5.
+
+## Human review — checkpoint 1 (given in chat, 2026-09-25)
+- All looks great, especially ground level: wet roads and storefronts "look incredible".
+- Biggest weakness: buildings. They lack proper materials, are totally flat, and windows
+  don't read as emissive/real windows.
+- Towers look uniform: every one has the same ring on top.
+- Priority: better building materials/textures and more variety.
