@@ -38,6 +38,11 @@ const DEFAULTS = {
   heroBuildings: null,
   lampSpacing: { arterial: 30, secondary: 26, hero: 15, alley: 24 },
   flythrough: { cruise: 190, wide: 430 },
+  // Signs per frontage building: hero street dense, old core sparse, elsewhere none.
+  signs: {
+    hero: { blades: [2, 5], bladeChance: 1, panelChance: 0.7 },
+    core: { blades: [1, 1], bladeChance: 0.16, panelChance: 0.22 },
+  },
 };
 
 /** Frontage priority: edges along bigger streets get first pick of buildings. */
@@ -282,6 +287,59 @@ export function generate({ params, seed, assets = {} }) {
     }
   }
 
+  // ---- signs: blades project from the front face over the street, panels sit flat on it
+  const signs = [];
+  instances.forEach((inst, index) => {
+    if (inst.interior || inst.road < 0) return;
+    const onHero = hero && inst.road === hero.id;
+    const cfg = onHero ? P.signs.hero : inst.district === 'core' ? P.signs.core : null;
+    if (!cfg) return;
+    const t = inst.rotationY;
+    const u = [Math.cos(t), -Math.sin(t)], v = [Math.sin(t), Math.cos(t)];
+    const [hu, hv] = inst.fp;
+    const front = [inst.position[0] + v[0] * hv, inst.position[2] + v[1] * hv];
+    const top = Math.min(inst.h - 3, onHero ? 34 : 22);
+    const used = [];
+    if (rng() < cfg.bladeChance && hu > 2 && top > 9) {
+      const n = cfg.blades[0] + Math.floor(rng() * (cfg.blades[1] - cfg.blades[0] + 1));
+      for (let k = 0; k < n; k++) {
+        const off = rand(-hu + 1.2, hu - 1.2);
+        if (used.some((o) => Math.abs(o - off) < 2.2)) continue;
+        used.push(off);
+        // Tall blades, or wide "arms" reaching out over the street (the Mong Kok read).
+        const arm = rng() < (onHero ? 0.5 : 0.3);
+        const w = arm ? rand(3.5, onHero ? 7.5 : 4.5) : rand(1.4, onHero ? 3.2 : 2.2);
+        const h = Math.min(arm ? rand(1.2, 2.6) : rand(3, onHero ? 10 : 6), top - 5.4);
+        if (h < 1.2) continue;
+        const y = rand(5.4, top - h) + h / 2;
+        const out = 0.3 + w / 2;
+        signs.push({
+          building: index, kind: 'blade',
+          position: [r3(front[0] + u[0] * off + v[0] * out), r3(y), r3(front[1] + u[1] * off + v[1] * out)],
+          // A blade's faces look along the street: its normal is the facade's u axis.
+          rotationY: r3(Math.atan2(u[0], u[1])),
+          size: [r3(w), r3(h), 0.28],
+          seed: Math.floor(rng() * 2 ** 31),
+        });
+      }
+    }
+    if (rng() < cfg.panelChance && hu > 2.5) {
+      const w = Math.min(rand(3, 9), 2 * hu - 1);
+      const aboveCanopy = rng() < 0.5;
+      const h = aboveCanopy ? rand(1.2, 2.6) : rand(0.8, 1.0);
+      const y = aboveCanopy ? 5.2 + h / 2 + rand(0, 1.5) : 3.4 + h / 2;
+      const off = rand(-hu + w / 2 + 0.3, hu - w / 2 - 0.3);
+      const out = aboveCanopy ? 0.2 : 0.12;
+      signs.push({
+        building: index, kind: 'panel',
+        position: [r3(front[0] + u[0] * off + v[0] * out), r3(y), r3(front[1] + u[1] * off + v[1] * out)],
+        rotationY: r3(t),
+        size: [r3(w), r3(h), 0.2],
+        seed: Math.floor(rng() * 2 ** 31),
+      });
+    }
+  });
+
   // ---- anchors: named frames for viewpoints ({ origin, x }: x is the frame's forward axis on the ground)
   const coreCenter = centroidOf(blocks.filter((b) => b.district === 'core').map((b) => G.centroid(b.pts))) ?? [0, 0];
   const heroDir = hero ? G.norm(G.sub(hero.b, hero.a)) : [1, 0];
@@ -306,6 +364,7 @@ export function generate({ params, seed, assets = {} }) {
     blocks: blocks.map((b) => ({ district: b.district, points: b.pts.map((p) => p.map(r3)), edges: b.tags.map((t) => (t === 'edge' ? -1 : t)) })),
     hero: hero ? { road: hero.id, width: hero.width, a: hero.a.map(r3), b: hero.b.map(r3) } : null,
     lamps,
+    signs,
     anchors,
     instances,
     flythrough,

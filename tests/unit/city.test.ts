@@ -66,6 +66,25 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     expect(wrong.map((i) => i.position)).toEqual([]);
   });
 
+  it('mounts every sign on a building face that fronts a street', async () => {
+    const L = await get();
+    expect(L.signs!.length).toBeGreaterThan(50);
+    const bad = L.signs!.filter((s) => {
+      const b = L.instances[s.building] as LayoutInstance & { road?: number; interior?: boolean };
+      if (!b || b.interior || b.road === undefined || b.road < 0) return true;
+      const t = b.rotationY;
+      const u: Vec2 = [Math.cos(t), -Math.sin(t)], v: Vec2 = [Math.sin(t), Math.cos(t)];
+      const [hu, hv] = b.fp!;
+      const rel = G.sub([s.position[0], s.position[2]], [b.position[0], b.position[2]]);
+      const out = G.dot(rel, v) - hv;          // distance of the sign center in front of the face
+      const along = G.dot(rel, u);
+      // Blades start just off the wall and reach out by their width; panels hug the wall.
+      const gap = s.kind === 'blade' ? out - s.size[0] / 2 : out;
+      return gap < 0.05 || gap > 0.5 || Math.abs(along) > hu || s.position[1] + s.size[1] / 2 > b.h!;
+    });
+    expect(bad.map((s) => s.position)).toEqual([]);
+  });
+
   it('flies the camera around buildings, never through them', async () => {
     const L = await get();
     const fly = L.flythrough!;

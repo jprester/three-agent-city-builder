@@ -34,6 +34,20 @@ export interface LayoutBlock {
   edges?: number[];
 }
 
+export interface LayoutSign {
+  /** Index into instances of the building it hangs on. */
+  building: number;
+  /** blade: projects from the facade, faces along the street; panel: flat on the facade. */
+  kind: 'blade' | 'panel';
+  /** Center, meters. */
+  position: Vec3;
+  /** Rotation so the sign's +Z face points along its normal. */
+  rotationY: number;
+  /** [width, height, depth] */
+  size: Vec3;
+  seed: number;
+}
+
 /** Named frame on the ground: origin and forward axis (x, z). Viewpoints can be relative to it. */
 export interface LayoutAnchor {
   origin: Vec3;
@@ -51,6 +65,7 @@ export interface Layout {
   hero?: { road: number; width: number; a: Vec2; b: Vec2 } | null;
   /** [x, z, arm angle, road id] */
   lamps?: [number, number, number, number][];
+  signs?: LayoutSign[];
   anchors?: Record<string, LayoutAnchor>;
   /** Camera path for the cinematic flythrough; `look` holds a look-at target per control point. */
   flythrough?: { points: Vec3[]; look?: Vec3[]; closed?: boolean };

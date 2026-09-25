@@ -2,14 +2,49 @@
   "generator": "city",
   "seed": 20260925,
   "params": {
-    "size": [1000, 800],
-    "towers": { "center": [230, -130], "radius": 190 },
+    "size": [
+      1000,
+      800
+    ],
+    "towers": {
+      "center": [
+        230,
+        -130
+      ],
+      "radius": 190
+    },
     "portZ": 250,
     "districts": {
-      "core": { "buildings": { "buildings/tower_a": 2, "buildings/block_low_a": 3 } },
-      "towers": { "buildings": { "buildings/tower_b": 1 }, "xzScale": [2.2, 3.2] },
-      "industrial": { "buildings": { "buildings/block_low_a": 1 } }
+      "core": {
+        "buildings": {
+          "buildings/slab_*": 8,
+          "buildings/midrise_a": 1,
+          "buildings/midrise_b": 1.5
+        }
+      },
+      "towers": {
+        "buildings": {
+          "buildings/tower_*": 1
+        },
+        "xzScale": [
+          0.9,
+          1.15
+        ]
+      },
+      "industrial": {
+        "buildings": {
+          "buildings/midrise_c": 2,
+          "buildings/midrise_d": 2,
+          "buildings/slab_f": 1
+        }
+      }
     },
-    "heroBuildings": { "buildings/tower_a": 1 }
+    "heroBuildings": {
+      "buildings/slab_b": 1,
+      "buildings/slab_d": 1,
+      "buildings/slab_g": 1,
+      "buildings/slab_a": 1,
+      "buildings/slab_e": 1
+    }
   }
 }
