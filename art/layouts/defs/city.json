@@ -19,16 +19,33 @@
         "buildings": {
           "buildings/slab_*": 8,
           "buildings/midrise_a": 1,
-          "buildings/midrise_b": 1.5
-        }
+          "buildings/midrise_b": 1.5,
+          "buildings/tower_*": 0.9
+        },
+        "xzScale": [
+          0.65,
+          0.85
+        ],
+        "heightRange": [
+          90,
+          230
+        ]
       },
       "towers": {
         "buildings": {
           "buildings/tower_*": 1
         },
         "xzScale": [
-          0.9,
-          1.15
+          0.7,
+          1.0
+        ],
+        "heightRange": [
+          180,
+          420
+        ],
+        "gap": [
+          6,
+          16
         ]
       },
       "industrial": {
@@ -48,6 +65,17 @@
       "buildings/slab_i": 1,
       "buildings/slab_j": 1,
       "buildings/slab_l": 1
+    },
+    "farfield": {
+      "keep": 0.5,
+      "falloff": 1500,
+      "buildings": {
+        "buildings/tower_*": 1,
+        "buildings/midrise_*": 0.7,
+        "buildings/slab_h": 0.2,
+        "buildings/slab_l": 0.2,
+        "buildings/slab_c": 0.2
+      }
     }
   }
 }

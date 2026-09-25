@@ -38,6 +38,9 @@ const DEFAULTS = {
   heroBuildings: null,
   lampSpacing: { arterial: 30, secondary: 26, hero: 15, alley: 24 },
   flythrough: { cruise: 190, wide: 430 },
+  // Far city around the playable area: buildings out to `radius`, thinning with distance,
+  // plus a few dense tower clusters. Silhouettes and window lights for depth, no streets.
+  farfield: { margin: 90, radius: 2600, cell: 64, keep: 0.8, falloff: 2200, clusters: 7, towerShare: 0.3, clusterTowerShare: 0.85, heightRange: [60, 330], buildings: {} },
   // Signs per frontage building: hero street dense, old core sparse, elsewhere none.
   signs: {
     hero: { blades: [2, 5], bladeChance: 1, panelChance: 0.7 },
@@ -50,6 +53,8 @@ const EDGE_PRIORITY = { hero: 0, arterial: 1, secondary: 2, edge: 3, alley: 4 };
 
 export function generate({ params, seed, assets = {} }) {
   const P = { ...DEFAULTS, ...params };
+  // Nested option groups merge with their defaults instead of replacing them.
+  for (const k of ['roads', 'sidewalks', 'lampSpacing', 'flythrough', 'signs', 'farfield']) P[k] = { ...DEFAULTS[k], ...(params[k] ?? {}) };
   const D = {};
   for (const k of Object.keys(DISTRICT_DEFAULTS)) D[k] = { ...DISTRICT_DEFAULTS[k], ...(params.districts?.[k] ?? {}) };
   const rng = mulberry32(seed);
@@ -267,6 +272,45 @@ export function generate({ params, seed, assets = {} }) {
       place(id, box, Math.atan2(-nIn[0], -nIn[1]), s, block.district, bi, -1, true);
     }
   });
+
+  // ---- far field (outside the city rectangle; no roads, no signs)
+  const far = P.farfield;
+  const farWeights = resolve(far.buildings);
+  const farTowers = Object.keys(farWeights).filter((id) => assets[id].meta.scalable);
+  const farOthers = Object.keys(farWeights).filter((id) => !assets[id].meta.scalable);
+  if (farTowers.length || farOthers.length) {
+    const clusters = Array.from({ length: far.clusters }, () => {
+      const a = rng() * Math.PI * 2, r = rand(Math.max(W, Dp) * 0.7, far.radius * 0.75);
+      return [Math.cos(a) * r, Math.sin(a) * r, rand(120, 260)];
+    });
+    const n = Math.ceil((2 * far.radius) / far.cell);
+    for (let i = 0; i < n; i++) for (let k = 0; k < n; k++) {
+      const p = [-far.radius + (i + rand(0.35, 0.65)) * far.cell, -far.radius + (k + rand(0.35, 0.65)) * far.cell];
+      const r = Math.hypot(p[0], p[1]);
+      if (r > far.radius) continue;
+      if (Math.abs(p[0]) < W / 2 + far.margin && Math.abs(p[1]) < Dp / 2 + far.margin) continue;
+      const near = clusters.reduce((m, c) => Math.max(m, Math.exp(-((p[0] - c[0]) ** 2 + (p[1] - c[1]) ** 2) / (c[2] * c[2]))), 0);
+      if (rng() > far.keep * Math.exp(-Math.max(r - Math.max(W, Dp) / 2, 0) / far.falloff) + near * 0.5) continue;
+      const tower = farTowers.length && rng() < far.towerShare + (far.clusterTowerShare - far.towerShare) * near;
+      const pool = tower ? farTowers : farOthers.length ? farOthers : farTowers;
+      const id = pool[Math.floor(rng() * pool.length)];
+      const meta = assets[id].meta;
+      let s3 = [1, 1, 1];
+      if (meta.scalable) {
+        const sxz = rand(0.6, 0.95);
+        const h = far.heightRange[0] + (far.heightRange[1] - far.heightRange[0]) * Math.pow(rng(), 1.6 - near);
+        s3 = [sxz, h / meta.height, sxz];
+      }
+      const [fw, fd] = meta.footprint;
+      // Centers are ≥ 0.7 cells apart and footprints ≤ 0.6 cells, so neighbors never overlap.
+      const k2 = Math.min(1, (far.cell * 0.6) / Math.max(fw * s3[0], fd * s3[2]));
+      s3 = [s3[0] * k2, s3[1], s3[2] * k2];
+      const t = (D.core.gridAngle * Math.PI) / 180 + (rng() < 0.5 ? 0 : Math.PI / 2) + rand(-0.08, 0.08);
+      const u = [Math.cos(t), -Math.sin(t)];
+      const box = G.obb(p, u, (fw * s3[0]) / 2, (fd * s3[2]) / 2);
+      place(id, box, t, s3, 'far', -1, -1, true);
+    }
+  }
 
   // ---- street lamps: on the sidewalk just off the curb, arm pointing over the road
   const lamps = [];

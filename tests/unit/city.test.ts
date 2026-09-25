@@ -42,7 +42,8 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
   it('keeps every footprint inside a block and clear of its neighbors', async () => {
     const L = await get();
     const boxes = L.instances.map(box);
-    const outside = L.instances.filter((_i, k) => !L.blocks.some((b) => boxes[k].corners.every((p) => G.insideConvex(b.points, p, 0.05))));
+    // Far-field buildings stand outside the city's blocks by design.
+    const outside = L.instances.filter((i, k) => i.district !== 'far' && !L.blocks.some((b) => boxes[k].corners.every((p) => G.insideConvex(b.points, p, 0.05))));
     expect(outside.map((i) => i.position)).toEqual([]);
     const overlaps: number[][] = [];
     for (let a = 0; a < boxes.length; a++) for (let b = a + 1; b < boxes.length; b++) {
