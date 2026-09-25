@@ -20,13 +20,20 @@ def generate(ctx):
     floors = ctx.p("floors", 16)
     tint = ctx.p("tint", 0.3)
     top = ph + floors * ch
+    # Stepped top: the last `step_floors` floors set back from the street by `step_depth`.
+    step_floors = ctx.p("step_floors", 0)
+    step_depth = ctx.p("step_depth", cw) if step_floors else 0.0
+    front_floors = floors - step_floors
+    main_top = ph + front_floors * ch
 
     mb = MeshBuilder(ctx.name)
     side_fill = ctx.p("side_fill", 0.18)
-    walls(mb, ctx, W, D, ph, top, ph, [
-        ("residential", 1.0, tint), ("residential", side_fill, tint),
-        ("residential", ctx.p("back_fill", 0.85), tint), ("residential", side_fill, tint),
-    ])
+    kinds = [("residential", 1.0, tint), ("residential", side_fill, tint),
+             ("residential", ctx.p("back_fill", 0.85), tint), ("residential", side_fill, tint)]
+    walls(mb, ctx, W, D, ph, main_top, ph, kinds)
+    if step_floors:
+        flat_roof(mb, ctx, W, D, main_top, tint, parapet=1.0)
+        walls(mb, ctx, W, D - step_depth, main_top, top, ph, kinds, 0.0, step_depth / 2)
     walls(mb, ctx, W, D, 0.0, ph, 0.0, [
         ("podium", ctx.p("shop_fill", 1.0), tint), ("podium", 0.25, tint),
         ("trim", 0.0, tint), ("podium", 0.25, tint),
@@ -48,9 +55,27 @@ def generate(ctx):
     am, as_ = surf(ctx, "metal", 0.0, 0.5)
     uvf = facade_uv(fw, ph)
     bd = ctx.p("balcony_depth", 1.1)
+    # Bay windows: box-outs over a run of floors in some non-balcony columns. Their front face
+    # keeps the facade's cell coordinates, so the shaded windows land on it.
+    bay_cols = {c for c in range(bays) if c not in balcony_cols and rng.random() < ctx.p("bay_ratio", 0.0)}
+    rm, rs = surf(ctx, "residential", 1.0, tint)
+    bw = ctx.p("bay_depth", 0.7)
+    for c in bay_cols:
+        u0 = -fw / 2 + c * cw
+        f0 = rng.randint(0, max(0, front_floors // 3))
+        f1 = front_floors - rng.randint(0, 2)
+        mb.box(u0 + 0.15, u0 + cw - 0.15, -bw, 0.0, ph + f0 * ch, ph + f1 * ch, tm, xf, ("back",), ts, uvf,
+               faces={"front": (rm, rs)})
+    if ctx.p("ledges", False):
+        for f in range(1, front_floors):
+            z = ph + f * ch
+            mb.box(-fw / 2, fw / 2, -0.3, 0.0, z - 0.1, z + 0.08, tm, xf, ("back",), ts, uvf)
+
     for c in range(bays):
         u0 = -fw / 2 + c * cw
-        for f in range(floors):
+        if c in bay_cols:
+            continue
+        for f in range(front_floors):
             z = ph + f * ch
             if c in balcony_cols:
                 mb.box(u0 + 0.12, u0 + cw - 0.12, -bd, 0.0, z, z + 0.15, tm, xf, ("back",), ts, uvf)
@@ -67,7 +92,7 @@ def generate(ctx):
     if ctx.p("fins", False):
         for c in range(1, bays):
             u = -fw / 2 + c * cw
-            mb.box(u - 0.12, u + 0.12, -0.35, 0.0, ph, top, tm, xf, ("back", "bottom"), ts, uvf)
+            mb.box(u - 0.12, u + 0.12, -0.35, 0.0, ph, main_top, tm, xf, ("back", "bottom"), ts, uvf)
 
     # Sides: AC units scattered on the mostly blank walls.
     for side in (1, 3):
@@ -80,8 +105,9 @@ def generate(ctx):
                     z = ph + f * ch
                     mb.box(ax - 0.4, ax + 0.4, -0.55, 0.0, z + 0.2, z + 0.75, am, sxf, ("back",), as_, suvf)
 
-    flat_roof(mb, ctx, W, D, top, tint)
-    roof_top = roof_clutter(mb, ctx, W, D, top, tint, ctx.p("clutter", 1.0))
+    roof_d, roof_cy = D - step_depth, step_depth / 2
+    flat_roof(mb, ctx, W, roof_d, top, tint, 0.0, roof_cy)
+    roof_top = roof_clutter(mb, ctx, W, roof_d, top, tint, ctx.p("clutter", 1.0), 0.0, roof_cy)
 
     # Rooftop shack: one set-back residential floor on part of the roof.
     if rng.random() < ctx.p("shack_chance", 0.4):

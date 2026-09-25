@@ -9,6 +9,7 @@
     "balcony_ratio": 0.25,
     "cage_ratio": 0.1,
     "ac_ratio": 0.4,
-    "shack_chance": 0.7
+    "shack_chance": 0.7,
+    "ledges": true
   }
 }

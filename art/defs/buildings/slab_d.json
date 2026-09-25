@@ -10,6 +10,7 @@
     "cage_ratio": 0.15,
     "ac_ratio": 0.45,
     "fins": true,
-    "canopy_depth": 2.8
+    "canopy_depth": 2.8,
+    "bay_ratio": 0.3
   }
 }

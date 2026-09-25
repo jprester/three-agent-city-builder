@@ -8,6 +8,8 @@
     "tint": 0.25,
     "balcony_ratio": 0.3,
     "cage_ratio": 0.12,
-    "ac_ratio": 0.35
+    "ac_ratio": 0.35,
+    "ledges": true,
+    "bay_ratio": 0.25
   }
 }
