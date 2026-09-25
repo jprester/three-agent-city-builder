@@ -9,6 +9,7 @@ export const P = {
   defs: path.join(ROOT, 'art', 'defs'),
   generators: path.join(ROOT, 'art', 'generators'),
   palette: path.join(ROOT, 'art', 'style', 'palette.json'),
+  facade: path.join(ROOT, 'art', 'style', 'facade.json'),
   layoutDefs: path.join(ROOT, 'art', 'layouts', 'defs'),
   layoutGenerators: path.join(ROOT, 'art', 'layouts'),
   blenderTools: path.join(ROOT, 'tools', 'blender'),

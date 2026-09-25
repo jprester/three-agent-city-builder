@@ -16,3 +16,11 @@ def triangle_count() -> int:
         if obj.type == "MESH":
             total += sum(len(p.vertices) - 2 for p in obj.data.polygons)
     return total
+
+
+def strip_preview_data():
+    """Remove preview-only color attributes (lib.surface.PREVIEW_ATTRIBUTE) before export."""
+    for mesh in bpy.data.meshes:
+        attr = mesh.color_attributes.get("Preview")
+        if attr is not None:
+            mesh.color_attributes.remove(attr)

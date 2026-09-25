@@ -7,7 +7,7 @@
 //   npm run assets -- --allow-version-mismatch
 //
 // Per asset: Blender (generate -> export raw GLB -> previews) -> optimize -> public/assets.
-// Cache key = def + generator source and its local imports + tools/blender + palette
+// Cache key = def + generator source and its local imports + tools/blender + palette + facade spec
 // + optimizer + Blender version. Output for a given key is deterministic.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -89,6 +89,7 @@ function assetHash(entry, blenderVersion) {
     ...[...pythonDeps(generatorFile)].sort(),
     ...listFiles(P.blenderTools, '.py'),
     P.palette,
+    P.facade,
     path.join(ROOT, 'tools', 'optimize.mjs'),
   ];
   return sha256(

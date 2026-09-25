@@ -43,7 +43,9 @@ def render(out_dir: Path, engine="workbench", resolution=768):
     scene.render.image_settings.file_format = "PNG"
     if scene.render.engine == "BLENDER_WORKBENCH":
         scene.display.shading.light = "STUDIO"
-        scene.display.shading.color_type = "MATERIAL"
+        # Facade-shaded assets carry per-face preview colors (lib/surface.py); others use materials.
+        has_preview = any(o.type == "MESH" and "Preview" in o.data.color_attributes for o in scene.objects)
+        scene.display.shading.color_type = "VERTEX" if has_preview else "MATERIAL"
         scene.display.shading.show_cavity = True
 
     if scene.world is None:

@@ -14,13 +14,15 @@ def hex_to_linear_rgb(hex_color: str):
 
 
 class GenContext:
-    def __init__(self, asset_id: str, params: dict, seed: int, palette: dict):
+    def __init__(self, asset_id: str, params: dict, seed: int, palette: dict, facade: dict = None):
         self.asset_id = asset_id
         self.name = asset_id.split("/")[-1]
         self.params = params
         self.seed = seed
         self.rng = random.Random(seed)
         self.palette = palette
+        # art/style/facade.json: surface type codes and window cell sizes shared with the runtime shader.
+        self.facade = facade or {}
         # JSON-serializable facts about the asset for the layout and runtime
         # (e.g. body footprint, height). Embedded in the GLB, exposed in the manifest.
         self.meta = {}
