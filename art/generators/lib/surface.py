@@ -26,6 +26,7 @@ _PREVIEW = {
     "cage": "sign_amber",
     "soffit": "fluorescent",
     "fixture": "sodium",
+    "atlas": "glass_dark",
 }
 
 ATTRIBUTE = "Surface"

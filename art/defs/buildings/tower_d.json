@@ -16,6 +16,7 @@
         6
       ]
     ],
-    "base_floors": 3
+    "base_floors": 3,
+    "crown": "plant"
   }
 }

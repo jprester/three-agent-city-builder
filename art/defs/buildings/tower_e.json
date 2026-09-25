@@ -1,18 +1,18 @@
 {
   "generator": "buildings/tower",
-  "seed": 303,
+  "seed": 305,
   "params": {
-    "width_cells": 18,
-    "depth_cells": 18,
-    "height": 170,
-    "tint": 0.85,
+    "width_cells": 24,
+    "depth_cells": 24,
+    "height": 200,
+    "tint": 0.5,
     "tiers": [
       [
-        0.5,
+        0.45,
         0
       ],
       [
-        0.3,
+        0.35,
         2
       ],
       [
@@ -20,7 +20,6 @@
         4
       ]
     ],
-    "crown": "spire",
-    "spire": 45
+    "crown": "stepped"
   }
 }

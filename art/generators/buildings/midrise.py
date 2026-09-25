@@ -45,9 +45,13 @@ def generate(ctx):
     cy = setback / 2
     top = ptop + floors * bh
     fill = ctx.p("fill", 1.0 if podium_floors > 0 else 0.35)
-    walls(mb, ctx, bw, bd, ptop, top, ptop, [
-        (body, fill, tint), (body, fill * ctx.p("side_fill", 0.5), tint),
-        (body, fill * 0.8, tint), (body, fill * ctx.p("side_fill", 0.5), tint)], 0.0, cy)
+    if body == "office" and podium_floors > 0:
+        # Office bodies take a photographic facade like the towers.
+        walls(mb, ctx, bw, bd, ptop, top, ptop, [("atlas", 1.0, tint)] * 4, 0.0, cy)
+    else:
+        walls(mb, ctx, bw, bd, ptop, top, ptop, [
+            (body, fill, tint), (body, fill * ctx.p("side_fill", 0.5), tint),
+            (body, fill * 0.8, tint), (body, fill * ctx.p("side_fill", 0.5), tint)], 0.0, cy)
 
     if podium_floors == 0:
         # Industrial ground floor: roller doors and a lamp over each.

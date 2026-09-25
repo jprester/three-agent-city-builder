@@ -1,5 +1,5 @@
 {
-  "$comment": "Shared by Blender generators (geometry aligned to cells) and the runtime facade shader. Surface type codes are written to COLOR_0.r as (code + 0.5) / 16.",
+  "$comment": "Shared by Blender generators (geometry aligned to cells) and the runtime facade shader. Surface type codes are written to COLOR_0.r as (code + 0.5) / 16. 'atlas' faces use the photographic tower facades (art/external/textures), mapped at the curtain floor height.",
   "types": {
     "residential": 0,
     "office": 1,
@@ -10,12 +10,25 @@
     "metal": 6,
     "cage": 7,
     "soffit": 8,
-    "fixture": 9
+    "fixture": 9,
+    "atlas": 10
   },
   "cells": {
-    "residential": { "w": 3.2, "h": 3.0 },
-    "office": { "w": 1.6, "h": 3.6 },
-    "curtain": { "w": 1.5, "h": 3.8 },
-    "podium": { "w": 4.8, "h": 4.8 }
+    "residential": {
+      "w": 3.2,
+      "h": 3.0
+    },
+    "office": {
+      "w": 1.6,
+      "h": 3.6
+    },
+    "curtain": {
+      "w": 1.5,
+      "h": 3.8
+    },
+    "podium": {
+      "w": 4.8,
+      "h": 4.8
+    }
   }
 }
