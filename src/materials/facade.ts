@@ -241,7 +241,8 @@ vec3 room(vec2 wp, vec2 wsize, vec3 vt, vec3 col, float h) {
 
 // Window layer for residential / office / curtain facades (cage reuses residential).
 void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, out vec3 emit, out float mask, out float frame,
-                 out vec3 cellEmit, out vec3 rowEmit, out vec3 avgEmit, out float windowFrac, out float around) {
+                 out vec3 cellEmit, out vec3 rowEmit, out vec3 avgEmit, out float windowFrac, out float around,
+                 out vec3 spill, out vec3 avgSpill) {
   vec2 cell = type == T_OFFICE ? CELL_OFFICE : type == T_CURTAIN ? CELL_CURTAIN : CELL_RES;
   vec2 cid = floor(uvm / cell);
   vec2 p = uvm - cid * cell;           // meters inside the cell
@@ -254,7 +255,7 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
   float s = seed * 97.13;
   float hWin = fHash(cid + s);
   float present = step(hWin, fill);
-  float litRatio = mix(0.18, 0.5, fract(seed * 7.31));
+  float litRatio = mix(0.25, 0.55, fract(seed * 7.31));
   float baseRatio = litRatio;
   if (type == T_OFFICE || type == T_CURTAIN) {
     litRatio *= type == T_CURTAIN ? 0.3 : 0.5;
@@ -266,8 +267,9 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
   float lit = step(hLit, litRatio) * present;
   float hTemp = fHash(cid + s + 5.3);
   float hMod = fHash(cid + s + 9.1);
-  vec3 col = hTemp < 0.55 ? P_TUNGSTEN : hTemp < 0.86 ? P_FLUORESCENT : hTemp < 0.93 ? mix(P_TUNGSTEN, P_SODIUM, 0.6) : P_TV;
-  float inten = mix(0.5, 1.5, fHash(cid + s + 2.9));
+  // Mostly warm tungsten; fluorescent and TV-blue as the minority.
+  vec3 col = hTemp < 0.62 ? P_TUNGSTEN : hTemp < 0.8 ? mix(P_TUNGSTEN, P_SODIUM, 0.55) : hTemp < 0.94 ? P_FLUORESCENT : P_TV;
+  float inten = mix(0.9, 2.2, fHash(cid + s + 2.9));
   if (hTemp >= 0.93) {
     float t = uTime * (5.0 + 9.0 * hMod) + hMod * 40.0;
     inten *= 0.35 + 0.65 * fNoise(vec2(t, hMod * 13.0));
@@ -298,13 +300,19 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
   // Recess shadow just around the opening.
   around = present * max(fBox(p.x, r.x - 0.14, r.y + 0.14, fw.x) * fBox(p.y, r.z - 0.1, r.w + 0.12, fw.y) - mask, 0.0);
 
+  // Light from a lit window falls on the wall around it: falloff from the opening's edge.
+  vec2 wc = (r.xz + r.yw) * 0.5, wh = (r.yw - r.xz) * 0.5;
+  float wd = length(max(abs(p - wc) - wh, 0.0));
+  spill = lit * col * inten * 0.55 * exp(-wd / 0.22) * (1.0 - mask) * (0.6 + 0.4 * step(p.y, wc.y));
+  avgSpill = fill * min(litRatio, 1.0) * mix(P_TUNGSTEN, P_SODIUM, 0.2) * 1.45 * 0.06;
+
   // Unlit glass reflects the sky glow; lit glass shows the room.
   vec3 rv = reflect(-vt, vec3(0.0, 0.0, 1.0));
   vec3 refl = skyRefl(vec3(rv.x, rv.y, rv.z)) * (0.04 + 0.5 * pow(1.0 - max(vt.z, 0.0), 4.0));
   vec3 dark = P_HAZE * 0.05 + refl;
   emit = (mask - frame) * (lit > 0.5 ? inside + refl * 0.5 : dark);
   cellEmit = present * windowFrac * (lit > 0.5 ? col * inten * 0.6 : dark);
-  vec3 meanLit = mix(P_TUNGSTEN, P_FLUORESCENT, 0.35) * 0.65;
+  vec3 meanLit = mix(P_TUNGSTEN, P_SODIUM, 0.2) * 1.2;
   rowEmit = fill * windowFrac * (min(litRatio, 1.0) * meanLit + (1.0 - min(litRatio, 1.0)) * dark);
   avgEmit = fill * windowFrac * (baseRatio * (type == T_RES ? 1.0 : 0.85) * meanLit + (1.0 - baseRatio) * dark);
 }
@@ -356,6 +364,8 @@ if (fType == T_RES || fType == T_OFFICE) {
 }
 fBase *= fGrime;
 vec3 fEmit = vec3(0.0);
+// Light arriving on opaque wall surfaces (added as fBase * fWallLight at the end).
+vec3 fWallLight = vec3(0.0);
 float fRough = mix(0.75, 0.97, fWall.a);
 float fMetal = (fMat == 2 || fMat == 6) ? 0.35 : 0.0;
 // Relief from the material's luminance.
@@ -378,16 +388,20 @@ if (fType == T_ATLAS) {
   fMetal = (1.0 - dr.a) * 0.4;
   float floorId = floor(L.y / Dm.x);
   float floorLit = mix(0.35, 1.25, fHash(vec2(floorId, fSeed * 31.0))) * step(0.18, fHash(vec2(floorId, fSeed * 13.0 + 2.0)));
-  fEmit = em * 1.7 * floorLit;
+  fEmit = em * 2.0 * floorLit;
+  // Spill: the emissive map blurred over ~a bay lights the frames and spandrels around windows.
+  vec4 drB; vec3 emB, nmB;
+  towerSample(bundle, auv, dFdx(L) + vec2(Dm.y * 0.8, 0.0), dFdy(L) + vec2(0.0, Dm.x * 0.8), drB, emB, nmB);
+  fWallLight += emB * floorLit * 0.8;
   vec3 n = nm * 2.0 - 1.0;
   fNormalW = normalize(fT * n.x + fB * n.y + normalize(vFNormal) * max(n.z, 0.2));
   // Glass picks up the sky glow.
   float glassAmt = 1.0 - smoothstep(0.3, 0.6, dr.a);
   fEmit += glassAmt * skyRefl(reflect(-fV, fNormalW)) * (0.06 + 0.6 * pow(1.0 - max(fVt.z, 0.0), 4.0));
 } else if (fType == T_RES || fType == T_OFFICE || fType == T_CURTAIN || fType == T_CAGE) {
-  vec3 wEmit, cellEmit, rowEmit, avgEmit; float wMask, wFrame, wFrac, wAround;
+  vec3 wEmit, cellEmit, rowEmit, avgEmit, wSpill, wAvgSpill; float wMask, wFrame, wFrac, wAround;
   windowLayer(fType == T_CAGE ? T_RES : fType, fUv, fFw, fType == T_CAGE ? 1.0 : fFill, fSeed, fVt,
-              wEmit, wMask, wFrame, cellEmit, rowEmit, avgEmit, wFrac, wAround);
+              wEmit, wMask, wFrame, cellEmit, rowEmit, avgEmit, wFrac, wAround, wSpill, wAvgSpill);
   // Anti-aliasing: detail → cell mean → floor mean → facade mean by pixel footprint.
   vec2 cellSize = fType == T_OFFICE ? CELL_OFFICE : fType == T_CURTAIN ? CELL_CURTAIN : CELL_RES;
   float px = max(fFw.x / cellSize.x, fFw.y / cellSize.y);
@@ -405,6 +419,8 @@ if (fType == T_ATLAS) {
   fBase = mix(fBase, P_METAL * 1.3, wFrame * detail);
   fRough = mix(fRough, 0.15, m * (1.0 - wFrame));
   fEmit = e;
+  // Window light on the surrounding wall (lights the wall's own albedo).
+  fWallLight += mix(wSpill, wAvgSpill, toCell);
   if (fType == T_CAGE) {
     float bars = max(1.0 - fBox(fract(fUv.x / 0.12), 0.15, 0.85, fFw.x / 0.12), 1.0 - fBox(fract(fUv.y / 0.4), 0.06, 0.94, fFw.y / 0.4));
     // Bars are 12 cm apart: fade to their average coverage before they alias (< ~8 px period).
@@ -490,10 +506,22 @@ if (fType == T_ATLAS) {
 vec2 fLampUv = (vFWorld.xz + vFNormal.xz * 2.5 - uLampRect.xy) * uLampRect.zw;
 float fLamp = texture2D(uLampMap, fLampUv).r;
 fEmit += fBase * P_SODIUM * fLamp * 1.5 * exp(-max(vFWorld.y - 1.0, 0.0) / 7.0);
+// Canyon glow: the lit street below (lamp and sign maps, blurred wide) reflects off the wet
+// ground and opposite walls and climbs the facades, fading over ~25 m.
+vec2 fWideUv = (vFWorld.xz - uLampRect.xy) * uLampRect.zw;
+vec3 fStreet = P_SODIUM * texture(uLampMap, fWideUv, 4.5).r * 0.5 + texture(uSignMap, fWideUv, 4.5).rgb * 0.35;
+float fUpFacing = fType == T_ROOF ? 0.25 : 1.0;
+fWallLight += fStreet * 0.5 * exp(-max(vFWorld.y, 0.0) / 20.0) * fUpFacing;
+// City bounce: a faint warm fill from everything lit around, so walls never go fully black.
+fWallLight += mix(P_HAZE, P_SODIUM * 0.25, 0.35) * 0.75;
+// Sky rim: grazing faces catch the glowing sky, separating silhouettes in depth.
+float fRim = pow(1.0 - max(fVt.z, 0.0), 3.0) * (0.5 + 0.5 * normalize(vFNormal).y + 0.5);
+fWallLight += skyRefl(vec3(0.0, 0.05, 0.0)) * fRim * 0.35 + P_HAZE * 0.05;
 // Colored light from nearby signs, up to about the height signs hang at.
 vec3 fSign = texture2D(uSignMap, (vFWorld.xz + vFNormal.xz * 1.5 - uLampRect.xy) * uLampRect.zw).rgb;
-fEmit += fBase * fSign * 0.85 * exp(-max(vFWorld.y - 14.0, 0.0) / 8.0) * smoothstep(0.0, 3.0, vFWorld.y);
+fEmit += fBase * fSign * 0.6 * exp(-max(vFWorld.y - 14.0, 0.0) / 8.0) * smoothstep(0.0, 3.0, vFWorld.y);
 
+if (fType != T_FIXTURE && fType != T_SCREEN) fEmit += fBase * fWallLight;
 fEmit *= fType == T_FIXTURE || fType == T_SOFFIT || fType == T_SCREEN ? 1.0 : uWindowGain;
 diffuseColor.rgb = fBase;
 `;
