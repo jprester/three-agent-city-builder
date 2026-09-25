@@ -1,0 +1,5 @@
+{
+  "generator": "props/street_lamp",
+  "seed": 1,
+  "params": { "height": 8.0, "reach": 2.2 }
+}
