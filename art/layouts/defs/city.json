@@ -18,18 +18,15 @@
       "core": {
         "buildings": {
           "buildings/slab_*": 8,
-          "buildings/midrise_a": 1,
-          "buildings/midrise_b": 1.5,
-          "buildings/tower_*": 0.9
-        },
-        "xzScale": [
-          0.65,
-          0.85
-        ],
-        "heightRange": [
-          90,
-          230
-        ]
+          "buildings/walkup_*": 4,
+          "buildings/midrise_a": 0.8,
+          "buildings/midrise_b": 1,
+          "buildings/midrise_e": 0.8,
+          "buildings/midrise_f": 0.8,
+          "buildings/midrise_g": 0.8,
+          "buildings/estate_*": 1.2,
+          "buildings/carpark_*": 0.6
+        }
       },
       "towers": {
         "buildings": {
@@ -52,6 +49,8 @@
         "buildings": {
           "buildings/midrise_c": 2,
           "buildings/midrise_d": 2,
+          "buildings/carpark_*": 1.5,
+          "buildings/walkup_*": 1,
           "buildings/slab_f": 1
         }
       }
@@ -64,18 +63,8 @@
       "buildings/slab_e": 1,
       "buildings/slab_i": 1,
       "buildings/slab_j": 1,
-      "buildings/slab_l": 1
-    },
-    "farfield": {
-      "keep": 0.5,
-      "falloff": 1500,
-      "buildings": {
-        "buildings/tower_*": 1,
-        "buildings/midrise_*": 0.7,
-        "buildings/slab_h": 0.2,
-        "buildings/slab_l": 0.2,
-        "buildings/slab_c": 0.2
-      }
+      "buildings/slab_l": 1,
+      "buildings/walkup_*": 1.5
     }
   }
 }
