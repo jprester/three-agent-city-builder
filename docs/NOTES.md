@@ -278,3 +278,23 @@ wanted; we keep our palette. New viewpoint `skyline` matches the screenshot's fr
   a square frame of light. Fix: faint elliptical glow summed over the 3×3 neighboring
   windows (seamless), and most of the light moved to the lit reveal (recess) right around
   the opening, which is where real window light lands.
+
+## Step 3 — rooftop silhouettes and bridges (2026-09-25)
+
+- Rooftops: cylindrical water tanks on braced steel stands with conical lids, antenna
+  clusters (2–4 masts, crossarms, dishes, red lights), pipe railings on parapets (80% of
+  walk-ups, 50% elsewhere), denser clutter grid on small tenement roofs, tower cranes on
+  three tower variants. `skyline`, `rooftops` and `horizon` now have busy rooflines against
+  the sky like the reference.
+- Bridges (layout): 7 skybridges between nearby towers (20–50% up the shorter one) and 16
+  footbridges over core streets between facing shopfronts at 6.5–9 m, two on the hero
+  street. Glazed office windows on the sides, fluorescent-lit undersides. The camera in
+  `fly-0` passes right under one. Signs are now placed after bridges and avoid them.
+- Bugs found: bridge code compared the hero road by `.road` (output field) instead of `.id`
+  inside the generator, so the hero street was never prioritised; fixed. The flythrough
+  clearance rejected every canyon footbridge; the camera may now pass under a bridge with
+  2.5 m headroom (test enforces it).
+- Cost: triangles rose to 2.12M in `aerial` (budget 3M; the reflection pass doubles
+  everything). Phase 6 LODs for rooftop detail would recover most of it.
+- Remaining: skybridges are thin and hard to spot from most views; cranes are stretched with
+  their tower's vertical scale; lamp heads sit just below the hero footbridges in `fly-0`.

@@ -1,0 +1,88 @@
+{
+  "layout": "city",
+  "t": 12,
+  "budget": {
+    "maxDrawCalls": 250,
+    "maxTriangles": 3000000,
+    "maxPrograms": 25
+  },
+  "viewpoints": {
+    "canyon": {
+      "calls": 33,
+      "triangles": 1549784,
+      "programs": 16,
+      "textures": 43,
+      "geometries": 8
+    },
+    "storefront": {
+      "calls": 33,
+      "triangles": 1704450,
+      "programs": 16,
+      "textures": 43,
+      "geometries": 8
+    },
+    "facade": {
+      "calls": 33,
+      "triangles": 1456606,
+      "programs": 16,
+      "textures": 43,
+      "geometries": 8
+    },
+    "skyline": {
+      "calls": 33,
+      "triangles": 962204,
+      "programs": 16,
+      "textures": 43,
+      "geometries": 8
+    },
+    "rooftops": {
+      "calls": 33,
+      "triangles": 890240,
+      "programs": 16,
+      "textures": 43,
+      "geometries": 8
+    },
+    "aerial": {
+      "calls": 33,
+      "triangles": 2123128,
+      "programs": 16,
+      "textures": 43,
+      "geometries": 8
+    },
+    "horizon": {
+      "calls": 33,
+      "triangles": 1419922,
+      "programs": 16,
+      "textures": 43,
+      "geometries": 8
+    },
+    "fly-0": {
+      "calls": 33,
+      "triangles": 1627134,
+      "programs": 16,
+      "textures": 43,
+      "geometries": 8
+    },
+    "fly-25": {
+      "calls": 33,
+      "triangles": 1755324,
+      "programs": 16,
+      "textures": 43,
+      "geometries": 8
+    },
+    "fly-50": {
+      "calls": 33,
+      "triangles": 1547932,
+      "programs": 16,
+      "textures": 43,
+      "geometries": 8
+    },
+    "fly-75": {
+      "calls": 33,
+      "triangles": 1889408,
+      "programs": 16,
+      "textures": 43,
+      "geometries": 8
+    }
+  }
+}

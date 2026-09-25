@@ -68,3 +68,6 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 2026-09-25 | runtime | City haze as a depth-based post effect (ray march through height fog, lit by lamp/sign maps) | Custom uniforms can't be injected into every material's fog chunk; in post it covers everything, including the sky, in one pass.
 2026-09-25 | runtime | Facade gains a wall-light term (window spill, canyon glow, sky rim, cool bounce) applied to albedo | Buildings were black silhouettes between windows (human comparison with a generated reference).
 2026-09-25 | viewpoints | Added `skyline` (matches the human's comparison screenshot) | To measure progress against the reference image.
+2026-09-25 | layout | Bridges (sky and foot) generated in the layout, built at runtime as one mesh with the facade material | They are placement between buildings, and tests must check them against buildings, signs, lamps and the flythrough.
+2026-09-25 | layout | Signs are placed after bridges and skip any spot a footbridge occupies | Bridges are structure; with 170 signs on the hero street, sign-first left no room for a single bridge.
+2026-09-25 | layout | The flythrough may pass under a bridge with 2.5 m headroom | Flying under a footbridge in the canyon is a strong shot; passing through or grazing over it stays forbidden.
