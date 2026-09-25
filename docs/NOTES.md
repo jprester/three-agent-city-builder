@@ -224,3 +224,18 @@ cool blue/teal atmosphere sits against warm windows.
 - Tower facades from the atlases are the only tower windows; up close some repeat per side.
 - Budget: up to 1.83M triangles in `aerial` (limit 3M); fine, but phase 6 LODs for the far
   field would claw back a lot.
+
+### Human review of the city look pass (chat, 2026-09-25)
+- The far field and scattered core towers made the city spread out and lose cohesion. Keep
+  the original structure; add variety among the mid-rise buildings instead.
+
+### Response: mid-rise variety
+- Removed the far field and the core towers. Kept: tower variants/crowns, LED accents,
+  aviation lights, screens, cool atmosphere.
+- New families: walk-up tenements (verandas open or enclosed per floor), multi-storey car
+  parks (spandrel bands, lit decks), housing estates (podium + 2–3 residential towers);
+  mid-rise gains vertical fins and wedding-cake setbacks. 11 new variants (42 assets).
+- City mix now: 505 slabs, 412 walk-ups, 188 mid-rises, 64 towers, 23 car parks, 8 estates.
+  From above the core has a varied height profile instead of uniform slab tops.
+- Remaining: walk-up verandas read mostly as enclosed boxes from afar; estates are rare
+  (big footprint, few blocks fit); car parks only show up in the industrial strip.

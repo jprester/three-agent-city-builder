@@ -64,3 +64,4 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 2026-09-25 | style | sky and haze moved to cool blue (#0A0E18, #1B2431) | Human references are cool-atmosphere/warm-window; warm light stays practical (windows, sodium, neon).
 2026-09-25 | assets | Fixture colors by name (facade.json fixture_colors); LED strips flagged via tint | Accent strips must glow softly while point lamps burn hot.
 2026-09-25 | layout | Nested layout params merge with defaults | A def overriding one key of a group silently dropped the rest (far field produced nothing).
+2026-09-25 | layout | Removed the far field and the towers scattered in the old core (human review) | From above they read as pins on an empty plane and broke the city's cohesion; the original district structure stays. Variety goes into mid-rises instead.
