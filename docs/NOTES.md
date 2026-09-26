@@ -298,3 +298,21 @@ wanted; we keep our palette. New viewpoint `skyline` matches the screenshot's fr
   everything). Phase 6 LODs for rooftop detail would recover most of it.
 - Remaining: skybridges are thin and hard to spot from most views; cranes are stretched with
   their tower's vertical scale; lamp heads sit just below the hero footbridges in `fly-0`.
+
+## Window realism — first pass (2026-09-25)
+
+- Procedural windows: 85% subtly varied warm white, 13% neutral white, 2% desaturated TV light. Removed the orange-sodium room category; sodium still belongs to street lights.
+- Brightness now favours dim interiors, with occasional bright rooms. Darker furniture/floors, brighter ceiling illumination, offset lamps and neutral curtains help break up flat panes. Blinds now descend from the top. Room and wall-spill flicker share the same function. Distant emission averages were reduced to match.
+- Comparison against roofs-bridges/facade.png: fewer blue/orange panels, stronger blind/furniture contrast, calmer residential facades. Skyline/rooftops retain warm windows against cool air. Canyon/storefront still have overly even brown wall lighting and flat storefronts.
+- Existing speckled window artifacts are present in both the previous milestone and new facade shot; this pass does not resolve those. Distant aerial windows still become cell-shaped patches; filtering/geometry artifacts need a separate investigation. Towers retain their photographic emission maps.
+- This is the proposed isolated colour/brightness/interior pass, not an occupancy, tower, postprocessing or lighting redesign. No Blender assets changed.
+- Verification: npm run check passed; all 27 unit tests passed. All 11 current viewpoints rendered and were inspected; scene counts stay within budgets (33 calls, at most 2,123,128 triangles, 16 programs). Screenshot assertions fail solely because all 11 approved baselines are missing; none were created or approved. Key review shots saved in docs/progress/window-realism/. Still-image checks do not establish shimmer or GPU frame rate.
+
+## Window artifact cleanup (2026-09-26)
+
+- Diagnosis: the existing per-instance random seed was a smooth varying. Interpolation roundoff changed hashes inside a single window, producing speckled occupancy/colour/furniture. Flat seed and surface-data varyings removed the speckles in a targeted facade render; this was not a geometry rebuild or a depth-bias workaround.
+- Distant square patches came from replacing each window with its cell-average colour while the cell was still several pixels wide. New filtering integrates the actual opening coverage from a 3x3 neighborhood across cell boundaries, including frame transmission. Interior detail fades before the aperture does; cells smaller than a pixel then converge to the facade mean.
+- Visual critique: close facade windows now have clean rooms and blinds. Aerial windows read as fine light points rather than broad squares. The skyline composition and warm palette survive. Remaining: signage still has its own speckled/broken-tube appearance, storefronts are flat, and tower texture repetition remains; these are outside the requested window fix.
+- Browser check: inspected the facade and aerial views, then two small orbit displacements in the aerial view. No return of cell patches or per-window speckles in sampled frames; this is a limited motion check, not proof of zero temporal aliasing or a 60-fps benchmark. No shader errors reported by the browser.
+- Shader-only change: no generated geometry changed, so no Blender rebuild/previews needed.
+- Verification: npm run check and 27 unit tests pass. All 11 viewpoint renders inspected; scene budgets pass (33 draw calls, 2,123,128 maximum triangles, 16 programs). Screenshot assertions fail only for the 11 missing approved baselines; no baselines approved. Key renders saved in docs/progress/window-cleanup/.

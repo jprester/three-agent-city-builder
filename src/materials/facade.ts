@@ -99,8 +99,9 @@ const vec4 TF_DIM[${TF_COUNT}] = vec4[${TF_COUNT}](
 const VERTEX_PARS = /* glsl */ `
 uniform float uSeed;
 varying vec2 vFacadeUv;
-varying vec3 vSurf;
-varying float vInstSeed;
+// Discrete face data and random seeds must not acquire interpolation rounding noise.
+flat varying vec3 vSurf;
+flat varying float vInstSeed;
 varying vec3 vFWorld;
 varying vec3 vFNormal;
 varying vec2 vRawUv;
@@ -148,8 +149,9 @@ uniform sampler2D uTowerNorm0, uTowerNorm1, uTowerNorm2;
 uniform sampler2D uWalls;
 uniform sampler2D uSignMap;
 varying vec2 vFacadeUv;
-varying vec3 vSurf;
-varying float vInstSeed;
+// Discrete face data and random seeds must not acquire interpolation rounding noise.
+flat varying vec3 vSurf;
+flat varying float vInstSeed;
 varying vec3 vFWorld;
 varying vec3 vFNormal;
 varying vec2 vRawUv;
@@ -170,6 +172,15 @@ float fNoise(vec2 p) {
 // Anti-aliased 1D box [a, b] with filter width w.
 float fBox(float x, float a, float b, float w) {
   return smoothstep(a - w, a + w, x) * (1.0 - smoothstep(b - w, b + w, x));
+}
+// Exact coverage of an interval by a pixel footprint. Unlike a smoothed point sample,
+// this preserves energy when the opening becomes smaller than a pixel.
+float fCoverage(float x, float lo, float hi, float footprint) {
+  float width = max(footprint, 1e-4);
+  return clamp((min(x + width * 0.5, hi) - max(x - width * 0.5, lo)) / width, 0.0, 1.0);
+}
+float windowCoverage(vec2 p, vec4 rect, vec2 footprint) {
+  return fCoverage(p.x, rect.x, rect.y, footprint.x) * fCoverage(p.y, rect.z, rect.w, footprint.y);
 }
 // The night sky as a reflection: glow at the horizon, dark overhead.
 vec3 skyRefl(vec3 r) {
@@ -221,22 +232,39 @@ vec3 room(vec2 wp, vec2 wsize, vec3 vt, vec3 col, float h) {
   vec3 paint = mix(vec3(1.0, 0.92, 0.8), mix(vec3(0.75, 0.85, 0.8), vec3(0.95, 0.75, 0.7), fract(h * 13.0)), step(0.5, fract(h * 29.0)));
   if (t == tm.z) {
     // Back wall with a furniture band (shelves, a sofa back) and a picture or TV.
-    c = 0.45 + 0.15 * h;
+    c = 0.42 + 0.18 * h;
     float band = fBox(p.y, 0.0, 0.9 + 0.5 * fract(h * 7.0), 0.02) * fBox(p.x, size.x * fract(h * 3.0) * 0.5, size.x * (0.5 + 0.5 * fract(h * 5.0)), 0.02);
-    c = mix(c, 0.1, band);
+    c = mix(c, 0.045, band);
     c = mix(c, 0.22, fBox(p.y, 1.4, 1.9, 0.02) * fBox(p.x, 0.6, 1.3, 0.02) * step(0.5, fract(h * 11.0)));
   } else if (t == tm.y) {
-    c = d.y > 0.0 ? 0.6 : 0.18;    // ceiling / floor
+    c = d.y > 0.0 ? 0.85 : 0.09;    // ceiling / floor
     paint = d.y > 0.0 ? vec3(1.0) : vec3(0.8, 0.6, 0.45);
   } else {
     c = 0.32;                      // side walls
     // A wardrobe or shelf against one side wall.
     c = mix(c, 0.12, fBox(p.z, 0.5, 1.6, 0.02) * fBox(p.y, 0.0, 2.0, 0.02) * step(0.4, fract(h * 17.0)));
   }
-  // Ceiling lamp in the middle of the room.
-  vec3 lamp = vec3(size.x * 0.5, size.y - 0.1, size.z * 0.5);
-  float light = 0.3 + 0.85 * exp(-dot(p - lamp, p - lamp) / 3.0);
+  // Ceiling lamp offset per room to avoid uniformly illuminated panes.
+  vec3 lamp = vec3(size.x * mix(0.25, 0.75, h), size.y - 0.1, size.z * 0.45);
+  float light = 0.18 + 1.45 * exp(-dot(p - lamp, p - lamp) / 4.0);
   return col * paint * c * light;
+}
+
+// Shared window colour and brightness keep interior light and wall spill consistent.
+// Warm whites dominate; a TV colours a room faintly rather than becoming a blue panel.
+vec3 windowColor(float h) {
+  if (h < 0.85) return mix(P_TUNGSTEN, P_FLUORESCENT, 0.12 + 0.26 * h / 0.85);
+  if (h < 0.98) return mix(P_FLUORESCENT, P_TUNGSTEN, 0.35);
+  return mix(P_TV, P_FLUORESCENT, 0.55);
+}
+float windowIntensity(vec2 cid, float s) {
+  float h = fHash(cid + s + 2.9);
+  float intensity = mix(0.45, 3.0, h * h * h);
+  if (fHash(cid + s + 5.3) >= 0.98) {
+    float hm = fHash(cid + s + 9.1);
+    intensity *= 0.35 + 0.65 * fNoise(vec2(uTime * (5.0 + 9.0 * hm) + hm * 40.0, hm * 13.0));
+  }
+  return intensity;
 }
 
 // Light of the window in cell cid (0 if unlit): same hashes and rules as windowLayer, so
@@ -252,13 +280,13 @@ vec3 cellLight(int type, vec2 cid, float fill, float seed) {
   }
   if (fHash(cid + s + 17.7) > litRatio) return vec3(0.0);
   float hTemp = fHash(cid + s + 5.3);
-  vec3 col = hTemp < 0.62 ? P_TUNGSTEN : hTemp < 0.8 ? mix(P_TUNGSTEN, P_SODIUM, 0.55) : hTemp < 0.94 ? P_FLUORESCENT : P_TV;
-  return col * mix(0.9, 2.2, fHash(cid + s + 2.9));
+  vec3 col = windowColor(hTemp);
+  return col * windowIntensity(cid, s);
 }
 
 // Window layer for residential / office / curtain facades (cage reuses residential).
 void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, out vec3 emit, out float mask, out float frame,
-                 out vec3 cellEmit, out vec3 rowEmit, out vec3 avgEmit, out float windowFrac, out float around,
+                 out vec3 filteredEmit, out float filteredMask, out vec3 avgEmit, out float windowFrac, out float around,
                  out vec3 spill, out vec3 avgSpill) {
   vec2 cell = type == T_OFFICE ? CELL_OFFICE : type == T_CURTAIN ? CELL_CURTAIN : CELL_RES;
   vec2 cid = floor(uvm / cell);
@@ -285,12 +313,8 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
   float hTemp = fHash(cid + s + 5.3);
   float hMod = fHash(cid + s + 9.1);
   // Mostly warm tungsten; fluorescent and TV-blue as the minority.
-  vec3 col = hTemp < 0.62 ? P_TUNGSTEN : hTemp < 0.8 ? mix(P_TUNGSTEN, P_SODIUM, 0.55) : hTemp < 0.94 ? P_FLUORESCENT : P_TV;
-  float inten = mix(0.9, 2.2, fHash(cid + s + 2.9));
-  if (hTemp >= 0.93) {
-    float t = uTime * (5.0 + 9.0 * hMod) + hMod * 40.0;
-    inten *= 0.35 + 0.65 * fNoise(vec2(t, hMod * 13.0));
-  }
+  vec3 col = windowColor(hTemp);
+  float inten = windowIntensity(cid, s);
 
   vec2 q = (p - r.xz) / (r.yw - r.xz);   // 0..1 across the window
   vec2 wsize = r.yw - r.xz;
@@ -299,10 +323,10 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
   if (hMod < 0.3) {
     float slat = 0.3 + 0.7 * smoothstep(0.3, 0.7, fract(q.y * 12.0));
     slat = mix(slat, 0.65, smoothstep(0.015, 0.05, fw.y));   // slats ~13 cm: average before they alias
-    float drawn = step(q.y, mix(0.35, 1.0, fract(hMod * 3.3)));
+    float drawn = step(1.0 - mix(0.35, 1.0, fract(hMod * 3.3)), q.y);
     inside = mix(inside, col * inten * 0.55 * slat, drawn);
   } else if (hMod < 0.55) {
-    vec3 cloth = mix(vec3(0.9, 0.75, 0.55), vec3(0.8, 0.35, 0.3), fract(hMod * 17.0));
+    vec3 cloth = mix(vec3(0.82, 0.78, 0.68), vec3(0.48, 0.43, 0.37), fract(hMod * 17.0));
     float cover = fBox(q.x, hMod > 0.42 ? -0.1 : 0.5, hMod > 0.42 ? 0.5 : 1.1, 0.02);
     float folds = mix(0.75 + 0.25 * sin(q.x * 40.0), 0.75, smoothstep(0.02, 0.06, fw.x));
     inside = mix(inside, col * cloth * inten * 0.5 * folds, cover);
@@ -322,25 +346,40 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
   // plus the lit reveal: the recess right around this cell's own opening.
   vec2 wc = (r.xz + r.yw) * 0.5, wh = (r.yw - r.xz) * 0.5;
   spill = vec3(0.0);
+  filteredEmit = vec3(0.0);
+  filteredMask = 0.0;
+  float filteredGlass = 0.0;
+  // A 3x3 neighborhood covers footprints up to two cells wide, including at cell seams.
+  // Larger footprints transition to the facade mean before reaching this limit.
+  vec2 footprint = min(fw, cell * 2.0);
+  vec4 glassRect = r + vec4(fwm, -fwm, fwm, -fwm);
+  float barTransmission = type == T_CURTAIN ? 1.0 : 0.956;
   for (int j = -1; j <= 1; j++) for (int i = -1; i <= 1; i++) {
     vec2 o = vec2(float(i), float(j));
     vec3 L = cellLight(type, cid + o, fill, seed);
     vec2 q2 = (p - (wc + o * cell)) / (wh + vec2(0.9, 0.8));
     spill += L * exp(-dot(q2, q2) * 2.2);
+    vec2 local = p - o * cell;
+    float neighborPresent = step(fHash(cid + o + s), fill);
+    float aperture = windowCoverage(local, glassRect, footprint) * barTransmission;
+    filteredEmit += L * aperture * 0.44;
+    filteredGlass += neighborPresent * aperture;
+    filteredMask += neighborPresent * windowCoverage(local, r, footprint);
   }
   spill *= 0.035 * (1.0 - mask);
   spill += lit * col * inten * 0.3 * around;
-  avgSpill = fill * min(litRatio, 1.0) * mix(P_TUNGSTEN, P_SODIUM, 0.2) * 1.45 * 0.03;
+  avgSpill = fill * min(litRatio, 1.0) * windowColor(0.5) * 1.09 * 0.03;
 
   // Unlit glass reflects the sky glow; lit glass shows the room.
   vec3 rv = reflect(-vt, vec3(0.0, 0.0, 1.0));
   vec3 refl = skyRefl(vec3(rv.x, rv.y, rv.z)) * (0.04 + 0.5 * pow(1.0 - max(vt.z, 0.0), 4.0));
   vec3 dark = P_HAZE * 0.05 + refl;
   emit = (mask - frame) * (lit > 0.5 ? inside + refl * 0.5 : dark);
-  cellEmit = present * windowFrac * (lit > 0.5 ? col * inten * 0.6 : dark);
-  vec3 meanLit = mix(P_TUNGSTEN, P_SODIUM, 0.2) * 1.2;
-  rowEmit = fill * windowFrac * (min(litRatio, 1.0) * meanLit + (1.0 - min(litRatio, 1.0)) * dark);
-  avgEmit = fill * windowFrac * (baseRatio * (type == T_RES ? 1.0 : 0.85) * meanLit + (1.0 - baseRatio) * dark);
+  filteredEmit += filteredGlass * dark;
+  float glassFrac = (glassRect.y - glassRect.x) * (glassRect.w - glassRect.z)
+                  / (cell.x * cell.y) * barTransmission;
+  vec3 meanLit = windowColor(0.5) * 0.48;
+  avgEmit = fill * glassFrac * (baseRatio * (type == T_RES ? 1.0 : 0.85) * meanLit + (1.0 - baseRatio) * dark);
 }
 `;
 
@@ -425,18 +464,17 @@ if (fType == T_ATLAS) {
   float glassAmt = 1.0 - smoothstep(0.3, 0.6, dr.a);
   fEmit += glassAmt * skyRefl(reflect(-fV, fNormalW)) * (0.06 + 0.6 * pow(1.0 - max(fVt.z, 0.0), 4.0));
 } else if (fType == T_RES || fType == T_OFFICE || fType == T_CURTAIN || fType == T_CAGE) {
-  vec3 wEmit, cellEmit, rowEmit, avgEmit, wSpill, wAvgSpill; float wMask, wFrame, wFrac, wAround;
+  vec3 wEmit, filteredEmit, avgEmit, wSpill, wAvgSpill; float wMask, wFrame, wFrac, wAround, filteredMask;
   windowLayer(fType == T_CAGE ? T_RES : fType, fUv, fFw, fType == T_CAGE ? 1.0 : fFill, fSeed, fVt,
-              wEmit, wMask, wFrame, cellEmit, rowEmit, avgEmit, wFrac, wAround, wSpill, wAvgSpill);
-  // Anti-aliasing: detail → cell mean → floor mean → facade mean by pixel footprint.
+              wEmit, wMask, wFrame, filteredEmit, filteredMask, avgEmit, wFrac, wAround, wSpill, wAvgSpill);
+  // Filter interior detail first, retain the opening coverage, then average subpixel cells.
   vec2 cellSize = fType == T_OFFICE ? CELL_OFFICE : fType == T_CURTAIN ? CELL_CURTAIN : CELL_RES;
   float px = max(fFw.x / cellSize.x, fFw.y / cellSize.y);
-  float toCell = smoothstep(0.22, 0.45, px);
-  float toRow = smoothstep(0.5, 1.2, fFw.x / cellSize.x);
-  float toAvg = smoothstep(0.5, 1.2, fFw.y / cellSize.y);
-  vec3 e = mix(mix(mix(wEmit, cellEmit, toCell), rowEmit, toRow), avgEmit, toAvg);
-  float m = mix(mix(wMask, wFrac * fFill, toCell), wFrac * fFill, toAvg);
-  float detail = 1.0 - toCell;
+  float toFiltered = smoothstep(0.12, 0.3, px);
+  float toAvg = smoothstep(0.75, 1.5, px);
+  vec3 e = mix(mix(wEmit, filteredEmit, toFiltered), avgEmit, toAvg);
+  float m = mix(mix(wMask, filteredMask, toFiltered), wFrac * fFill, toAvg);
+  float detail = 1.0 - toFiltered;
   vec3 glass = fType == T_CURTAIN ? mix(P_GLASS, P_METAL, 0.3) : P_GLASS;
   if (fType == T_CURTAIN) fBase = mix(P_METAL, P_CONCRETE_DARK, 0.3 * fTint);
   // Recess shadow around the opening.
@@ -446,7 +484,7 @@ if (fType == T_ATLAS) {
   fRough = mix(fRough, 0.15, m * (1.0 - wFrame));
   fEmit = e;
   // Window light on the surrounding wall (lights the wall's own albedo).
-  fWallLight += mix(wSpill, wAvgSpill, toCell);
+  fWallLight += mix(wSpill, wAvgSpill, toAvg);
   if (fType == T_CAGE) {
     float bars = max(1.0 - fBox(fract(fUv.x / 0.12), 0.15, 0.85, fFw.x / 0.12), 1.0 - fBox(fract(fUv.y / 0.4), 0.06, 0.94, fFw.y / 0.4));
     // Bars are 12 cm apart: fade to their average coverage before they alias (< ~8 px period).
@@ -571,7 +609,7 @@ export function createFacadeMaterial(uniforms: FacadeUniforms): THREE.MeshStanda
       .replace('#include <normal_fragment_maps>', 'normal = normalize((viewMatrix * vec4(fNormalW, 0.0)).xyz);')
       .replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance = fEmit;');
   };
-  material.customProgramCacheKey = () => 'facade-v2';
+  material.customProgramCacheKey = () => 'facade-v4';
   return material;
 }
 
