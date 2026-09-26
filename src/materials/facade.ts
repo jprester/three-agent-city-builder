@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import facade from '../../art/style/facade.json';
 import palette from '../../art/style/palette.json';
+import { SCREEN_COLS, SCREEN_ROWS } from '../scene/screens';
 import { TOWER_BUNDLES, type FacadeTextures } from './textures';
 
 /**
@@ -40,6 +41,8 @@ export interface FacadeUniforms {
   uWalls: { value: THREE.Texture | null };
   /** Top-down colored sign glow (same rect as the lamp map). */
   uSignMap: { value: THREE.Texture | null };
+  /** Video-screen poster atlas (src/scene/screens.ts). */
+  uScreens: { value: THREE.Texture | null };
 }
 
 const c = (name: keyof typeof palette) => new THREE.Color(palette[name]);
@@ -148,6 +151,7 @@ uniform sampler2D uTowerEmit0, uTowerEmit1, uTowerEmit2;
 uniform sampler2D uTowerNorm0, uTowerNorm1, uTowerNorm2;
 uniform sampler2D uWalls;
 uniform sampler2D uSignMap;
+uniform sampler2D uScreens;
 varying vec2 vFacadeUv;
 // Discrete face data and random seeds must not acquire interpolation rounding noise.
 flat varying vec3 vSurf;
@@ -536,23 +540,27 @@ if (fType == T_ATLAS) {
   // Video screen: abstract animated content (no real ads), LED pixel grid up close.
   vec2 sp = vRawUv;
   float sid = fFill * 17.0 + fTint * 5.0 + fSeed * 3.0;
-  float clip = floor(uTime / 7.0 + sid);
-  float ct = fract(uTime / 7.0 + sid);
-  float pick = fHash(vec2(clip, sid));
-  vec3 ca = pick < 0.3 ? P_RED : pick < 0.55 ? P_CYAN : pick < 0.8 ? P_AMBER : P_TV;
-  vec3 cb = fHash(vec2(clip, sid + 1.0)) < 0.5 ? P_FLUORESCENT : P_TV * 0.6;
-  vec3 img = mix(ca, cb, smoothstep(0.0, 1.0, sp.y + 0.3 * sin(ct * 6.28 + sp.x * 3.0)));
-  vec2 blob = vec2(0.3 + 0.4 * fHash(vec2(clip, sid + 2.0)) + 0.1 * sin(ct * 6.28), 0.55);
-  img = mix(img, vec3(1.0, 0.95, 0.9), smoothstep(0.28, 0.2, length((sp - blob) * vec2(1.0, 1.6))) * 0.8);
-  float lines = fBox(sp.y, 0.08, 0.3, 0.004) * step(0.35, fNoise(vec2(floor(sp.x * 18.0 - ct * 12.0), floor(sp.y * 14.0) + clip)));
-  img = mix(img, vec3(1.0), lines * 0.7);
-  img *= 0.8 + 0.2 * smoothstep(0.0, 0.1, ct) ;
+  // Cycle through the poster atlas: hold each for ~7 s, cross-fade over 0.4 s, with a slow
+  // push-in so the image lives. Portrait slots are sampled "cover" style.
+  float cyc = uTime / 7.0 + sid;
+  float clip = floor(cyc);
+  float ct = fract(cyc);
+  float n = float(${SCREEN_COLS * SCREEN_ROWS});
+  vec2 zoom = (sp - 0.5) / (1.0 + 0.06 * ct) + 0.5;
+  vec2 slot = vec2(1.0 / ${SCREEN_COLS}.0, 1.0 / ${SCREEN_ROWS}.0);
+  vec2 pad = slot * vec2(0.01, 0.005);
+  float ia = floor(fHash(vec2(clip, sid)) * n), ib = floor(fHash(vec2(clip - 1.0, sid)) * n);
+  vec2 ua = vec2(mod(ia, ${SCREEN_COLS}.0), ${SCREEN_ROWS - 1}.0 - floor(ia / ${SCREEN_COLS}.0)) * slot + pad + zoom * (slot - 2.0 * pad);
+  vec2 ub = vec2(mod(ib, ${SCREEN_COLS}.0), ${SCREEN_ROWS - 1}.0 - floor(ib / ${SCREEN_COLS}.0)) * slot + pad + zoom * (slot - 2.0 * pad);
+  vec3 img = mix(texture2D(uScreens, ub).rgb, texture2D(uScreens, ua).rgb, smoothstep(0.0, 0.06, ct));
+  // Scan shimmer.
+  img *= 0.92 + 0.08 * sin(sp.y * 180.0 - uTime * 6.0);
   // LED pixels: visible up close, averaged away with distance.
   vec2 led = fract(sp * vec2(160.0, 240.0));
   float px = max(fwidth(sp.x) * 160.0, fwidth(sp.y) * 240.0);
   float dots = mix(fBox(led.x, 0.15, 0.85, 0.05) * fBox(led.y, 0.15, 0.85, 0.05), 0.5, smoothstep(0.3, 0.8, px));
   fBase = P_METAL;
-  fEmit = img * img * dots * 1.6;
+  fEmit = img * dots * 1.9;
   fRough = 0.3;
   fNormalW = normalize(vFNormal);
 } else if (fType == T_FIXTURE) {
@@ -632,5 +640,6 @@ export function createFacadeUniforms(time: { value: number }, seed: number, text
     uTowerNorm2: { value: t?.normal[2] ?? null },
     uWalls: { value: t?.walls ?? null },
     uSignMap: { value: null },
+    uScreens: { value: null },
   };
 }

@@ -12,6 +12,7 @@ import { CityHazeEffect } from './scene/haze';
 import { createPost } from './scene/post';
 import { PlanarReflection } from './scene/reflection';
 import { createStreets } from './scene/streets';
+import { createScreenAtlas } from './scene/screens';
 import { createBridges } from './scene/bridges';
 import { createSignAtlas } from './scene/signs/atlas';
 import { createSigns } from './scene/signs/signs';
@@ -87,6 +88,7 @@ async function main() {
   const reflection = new PlanarReflection(quality.reflectionScale);
   groundUniforms.uReflection.value = reflection.target.texture;
   groundUniforms.uReflMatrix.value = reflection.matrix;
+  facadeUniforms.uScreens.value = createScreenAtlas(layout?.seed ?? 0);
   if (lamps) {
     facadeUniforms.uLampMap.value = lamps.texture;
     facadeUniforms.uLampRect.value.copy(lamps.rect);
