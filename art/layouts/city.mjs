@@ -38,7 +38,6 @@ const DEFAULTS = {
   heroBuildings: null,
   lampSpacing: { arterial: 30, secondary: 26, hero: 15, alley: 24 },
   flythrough: { cruise: 190, wide: 430 },
-  // Signs per frontage building: hero street dense, old core sparse, elsewhere none.
   // Enclosed bridges: skybridges between nearby towers, footbridges over core streets.
   bridges: {
     sky: { max: 7, perTower: 2, dist: [30, 95], height: [0.2, 0.5], width: 4.5, depth: 4.2 },
@@ -47,6 +46,10 @@ const DEFAULTS = {
   signs: {
     hero: { blades: [2, 5], bladeChance: 1, panelChance: 0.7 },
     core: { blades: [1, 1], bladeChance: 0.16, panelChance: 0.22 },
+    // Signs per frontage building above: hero street dense, old core sparse, elsewhere none.
+    // Tall signs climbing buildings at mid-height: flat panels on tower shafts, tall blades on
+    // old slabs taller than `minHeight`.
+    tall: { towerChance: 0.75, slabChance: 0.28, heroSlabChance: 0.6, minHeight: 40 },
   },
 };
 
@@ -356,6 +359,53 @@ export function generate({ params, seed, assets = {} }) {
         size: [r3(w), r3(h), 0.2],
         seed: Math.floor(rng() * 2 ** 31),};
       if (!hitsBridge(sgn.position, sgn.rotationY, sgn.size)) signs.push(sgn);
+    }
+  });
+
+  // ---- tall signs at mid-height (color climbing the city, not just the street)
+  const tallCfg = P.signs.tall;
+  instances.forEach((inst, index) => {
+    if (inst.interior || inst.road < 0) return;
+    const meta = assets[inst.asset]?.meta ?? {};
+    const t = inst.rotationY;
+    const u = [Math.cos(t), -Math.sin(t)], v = [Math.sin(t), Math.cos(t)];
+    const [hu, hv] = inst.fp;
+    const s3 = Array.isArray(inst.scale) ? inst.scale : [inst.scale, inst.scale, inst.scale];
+    const front = [inst.position[0] + v[0] * hv, inst.position[2] + v[1] * hv];
+    if (meta.family === 'tower' && meta.tiers?.length && !meta.screen) {
+      if (rng() > tallCfg.towerChance) return;
+      // A vertical panel on the first shaft tier's front wall, somewhere in its middle.
+      const [z0, z1, inset] = meta.tiers[0];
+      const y0 = z0 * s3[1] + 8, y1 = z1 * s3[1] - 6;
+      const faceHalf = hu - inset * s3[0];
+      const w = Math.min(rand(6, 11), 2 * faceHalf - 3);
+      const h = Math.min(w * rand(2.6, 4.0), y1 - y0);
+      if (w < 3 || h < 10) return;
+      const y = rand(y0, y1 - h) + h / 2;
+      const off = rand(-faceHalf + w / 2 + 1, faceHalf - w / 2 - 1);
+      // The tier's wall stands `setback` behind the footprint face; the panel sits 0.25 m off it.
+      const setback = inset * s3[2];
+      const out = 0.25 - setback;
+      signs.push({
+        building: index, kind: 'panel', inset: r3(setback),
+        position: [r3(front[0] + u[0] * off + v[0] * out), r3(y), r3(front[1] + u[1] * off + v[1] * out)],
+        rotationY: r3(t), size: [r3(w), r3(h), 0.3], seed: Math.floor(rng() * 2 ** 31),
+      });
+    } else if (meta.family === 'slab' && inst.h >= tallCfg.minHeight) {
+      const onHero = hero && inst.road === hero.id;
+      if (rng() > (onHero ? tallCfg.heroSlabChance : tallCfg.slabChance) || hu < 3) return;
+      // A tall blade from above the street signs up the facade (Mong Kok's vertical signs).
+      const w = rand(1.8, 3.0);
+      const h = Math.min(rand(10, 24), inst.h - 22);
+      if (h < 8) return;
+      const y = rand(20, inst.h - 3 - h) + h / 2;
+      const off = rand(-hu + 1.5, hu - 1.5);
+      const out = 0.3 + w / 2;
+      signs.push({
+        building: index, kind: 'blade',
+        position: [r3(front[0] + u[0] * off + v[0] * out), r3(y), r3(front[1] + u[1] * off + v[1] * out)],
+        rotationY: r3(Math.atan2(u[0], u[1])), size: [r3(w), r3(h), 0.35], seed: Math.floor(rng() * 2 ** 31),
+      });
     }
   });
 

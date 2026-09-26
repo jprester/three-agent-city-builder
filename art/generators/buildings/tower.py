@@ -39,10 +39,13 @@ def generate(ctx):
     w, d = W, D
     shaft = height - base_top - 6.0
     tiers = ctx.p("tiers", [[0.6, 1], [0.28, 3], [0.12, 5]])
+    tier_meta = []
     for frac, inset in tiers:
         flat_roof(mb, ctx, w, d, z, tint, parapet=0.6)   # ledge left by the previous tier
         w, d = W - 2 * inset * cw, D - 2 * inset * cw
         h = max(ch, round(frac * shaft / ch) * ch)
+        # [z0, z1, setback of this tier's walls from the footprint edge] for sign placement.
+        tier_meta.append([round(z, 3), round(z + h, 3), round(inset * cw, 3)])
         walls(mb, ctx, w, d, z, z + h, z, [("atlas", 1.0, tint)] * 4)
         accent = ctx.p("accent", None)
         if accent == "corners":
@@ -65,7 +68,8 @@ def generate(ctx):
         top = max(top, crane(mb, ctx, w * 0.2, d * 0.15, top if crown != "spire" else z + 3.0,
                              ctx.p("crane_height", 22.0), ctx.p("crane_jib", 34.0), ctx.p("crane_angle", 0.6)))
     mb.finish()
-    ctx.meta.update(footprint=[W, D], height=top, family="tower", scalable=True, shader="facade")
+    ctx.meta.update(footprint=[W, D], height=top, family="tower", scalable=True, shader="facade", tiers=tier_meta,
+                    screen=bool(ctx.p("screen", 0)))
 
 
 def _crown(mb, ctx, crown, w, d, z, tint):

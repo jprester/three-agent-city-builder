@@ -46,6 +46,8 @@ export interface LayoutSign {
   /** [width, height, depth] */
   size: Vec3;
   seed: number;
+  /** Panels on a set-back tower tier: distance of that wall behind the footprint face. */
+  inset?: number;
 }
 
 /** Named frame on the ground: origin and forward axis (x, z). Viewpoints can be relative to it. */

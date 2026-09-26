@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import * as G from '../../art/layouts/lib/geom.mjs';
 import def from '../../art/layouts/defs/city.json';
+import { ASSETS } from '../../src/assets/manifest.gen';
 import { generateLayout, type Layout, type LayoutInstance, type Vec2 } from '../../src/systems/layout';
 
 const box = (i: LayoutInstance) => {
@@ -79,10 +80,24 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
       const out = G.dot(rel, v) - hv;          // distance of the sign center in front of the face
       const along = G.dot(rel, u);
       // Blades start just off the wall and reach out by their width; panels hug the wall.
-      const gap = s.kind === 'blade' ? out - s.size[0] / 2 : out;
+      const gap = s.kind === 'blade' ? out - s.size[0] / 2 : out + (s.inset ?? 0);
       return gap < 0.05 || gap > 0.5 || Math.abs(along) > hu || s.position[1] + s.size[1] / 2 > b.h!;
     });
     expect(bad.map((s) => s.position)).toEqual([]);
+  });
+
+  it('mounts tall tower panels on the set-back tier wall they overlap', async () => {
+    const L = await get();
+    const tall = L.signs!.filter((s) => s.inset !== undefined);
+    expect(tall.length).toBeGreaterThan(3);
+    const wrong = tall.filter((s) => {
+      const b = L.instances[s.building];
+      const meta = ASSETS[b.asset as keyof typeof ASSETS].meta as { tiers?: number[][] };
+      const sy = Array.isArray(b.scale) ? b.scale[1] : b.scale, sz = Array.isArray(b.scale) ? b.scale[2] : b.scale;
+      const tier = meta.tiers!.find(([z0, z1]) => s.position[1] - s.size[1] / 2 >= z0 * sy - 0.01 && s.position[1] + s.size[1] / 2 <= z1 * sy + 0.01);
+      return !tier || Math.abs(tier[2] * sz - s.inset!) > 0.01;
+    });
+    expect(wrong.map((s) => s.position)).toEqual([]);
   });
 
   it('keeps bridges clear of other buildings and the flythrough', async () => {
