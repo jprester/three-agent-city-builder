@@ -71,9 +71,8 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 2026-09-25 | layout | Bridges (sky and foot) generated in the layout, built at runtime as one mesh with the facade material | They are placement between buildings, and tests must check them against buildings, signs, lamps and the flythrough.
 2026-09-25 | layout | Signs are placed after bridges and skip any spot a footbridge occupies | Bridges are structure; with 170 signs on the hero street, sign-first left no room for a single bridge.
 2026-09-25 | layout | The flythrough may pass under a bridge with 2.5 m headroom | Flying under a footbridge in the canyon is a strong shot; passing through or grazing over it stays forbidden.
-
-- 2026-09-25: First window-realism pass targets procedural apartment window colour, luminance distribution and interior contrast; retain tower photographic emission, occupancy, bloom and filtering thresholds for an isolated visual comparison. Shader-only changes need no Blender rebuild or asset previews.
-- 2026-09-25: Share window emission colour/intensity between rooms and neighbouring spill, including TV flicker; update distant average emission to follow the dimmer population rather than retaining the old orange facade glow.
-
-- 2026-09-26: Mark facade instance seeds and discrete surface metadata as flat varyings; interpolated seed rounding was amplified by the window hashes into per-pixel occupancy/material noise. A flat-varying-only render confirmed the speckles disappeared without geometry changes.
-- 2026-09-26: Replace the uniform cell-emission LOD with analytic pixel coverage of neighboring window openings, reusing the existing 3x3 spill loop; keep window silhouettes until subpixel cells blend to a facade mean. This avoids glowing wall-sized cells without adding geometry, texture reads or draw calls.
+2026-09-25 | facade | Window-realism pass: warm-white room colors (85% warm, 13% neutral, 2% TV), dim-biased brightness, shared room/spill color including TV flicker (Codex pass 1) | Remove blue/orange panels and the orange facade glow; shader-only.
+2026-09-26 | facade | Facade seed and surface data as flat varyings (Codex pass 2) | Interpolation rounding changed window hashes inside one window, causing speckled occupancy and color.
+2026-09-26 | facade | Window LOD by analytic opening coverage over the 3×3 neighborhood, then facade mean below a pixel (Codex pass 2) | Cell-average LOD produced glowing wall-sized squares at a distance.
+2026-09-26 | signs | Tall mid-height signs: flat panels on tower tiers (from `tiers` meta), projecting blades on slabs | Tier walls are set back from the footprint; slab fronts carry balconies that a flat panel would cut through.
+2026-09-26 | screens | Screen content from a runtime-drawn poster atlas (32 designs, 8×4 grid) | Vivid content without fonts, network or real imagery; the grid lets human-made art replace it later.

@@ -316,3 +316,24 @@ wanted; we keep our palette. New viewpoint `skyline` matches the screenshot's fr
 - Browser check: inspected the facade and aerial views, then two small orbit displacements in the aerial view. No return of cell patches or per-window speckles in sampled frames; this is a limited motion check, not proof of zero temporal aliasing or a 60-fps benchmark. No shader errors reported by the browser.
 - Shader-only change: no generated geometry changed, so no Blender rebuild/previews needed.
 - Verification: npm run check and 27 unit tests pass. All 11 viewpoint renders inspected; scene budgets pass (33 draw calls, 2,123,128 maximum triangles, 16 programs). Screenshot assertions fail only for the 11 missing approved baselines; no baselines approved. Key renders saved in docs/progress/window-cleanup/.
+
+## Review of the Codex window passes (2026-09-26)
+- Verified the two Codex passes (commit 5086319): flat varyings for seed/surface data remove
+  per-pixel window speckle at the source; window LOD by analytic opening coverage removes the
+  distant glowing squares; shared window color/intensity keeps rooms and spill consistent.
+  check, 27 tests and all 11 shots pass; budgets unchanged. `facade`, `aerial`, `skyline`
+  inspected: calmer warm-white windows, clean blinds, fine light points from above.
+  Normalized the two free-form DECISIONS entries to the one-line format.
+
+## Step 4 — color climbing the facades (2026-09-26)
+- Tall signs in the layout: vertical panels on tower shafts (on the actual set-back tier wall;
+  towers now publish `tiers` meta), tall blades 10–24 m on old slabs over 40 m, denser on
+  the hero street. ~25 tower panels, ~150 tall blades; one sign draw call as before.
+- Screens: an atlas of 32 invented posters drawn at startup (stylised silhouette, product,
+  rings, giant pseudo-CJK character, stroke-glyph text; no real people or brands), cycled
+  every ~7 s with a cross-fade and slow push-in. Replaces the pale procedural gradient.
+- Tests: tall tower panels must sit on the tier wall they overlap (30 tests).
+- Critique: screens now read as posters; amber schemes are still a bit washed. Tower
+  panels are visible in `skyline`/`rooftops` but still sparse compared with the reference;
+  kept deliberately as accents (style bible). Screens could use real artwork: the atlas
+  slots are a fixed 8×4 grid, so human-made images can replace the drawn ones later.
