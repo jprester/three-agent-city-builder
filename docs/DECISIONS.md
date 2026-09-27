@@ -132,3 +132,7 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 2026-09-27 | signs | Atlas sidecars may set `thresh` (gutter darkness) and `weight` (placement weight) | Dark-edged panels need a stricter gutter; curated premium sheets should lead tower placements.
 2026-09-27 | signs | Importer refuses atlases over 4096 px | Safe WebGL texture limit on all devices.
 2026-09-27 | signs | Tall tower campaigns: base 14 m to 0.25×height, top ≤ 0.5×height (15%: ≤ 0.75×) | Human review: varied, but mostly below mid-level.
+2026-09-27 | signs | Building meta exports street-face `depth` and `canopy`; street signs mount outside them | Blades were cutting through balconies, bay windows and AC units; panels floated above canopies.
+2026-09-27 | signs | Holographic signs get no frame; blades get an arm that reaches the wall | Frames around additive art read as boxes floating off the wall.
+2026-09-27 | signs | Layout drops a sign that overlaps an earlier sign or enters another building's footprint | Human review: overlapping and wall-embedded signs.
+2026-09-27 | signs | Tower crown lettering stands on the roof (meta `roof`) on 1.2 m posts, 1 m behind the edge | Human review: logos should sit above the facade, attached to the rooftop.

@@ -593,3 +593,9 @@ and milestone images are saved in `docs/progress/advertising-pilot/`.
   shops to a quarter of the tower height; 85% end by mid-height, 15% may reach 75%. Test
   requires > 70% below mid. From `skyline` the campaigns sit in the lower towers (SHIRAYUKI,
   龍, NEXORA), visible above the slab rooftops.
+
+## Sign alignment pass (2026-09-27)
+- Before: blades on walkups and slabs cut into balconies and AC boxes. Holographic signs had dark frames hanging a few cm off the wall. Neighbouring shop signs overlapped. Crown logos were flat on the top tier's facade.
+- After: `facade`, the new temporary crown view, plus canyon and storefront. Blade arms reach the wall and clear the AC units. Above-canopy panels stand on the canopy edge. There are no frames on holograms. The clash pass removes overlaps (903 signs remain). Crown letters (40) stand on the roof on posts and read as rooftop signs from the street.
+- Still weak: at skyline distance the crown posts are sub-pixel, so the letters look like they hover. That is acceptable at that range.
+- Baseline diffs across all 14 viewpoints are expected and not approved.
