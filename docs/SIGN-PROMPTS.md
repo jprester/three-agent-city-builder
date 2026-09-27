@@ -59,3 +59,38 @@ night city advertising style, no real brand --ar 3:2 --v 7
 ```
 Ideas: canned coffee, electric scooter, mobile network, sleep capsule hotel, mahjong app,
 cooking oil, herbal tea, airline. Mix in a few portrait (--ar 2:3) for the tower screens.
+
+## ChatGPT atlases (preferred): drop into `signs-src/atlases/`, add a sidecar JSON
+Ask for a square sheet, panels separated by clear black gutters (the slicer cuts on them).
+
+### A. Warm shop neon (red / amber / warm white), street level
+```
+A square texture atlas of 30 Japanese shop neon signs for a night city game, mixed vertical
+(1:4, 1:3) and horizontal (4:1, 3:1) panels, each separated by a clear pure-black gutter on a
+pure black background. Palette strictly warm: red, orange, amber, warm white, sodium yellow,
+with only a few small green accents; no cyan, no magenta, no purple. Glowing neon tubes and
+backlit acrylic lightboxes with correct Japanese text: ラーメン, 焼肉, 居酒屋, 質屋, 金, 旅館,
+麻雀, 餃子, 珈琲, 理髪, 漢方, 酒場, 定食, 弁当, 営業中. Worn metal frames, a few with a
+dead tube. Front view, flat, no perspective, no real brands.
+```
+
+### B. Stylish tower campaigns (tall 1:4), for skyscraper shafts
+```
+A square texture atlas of 12 tall vertical (1:4) luxury advertising panels for skyscrapers
+in a future Tokyo, separated by clear black gutters on a pure black background. Invented
+premium brands: fashion, perfume, watches, electric cars, headphones, a bank, an airline,
+a film premiere. Elegant editorial layouts, large models or products, refined typography with
+short Japanese and English copy. Palette: gold, champagne, deep red, ivory, warm amber and
+black; avoid cyan and magenta. No food, no real brands or logos.
+```
+
+### C. Wide rooftop billboards (2.4:1)
+```
+A square texture atlas of 8 wide rooftop billboard advertisements, each exactly 2.4:1,
+separated by clear black gutters on a pure black background. Invented brands: energy drink,
+motorcycle, instant camera, sneakers, beer-free soda, mobile network, night bus, casino-free
+arcade. Bold condensed typography, strong product hero shots, warm palette (red, orange,
+gold, cream) with black; avoid cyan/magenta washes. No real brands.
+```
+Sidecar example (`<sheet>.json`): `{ "kind": "neon", "expect": 30 }` (use "ad" for B/C);
+add `"shop": {"<index>": "what"}` for food/shop ads so they stay at street level.

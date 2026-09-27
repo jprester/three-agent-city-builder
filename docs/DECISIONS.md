@@ -126,3 +126,5 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 2026-09-27 | signs | Atlas sheets take a sidecar JSON (kind, expected panel count, splits for gutterless pairs, excludes with reasons) | Slicing must fail loudly if a sheet changes; real-brand and junk cells stay out with a visible reason.
 2026-09-27 | signs | Rooftop billboard frames only take ads within ±25% of the frame aspect | Narrower ads left dark panels at the frame sides (human review).
 2026-09-27 | signs | Hologram back-face mirroring decided geometrically (camera vs plane normal), not gl_FrontFacing | gl_FrontFacing was wrong under SwiftShader: blade text read mirrored from one side.
+2026-09-27 | signs | Atlas sidecars tag shop/food cells; tower billboard and shaft zones exclude them | Human review: towers need stylish brand campaigns; food ads belong at street level.
+2026-09-27 | signs | Rooftop billboard boards are built at runtime to the ad's size (generator reserves the slot only) | A fixed plate left bars around any ad whose aspect differed from 2.4:1.

@@ -566,3 +566,13 @@ and milestone images are saved in `docs/progress/advertising-pilot/`.
 - Critique: canyon reads as a real neon street with correct Japanese. The atlases lean
   cyan/magenta; warm weighting keeps red/amber leading at street level. Tower shaft ads now
   mostly come from the tall atlas cells (薬, 鮨, anime posters) and read from `skyline`.
+
+### Human review: tower ads and billboards (2026-09-27)
+- Food and pharmacy ads on skyscrapers looked cheap in the prominent spot. Atlas sidecars
+  now tag shop/food cells (`shop`); tower billboard and shaft zones skip them (0 of 113
+  tower ads), street blades may use them.
+- Rooftop billboards still showed dark bars: the Blender frame was a fixed 12×5 m plate.
+  The generator now only reserves the slot; the runtime builds panel, frame, legs and brace
+  at the ad's exact size, so any landscape ad (1.3–3.5:1) covers its board completely.
+- Warm-palette ChatGPT atlas prompts added to docs/SIGN-PROMPTS.md (shop neon, tower
+  campaigns, wide billboards).
