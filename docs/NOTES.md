@@ -496,3 +496,20 @@ bridges, LOD). This last stretch adds:
 - Neon holo vs opaque is now decided by the pale-face share (bright, unsaturated pixels):
   lightboxes 0.29–0.35, glowing neon ≤ 0.21; threshold 0.25.
 - Warm neon: 30 of 44 neon images (was 7 of 25). Canyon now reads red/amber first.
+
+### Human review: bad signs and tower sign logic (2026-09-27)
+- Cut-off lightbox (the source image crops the sign): importer now skips neon whose content
+  touches the image edge (edge share > 0.3; cut lightbox 0.57, complete neon ≤ 0.17; ads exempt,
+  full-bleed posters touch edges by design).
+- Beige "SAUNA" boxes and pale stroke signs: stroke-drawn shop signs retired; every street,
+  slab and tower sign is the human's artwork. Stroke designs remain only as brand wordmarks.
+- "RYUGEN" on a dark board under a harsh white band: brand wordmarks are holographic channel
+  letters (no board) in the crown zone; the crown band is a thin soft LED strip.
+- Tower sign zones (human's rules): street (4–12 m, shop neon), billboard (15–65 m, ads),
+  shaft (above 65 m, very tall ≤ 0.45 aspect holographic art), crown (top tier, brand).
+  Generator screens removed from towers (vertical scaling stretched them). Test: every tower
+  sign stays in its zone; no stroke shop signs (50 tests).
+- Critique: canyon reads entirely as artwork. From `skyline` the billboard band sits behind
+  the slab roofs (correct: it is for street and road). Shaft zone is thin (18 signs): the only
+  tall art is shop neon; waiting on 1:4 tower ads from the human. Crown wordmarks are small
+  from afar (Sony-building proportion).

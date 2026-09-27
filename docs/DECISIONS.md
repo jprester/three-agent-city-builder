@@ -110,3 +110,7 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 2026-09-27 | signs | Neon and dark-background ads render as additive holograms (separate InstancedMesh, fog fades instead of tints) | Human request; additive makes black transparent without alpha mattes. Costs one shader program (24/25).
 2026-09-27 | screens | Tower screens generated at exactly 2:3; portrait ads letterboxed into 2:3 slots | Screens were wider than the ads and stretched them.
 2026-09-27 | signs | Rejected source art listed in signs-src/exclude.txt with reasons; neon is holographic unless its pale-face share ≥ 0.25 (lightboxes) | Keeps the human's files in place, decisions visible; additive blending washes out bright lightbox faces.
+2026-09-27 | signs | Importer skips neon with content touching the image edge (> 0.3) | Generated signs are sometimes cropped by the generator; ads exempt (full-bleed).
+2026-09-27 | signs | Stroke-drawn shop signs retired; stroke designs only for brand wordmarks, rendered holographic | Human review: they looked cheap next to the artwork.
+2026-09-27 | signs | Tower sign zones: street 4–12 m, billboard 15–65 m, shaft > 65 m (tall holo), crown (top tier, brand) | Human's placement rules; enforced by a layout test.
+2026-09-27 | assets | Tower screens removed from defs | The layout's non-uniform vertical scale stretched them; billboards come from the zones.
