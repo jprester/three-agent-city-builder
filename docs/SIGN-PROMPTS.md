@@ -42,6 +42,15 @@ characters, warm amber and red tubes, black background, front view, flat --ar 2:
 ```
 Icons to try: roast duck, teapot, goldfish, dice, lucky cat, herbal jar, barber pole.
 
+## 5. Tall tower ads (`signs-src/ads/`, 1:4), for the mid-shaft zone
+```
+tall vertical holographic advertisement on a skyscraper for a fictional energy drink,
+glowing product silhouette and bold stacked lettering in a made-up brand name, pure black
+background, cyberpunk night, front view, flat --ar 1:4 --v 7
+```
+Name the product (not "invented brand": Midjourney writes the word INVENTED). Japanese
+stacked lettering works especially well.
+
 ## 4. Tower billboards / screen ads (`ads-v2/`, landscape 3:2 and portrait 2:3), 6–10 images
 ```
 fictional retro-futurist billboard ad for an invented instant noodle brand, bold

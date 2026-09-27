@@ -513,3 +513,13 @@ bridges, LOD). This last stretch adds:
   the slab roofs (correct: it is for street and road). Shaft zone is thin (18 signs): the only
   tall art is shop neon; waiting on 1:4 tower ads from the human. Crown wordmarks are small
   from afar (Sony-building proportion).
+
+### Tall tower ads (human artwork, 2026-09-27)
+- 7 of 9 new 1:4 holographic ads used; excluded: a near-duplicate misspelt "INVENTED"
+  variant, and one mostly-empty frame whose thin text vanishes at tower distance.
+- Shaft zone now prefers tall ads (shop neon only as a fallback), picks near-maximal height
+  (they run with the shaft), and 50% of towers also carry one on a side face: 38 shaft ads
+  (was 18), all ads, mean 50 m tall, brighter (3.0) since they are seen from far.
+- Critique: from `skyline` they read as colorful vertical strips; at 1:4 their height is
+  capped by the face width (~50 m on 20–30 m faces). Midjourney wrote "INVENTED" into four
+  of them (the prompt said "invented brand"); prompt fixed in docs/SIGN-PROMPTS.md.

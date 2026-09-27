@@ -112,7 +112,8 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
   it('mounts every sign on a building face that fronts a street', async () => {
     const L = await get();
     expect(L.signs!.length).toBeGreaterThan(50);
-    const bad = L.signs!.filter((s) => !s.roof).filter((s) => {
+    // Side-face tower ads are checked by the zone and tier tests instead.
+    const bad = L.signs!.filter((s) => !s.roof && !s.side).filter((s) => {
       const b = L.instances[s.building] as LayoutInstance & { road?: number; interior?: boolean };
       if (!b || b.interior || b.road === undefined || b.road < 0) return true;
       const t = b.rotationY;

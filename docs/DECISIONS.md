@@ -114,3 +114,4 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 2026-09-27 | signs | Stroke-drawn shop signs retired; stroke designs only for brand wordmarks, rendered holographic | Human review: they looked cheap next to the artwork.
 2026-09-27 | signs | Tower sign zones: street 4–12 m, billboard 15–65 m, shaft > 65 m (tall holo), crown (top tier, brand) | Human's placement rules; enforced by a layout test.
 2026-09-27 | assets | Tower screens removed from defs | The layout's non-uniform vertical scale stretched them; billboards come from the zones.
+2026-09-27 | signs | Shaft-zone ads may also go on a tower's side face (50%), sized near the tier's maximum | 1:4 art is width-limited; a second face doubles the mid-height color without crowding the front.

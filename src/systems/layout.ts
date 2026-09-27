@@ -58,6 +58,8 @@ export interface LayoutSign {
   art?: number;
   /** Stroke-drawn design family when not catalog art. */
   stroke?: 'blade' | 'panel';
+  /** Tower signs on a side face (±1: the building's ±x side) rather than the street front. */
+  side?: number;
   /** Tower sign zone (street | billboard | shaft | crown). */
   zone?: 'street' | 'billboard' | 'shaft' | 'crown';
   /** Mounted in a rooftop billboard frame rather than on a facade. */

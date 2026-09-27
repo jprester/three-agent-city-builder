@@ -1,3 +1,5 @@
 # Source images the importer skips (tools/textures/import_ads.py). One filename per line;
 # text after "#" is the reason. Keep the file, so the decision stays visible and reversible.
 thenightocean_cyberpunk_japanese_advertisment_holographic_let_f18999e3-ec0e-4a25-96c2-6e5cb92cb9e4_0.png  # a photo of a whole neon street, not a sign or an ad: reads as a picture on the wall
+thenightocean_tall_vertical_holographic_advertisement_invente_b9339962-5c6e-48ec-b726-cb867217177e_1.png  # near-duplicate of the "INVENTED" ad (de06197a/c8727fa4), misspelled
+thenightocean_tall_vertical_holographic_advertisement_invente_b9339962-5c6e-48ec-b726-cb867217177e_2.png  # mostly an empty frame; thin text vanishes at tower distance

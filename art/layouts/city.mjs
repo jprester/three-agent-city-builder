@@ -67,7 +67,7 @@ const DEFAULTS = {
     tall: {
       slabChance: 0.28, heroSlabChance: 0.6, minHeight: 40, brands: 8,
       // Tower sign zones (meters): see the tower branch of sign placement.
-      zones: { streetSigns: 2, streetTop: 12, billboard: [15, 65], billboardChance: 0.7, shaftChance: 0.6, shaftMax: 110, crownChance: 0.75 },
+      zones: { streetSigns: 2, streetTop: 12, billboard: [15, 65], billboardChance: 0.7, shaftChance: 0.8, shaftSideChance: 0.5, shaftMax: 130, crownChance: 0.75 },
     },
     // Ads in the rooftop billboard frames of buildings whose generator built one (meta.billboard).
     roofBillboardChance: 0.85,
@@ -477,18 +477,24 @@ export function generate({ params, seed, assets = {}, art = [] }) {
       const faceOf = (tier) => 2 * (hu - tier[2] * s3[0]);
       const tierAt = (y) => tiers.find(([z0, z1]) => y >= z0 * sy && y <= z1 * sy);
       /** Flat sign on the tier wall that contains its whole height, or nothing. */
-      const place = (c, yBottom, zone, extra = {}) => {
+      /** side: 0 street front (+v), +1 / -1 the side faces (±u). */
+      const sideOf = (tier, side) => side === 0
+        ? { n: v, tan: u, half: hu - tier[2] * s3[0], dist: hv, setback: tier[2] * s3[2] }
+        : { n: [u[0] * side, u[1] * side], tan: [-v[0] * side, -v[1] * side], half: hv - tier[2] * s3[2], dist: hu, setback: tier[2] * s3[0] };
+      const place = (c, yBottom, zone, extra = {}, side = 0) => {
         const { w, h } = c;
-        const tier = tierAt(yBottom) ;
-        if (!tier || yBottom + h > tier[1] * sy - 1 || w > faceOf(tier) - 3) return false;
-        const setback = tier[2] * s3[2];
-        const faceW = faceOf(tier) - 3;
+        const tier = tierAt(yBottom);
+        if (!tier) return false;
+        const f = sideOf(tier, side);
+        const faceW = 2 * f.half - 3;
+        if (yBottom + h > tier[1] * sy - 1 || w > faceW) return false;
         const off = rand(-faceW / 2 + w / 2, faceW / 2 - w / 2);
-        const out = 0.25 - setback;
+        const out = f.dist - f.setback + 0.25;
+        const c0 = [inst.position[0], inst.position[2]];
         signs.push({
-          building: index, kind: 'panel', inset: r3(setback), zone, ...extra,
-          position: [r3(front[0] + u[0] * off + v[0] * out), r3(yBottom + h / 2), r3(front[1] + u[1] * off + v[1] * out)],
-          rotationY: r3(t), size: [r3(w), r3(h), 0.3], seed: Math.floor(rng() * 2 ** 31),
+          building: index, kind: 'panel', inset: r3(f.setback), zone, ...(side ? { side } : {}), ...extra,
+          position: [r3(c0[0] + f.tan[0] * off + f.n[0] * out), r3(yBottom + h / 2), r3(c0[1] + f.tan[1] * off + f.n[1] * out)],
+          rotationY: r3(Math.atan2(f.n[0], f.n[1])), size: [r3(w), r3(h), 0.3], seed: Math.floor(rng() * 2 ** 31),
         });
         return true;
       };
@@ -517,8 +523,16 @@ export function generate({ params, seed, assets = {}, art = [] }) {
         const spans = tiers.slice(0, -1).map((tier) => [Math.max(tier[0] * sy, Z.billboard[1] + 5), tier[1] * sy - 4, tier]).filter(([a, b]) => b - a > 40);
         if (spans.length) {
           const [a, b, tier] = spans.sort((p, q) => (q[1] - q[0]) - (p[1] - p[0]))[0];
-          const c = chooseArt({ kind: ['ad', 'neon'], aspect: [0, 0.45], share: 1, stroke: null }, { w: [4, faceOf(tier) * 0.45], h: [40, Math.min(Z.shaftMax, b - a)] });
-          if (c) place(c, rand(a, b - c.h), 'shaft', artFields(c));
+          // Tall ads first; shop neon ("HOTEL" 150 m up a glass tower) only if none fit. Big:
+          // they run with the shaft over many floors (as tall as the tier allows).
+          for (const side of rng() < Z.shaftSideChance ? [0, rng() < 0.5 ? 1 : -1] : [0]) {
+            const f = sideOf(tier, side);
+            const lim = { w: [6, (2 * f.half - 3) * 0.6], h: [40, Math.min(Z.shaftMax, b - a)] };
+            const tallest = (lo, hi) => rand(lo + (hi - lo) * 0.7, hi);
+            const c = chooseArt({ kind: 'ad', aspect: [0, 0.45], share: 1, stroke: null }, lim, tallest)
+              ?? chooseArt({ kind: 'neon', aspect: [0, 0.45], share: 1, stroke: null }, lim, tallest);
+            if (c) place(c, rand(a, b - c.h), 'shaft', artFields(c), side);
+          }
         }
       }
       // Crown: the brand wordmark near the top of the top tier.

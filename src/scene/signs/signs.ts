@@ -133,7 +133,8 @@ function createHolograms(layout: Layout, holos: NonNullable<Layout['signs']>, ar
       const ad = e.kind === 'ad';
       const glitchy = rng() < 0.15 ? 1 : 0;
       tint.set([1, 1, 1], i * 3);
-      params.set([atlasCode(e), rng(), ad ? 1.3 : 2.9, glitchy], i * 4);
+      // Tall holographic ads are neon-like and seen from far: brighter than posters.
+      params.set([atlasCode(e), rng(), ad ? (e.aspect < 0.45 ? 3.0 : 1.3) : 2.9, glitchy], i * 4);
       lights.push({ x: s.position[0], y: s.position[1], z: s.position[2], size: Math.max(s.size[0], s.size[1]), color: new THREE.Color(...e.color), strength: ad ? 0.6 : 1 });
     }
     // Planes face +Z like the sign boxes; lift 0.1 m further off the wall (boxes are 0.2–0.35 deep).
