@@ -1,0 +1,7 @@
+{
+  "generator": "vehicles/car",
+  "seed": 21,
+  "params": {
+    "tint": 0.2
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "generator": "vehicles/car",
+  "seed": 23,
+  "params": {
+    "roof_sign": true,
+    "tint": 0.3
+  }
+}

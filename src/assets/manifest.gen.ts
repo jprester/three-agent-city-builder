@@ -69,6 +69,12 @@ export const ASSETS = {
   "props/kiosk_b": { url: "assets/props/kiosk_b.glb", category: "props", meta: {"footprint":[3.3,1.4],"height":3,"shader":"facade","family":"prop"} },
   "props/street_lamp": { url: "assets/props/street_lamp.glb", category: "props", meta: {"height":8,"shader":"facade","family":"lamp"} },
   "props/vent": { url: "assets/props/vent.glb", category: "props", meta: {"footprint":[1,1],"height":2.48,"shader":"facade","family":"prop"} },
+  "vehicles/car_a": { url: "assets/vehicles/car_a.glb", category: "vehicles", meta: {"footprint":[1.8,4.4],"height":1.45,"shader":"facade","family":"vehicle"} },
+  "vehicles/car_b": { url: "assets/vehicles/car_b.glb", category: "vehicles", meta: {"footprint":[1.8,4],"height":1.45,"shader":"facade","family":"vehicle"} },
+  "vehicles/flyer_a": { url: "assets/vehicles/flyer_a.glb", category: "vehicles", meta: {"footprint":[5.1,7],"height":1.85,"shader":"facade","family":"vehicle"} },
+  "vehicles/flyer_b": { url: "assets/vehicles/flyer_b.glb", category: "vehicles", meta: {"footprint":[5.699999999999999,9],"height":2.25,"shader":"facade","family":"vehicle"} },
+  "vehicles/taxi": { url: "assets/vehicles/taxi.glb", category: "vehicles", meta: {"footprint":[1.8,4.4],"height":1.45,"shader":"facade","family":"vehicle"} },
+  "vehicles/van": { url: "assets/vehicles/van.glb", category: "vehicles", meta: {"footprint":[1.9,5],"height":2.1,"shader":"facade","family":"vehicle"} },
 } as const satisfies Record<string, AssetEntry>;
 
 export const LAYOUTS = {

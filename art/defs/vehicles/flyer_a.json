@@ -1,0 +1,7 @@
+{
+  "generator": "vehicles/flyer",
+  "seed": 31,
+  "params": {
+    "tint": 0.3
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "generator": "vehicles/flyer",
+  "seed": 32,
+  "params": {
+    "length": 9.0,
+    "width": 3.8,
+    "height": 2.0,
+    "tint": 0.7,
+    "cabin_light": "cyan",
+    "thruster": "sodium"
+  }
+}

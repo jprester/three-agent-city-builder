@@ -20,6 +20,10 @@
     "buildings": {
       "maxTriangles": 12000,
       "maxKB": 512
+    },
+    "vehicles": {
+      "maxTriangles": 1500,
+      "maxKB": 64
     }
   },
   "scene": {
