@@ -113,7 +113,8 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     const L = await get();
     expect(L.signs!.length).toBeGreaterThan(50);
     // Side-face tower ads are checked by the zone and tier tests instead.
-    const bad = L.signs!.filter((s) => !s.roof && !s.side).filter((s) => {
+    // Side-face and rooftop/crown signs are checked by their own tests.
+    const bad = L.signs!.filter((s) => !s.roof && !s.side && s.zone !== 'crown').filter((s) => {
       const b = L.instances[s.building] as LayoutInstance & { road?: number; interior?: boolean };
       if (!b || b.interior || b.road === undefined || b.road < 0) return true;
       const t = b.rotationY;
@@ -123,8 +124,13 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
       const out = G.dot(rel, v) - hv;          // distance of the sign center in front of the face
       const along = G.dot(rel, u);
       // Blades start just off the wall and reach out by their width; panels hug the wall.
+      // Blades hang on an arm clearing balconies/AC units (s.arm); panels sit on the wall or
+      // stand on the canopy's front edge (up to its depth).
+      const meta = ASSETS[b.asset as keyof typeof ASSETS].meta as { depth?: number; canopy?: number };
       const gap = s.kind === 'blade' ? out - s.size[0] / 2 : out + (s.inset ?? 0);
-      return gap < 0.05 || gap > 0.5 || Math.abs(along) > hu || s.position[1] + s.size[1] / 2 > b.h!;
+      const maxGap = s.kind === 'blade' ? (s.arm ?? 0.3) + 0.05 : Math.max(0.5, (meta.canopy ?? 0) + 0.05, (meta.depth ?? 0) + 0.3);
+      const minGap = s.kind === 'blade' ? Math.max(0.05, (meta.depth ?? 0) + 0.25) : 0.05;
+      return gap < minGap || gap > maxGap || Math.abs(along) > hu || s.position[1] + s.size[1] / 2 > b.h!;
     });
     expect(bad.map((s) => s.position)).toEqual([]);
   });
@@ -150,10 +156,11 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
         case 'shaft': return y0 < 12 || y0 > Math.max(22, b.h! * 0.25) + 0.01 || s.size[0] / s.size[1] > 0.46 || y1 > b.h! * 0.75 + 0.01;
         case 'crown': {
           // On the top tier (tower height also counts spires and masts above it).
-          const tiers = (ASSETS[b.asset as keyof typeof ASSETS].meta as { tiers: number[][] }).tiers;
+          // Standing on the roof (above the parapet), inside the footprint.
+          const roof = (ASSETS[b.asset as keyof typeof ASSETS].meta as { roof: number }).roof;
           const sy = Array.isArray(b.scale) ? b.scale[1] : b.scale;
-          const top = tiers[tiers.length - 1];
-          return y0 < top[0] * sy - 0.01 || y1 > top[1] * sy + 0.01 || s.brand === undefined;
+          return Math.abs(y0 - (roof * sy + (s.legs ?? 0))) > 0.02 || (s.legs ?? 0) < 1 || s.brand === undefined
+            || !G.insideConvex(box(b).corners, [s.position[0], s.position[2]], 0.05);
         }
         default: return true;
       }
@@ -164,6 +171,23 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     const low = shafts.filter((s) => s.position[1] + s.size[1] / 2 <= L.instances[s.building].h! * 0.5 + 0.01);
     expect(low.length / shafts.length).toBeGreaterThan(0.7);
     expect(L.signs!.filter((s) => s.stroke && s.brand === undefined)).toEqual([]);
+  });
+
+  it('keeps signs from overlapping each other or reaching into other buildings', async () => {
+    const L = await get();
+    const sb = L.signs!.map((s) => ({ s, b: G.obb([s.position[0], s.position[2]], [Math.cos(s.rotationY), -Math.sin(s.rotationY)], s.size[0] / 2, s.size[2] / 2), y0: s.position[1] - s.size[1] / 2, y1: s.position[1] + s.size[1] / 2 }));
+    const boxes = L.instances.map(box);
+    const bad: string[] = [];
+    sb.forEach((a, i) => {
+      for (let j = i + 1; j < sb.length; j++) {
+        const c = sb[j];
+        if (a.y0 < c.y1 && c.y0 < a.y1 && G.dist(a.b.c, c.b.c) < 40 && G.obbOverlap(a.b, c.b, 0.01)) bad.push(`signs ${i} and ${j} overlap`);
+      }
+      boxes.forEach((bx, k) => {
+        if (k !== a.s.building && L.instances[k].h! > a.y0 && G.dist(bx.c, a.b.c) < 120 && G.obbOverlap(bx, a.b, 0.06)) bad.push(`sign ${i} enters building ${k}`);
+      });
+    });
+    expect(bad.slice(0, 10)).toEqual([]);
   });
 
   it('puts rooftop billboards above their building, inside its footprint', async () => {

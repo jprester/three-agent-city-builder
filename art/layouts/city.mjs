@@ -394,6 +394,10 @@ export function generate({ params, seed, assets = {}, art = [] }) {
     const front = [inst.position[0] + v[0] * hv, inst.position[2] + v[1] * hv];
     const top = Math.min(inst.h - 3, onHero ? 34 : 22);
     const share = P.signs.artShare.street;
+    const fmeta = assets[inst.asset]?.meta ?? {};
+    // Street-face clearance: balconies, bay windows and AC units stick out this far.
+    const depth = fmeta.depth ?? 0.3;
+    const canopy = fmeta.canopy ?? 0;
     const used = [];
     if (rng() < cfg.bladeChance && hu > 2 && top > 9) {
       const n = cfg.blades[0] + Math.floor(rng() * (cfg.blades[1] - cfg.blades[0] + 1));
@@ -409,9 +413,9 @@ export function generate({ params, seed, assets = {}, art = [] }) {
         if (!c) continue;
         const { w, h } = c;
         const y = rand(5.4, top - h) + h / 2;
-        const out = 0.3 + w / 2;
+        const out = depth + 0.3 + w / 2;
         const sgn = {
-          building: index, kind: 'blade', ...artFields(c),
+          building: index, kind: 'blade', arm: r3(depth + 0.3), ...artFields(c),
           position: [r3(front[0] + u[0] * off + v[0] * out), r3(y), r3(front[1] + u[1] * off + v[1] * out)],
           // A blade's faces look along the street: its normal is the facade's u axis.
           rotationY: r3(Math.atan2(u[0], u[1])),
@@ -427,9 +431,12 @@ export function generate({ params, seed, assets = {}, art = [] }) {
         : chooseArt({ kind: 'neon', aspect: [3, 99], share, stroke: null }, { w: [1.5, Math.min(9, 2 * hu - 1)], h: [0.5, 1.0] });
       if (c) {
         const { w, h } = c;
-        const y = aboveCanopy ? 5.2 + h / 2 + rand(0, 1.5) : 3.4 + h / 2;
+        // Above the canopy: stands on the canopy's front edge (clear of balconies above);
+        // below it: flat on the shop fascia under the canopy soffit.
+        const ph = 4.8;
+        const y = aboveCanopy ? (canopy > 0 ? ph - 0.1 : ph + 0.4) + h / 2 : 3.3 + h / 2;
         const off = rand(-hu + w / 2 + 0.3, hu - w / 2 - 0.3);
-        const out = aboveCanopy ? 0.2 : 0.12;
+        const out = aboveCanopy ? (canopy > 0 ? canopy - 0.12 : depth + 0.15) : 0.12;
         const sgn = {
           building: index, kind: 'panel', ...artFields(c),
           position: [r3(front[0] + u[0] * off + v[0] * out), r3(y), r3(front[1] + u[1] * off + v[1] * out)],
@@ -546,12 +553,20 @@ export function generate({ params, seed, assets = {}, art = [] }) {
           }
         }
       }
-      // Crown: the brand wordmark near the top of the top tier.
-      if (rng() < Z.crownChance) {
-        const top = tiers[tiers.length - 1];
-        const w = Math.min(faceOf(top) - 4, 34);
+      // Crown: the brand lettering stands on the roof above the parapet, set back 1 m from
+      // the top tier's front edge, on posts (human review: attached to the rooftop).
+      if (rng() < Z.crownChance && meta.roof) {
+        const topTier = tiers[tiers.length - 1];
+        const f = sideOf(topTier, 0);
+        const w = Math.min(2 * f.half - 4, 34);
         const h = w / P.signs.strokeAspect.panel;
-        place({ w, h }, top[1] * sy - 1.5 - h, 'crown', { brand: Math.floor(rng() * tallCfg.brands), stroke: 'panel' });
+        const legs = 1.2;
+        const out = f.dist - f.setback - 1.0;
+        signs.push({
+          building: index, kind: 'panel', zone: 'crown', legs, brand: Math.floor(rng() * tallCfg.brands), stroke: 'panel',
+          position: [r3(front[0] - v[0] * f.dist + v[0] * out), r3(meta.roof * sy + legs + h / 2), r3(front[1] - v[1] * f.dist + v[1] * out)],
+          rotationY: r3(t), size: [r3(w), r3(h), 0.3], seed: Math.floor(rng() * 2 ** 31),
+        });
       }
     } else if (meta.family === 'slab' && inst.h >= tallCfg.minHeight) {
       const onHero = hero && inst.road === hero.id;
@@ -562,14 +577,30 @@ export function generate({ params, seed, assets = {}, art = [] }) {
       const { w, h } = c;
       const y = rand(20, inst.h - 3 - h) + h / 2;
       const off = rand(-hu + 1.5, hu - 1.5);
-      const out = 0.3 + w / 2;
+      const clear = (meta.depth ?? 0.3) + 0.3;
+      const out = clear + w / 2;
       signs.push({
-        building: index, kind: 'blade', ...artFields(c),
+        building: index, kind: 'blade', arm: r3(clear), ...artFields(c),
         position: [r3(front[0] + u[0] * off + v[0] * out), r3(y), r3(front[1] + u[1] * off + v[1] * out)],
         rotationY: r3(Math.atan2(u[0], u[1])), size: [r3(w), r3(h), 0.35], seed: Math.floor(rng() * 2 ** 31),
       });
     }
   });
+
+  // ---- clash pass: drop any sign overlapping an earlier sign, or reaching into a building
+  // other than its own (narrow alleys, corners, neighbors' walls).
+  const bld = instances.map((i) => ({ box: instanceBox(i), h: i.h }));
+  const kept = [];
+  for (const s of signs) {
+    const r = s.rotationY;
+    const box = G.obb([s.position[0], s.position[2]], [Math.cos(r), -Math.sin(r)], s.size[0] / 2 + 0.15, s.size[2] / 2 + 0.15);
+    const y0 = s.position[1] - s.size[1] / 2, y1 = s.position[1] + s.size[1] / 2;
+    const clashSign = kept.some((k) => k.y0 < y1 + 0.2 && k.y1 > y0 - 0.2 && G.dist(k.box.c, box.c) < 40 && G.obbOverlap(k.box, box, 0));
+    const clashBld = !clashSign && bld.some((b, k) => k !== s.building && b.h > y0 && G.dist(b.box.c, box.c) < 120 && G.obbOverlap(b.box, box, 0.05));
+    if (!clashSign && !clashBld) kept.push({ s, box, y0, y1 });
+  }
+  signs.length = 0;
+  for (const k of kept) signs.push(k.s);
 
   // ---- anchors: named frames for viewpoints ({ origin, x }: x is the frame's forward axis on the ground)
   const coreCenter = centroidOf(blocks.filter((b) => b.district === 'core').map((b) => G.centroid(b.pts))) ?? [0, 0];

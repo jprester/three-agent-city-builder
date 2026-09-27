@@ -62,6 +62,8 @@ export interface LayoutSign {
   side?: number;
   /** Tower sign zone (street | billboard | shaft | crown). */
   zone?: 'street' | 'billboard' | 'shaft' | 'crown';
+  /** Blade: distance from the wall to the sign's inner edge (the hanger arm spans it). */
+  arm?: number;
   /** Rooftop board: leg length (m) from the roof to the board's bottom edge. */
   legs?: number;
   /** Mounted in a rooftop billboard frame rather than on a facade. */
