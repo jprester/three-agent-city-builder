@@ -91,15 +91,13 @@ def generate(ctx):
     flat_roof(mb, ctx, bw, bd, top, tint, 0.0, cy)
     roof_top = roof_clutter(mb, ctx, bw, bd, top, tint, ctx.p("clutter", 1.0), 0.0, cy)
     if ctx.p("billboard", False):
-        # Rooftop billboard frame facing the street (signs are placed on it at runtime).
-        mm, ms = surf(ctx, "metal", 0.0, 0.1)
+        # Rooftop billboard slot facing the street. No geometry: the runtime builds the board
+        # (panel, frame, legs) at the exact size of the ad the layout puts here, so it is
+        # always fully covered whatever the ad's aspect.
         bwid, bhei = min(bw - 2, 12.0), 5.0
         y0 = cy - bd / 2 + 1.0
-        for x in (-bwid / 2, bwid / 2):
-            mb.box(x - 0.15, x + 0.15, y0, y0 + 0.3, top, top + 2.0 + bhei, mm, None, ("bottom",), ms, None)
-        mb.box(-bwid / 2, bwid / 2, y0 + 0.3, y0 + 0.5, top + 2.0, top + 2.0 + bhei, mm, None, ("bottom",), ms, None)
         roof_top = max(roof_top, top + 2.0 + bhei)
-        ctx.meta["billboard"] = {"width": bwid, "height": bhei, "z": top + 2.0, "y": y0}
+        ctx.meta["billboard"] = {"width": bwid, "height": bhei, "z": top + 2.0, "y": y0, "legs": 2.0}
 
     mb.finish()
     ctx.meta.update(footprint=[W, D], height=top + 1.0, top=roof_top, family="midrise", scalable=False, shader="facade")
