@@ -64,11 +64,15 @@ const DEFAULTS = {
     // Signs per frontage building above: hero street dense, old core sparse, elsewhere none.
     // Tall signs climbing buildings at mid-height: flat panels on tower shafts, tall blades on
     // old slabs taller than `minHeight`.
-    tall: { towerChance: 0.75, slabChance: 0.28, heroSlabChance: 0.6, minHeight: 40, brands: 8, brandChance: 0.6, billboardShare: 0.45 },
+    tall: {
+      slabChance: 0.28, heroSlabChance: 0.6, minHeight: 40, brands: 8,
+      // Tower sign zones (meters): see the tower branch of sign placement.
+      zones: { streetSigns: 2, streetTop: 12, billboard: [15, 65], billboardChance: 0.7, shaftChance: 0.6, shaftMax: 110, crownChance: 0.75 },
+    },
     // Ads in the rooftop billboard frames of buildings whose generator built one (meta.billboard).
     roofBillboardChance: 0.85,
     // Share of placements showing catalog artwork (the rest stroke-drawn designs).
-    artShare: { street: 0.65, tower: 0.85 },
+    artShare: { street: 1, tower: 1 },
     // Aspect (w/h) of the stroke atlas designs (src/scene/signs/atlas.ts slot minus gutter).
     strokeAspect: { blade: 130 / 472, panel: 472 / 88 },
   },
@@ -356,7 +360,8 @@ export function generate({ params, seed, assets = {}, art = [] }) {
    */
   const chooseArt = (want, lim, pickH = (lo, hi) => rand(lo, hi)) => {
     if (want.stroke === null || rng() < want.share) {
-      const pool = ART.filter((e) => e.kind === want.kind && e.aspect >= want.aspect[0] && e.aspect <= want.aspect[1] && heightRange(e.aspect, lim));
+      const kinds = [].concat(want.kind);
+      const pool = ART.filter((e) => kinds.includes(e.kind) && e.aspect >= want.aspect[0] && e.aspect <= want.aspect[1] && heightRange(e.aspect, lim));
       if (pool.length) {
         let r = rng() * pool.reduce((acc, e) => acc + artWeight(e), 0);
         let e = pool[pool.length - 1];
@@ -399,8 +404,8 @@ export function generate({ params, seed, assets = {}, art = [] }) {
         // Tall blades, or wide "arms" reaching out over the street (the Mong Kok read).
         const arm = rng() < (onHero ? 0.5 : 0.3);
         const c = arm
-          ? chooseArt({ kind: 'neon', aspect: [2, 99], share, stroke: 'panel' }, { w: [2.5, onHero ? 7.5 : 4.5], h: [0.6, Math.min(2.6, top - 5.4)] })
-          : chooseArt({ kind: 'neon', aspect: [0, 1.05], share, stroke: 'blade' }, { w: [0.7, onHero ? 3.2 : 2.4], h: [2.2, Math.min(onHero ? 12 : 7, top - 5.4)] });
+          ? chooseArt({ kind: 'neon', aspect: [2, 99], share, stroke: null }, { w: [2.5, onHero ? 7.5 : 4.5], h: [0.6, Math.min(2.6, top - 5.4)] })
+          : chooseArt({ kind: 'neon', aspect: [0, 1.05], share, stroke: null }, { w: [0.7, onHero ? 3.2 : 2.4], h: [2.2, Math.min(onHero ? 12 : 7, top - 5.4)] });
         if (!c) continue;
         const { w, h } = c;
         const y = rand(5.4, top - h) + h / 2;
@@ -418,8 +423,8 @@ export function generate({ params, seed, assets = {}, art = [] }) {
     if (rng() < cfg.panelChance && hu > 2.5) {
       const aboveCanopy = rng() < 0.5;
       const c = aboveCanopy
-        ? chooseArt({ kind: 'neon', aspect: [0.6, 99], share, stroke: 'panel' }, { w: [1.6, Math.min(9, 2 * hu - 1)], h: [0.6, 2.8] })
-        : chooseArt({ kind: 'neon', aspect: [3, 99], share: 0, stroke: 'panel' }, { w: [2.5, Math.min(9, 2 * hu - 1)], h: [0.5, 1.0] });
+        ? chooseArt({ kind: 'neon', aspect: [0.6, 99], share, stroke: null }, { w: [1.6, Math.min(9, 2 * hu - 1)], h: [0.6, 2.8] })
+        : chooseArt({ kind: 'neon', aspect: [3, 99], share, stroke: null }, { w: [1.5, Math.min(9, 2 * hu - 1)], h: [0.5, 1.0] });
       if (c) {
         const { w, h } = c;
         const y = aboveCanopy ? 5.2 + h / 2 + rand(0, 1.5) : 3.4 + h / 2;
@@ -461,56 +466,73 @@ export function generate({ params, seed, assets = {}, art = [] }) {
       }
     }
     if (meta.family === 'tower' && meta.tiers?.length) {
-      // A brand per tower: its wordmark on the crown tier, sometimes its stacked logo too.
-      const brand = Math.floor(rng() * tallCfg.brands);
-      const hasBrand = rng() < tallCfg.brandChance;
-      const tierLimits = (tier) => {
-        const [z0, z1, inset] = tier;
-        return { faceW: 2 * (hu - inset * s3[0]) - 3, tierH: (z1 - z0) * s3[1] - 8 };
-      };
-      const tierSign = (tier, c, yFrac, extra) => {
-        const [z0, , inset] = tier;
-        const { faceW, tierH } = tierLimits(tier);
+      // Tower sign zones (human review 2026-09-27), all on the street-facing face:
+      //   street     storefront band on the base (ground to 2nd floor): shop neon
+      //   billboard  15–65 m (≈ floors 5–20), visible from street and road: big ads
+      //   shaft      mid-height: very tall (≈1:4) holographic ads running with the shaft
+      //   crown      top tier: the tower's brand wordmark, holographic, no board
+      const Z = tallCfg.zones;
+      const sy = s3[1];
+      const tiers = meta.tiers;
+      const faceOf = (tier) => 2 * (hu - tier[2] * s3[0]);
+      const tierAt = (y) => tiers.find(([z0, z1]) => y >= z0 * sy && y <= z1 * sy);
+      /** Flat sign on the tier wall that contains its whole height, or nothing. */
+      const place = (c, yBottom, zone, extra = {}) => {
         const { w, h } = c;
-        if (w > faceW || h > tierH) return;
-        const setback = inset * s3[2];
-        const y = z0 * s3[1] + 4 + h / 2 + yFrac * (tierH - h);
+        const tier = tierAt(yBottom) ;
+        if (!tier || yBottom + h > tier[1] * sy - 1 || w > faceOf(tier) - 3) return false;
+        const setback = tier[2] * s3[2];
+        const faceW = faceOf(tier) - 3;
         const off = rand(-faceW / 2 + w / 2, faceW / 2 - w / 2);
         const out = 0.25 - setback;
         signs.push({
-          building: index, kind: 'panel', inset: r3(setback), ...extra,
-          position: [r3(front[0] + u[0] * off + v[0] * out), r3(y), r3(front[1] + u[1] * off + v[1] * out)],
+          building: index, kind: 'panel', inset: r3(setback), zone, ...extra,
+          position: [r3(front[0] + u[0] * off + v[0] * out), r3(yBottom + h / 2), r3(front[1] + u[1] * off + v[1] * out)],
           rotationY: r3(t), size: [r3(w), r3(h), 0.3], seed: Math.floor(rng() * 2 ** 31),
         });
+        return true;
       };
-      const tiers = meta.tiers;
-      const strokeSize = (a, w) => ({ w, h: w / a });
-      if (hasBrand) {
-        const top = tiers[tiers.length - 1];
-        const w = Math.min(tierLimits(top).faceW - 1, 30);
-        tierSign(top, strokeSize(P.signs.strokeAspect.panel, w), 1, { brand, stroke: 'panel' });
+      // Street: shop neon on the base, flush on the footprint face.
+      // Ground to 2nd floor in meters: the base itself stretches with the tower's vertical scale.
+      const baseTop = Math.min((meta.base ?? tiers[0][0]) * sy, Z.streetTop);
+      for (let k = 0; k < Z.streetSigns; k++) {
+        const c = chooseArt({ kind: 'neon', aspect: [1.5, 99], share: 1, stroke: null }, { w: [2, Math.min(10, 2 * hu - 4)], h: [0.8, Math.min(3, baseTop - 5)] });
+        if (!c) continue;
+        const off = rand(-hu + c.w / 2 + 1, hu - c.w / 2 - 1);
+        const y = rand(4.8 + c.h / 2, baseTop - 0.8 - c.h / 2);
+        signs.push({
+          building: index, kind: 'panel', zone: 'street', ...artFields(c),
+          position: [r3(front[0] + u[0] * off + v[0] * 0.2), r3(y), r3(front[1] + u[1] * off + v[1] * 0.2)],
+          rotationY: r3(t), size: [r3(c.w), r3(c.h), 0.2], seed: Math.floor(rng() * 2 ** 31),
+        });
       }
-      if (meta.screen || rng() > tallCfg.towerChance) return;
-      const r = rng();
-      const { faceW, tierH } = tierLimits(tiers[0]);
-      if (r < tallCfg.billboardShare) {
-        // Large billboard ad on the lowest shaft tier.
-        const c = chooseArt({ kind: 'ad', aspect: [0.5, 2.2], share: 1, stroke: null }, { w: [6, faceW], h: [12, Math.min(28, tierH)] });
-        if (c) tierSign(tiers[0], c, rand(0.2, 0.8), artFields(c));
-      } else if (hasBrand && r > 0.75) {
-        // The brand's stacked logo.
-        const h = Math.min(tierH, rand(22, 40));
-        tierSign(tiers[0], { w: h * P.signs.strokeAspect.blade, h }, rand(0.2, 0.8), { brand, stroke: 'blade' });
-      } else {
-        // A tall neon strip in the middle of the shaft.
-        const c = chooseArt({ kind: 'neon', aspect: [0, 0.8], share: P.signs.artShare.tower, stroke: 'blade' }, { w: [3, 11], h: [14, Math.min(44, tierH)] });
-        if (c) tierSign(tiers[0], c, rand(0.2, 0.8), artFields(c));
+      // Billboard band.
+      if (rng() < Z.billboardChance) {
+        const lo = Math.max(Z.billboard[0], tiers[0][0] * sy + 1);
+        const c = chooseArt({ kind: 'ad', aspect: [0.5, 2.2], share: 1, stroke: null }, { w: [6, faceOf(tiers[0]) - 3], h: [10, Math.min(26, Z.billboard[1] - lo)] });
+        if (c) place(c, rand(lo, Z.billboard[1] - c.h), 'billboard', artFields(c));
+      }
+      // Mid-shaft: very tall holographic ad on the tier with the most room above the band.
+      if (rng() < Z.shaftChance) {
+        const spans = tiers.slice(0, -1).map((tier) => [Math.max(tier[0] * sy, Z.billboard[1] + 5), tier[1] * sy - 4, tier]).filter(([a, b]) => b - a > 40);
+        if (spans.length) {
+          const [a, b, tier] = spans.sort((p, q) => (q[1] - q[0]) - (p[1] - p[0]))[0];
+          const c = chooseArt({ kind: ['ad', 'neon'], aspect: [0, 0.45], share: 1, stroke: null }, { w: [4, faceOf(tier) * 0.45], h: [40, Math.min(Z.shaftMax, b - a)] });
+          if (c) place(c, rand(a, b - c.h), 'shaft', artFields(c));
+        }
+      }
+      // Crown: the brand wordmark near the top of the top tier.
+      if (rng() < Z.crownChance) {
+        const top = tiers[tiers.length - 1];
+        const w = Math.min(faceOf(top) - 4, 34);
+        const h = w / P.signs.strokeAspect.panel;
+        place({ w, h }, top[1] * sy - 1.5 - h, 'crown', { brand: Math.floor(rng() * tallCfg.brands), stroke: 'panel' });
       }
     } else if (meta.family === 'slab' && inst.h >= tallCfg.minHeight) {
       const onHero = hero && inst.road === hero.id;
       if (rng() > (onHero ? tallCfg.heroSlabChance : tallCfg.slabChance) || hu < 3) return;
       // A tall blade from above the street signs up the facade (Mong Kok's vertical signs).
-      const c = chooseArt({ kind: 'neon', aspect: [0, 0.6], share: P.signs.artShare.street, stroke: 'blade' }, { w: [1.6, 3.4], h: [8, Math.min(24, inst.h - 22)] });
+      const c = chooseArt({ kind: 'neon', aspect: [0, 0.6], share: 1, stroke: null }, { w: [1.6, 3.4], h: [8, Math.min(24, inst.h - 22)] });
       if (!c) return;
       const { w, h } = c;
       const y = rand(20, inst.h - 3 - h) + h / 2;

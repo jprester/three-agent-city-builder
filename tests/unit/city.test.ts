@@ -138,6 +138,29 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     expect(wrong.map((s) => [s.size, s.art, s.stroke])).toEqual([]);
   });
 
+  it('keeps tower signs in their zones (street, billboard 15–65 m, shaft, crown)', async () => {
+    const L = await get();
+    const wrong = L.signs!.filter((s) => s.zone).filter((s) => {
+      const b = L.instances[s.building];
+      const y0 = s.position[1] - s.size[1] / 2, y1 = s.position[1] + s.size[1] / 2;
+      switch (s.zone) {
+        case 'street': return y1 > 12 + 0.01 || y0 < 4;
+        case 'billboard': return y0 < 15 - 0.01 || y1 > 65 + 0.01;
+        case 'shaft': return y0 < 65 || s.size[0] / s.size[1] > 0.46 || y1 > b.h! - 5;
+        case 'crown': {
+          // On the top tier (tower height also counts spires and masts above it).
+          const tiers = (ASSETS[b.asset as keyof typeof ASSETS].meta as { tiers: number[][] }).tiers;
+          const sy = Array.isArray(b.scale) ? b.scale[1] : b.scale;
+          const top = tiers[tiers.length - 1];
+          return y0 < top[0] * sy - 0.01 || y1 > top[1] * sy + 0.01 || s.brand === undefined;
+        }
+        default: return true;
+      }
+    });
+    expect(wrong.map((s) => [s.zone, s.position[1], s.size])).toEqual([]);
+    expect(L.signs!.filter((s) => s.stroke && s.brand === undefined)).toEqual([]);
+  });
+
   it('puts rooftop billboards above their building, inside its footprint', async () => {
     const L = await get();
     const roof = L.signs!.filter((s) => s.roof);
