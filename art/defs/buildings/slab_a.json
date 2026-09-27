@@ -10,6 +10,7 @@
     "cage_ratio": 0.12,
     "ac_ratio": 0.35,
     "ledges": true,
-    "bay_ratio": 0.25
+    "bay_ratio": 0.25,
+    "architectural_detail": true
   }
 }

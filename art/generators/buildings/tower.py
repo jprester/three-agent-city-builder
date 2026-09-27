@@ -16,6 +16,7 @@ Accents (param "accent"): "corners" (LED strips on every tier's vertical edges) 
 covering that fraction of the face width. Every crown gets red aviation lights.
 Width and depth are whole curtain cells (1.5 m)."""
 from lib.building import ac_cluster, antenna_cluster, aviation_lights, cell, corner_strips, crane, face_stripes, flat_roof, mast, screen, walls
+from lib.architecture import tower_structure
 from lib.mesh import MeshBuilder
 from lib.surface import fixture, plan_uv, surf
 
@@ -47,6 +48,8 @@ def generate(ctx):
         # [z0, z1, setback of this tier's walls from the footprint edge] for sign placement.
         tier_meta.append([round(z, 3), round(z + h, 3), round(inset * cw, 3)])
         walls(mb, ctx, w, d, z, z + h, z, [("atlas", 1.0, tint)] * 4)
+        if ctx.p("structural_ribs", False):
+            tower_structure(mb, ctx, w, d, z, z + h, tint)
         accent = ctx.p("accent", None)
         if accent == "corners":
             corner_strips(mb, ctx, w, d, z, z + h, ctx.p("accent_color", "white"))

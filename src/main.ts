@@ -7,10 +7,12 @@ import { createFacadeMaterial, createFacadeUniforms } from './materials/facade';
 import { loadFacadeTextures } from './materials/textures';
 import { createGroundUniforms } from './materials/ground';
 import { createRenderer, createScene } from './scene/environment';
+import { captureCityEnvironment } from './scene/environment-map';
 import { createLampMap, createSignLightMap } from './scene/lampmap';
 import { CityHazeEffect } from './scene/haze';
 import { createPost } from './scene/post';
 import { PlanarReflection } from './scene/reflection';
+import { createTraffic } from './scene/traffic';
 import { createStreets } from './scene/streets';
 import { createScreenAtlas } from './scene/screens';
 import { createBridges } from './scene/bridges';
@@ -36,6 +38,8 @@ declare global {
     __READY?: boolean;
     /** renderer.info for the ready frame (all passes); read by tests/visual/shots.spec.ts. */
     __STATS?: SceneStats;
+    /** Test hook: hold the completed frame during slow software screenshot capture. */
+    __PAUSE_RENDER?: () => void;
   }
 }
 
@@ -60,7 +64,7 @@ async function main() {
   const clock = new Clock(frozenAt);
 
   const renderer = createRenderer(quality.pixelRatio);
-  const scene = createScene();
+  const scene = createScene(clock.uniform);
   const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.3, 4000);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = !params.has('viewpoint');
@@ -115,12 +119,19 @@ async function main() {
       groundUniforms.uSignMap.value = signMap;
     }
   }
+  const traffic = layout ? createTraffic(layout, quality.name === 'high' ? 1 : quality.name === 'med' ? 0.65 : 0.35) : null;
+  if (traffic) { traffic.update(clock.time); scene.add(traffic.group); }
   const streets = createStreets(layout, groundUniforms);
   scene.add(streets);
   if (!applyViewpoint(viewpoint, camera, controls, layout)) problems.push(`Unknown viewpoint "${viewpoint}".`);
   setStatus(problems.join(' '));
 
-  const haze = lamps ? new CityHazeEffect(camera, lamps.texture, signMap, lamps.rect) : undefined;
+  // Capture before adding the reflective ground, whose target is not rendered yet.
+  streets.visible = false;
+  captureCityEnvironment(renderer, scene, layout);
+  streets.visible = true;
+
+  const haze = lamps ? new CityHazeEffect(camera, lamps.texture, signMap, lamps.rect, clock.uniform) : undefined;
   const post = createPost(renderer, scene, camera, quality, haze);
   const size = renderer.getDrawingBufferSize(new THREE.Vector2());
   reflection.setSize(size.x, size.y);
@@ -136,6 +147,7 @@ async function main() {
     reflection.setSize(size.x, size.y);
   });
 
+  window.__PAUSE_RENDER = () => renderer.setAnimationLoop(null);
   let frames = 0;
   let last = clock.time;
   renderer.setAnimationLoop(() => {
@@ -143,6 +155,7 @@ async function main() {
     const delta = now - last;
     last = now;
     controls.update();
+    traffic?.update(now);
     renderer.info.reset();
     reflection.update(renderer, scene, camera, [streets]);
     post.composer.render(delta);

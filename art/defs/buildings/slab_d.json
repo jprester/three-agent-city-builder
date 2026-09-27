@@ -11,6 +11,7 @@
     "ac_ratio": 0.45,
     "fins": true,
     "canopy_depth": 2.8,
-    "bay_ratio": 0.3
+    "bay_ratio": 0.3,
+    "architectural_detail": true
   }
 }

@@ -9,6 +9,7 @@
     "balcony_ratio": 0.2,
     "cage_ratio": 0.2,
     "ac_ratio": 0.4,
-    "fins": true
+    "fins": true,
+    "architectural_detail": true
   }
 }

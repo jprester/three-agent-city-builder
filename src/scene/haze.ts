@@ -4,6 +4,7 @@ import palette from '../../art/style/palette.json';
 import { FOG_FALLOFF } from './fog';
 
 const sodium = new THREE.Color(palette.sodium);
+const cool = new THREE.Color(palette.tv_blue).lerp(new THREE.Color(palette.fluorescent), 0.55);
 const haze = new THREE.Color(palette.haze);
 const v3 = (c: THREE.Color) => `vec3(${c.r.toFixed(4)}, ${c.g.toFixed(4)}, ${c.b.toFixed(4)})`;
 
@@ -12,11 +13,11 @@ const v3 = (c: THREE.Color) => `vec3(${c.r.toFixed(4)}, ${c.g.toFixed(4)}, ${c.b
  * marched through the height fog (same falloff as src/scene/fog.ts) up to the depth-buffer
  * hit, and at each step the air is lit by the street lights and signs below it, read from
  * the top-down lamp and sign maps at a coarse mip. Streets glow up into the haze, lit
- * districts get a glow dome, and distance fills with warm-tinted air instead of flat color.
+ * districts get a cool upper glow and practical warm light stays near the street.
  * Runs in HDR before bloom, so the glow blooms too.
  */
 export class CityHazeEffect extends Effect {
-  constructor(private readonly camera: THREE.PerspectiveCamera, lampMap: THREE.Texture | null, signMap: THREE.Texture | null, rect: THREE.Vector4) {
+  constructor(private readonly camera: THREE.PerspectiveCamera, lampMap: THREE.Texture | null, signMap: THREE.Texture | null, rect: THREE.Vector4, time: { value: number }) {
     super('CityHazeEffect', /* glsl */ `
       uniform mat4 uProjInv;
       uniform mat4 uCamWorld;
@@ -26,6 +27,7 @@ export class CityHazeEffect extends Effect {
       uniform vec4 uRect;
       uniform float uDensity;
       uniform float uGain;
+      uniform float uTime;
       const int STEPS = 18;
       const float MAX_DIST = 2400.0;
 
@@ -37,9 +39,14 @@ export class CityHazeEffect extends Effect {
         vec2 uv = (p.xz - uRect.xy) * uRect.zw;
         float inside = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
         vec3 near = ${v3(sodium)} * textureLod(uLampMap, uv, 4.0).r * 0.4 + textureLod(uSignMap, uv, 4.0).rgb * 0.6;
-        vec3 wide = ${v3(sodium)} * textureLod(uLampMap, uv, 7.0).r * 0.45 + textureLod(uSignMap, uv, 7.0).rgb * 0.4;
+        vec3 wide = ${v3(sodium)} * textureLod(uLampMap, uv, 7.0).r * 0.18 + textureLod(uSignMap, uv, 7.0).rgb * 0.4;
         float y = max(p.y, 0.0);
-        return inside * (near * exp(-y / 28.0) + wide * exp(-y / 80.0));
+        float city = textureLod(uLampMap, uv, 7.0).r;
+        vec3 upper = ${v3(cool)} * city * 0.14;
+        // Slowly moving low-level pockets, located by the practical street lights.
+        float pocket = pow(0.5 + 0.5 * sin(p.x * 0.065 + sin(p.z * 0.09) * 2.0 - uTime * 0.07), 4.0);
+        return inside * (near * exp(-y / 28.0) * (1.0 + pocket * exp(-y / 9.0) * 0.8)
+          + wide * exp(-y / 70.0) + upper * exp(-y / 150.0));
       }
 
       void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth, out vec4 outputColor) {
@@ -78,6 +85,7 @@ export class CityHazeEffect extends Effect {
         ['uRect', new THREE.Uniform(rect)],
         ['uDensity', new THREE.Uniform(0.0016)],
         ['uGain', new THREE.Uniform(1.0)],
+        ['uTime', time as THREE.Uniform],
       ]),
     });
   }

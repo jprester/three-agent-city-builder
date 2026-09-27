@@ -225,10 +225,12 @@ vec4 wallSample(int m, vec2 uvm, float size, out vec2 grad) {
 // Interior mapping: the room behind a window, seen through point wp (meters from the
 // window's lower-left) along the tangent-space view vector vt (x right, y up, z out).
 vec3 room(vec2 wp, vec2 wsize, vec3 vt, vec3 col, float h) {
-  vec3 size = vec3(wsize.x + 1.4, 2.8, 3.0 + 2.5 * h);
+  vec3 size = vec3(wsize.x + 1.4, max(2.8, wsize.y + 1.1), 3.0 + 2.5 * h);
   vec3 o = vec3(wp.x + 0.7, wp.y + 0.85, 0.0);
   vec3 d = normalize(vec3(-vt.x, -vt.y, max(vt.z, 0.08)));
-  vec3 tm = (step(0.0, d) * size - o) / d;
+  // Parallel rays can otherwise create 0/0 at a room boundary and poison HDR bloom.
+  vec3 safeD = mix(vec3(-1.0), vec3(1.0), step(0.0, d)) * max(abs(d), vec3(0.00001));
+  vec3 tm = (step(0.0, d) * size - o) / safeD;
   float t = min(min(tm.x, tm.y), tm.z);
   vec3 p = o + d * t;
   float c;
@@ -376,7 +378,7 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
 
   // Unlit glass reflects the sky glow; lit glass shows the room.
   vec3 rv = reflect(-vt, vec3(0.0, 0.0, 1.0));
-  vec3 refl = skyRefl(vec3(rv.x, rv.y, rv.z)) * (0.04 + 0.5 * pow(1.0 - max(vt.z, 0.0), 4.0));
+  vec3 refl = skyRefl(vec3(rv.x, rv.y, rv.z)) * (0.04 + 0.5 * pow(1.0 - clamp(vt.z, 0.0, 1.0), 4.0));
   vec3 dark = P_HAZE * 0.05 + refl;
   emit = (mask - frame) * (lit > 0.5 ? inside + refl * 0.5 : dark);
   filteredEmit += filteredGlass * dark;
@@ -431,7 +433,14 @@ if (fType == T_RES || fType == T_OFFICE) {
   fBase *= 1.0 - 0.35 * band * (1.0 - smoothstep(0.1, 0.3, fFw.y / cs.y));
   fBase *= 1.0 + 0.15 * pil;
 }
-fBase *= fGrime;
+// Water staining follows sills and bay joints instead of covering all walls equally.
+if (fType == T_RES) {
+  vec2 cp = mod(fUv, CELL_RES);
+  float belowSill = exp(-max(0.9 - cp.y, 0.0) * 2.8) * (1.0 - step(0.9, cp.y));
+  float drip = fBox(cp.x, 0.75, 2.45, fFw.x) * (0.3 + 0.7 * fNoise(vec2(fUv.x * 12.0, floor(fUv.y / CELL_RES.y))));
+  fBase *= 1.0 - 0.24 * belowSill * drip;
+}
+fBase *= mix(1.0, fGrime, 0.65);
 vec3 fEmit = vec3(0.0);
 // Light arriving on opaque wall surfaces (added as fBase * fWallLight at the end).
 vec3 fWallLight = vec3(0.0);
@@ -453,7 +462,9 @@ if (fType == T_ATLAS) {
   vec4 dr; vec3 em, nm;
   towerSample(bundle, auv, dFdx(L), dFdy(L), dr, em, nm);
   fBase = dr.rgb * 0.5;
-  fRough = dr.a;
+  // Pane-level roughness varies gently, while opaque spandrels stay matte.
+  float pane = fHash(floor(fUv / CELL_CURTAIN) + fSeed * 13.0);
+  fRough = clamp(dr.a + (pane - 0.5) * 0.08, 0.12, 0.95);
   fMetal = (1.0 - dr.a) * 0.4;
   float floorId = floor(L.y / Dm.x);
   float floorLit = mix(0.35, 1.25, fHash(vec2(floorId, fSeed * 31.0))) * step(0.18, fHash(vec2(floorId, fSeed * 13.0 + 2.0)));
@@ -466,7 +477,7 @@ if (fType == T_ATLAS) {
   fNormalW = normalize(fT * n.x + fB * n.y + normalize(vFNormal) * max(n.z, 0.2));
   // Glass picks up the sky glow.
   float glassAmt = 1.0 - smoothstep(0.3, 0.6, dr.a);
-  fEmit += glassAmt * skyRefl(reflect(-fV, fNormalW)) * (0.06 + 0.6 * pow(1.0 - max(fVt.z, 0.0), 4.0));
+  fEmit += glassAmt * skyRefl(reflect(-fV, fNormalW)) * (0.06 + 0.6 * pow(1.0 - clamp(fVt.z, 0.0, 1.0), 4.0));
 } else if (fType == T_RES || fType == T_OFFICE || fType == T_CURTAIN || fType == T_CAGE) {
   vec3 wEmit, filteredEmit, avgEmit, wSpill, wAvgSpill; float wMask, wFrame, wFrac, wAround, filteredMask;
   windowLayer(fType == T_CAGE ? T_RES : fType, fUv, fFw, fType == T_CAGE ? 1.0 : fFill, fSeed, fVt,
@@ -508,17 +519,19 @@ if (fType == T_ATLAS) {
   vec3 shopCol = hCol < 0.5 ? P_FLUORESCENT : hCol < 0.85 ? P_TUNGSTEN : mix(P_FLUORESCENT, P_TV, 0.5);
   float pier = 1.0 - fBox(x, 0.3, CELL_PODIUM.x - 0.3, fFw.x);
   float glassMask = fBox(fUv.y, 0.15, 3.25, fFw.y) * (1.0 - pier) * present;
-  float racks = 0.75 + 0.25 * sin(x * 7.0 + s) * sin(x * 2.3 + s * 3.0);
   float stock = mix(0.45, 1.0, smoothstep(0.3, 2.2, fUv.y)) * (0.8 + 0.2 * fNoise(vec2(x * 1.5 + s, fUv.y * 0.8)));
   float strip = 1.6 * fBox(fUv.y, 2.95, 3.1, fFw.y);
-  float counter = 1.0 - 0.6 * fBox(fUv.y, 0.15, 1.05, fFw.y) * fBox(x, 0.6, 2.8 + 1.4 * fHash(vec2(sid, s + 7.0)), fFw.x);
   vec3 goods = mix(vec3(1.0), mix(P_TUNGSTEN, P_RED, fHash(vec2(floor(x / 0.7), sid + s))), 0.35 * fBox(fUv.y, 1.2, 2.6, fFw.y));
-  float glow = mix(0.45, 1.3, fHash(vec2(sid, s + 4.4))) * (racks * stock * counter + strip);
   shopCol *= goods;
   float ribs = 0.6 + 0.4 * smoothstep(0.3, 0.7, abs(fract(fUv.y * 7.0) - 0.5) * 2.0);
   vec3 shutter = mix(P_METAL * 2.2, fBase, 0.3) * ribs * mix(0.6, 1.0, fGrime);
   fBase = mix(fBase, open > 0.5 ? P_GLASS : shutter, glassMask);
-  fEmit = glassMask * open * shopCol * glow;
+  vec3 shopRoom = room(vec2(x - 0.3, fUv.y - 0.15), vec2(CELL_PODIUM.x - 0.6, 3.1),
+                       fVt, shopCol, fHash(vec2(sid, s + 8.2)));
+  float shopFrame = max(fBox(x, 1.55, 1.65, fFw.x), fBox(fUv.y, 2.55, 2.63, fFw.y));
+  fBase = mix(fBase, P_METAL, shopFrame * glassMask);
+  fEmit = glassMask * open * (shopRoom * (1.5 + stock) + shopCol * strip * 0.25)
+        * (1.0 - shopFrame);
   fBase *= 1.0 - 0.4 * fBox(fUv.y, 3.35, 4.5, fFw.y);
   fRough = mix(fRough, open > 0.5 ? 0.2 : 0.6, glassMask);
   fMetal = (1.0 - open) * glassMask * 0.4;
@@ -583,11 +596,11 @@ fEmit += fBase * P_SODIUM * fLamp * 1.5 * exp(-max(vFWorld.y - 1.0, 0.0) / 7.0);
 vec2 fWideUv = (vFWorld.xz - uLampRect.xy) * uLampRect.zw;
 vec3 fStreet = P_SODIUM * texture(uLampMap, fWideUv, 4.5).r * 0.5 + texture(uSignMap, fWideUv, 4.5).rgb * 0.35;
 float fUpFacing = fType == T_ROOF ? 0.25 : 1.0;
-fWallLight += fStreet * 0.5 * exp(-max(vFWorld.y, 0.0) / 20.0) * fUpFacing;
+fWallLight += fStreet * 0.28 * exp(-max(vFWorld.y, 0.0) / 20.0) * fUpFacing;
 // City bounce: a faint warm fill from everything lit around, so walls never go fully black.
-fWallLight += mix(P_HAZE * 2.2, P_SODIUM * 0.25, 0.12) * 0.45;
+fWallLight += mix(P_HAZE * 2.2, P_SODIUM * 0.25, 0.12) * 0.25;
 // Sky rim: grazing faces catch the glowing sky, separating silhouettes in depth.
-float fRim = pow(1.0 - max(fVt.z, 0.0), 3.0) * (0.5 + 0.5 * normalize(vFNormal).y + 0.5);
+float fRim = pow(1.0 - clamp(fVt.z, 0.0, 1.0), 3.0) * (0.5 + 0.5 * normalize(vFNormal).y + 0.5);
 fWallLight += skyRefl(vec3(0.0, 0.05, 0.0)) * fRim * 0.35 + P_HAZE * 0.05;
 // Colored light from nearby signs, up to about the height signs hang at.
 vec3 fSign = texture2D(uSignMap, (vFWorld.xz + vFNormal.xz * 1.5 - uLampRect.xy) * uLampRect.zw).rgb;
@@ -617,7 +630,7 @@ export function createFacadeMaterial(uniforms: FacadeUniforms): THREE.MeshStanda
       .replace('#include <normal_fragment_maps>', 'normal = normalize((viewMatrix * vec4(fNormalW, 0.0)).xyz);')
       .replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance = fEmit;');
   };
-  material.customProgramCacheKey = () => 'facade-v4';
+  material.customProgramCacheKey = () => 'facade-v5';
   return material;
 }
 

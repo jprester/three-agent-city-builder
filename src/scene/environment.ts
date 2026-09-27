@@ -20,16 +20,20 @@ export function createRenderer(maxPixelRatio: number): THREE.WebGLRenderer {
 
 /**
  * Night scene: height fog in the haze color, a sky dome that matches it at the horizon, and
- * dim ambient light tinted by the city (warm from below, haze from above). Everything
- * else is emissive.
+ * cool sky illumination that reveals architectural depth. Practical lights
+ * remain emissive, with their local spill supplied by the facade shaders.
  */
-export function createScene(): THREE.Scene {
+export function createScene(time: { value: number }): THREE.Scene {
   installHeightFog();
   const scene = new THREE.Scene();
   const haze = color('haze');
   scene.background = color('sky');
   scene.fog = new THREE.FogExp2(haze, FOG_DENSITY);
-  scene.add(createSky(haze));
-  scene.add(new THREE.HemisphereLight(haze.clone().multiplyScalar(1.6), color('sodium').multiplyScalar(0.06), 0.14));
+  scene.add(createSky(haze, time));
+  scene.add(new THREE.HemisphereLight(color('tv_blue').lerp(color('fluorescent'), 0.45), color('sodium').multiplyScalar(0.035), 0.16));
+  // Broad night-sky illumination reveals ribs, rails and roof planes; no shadow maps.
+  const skyLight = new THREE.DirectionalLight(color('tv_blue').lerp(color('fluorescent'), 0.4), 0.38);
+  skyLight.position.set(-180, 260, -90);
+  scene.add(skyLight);
   return scene;
 }

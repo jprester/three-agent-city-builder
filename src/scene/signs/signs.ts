@@ -90,9 +90,9 @@ attribute vec3 aBack;
 attribute vec4 aParams;
 varying vec2 vSignUv;
 varying float vFace;
-varying vec3 vTube;
-varying vec3 vBack;
-varying vec4 vParams;`)
+flat varying vec3 vTube;
+flat varying vec3 vBack;
+flat varying vec4 vParams;`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>
 vFace = abs(normal.z) > 0.5 ? 1.0 : 0.0;
 vSignUv = aRect.xy + uv * aRect.zw;
@@ -106,21 +106,25 @@ uniform float uTime;
 uniform float uSignGain;
 varying vec2 vSignUv;
 varying float vFace;
-varying vec3 vTube;
-varying vec3 vBack;
-varying vec4 vParams;
+flat varying vec3 vTube;
+flat varying vec3 vBack;
+flat varying vec4 vParams;
 float sHash(float x) { return fract(sin(x * 127.1) * 43758.5453); }`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
 if (vFace > 0.5) {
   vec4 s = texture2D(uAtlas, vSignUv);
   float glow = textureLod(uAtlas, vSignUv, 3.5).r;
-  float id = floor(s.g * 255.0 + 0.5);
+  // Decode stroke IDs before filtering: coverage-filtered IDs produce random edge speckles.
+  vec2 atlasSize = vec2(textureSize(uAtlas, 0));
+  vec4 stroke = texelFetch(uAtlas, ivec2(clamp(vSignUv * atlasSize, vec2(0.0), atlasSize - 1.0)), 0);
+  float id = floor(stroke.g / max(stroke.r, 1.0 / 255.0) * 255.0 + 0.5);
   float seed = vParams.y * 1000.0;
   // Broken tubes stay dark; a few strokes flicker on the shared clock.
   float alive = step(vParams.z, sHash(id + seed));
   float fl = vParams.w > 0.0 && sHash(id * 3.1 + seed) < vParams.w
     ? step(0.35, fract(sin(floor(uTime * 12.0 + id) * 91.7 + seed) * 4375.85)) : 1.0;
-  float on = alive * fl;
+  float footprint = max(length(dFdx(vSignUv * atlasSize)), length(dFdy(vSignUv * atlasSize)));
+  float on = mix(alive * fl, 1.0 - vParams.z, smoothstep(1.0, 3.0, footprint));
   vec3 e;
   if (vParams.x > 0.5) {
     // Backlit box: either a colored face with near-white characters, or a pale face with
@@ -138,6 +142,6 @@ if (vFace > 0.5) {
   totalEmissiveRadiance += e * uSignGain;
 }`);
   };
-  material.customProgramCacheKey = () => 'signs-v1';
+  material.customProgramCacheKey = () => 'signs-v2';
   return material;
 }

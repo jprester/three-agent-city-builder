@@ -23,6 +23,8 @@
     "crown": "spire",
     "spire": 35,
     "accent": "corners",
-    "accent_color": "white"
+    "accent_color": "white",
+    "structural_ribs": true,
+    "rib_spacing": 6
   }
 }

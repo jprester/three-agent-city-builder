@@ -46,7 +46,25 @@ for (const vp of VIEWPOINTS) {
   test(`${LAYOUT} @ ${vp.name}`, async ({ page }) => {
     await page.goto(`/?layout=${LAYOUT}&viewpoint=${vp.name}&t=${FROZEN_TIME}`);
     await page.waitForFunction(() => window.__READY === true, undefined, { timeout: 45_000 });
-    await page.screenshot({ path: `${OUT_DIR}/${vp.name}.png` });
+    await page.evaluate(() => window.__PAUSE_RENDER?.());
+    const screenshot = await page.screenshot({ path: `${OUT_DIR}/${vp.name}.png` });
+    // Valid draw counts cannot detect NaNs spreading through HDR bloom to a black frame.
+    const visibleFraction = await page.evaluate(async (png) => {
+      const img = new Image();
+      img.src = `data:image/png;base64,${png}`;
+      await img.decode();
+      const canvas = document.createElement('canvas');
+      canvas.width = 32; canvas.height = 18;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0, 32, 18);
+      const pixels = ctx.getImageData(0, 0, 32, 18).data;
+      let visible = 0;
+      for (let i = 0; i < pixels.length; i += 4) {
+        if (Math.max(pixels[i], pixels[i + 1], pixels[i + 2]) > 2) visible++;
+      }
+      return visible / (32 * 18);
+    }, screenshot.toString('base64'));
+    expect.soft(visibleFraction, `${vp.name}: render is blank`).toBeGreaterThan(0.05);
 
     const stats = await page.evaluate(() => window.__STATS);
     expect(stats, `${vp.name}: window.__STATS missing; the app failed before its ready frame`).toBeDefined();

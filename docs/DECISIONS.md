@@ -76,3 +76,14 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 2026-09-26 | facade | Window LOD by analytic opening coverage over the 3×3 neighborhood, then facade mean below a pixel (Codex pass 2) | Cell-average LOD produced glowing wall-sized squares at a distance.
 2026-09-26 | signs | Tall mid-height signs: flat panels on tower tiers (from `tiers` meta), projecting blades on slabs | Tier walls are set back from the footprint; slab fronts carry balconies that a flat panel would cut through.
 2026-09-26 | screens | Screen content from a runtime-drawn poster atlas (32 designs, 8×4 grid) | Vivid content without fonts, network or real imagery; the grid lets human-made art replace it later.
+
+- 2026-09-26: User-authorized reference upgrade uses existing slab_a and tower_a as benchmarks, preserves the compact layout, and adds comparison cameras without moving existing ones.
+- 2026-09-26: Selected residential fronts get physical reveals with recessed shader glass; this extends the original shader-only window rule to support the explicitly requested architectural depth while keeping interiors procedural.
+- 2026-09-26: Capture one 128px city environment at startup for shared glass/metal reflections, with no per-frame probe renders; it is an approximation of surrounding city light, not local reflection accuracy.
+- 2026-09-26: Extend physical detail to slabs a/b/d and towers a/c/g/i/k only; retain cheaper surrounding variants to preserve the existing 3M scene triangle budget.
+- 2026-09-26: Preserve all existing city placements; improve skyline framing through an additional camera because the human previously rejected a scattered far field.
+- 2026-09-26: Use deterministic, opposing light-pair traffic streams on existing wide roads; these are distant visual cues, not vehicle hulls or an intersection simulation. Shared-clock motion and lower-density quality presets keep screenshots reproducible.
+- 2026-09-26: Replace projected cloud noise with angular 3D noise, and add low haze pockets within the existing ray march; no extra atmosphere passes or dependencies.
+- 2026-09-26: Decode sign stroke IDs from unfiltered coverage-corrected atlas data and average broken strokes at distance; filtering categorical IDs caused salt-and-pepper neon edges.
+- 2026-09-27: Guard parallel interior-map ray divisions and clamp Fresnel inputs; two NaN pixels in fly-0 poisoned the entire bloom chain. Added a screenshot brightness assertion because draw-count checks cannot catch a black frame.
+- 2026-09-27: Visual tests pause the renderer after readiness through a dedicated test hook; this preserves the completed frame during slow software capture without changing normal interaction.

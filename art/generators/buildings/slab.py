@@ -1,11 +1,12 @@
 """Old residential slab (Mong Kok tenement): storefront podium with a street canopy,
 residential floors with balcony stacks, cage windows and AC units on the front,
 sparse windows and AC units on the sides, rooftop clutter and an occasional rooftop
-shack. Windows are shaded at runtime; geometry only carries what protrudes.
+shack. Windows are shaded at runtime; selected fronts also have physical reveals.
 
 Width and depth are whole residential cells so shaded windows align with the
 balconies, cages and AC units placed here. All tunables are def params."""
 from lib.building import aviation_lights, cell, flat_roof, roof_clutter, side_frame, walls
+from lib.architecture import balcony_rail, recessed_front, service_details
 from lib.mesh import MeshBuilder
 from lib.surface import facade_uv, surf
 
@@ -30,7 +31,12 @@ def generate(ctx):
     side_fill = ctx.p("side_fill", 0.18)
     kinds = [("residential", 1.0, tint), ("residential", side_fill, tint),
              ("residential", ctx.p("back_fill", 0.85), tint), ("residential", side_fill, tint)]
-    walls(mb, ctx, W, D, ph, main_top, ph, kinds)
+    detailed = ctx.p("architectural_detail", False)
+    if detailed:
+        recessed_front(mb, ctx, W, D, ph, main_top, ph, kinds, (cw, ch),
+                       ctx.p("window_rect", [0.8, 2.4, 0.9, 2.45]), ctx.p("reveal_depth", 0.22))
+    else:
+        walls(mb, ctx, W, D, ph, main_top, ph, kinds)
     if step_floors:
         flat_roof(mb, ctx, W, D, main_top, tint, parapet=1.0)
         walls(mb, ctx, W, D - step_depth, main_top, top, ph, kinds, 0.0, step_depth / 2)
@@ -79,7 +85,10 @@ def generate(ctx):
             z = ph + f * ch
             if c in balcony_cols:
                 mb.box(u0 + 0.12, u0 + cw - 0.12, -bd, 0.0, z, z + 0.15, tm, xf, ("back",), ts, uvf)
-                mb.box(u0 + 0.12, u0 + cw - 0.12, -bd, -bd + 0.08, z + 0.15, z + 1.1, tm, xf, ("back", "bottom"), ts, uvf)
+                if detailed:
+                    balcony_rail(mb, ctx, xf, uvf, u0 + 0.12, u0 + cw - 0.12, -bd, z + 0.15)
+                else:
+                    mb.box(u0 + 0.12, u0 + cw - 0.12, -bd, -bd + 0.08, z + 0.15, z + 1.1, tm, xf, ("back", "bottom"), ts, uvf)
                 continue
             r = rng.random()
             if r < ctx.p("cage_ratio", 0.12):
@@ -104,6 +113,9 @@ def generate(ctx):
                     ax = -sw / 2 + (k + 0.5) * cw
                     z = ph + f * ch
                     mb.box(ax - 0.4, ax + 0.4, -0.55, 0.0, z + 0.2, z + 0.75, am, sxf, ("back",), as_, suvf)
+
+    if detailed:
+        service_details(mb, ctx, W, D, ph, main_top, tint)
 
     roof_d, roof_cy = D - step_depth, step_depth / 2
     flat_roof(mb, ctx, W, roof_d, top, tint, 0.0, roof_cy)

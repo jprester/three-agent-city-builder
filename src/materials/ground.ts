@@ -62,8 +62,8 @@ vec4 gRp = uReflMatrix * vec4(vGWorld.x, 0.0, vGWorld.z, 1.0);
 vec2 gRuv = gRp.xy / gRp.w;
 vec2 gN = vec2(gNoise(vGWorld.xz * 1.9), gNoise(vGWorld.xz * 1.9 + 11.3)) - 0.5;
 // Barely any sideways wobble (that reads as water); mostly vertical jitter and smear.
-gRuv += gN * vec2(mix(0.003, 0.0012, gPuddle), mix(0.035, 0.006, gPuddle));
-float gSpan = mix(0.13, 0.03, gPuddle);
+gRuv += gN * vec2(mix(0.003, 0.0012, gPuddle), mix(0.012, 0.003, gPuddle));
+float gSpan = mix(0.08, 0.018, gPuddle);
 vec3 gRefl = vec3(0.0);
 float gW = 0.0;
 for (int i = -6; i <= 6; i++) {
@@ -74,7 +74,7 @@ for (int i = -6; i <= 6; i++) {
 }
 gRefl /= gW;
 vec3 gView = normalize(cameraPosition - vGWorld);
-float gFresnel = 0.04 + 0.96 * pow(1.0 - max(gView.y, 0.0), 5.0);
+float gFresnel = 0.04 + 0.96 * pow(1.0 - clamp(gView.y, 0.0, 1.0), 5.0);
 // Asphalt grain breaks up the dull wet film; puddles stay clean.
 float gGrain = mix(0.45 + 0.9 * gNoise(vGWorld.xz * 7.0) * gNoise(vGWorld.xz * 2.1 + 3.0), 1.0, gPuddle);
 totalEmissiveRadiance += gRefl * gGrain * mix(0.16, 1.0, gPuddle) * (0.25 + 0.75 * gFresnel) * uWet * ${wet.toFixed(2)};`);
