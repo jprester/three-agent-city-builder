@@ -21,8 +21,6 @@ import {
   P, ROOT, assetOutPath, globToRegex, listDefs, listFiles, readJson, sha256, toPosix, writeJson,
 } from './lib/common.mjs';
 
-// Typography and image packing are build-time assets too.
-execFileSync('python3', [path.join(ROOT, 'tools/textures/build_advertising.py')], { stdio: 'inherit' });
 
 const args = process.argv.slice(2);
 const flag = (name) => args.includes(name);

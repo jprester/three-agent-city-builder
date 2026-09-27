@@ -82,23 +82,28 @@ def dark_background(im, share=0.45):
 def pack(items, slot_w, slot_h, cols, name, gap=4):
     rows = max(1, (len(items) + cols - 1) // cols)
     W, H = cols * slot_w, rows * slot_h
-    atlas = Image.new("RGB", (W, H))
+    # RGBA: alpha is the emission mask read by the sign shader (not opacity); fully emissive.
+    atlas = Image.new("RGBA", (W, H), (0, 0, 0, 255))
     entries = []
-    for i, (path, kind, im) in enumerate(items):
+    for i, (ident, kind, im) in enumerate(items):
         x, y = (i % cols) * slot_w, (i // cols) * slot_h
         fit = im.copy()
         fit.thumbnail((slot_w - 2 * gap, slot_h - 2 * gap), Image.LANCZOS)
         ox, oy = x + (slot_w - fit.width) // 2, y + (slot_h - fit.height) // 2
-        atlas.paste(fit, (ox, oy))
+        atlas.paste(fit.convert("RGBA"), (ox, oy))
         color, hue, sat = light_color(im)
         entries.append({
-            "id": path.stem[:48], "kind": kind, "atlas": name,
+            # Unique: long generator filenames share prefixes; keep the tail (seed id + variant).
+            "id": ident if len(ident) <= 48 else ident[:32] + "~" + ident[-15:], "kind": kind, "atlas": name,
             # Rect of the image itself (not its slot) in UV space, v up: aspect-exact.
             "rect": [round(ox / W, 6), round(1 - (oy + fit.height) / H, 6), round(fit.width / W, 6), round(fit.height / H, 6)],
             "aspect": round(im.width / im.height, 4), "holo": pale_face(im) < 0.25 if kind == "neon" else dark_background(im),
             "color": color, "hue": hue, "sat": sat,
+            # Emission gain (sign shader): neon burns hotter than printed/backlit ads.
+            "gain": 2.1 if kind == "neon" else 1.0,
+            "surface": "neon" if kind == "neon" else "poster",
         })
-    atlas.save(OUT / f"{name}.webp", quality=86, method=6)
+    atlas.save(OUT / f"{name}.webp", quality=86, method=6, exact=True)
     return entries
 
 
@@ -114,21 +119,59 @@ def collect():
         for p in sources(pattern):
             if p.suffix.lower() not in (".png", ".jpg", ".jpeg", ".webp") or (kind == "ad" and p.name == "nova.png"):
                 continue
-            out.append((p, kind))
+            out.append((p.stem, kind, Image.open(p).convert("RGB"), True))
+    out += atlas_cells()
+    return out
+
+
+def atlas_cells():
+    """Cells sliced from generated sheets in signs-src/atlases/ (tools/textures/slice_atlas.py).
+    Each sheet may have a sidecar `<sheet>.json`:
+      kind      "neon" | "ad" (default "ad")
+      expect    number of panels the slicer must find (guards against silent mis-slicing)
+      split     {"<index>": n}: panels with no gutter between them, split into n equal columns
+      exclude   {"<index>": "reason"}: cells not to use (after splitting, reading order)
+    """
+    import sys
+    sys.path.insert(0, str(Path(__file__).parent))
+    from slice_atlas import panels
+    out = []
+    skip = excluded()
+    for sheet in sorted((SRC / "signs-src" / "atlases").glob("*.png")):
+        if sheet.name in skip:
+            continue
+        side = sheet.with_suffix(".json")
+        cfg = json.loads(side.read_text()) if side.exists() else {}
+        im = Image.open(sheet).convert("RGB")
+        boxes = panels(im)
+        if "expect" in cfg and len(boxes) != cfg["expect"]:
+            raise SystemExit(f"{sheet.name}: slicer found {len(boxes)} panels, sidecar expects {cfg['expect']}")
+        cells = []
+        for k, (x0, y0, x1, y1) in enumerate(boxes):
+            n = int(cfg.get("split", {}).get(str(k), 1))
+            for j in range(n):
+                cells.append((x0 + (x1 - x0) * j // n, y0, x0 + (x1 - x0) * (j + 1) // n, y1))
+        tag = "".join(c for c in sheet.stem if c.isalnum())[-12:]
+        for k, (x0, y0, x1, y1) in enumerate(cells):
+            if str(k) in cfg.get("exclude", {}):
+                continue
+            # Inset 2 px: drop the gutter edge the cut landed on.
+            crop = im.crop((x0 + 2, y0 + 2, x1 - 2, y1 - 2))
+            out.append((f"{tag}-{k:02d}", cfg.get("kind", "ad"), crop, False))
     return out
 
 
 def main():
     OUT.mkdir(exist_ok=True)
     buckets = {b[0]: [] for b in BUCKETS}
-    for path, kind in collect():
-        im = Image.open(path).convert("RGB")
-        if kind == "neon" and edge_cut(im) > 0.3:
-            print(f"SKIPPED (sign cut off at the image edge): {path.name}")
+    for ident, kind, im, whole in collect():
+        # Whole images must contain their sign; atlas cells are cut exactly at their gutters.
+        if whole and kind == "neon" and edge_cut(im) > 0.3:
+            print(f"SKIPPED (sign cut off at the image edge): {ident}")
             continue
         a = im.width / im.height
         name = next(b[0] for b in BUCKETS if a <= b[4])
-        buckets[name].append((path, kind, im))
+        buckets[name].append((ident, kind, im))
     entries, sizes = [], {}
     for name, w, h, cols, _ in BUCKETS:
         es = pack(buckets[name], w, h, cols, name)

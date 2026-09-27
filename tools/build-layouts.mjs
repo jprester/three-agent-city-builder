@@ -17,9 +17,9 @@ function assertBrowserSafe() {
   }
 }
 
-/** Sign artwork catalog (tools/textures/build_advertising.py): what the layout needs to choose and size signs. */
+/** Sign artwork catalog (tools/textures/import_ads.py): what the layout needs to choose and size signs. */
 export function signArt() {
-  const cat = readJson(path.join(ROOT, 'art', 'textures', 'advertising', 'catalog.json'), { entries: [] });
+  const cat = readJson(path.join(ROOT, 'art', 'external', 'textures', 'signs', 'catalog.json'), { entries: [] });
   return cat.entries.map(({ kind, aspect, holo, hue, sat }) => ({ kind, aspect, holo, hue, sat }));
 }
 

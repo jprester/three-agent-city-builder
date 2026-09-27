@@ -19,7 +19,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check": "npm run typecheck && npm run budgets",
-    "signs": "python3 tools/textures/build_advertising.py && npm run layouts"
+    "signs": "python3 tools/textures/import_ads.py && npm run layouts",
+    "signs:typeset": "python3 tools/textures/build_advertising.py"
   },
   "dependencies": {
     "lil-gui": "0.21.0",

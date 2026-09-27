@@ -1,0 +1,6 @@
+{
+  "kind": "ad",
+  "expect": 41,
+  "split": { "10": 2, "20": 2 },
+  "exclude": { "13": "real brand (Sapporo beer): no real brands in signage (PLAN)" }
+}
