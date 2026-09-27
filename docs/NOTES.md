@@ -576,3 +576,16 @@ and milestone images are saved in `docs/progress/advertising-pilot/`.
   at the ad's exact size, so any landscape ad (1.3–3.5:1) covers its board completely.
 - Warm-palette ChatGPT atlas prompts added to docs/SIGN-PROMPTS.md (shop neon, tower
   campaigns, wide billboards).
+
+### Warm atlases and low tower campaigns (2026-09-27)
+- Imported the human's three warm sheets: 29 worn shop neon/lightboxes (焼肉, 質屋, 麻雀,
+  理髪 …), 12 luxury tower campaigns (KAZEYA, RENTO, HINOTORI … gold/red), 8 wide rooftop
+  billboards (EMBER X, AKATSUKI, GOLD POP …), plus one Midjourney poster. 271 designs.
+- Luxury sheet has near-black panel tops: sidecar `thresh: 0.03` slices it cleanly; sidecar
+  `weight: 3` makes it lead tower campaigns (34 of 67).
+- Tower zones (human review): tall campaigns now start just above the street zone
+  (14–22 m) and rise up to 70 m, on the front, or on a side face when the front carries a
+  billboard; billboards 15–50 m. From `skyline` the towers are quieter; from the street
+  (docs/progress/atlas-signs/tower-street.png) the campaigns fill the view.
+- neon_v atlas grew to 6912 px; reshaped to 4000×3840 and the importer now refuses any
+  atlas over 4096 px (the safe WebGL texture limit).

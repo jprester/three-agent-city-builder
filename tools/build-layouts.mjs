@@ -20,7 +20,7 @@ function assertBrowserSafe() {
 /** Sign artwork catalog (tools/textures/import_ads.py): what the layout needs to choose and size signs. */
 export function signArt() {
   const cat = readJson(path.join(ROOT, 'art', 'external', 'textures', 'signs', 'catalog.json'), { entries: [] });
-  return cat.entries.map(({ kind, aspect, holo, hue, sat, shop }) => ({ kind, aspect, holo, hue, sat, shop: !!shop }));
+  return cat.entries.map(({ kind, aspect, holo, hue, sat, shop, weight }) => ({ kind, aspect, holo, hue, sat, shop: !!shop, weight: weight ?? 1 }));
 }
 
 export async function buildLayouts() {

@@ -2,7 +2,7 @@ import { ASSETS } from '../assets/manifest.gen';
 import signCatalog from '../../art/external/textures/signs/catalog.json';
 
 /** Artwork facts the layout sizes signs by (same as tools/build-layouts.mjs signArt()). */
-export const SIGN_ART = signCatalog.entries.map(({ kind, aspect, holo, hue, sat, shop }) => ({ kind, aspect, holo, hue, sat, shop: !!shop }));
+export const SIGN_ART = signCatalog.entries.map(({ kind, aspect, holo, hue, sat, shop, weight }) => ({ kind, aspect, holo, hue, sat, shop: !!shop, weight: weight ?? 1 }));
 
 export type Vec2 = [number, number];
 export type Vec3 = [number, number, number];

@@ -128,3 +128,6 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 2026-09-27 | signs | Hologram back-face mirroring decided geometrically (camera vs plane normal), not gl_FrontFacing | gl_FrontFacing was wrong under SwiftShader: blade text read mirrored from one side.
 2026-09-27 | signs | Atlas sidecars tag shop/food cells; tower billboard and shaft zones exclude them | Human review: towers need stylish brand campaigns; food ads belong at street level.
 2026-09-27 | signs | Rooftop billboard boards are built at runtime to the ad's size (generator reserves the slot only) | A fixed plate left bars around any ad whose aspect differed from 2.4:1.
+2026-09-27 | signs | Tall tower campaigns start 14–22 m above ground (just above shopfronts), billboards 15–50 m | Human review: ads belong where street and road users see them, not high up the shaft.
+2026-09-27 | signs | Atlas sidecars may set `thresh` (gutter darkness) and `weight` (placement weight) | Dark-edged panels need a stricter gutter; curated premium sheets should lead tower placements.
+2026-09-27 | signs | Importer refuses atlases over 4096 px | Safe WebGL texture limit on all devices.

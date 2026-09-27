@@ -67,7 +67,7 @@ const DEFAULTS = {
     tall: {
       slabChance: 0.28, heroSlabChance: 0.6, minHeight: 40, brands: 8,
       // Tower sign zones (meters): see the tower branch of sign placement.
-      zones: { streetSigns: 2, streetTop: 12, billboard: [15, 65], billboardChance: 0.7, shaftChance: 0.8, shaftSideChance: 0.5, shaftMax: 130, shaftWidthShare: 0.85, crownChance: 0.75 },
+      zones: { streetSigns: 2, streetTop: 12, billboard: [15, 50], billboardChance: 0.6, shaftChance: 0.85, shaftSideChance: 0.5, shaftMax: 70, shaftBase: [14, 22], shaftWidthShare: 0.85, crownChance: 0.75 },
     },
     // Ads in the rooftop billboard frames of buildings whose generator built one (meta.billboard).
     roofBillboardChance: 0.85,
@@ -347,7 +347,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
   // exact aspect within the placement's size limits, so nothing is cropped or stretched.
   const ART = (art ?? []).map((e, i) => ({ ...e, i }));
   const artUses = new Map();
-  const artWeight = (e) => (e.hue <= 60 || e.hue >= 330 ? 3 : e.sat < 0.25 ? 1.5 : 1) / (1 + 1.5 * (artUses.get(e.i) ?? 0));
+  const artWeight = (e) => (e.weight ?? 1) * (e.hue <= 60 || e.hue >= 330 ? 3 : e.sat < 0.25 ? 1.5 : 1) / (1 + 1.5 * (artUses.get(e.i) ?? 0));
   /** Height range allowed by width/height limits at aspect `a` (null if none). */
   const heightRange = (a, lim) => {
     const lo = Math.max(lim.h[0], lim.w[0] / a), hi = Math.min(lim.h[1], lim.w[1] / a);
@@ -516,24 +516,28 @@ export function generate({ params, seed, assets = {}, art = [] }) {
         });
       }
       // Billboard band.
+      let frontUsed = false;
       if (rng() < Z.billboardChance) {
         const lo = Math.max(Z.billboard[0], tiers[0][0] * sy + 1);
+        frontUsed = true;
         const c = chooseArt({ kind: 'ad', aspect: [0.5, 2.2], share: 1, stroke: null, noShop: true }, { w: [6, faceOf(tiers[0]) - 3], h: [10, Math.min(26, Z.billboard[1] - lo)] });
         if (c) place(c, rand(lo, Z.billboard[1] - c.h), 'billboard', artFields(c));
       }
-      // Mid-shaft: physical campaign screen on the roomiest tier above the band.
+      // Tall campaign: starts just above the street zone and rises with the shaft, where
+      // people on the street and in cars see it (human review: not high up the tower). On the
+      // front when it is free, otherwise (or additionally) on a side face.
       if (rng() < Z.shaftChance) {
-        const spans = tiers.slice(0, -1).map((tier) => [Math.max(tier[0] * sy, Z.billboard[1] + 5), tier[1] * sy - 4, tier]).filter(([a, b]) => b - a > 40);
-        if (spans.length) {
-          const [a, b, tier] = spans.sort((p, q) => (q[1] - q[0]) - (p[1] - p[0]))[0];
-          // Keep shop signage at street level; omit screens on tiers too narrow to fit.
-          for (const side of rng() < Z.shaftSideChance ? [0, rng() < 0.5 ? 1 : -1] : [0]) {
+        const tier = tiers[0];
+        const a = Math.max(tier[0] * sy + 1, rand(Z.shaftBase[0], Z.shaftBase[1])), b = tier[1] * sy - 4;
+        if (b - a > 40) {
+          const sides = frontUsed ? [rng() < 0.5 ? 1 : -1] : rng() < Z.shaftSideChance ? [0, rng() < 0.5 ? 1 : -1] : [0];
+          for (const side of sides) {
             const f = sideOf(tier, side);
             const lim = { w: [6, (2 * f.half - 3) * Z.shaftWidthShare], h: [40, Math.min(Z.shaftMax, b - a)] };
             const tallest = (lo, hi) => rand(lo + (hi - lo) * 0.7, hi);
             // Stylish brand campaigns only: food and shop ads belong at street level.
             const c = chooseArt({ kind: 'ad', aspect: [0, 0.45], share: 1, stroke: null, noShop: true }, lim, tallest);
-            if (c) place(c, rand(a, b - c.h), 'shaft', artFields(c), side);
+            if (c) place(c, a, 'shaft', artFields(c), side);
           }
         }
       }
