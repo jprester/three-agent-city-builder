@@ -38,7 +38,10 @@ const DEFAULTS = {
   districtNoise: 60,
   heroBuildings: null,
   lampSpacing: { arterial: 30, secondary: 26, hero: 15, alley: 24 },
-  flythrough: { cruise: 190, wide: 430 },
+  // Flythrough (buildFlythrough). street: camera height in the canyon; orbitGap: clearance
+  // beyond the outermost tower; orbitHeight: climb while circling the towers; orbitSweep:
+  // arc in turns; wide: height of the wide shot; approach: glide length back into the canyon.
+  flythrough: { street: 4, orbitGap: 45, orbitHeight: [120, 280], orbitSweep: 0.8, wide: 280, approach: 440 },
   // Street furniture on sidewalks. Chances are per candidate slot; ids are asset ids.
   props: {
     kiosks: ['props/kiosk_a', 'props/kiosk_b'], kioskEvery: 45, kioskChance: { arterial: 0.35, hero: 0.5, secondary: 0.2 },
@@ -328,7 +331,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
   const props = placeProps(P.props, blocks, roads, lamps, P.sidewalks, tagClass, assets, mulberry32((seed ^ 0x9a0b5eed) >>> 0));
 
   // ---- flythrough and bridges come before signs: bridges are structure, signs avoid them.
-  const flythrough = hero ? buildFlythrough(hero, instances, P, W, Dp) : undefined;
+  const flythrough = hero ? buildFlythrough(hero, roads, instances, P, W, Dp) : undefined;
   const bridges = buildBridges(P.bridges, instances, roads, [], lamps, hero, flythrough, rng);
   const skyLanes = buildSkyLanes(P.skyLanes, instances, bridges);
   const traffic = trafficLanes(roads.map((r) => ({ id: r.id, cls: r.cls, width: r.width, a: r.a.map(r3), b: r.b.map(r3) })), seed)
@@ -587,9 +590,14 @@ export function generate({ params, seed, assets = {}, art = [] }) {
     }
   });
 
-  // ---- clash pass: drop any sign overlapping an earlier sign, or reaching into a building
-  // other than its own (narrow alleys, corners, neighbors' walls).
+  // ---- clash pass: drop any sign overlapping an earlier sign, reaching into a building
+  // other than its own (narrow alleys, corners, neighbors' walls), or hanging within 2.5 m of
+  // the flythrough (the camera flies under the canyon's blades, never through them).
   const bld = instances.map((i) => ({ box: instanceBox(i), h: i.h }));
+  const flyPts = sampleFlythrough(flythrough);
+  const nearFly = (box, y0, y1) => flyPts.some((p) => p[1] > y0 - 2.5 && p[1] < y1 + 2.5 &&
+    Math.abs(p[0] - box.c[0]) < 60 && Math.abs(p[2] - box.c[1]) < 60 &&
+    G.insideConvex(G.obb(box.c, box.u, box.hu + 2.5, box.hv + 2.5).corners, [p[0], p[2]]));
   const kept = [];
   for (const s of signs) {
     const r = s.rotationY;
@@ -597,7 +605,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
     const y0 = s.position[1] - s.size[1] / 2, y1 = s.position[1] + s.size[1] / 2;
     const clashSign = kept.some((k) => k.y0 < y1 + 0.2 && k.y1 > y0 - 0.2 && G.dist(k.box.c, box.c) < 40 && G.obbOverlap(k.box, box, 0));
     const clashBld = !clashSign && bld.some((b, k) => k !== s.building && b.h > y0 && G.dist(b.box.c, box.c) < 120 && G.obbOverlap(b.box, box, 0.05));
-    if (!clashSign && !clashBld) kept.push({ s, box, y0, y1 });
+    if (!clashSign && !clashBld && !nearFly(box, y0 - (s.legs ?? 0), y1)) kept.push({ s, box, y0, y1 });
   }
   signs.length = 0;
   for (const k of kept) signs.push(k.s);
@@ -637,59 +645,104 @@ export function generate({ params, seed, assets = {}, art = [] }) {
 }
 
 /**
- * Cinematic path: starts low in the hero canyon, climbs out at its far end, sweeps around
- * the city at cruise height, pulls out wide, then drops back into the canyon from above.
+ * Cinematic loop, in order: glides low through the hero canyon from its open west end, rises
+ * past the signs, climbs out over the rooftops where the canyon meets the tower district,
+ * circles the towers while climbing, pulls out wide west of the city, then glides down over
+ * open ground back into the canyon mouth. Heights are lifted to 25 m over any roof
+ * within 12 m of a leg. Returns { points, look, closed }: `look` is a look-at target per
+ * control point, sampled with the same parameterization as the path.
  */
-function buildFlythrough(hero, instances, P, W, Dp) {
-  const maxH = (p, r) => instances.reduce((m, i) =>
-    (Math.hypot(i.position[0] - p[0], i.position[2] - p[1]) < r + Math.max(...i.fp) ? Math.max(m, i.h) : m), 0);
+function buildFlythrough(hero, roads, instances, P, W, Dp) {
+  const C = P.flythrough;
+  const boxes = instances.map((i) => ({ box: instanceBox(i), h: i.h }));
+  /** Highest roof within r meters (sideways) of the straight leg a → b. */
+  const clearance = (a, b, r = 12) => {
+    let m = 0;
+    const n = Math.max(2, Math.ceil(G.dist(a, b) / 8));
+    for (const { box, h } of boxes) {
+      if (h <= m || G.segDist(box.c, a, b) > Math.max(box.hu, box.hv) + r) continue;
+      const grown = G.obb(box.c, box.u, box.hu + r, box.hv + r).corners;
+      for (let k = 0; k <= n; k++) if (G.insideConvex(grown, G.lerp(a, b, k / n))) { m = h; break; }
+    }
+    return m;
+  };
   const f = G.norm(G.sub(hero.b, hero.a));
   const L = G.dist(hero.a, hero.b);
   const at = (s) => G.add(hero.a, G.mul(f, s));
-  const pt = (p, y) => [r3(p[0]), r3(y), r3(p[1])];
-  /** Highest roof near the straight leg from a to b. */
-  const clearance = (a, b) => {
-    let m = 0;
-    for (let k = 0; k <= 24; k++) m = Math.max(m, maxH(G.lerp(a, b, k / 24), 70));
-    return m;
-  };
-
-  // Each control point has a look-at target; the camera follows `points`, looks along `look`.
   const pts = [];
   const look = [];
-  const key = (p, y, l, ly) => { pts.push(pt(p, y)); look.push(pt(l, ly)); };
-  const tc = P.towers.center;
-  key(at(14), 3.5, at(120), 14);
-  key(at(L * 0.35), 7, at(L * 0.35 + 140), 30);
-  key(at(L * 0.68), 22, at(L + 60), 90);
-  const exit = at(L - 6);
-  const y3 = maxH(hero.b, 90) + 25;
-  key(exit, y3, G.add(hero.b, G.mul(f, 200)), y3 * 0.6);
-  const out = G.add(hero.b, G.mul(f, 90));
-  const y4 = Math.max(y3 + 20, maxH(out, 140) + 40);
-  key(out, y4, [0, 0], 60);
+  const key = (p, y, l, ly) => { pts.push([r3(p[0]), r3(y), r3(p[1])]); look.push([r3(l[0]), r3(ly), r3(l[1])]); };
+  /** Next key at p, at least y high and 25 m over any roof along the leg from the previous key. */
+  const keyClear = (p, y, l, ly) => {
+    const prev = pts[pts.length - 1];
+    const lift = prev ? clearance([prev[0], prev[2]], p) + 25 : 0;
+    key(p, Math.max(y, lift), l, ly);
+  };
 
-  // Arc around the center, far enough out to clear the tower cluster, looking at the city.
-  let R = Math.max(W, Dp) * 0.55;
-  while (Math.hypot(tc[0], tc[1]) + P.towers.radius + 60 > R && Math.hypot(tc[0], tc[1]) - P.towers.radius - 60 < R) R += 40;
-  const heroMid = at(L / 2);
-  const start = Math.atan2(out[1], out[0]);
-  const wideAngle = Math.atan2(heroMid[1] - tc[1], heroMid[0] - tc[0]);
-  let sweep = wideAngle - start;
-  while (sweep <= 0.5) sweep += Math.PI * 2;
-  let prev = out;
-  for (let k = 1; k <= 3; k++) {
-    const a = start + (sweep * k) / 4;
-    const p = [Math.cos(a) * R, Math.sin(a) * R];
-    key(p, Math.max(P.flythrough.cruise + k * 20, clearance(prev, p) + 50), k === 2 ? tc : [0, 0], k === 2 ? 150 : 40);
-    prev = p;
+  // Canyon: low under the signs (footbridges keep 2.5 m headroom), then rising past them.
+  const s0 = C.street;
+  key(at(10), s0, at(130), s0 + 8);
+  key(at(L * 0.3), s0 + 0.5, at(L * 0.3 + 140), s0 + 12);
+  key(at(L * 0.58), s0 + 3, at(L * 0.58 + 140), 24);
+  key(at(L * 0.8), 18, at(L * 0.8 + 140), 55);
+  key(at(L * 0.94), 42, at(L + 80), 120);
+
+  // Climb out along the road crossing the canyon's end (inside its corridor any height is
+  // safe), heading away from the towers, until the leg out to the orbit clears the roofs.
+  const tc = P.towers.center;
+  // Orbit radius: just outside the outermost tower (the district's shape varies per seed).
+  const R = C.orbitGap + instances.reduce((m, i) => i.district === 'towers'
+    ? Math.max(m, Math.hypot(i.position[0] - tc[0], i.position[2] - tc[1]) + Math.hypot(...i.fp)) : m, P.towers.radius);
+  const onOrbit = (p) => { const r = G.sub(p, tc); return G.add(tc, G.mul(G.norm(r), R)); };
+  const cross = roads
+    .filter((r) => r.id !== hero.road && G.segDist(hero.b, r.a, r.b) < r.width / 2 + 6)
+    .sort((a, b) => b.width - a.width)[0];
+  let p = at(L * 0.94), y = 42;
+  let dir = f;
+  if (cross) {
+    dir = G.norm(G.sub(cross.b, cross.a));
+    if (G.dot(dir, G.sub(tc, hero.b)) > 0) dir = G.mul(dir, -1);
+    // Nearest centerline point to the canyon's end, then along the road.
+    const t0 = G.dot(G.sub(hero.b, cross.a), G.norm(G.sub(cross.b, cross.a)));
+    const c0 = G.add(cross.a, G.mul(G.norm(G.sub(cross.b, cross.a)), t0));
+    const inCity = (q) => Math.abs(q[0]) < W / 2 && Math.abs(q[1]) < Dp / 2;
+    // Looking at the towers the whole way: a crane-up reveal rather than a turn.
+    p = c0; y = 58;
+    key(p, y, tc, y + 40);
+    for (let k = 1; k <= 6; k++) {
+      const q = G.add(c0, G.mul(dir, 38 * k));
+      if (!inCity(q) || y >= clearance(q, onOrbit(q)) + 25) break;
+      p = q; y += 24;
+      key(p, y, tc, y + 30);
+    }
   }
-  const wide = [Math.cos(wideAngle) * R * 1.45, Math.sin(wideAngle) * R * 1.45];
-  key(wide, Math.max(P.flythrough.wide, clearance(prev, wide) + 50), [0, 0], 0);
-  // Drop into the cross street at the hero street's entrance, then turn into the canyon.
-  const entry = at(-10);
-  key(entry, Math.max(150, clearance(wide, entry) + 40), at(40), 0);
-  key(at(-7), 45, at(80), 8);
+
+  // Orbit the tower district in the direction of travel, looking in at the towers, rising.
+  const r0 = G.sub(p, tc);
+  const spin = G.dot(dir, [-r0[1], r0[0]]) >= 0 ? 1 : -1;
+  const a0 = Math.atan2(r0[1], r0[0]) + spin * 0.3;
+  const steps = 6;
+  const sweep = spin * C.orbitSweep * Math.PI * 2;
+  for (let k = 0; k <= steps; k++) {
+    const a = a0 + (sweep * k) / steps;
+    const q = [tc[0] + Math.cos(a) * R, tc[1] + Math.sin(a) * R];
+    const h = Math.max(y + 20, C.orbitHeight[0] + (C.orbitHeight[1] - C.orbitHeight[0]) * (k / steps));
+    // The last two keys turn the view from the towers out over the city.
+    const l = k < steps - 1 ? tc : G.lerp(tc, [-W / 2, 0], k === steps ? 0.7 : 0.35);
+    keyClear(q, h, l, h * (k < steps - 1 ? 0.75 : 0.5));
+  }
+
+  // Wide: out beside the hero street's axis, beyond the city's west end, looking back across
+  // the city at the towers. Then a straight glide down the axis into the canyon mouth, over
+  // open ground (nothing stands beyond the hero street's open end).
+  const glide = C.approach;
+  const side = G.perp(f);
+  const toCity = G.dot(side, G.sub([0, 0], hero.a)) > 0 ? 1 : -1;
+  keyClear(G.add(at(-glide), G.mul(side, toCity * 0.6 * glide)), C.wide, [tc[0] * 0.5, tc[1] * 0.5], 110);
+  keyClear(at(-glide), C.wide * 0.62, at(0), 30);
+  key(at(-glide * 0.55), 80, at(60), 16);
+  key(at(-glide * 0.27), 24, at(90), s0 + 7);
+  key(at(-glide * 0.07), s0 + 1, at(110), s0 + 7);
   return { points: pts, look, closed: true };
 }
 
@@ -811,15 +864,30 @@ function instanceBox(i) {
   return G.obb([i.position[0], i.position[2]], [Math.cos(t), -Math.sin(t)], i.fp[0], i.fp[1]);
 }
 
-/** Dense samples of the flythrough (uniform Catmull-Rom through the control points). */
+/**
+ * Samples of the flythrough about every 2 m: centripetal Catmull-Rom through the control
+ * points, the same curve three.js's CatmullRomCurve3 draws at runtime.
+ */
 function sampleFlythrough(fly) {
   if (!fly) return [];
   const P = fly.points, n = P.length, out = [];
+  const d4 = (a, b) => Math.pow((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2, 0.25);
   for (let k = 0; k < n; k++) {
     const p0 = P[(k - 1 + n) % n], p1 = P[k], p2 = P[(k + 1) % n], p3 = P[(k + 2) % n];
-    for (let s = 0; s < 1; s += 0.02) {
-      const s2 = s * s, s3 = s2 * s;
-      out.push([0, 1, 2].map((c) => 0.5 * (2 * p1[c] + (-p0[c] + p2[c]) * s + (2 * p0[c] - 5 * p1[c] + 4 * p2[c] - p3[c]) * s2 + (-p0[c] + 3 * p1[c] - 3 * p2[c] + p3[c]) * s3)));
+    let dt0 = d4(p0, p1), dt1 = d4(p1, p2), dt2 = d4(p2, p3);
+    if (dt1 < 1e-4) dt1 = 1;
+    if (dt0 < 1e-4) dt0 = dt1;
+    if (dt2 < 1e-4) dt2 = dt1;
+    const poly = [0, 1, 2].map((c) => {
+      const x0 = p0[c], x1 = p1[c], x2 = p2[c], x3 = p3[c];
+      const t1 = ((x1 - x0) / dt0 - (x2 - x0) / (dt0 + dt1) + (x2 - x1) / dt1) * dt1;
+      const t2 = ((x2 - x1) / dt1 - (x3 - x1) / (dt1 + dt2) + (x3 - x2) / dt2) * dt1;
+      return [x1, t1, -3 * x1 + 3 * x2 - 2 * t1 - t2, 2 * x1 - 2 * x2 + t1 + t2];
+    });
+    const steps = Math.max(8, Math.ceil(dt1 * dt1 / 2));   // dt1² is the chord length
+    for (let j = 0; j < steps; j++) {
+      const t = j / steps;
+      out.push(poly.map(([c0, c1, c2, c3]) => c0 + t * (c1 + t * (c2 + t * c3))));
     }
   }
   return out;

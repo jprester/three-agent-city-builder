@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import * as G from '../../art/layouts/lib/geom.mjs';
 import def from '../../art/layouts/defs/city.json';
 import { ASSETS } from '../../src/assets/manifest.gen';
+import { FlythroughPath } from '../../src/systems/flythrough';
 import { SIGN_ART, generateLayout, type Layout, type LayoutInstance, type Vec2 } from '../../src/systems/layout';
 
 const box = (i: LayoutInstance) => {
@@ -258,5 +259,51 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     }
     expect(hits.slice(0, 10)).toEqual([]);
     expect(curve.points.every((p) => p.y > 1)).toBe(true);
+  });
+
+  it('keeps the flythrough above ground, clear of signs, and gently climbing', async () => {
+    const L = await get();
+    const path = new FlythroughPath(L.flythrough!);
+    const signs = L.signs!.map((s) => ({ b: G.obb([s.position[0], s.position[2]], [Math.cos(s.rotationY), -Math.sin(s.rotationY)], s.size[0] / 2 + 2, s.size[2] / 2 + 2), y0: s.position[1] - s.size[1] / 2 - (s.legs ?? 0) - 2, y1: s.position[1] + s.size[1] / 2 + 2 }));
+    const p = new THREE.Vector3(), q = new THREE.Vector3(), l = new THREE.Vector3();
+    const bad: string[] = [];
+    const n = 4000;
+    path.sampleAt(0, q, l);
+    for (let k = 1; k <= n; k++) {
+      path.sampleAt(k / n, p, l);
+      const u = (k / n).toFixed(3);
+      if (p.y < 2.5) bad.push(`u=${u} y=${p.y.toFixed(1)} too low`);
+      const run = Math.hypot(p.x - q.x, p.z - q.z);
+      if (Math.abs(p.y - q.y) > Math.tan((42 * Math.PI) / 180) * run + 0.05) bad.push(`u=${u} climbs steeper than 42°`);
+      for (const s of signs) if (p.y > s.y0 && p.y < s.y1 && G.insideConvex(s.b.corners, [p.x, p.z])) bad.push(`u=${u} within 2 m of a sign`);
+      q.copy(p);
+    }
+    expect([...new Set(bad)].slice(0, 10)).toEqual([]);
+  });
+
+  it('paces the flythrough: a slow canyon, a loop of a few minutes, no whip pans', async () => {
+    const L = await get();
+    const path = new FlythroughPath(L.flythrough!);
+    expect(path.duration).toBeGreaterThan(90);
+    expect(path.duration).toBeLessThan(300);
+    const p = new THREE.Vector3(), l = new THREE.Vector3();
+    const dir = new THREE.Vector3(), prev = new THREE.Vector3();
+    const dt = 0.1;
+    let low = 0, worst = 0;
+    for (let t = 0; t < path.duration; t += dt) {
+      path.sample(t, p, l);
+      if (p.y < 30) low += dt;
+      dir.subVectors(l, p).normalize();
+      if (t > 0) worst = Math.max(worst, (prev.angleTo(dir) * 180) / Math.PI / dt);
+      prev.copy(dir);
+    }
+    // At least a quarter of the loop at street level; the view never turns faster than 30°/s.
+    expect(low / path.duration).toBeGreaterThan(0.25);
+    expect(worst).toBeLessThan(30);
+    // A seamless loop: one full period later is the same frame.
+    const a = new THREE.Vector3(), b = new THREE.Vector3();
+    path.sample(37, a, l);
+    path.sample(37 + path.duration, b, l);
+    expect(a.distanceTo(b)).toBeLessThan(1e-6);
   });
 });
