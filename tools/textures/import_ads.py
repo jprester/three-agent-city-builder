@@ -63,6 +63,14 @@ def pale_face(im):
     return float(((mx > 0.55) & (sat < 0.4)).mean())
 
 
+def edge_cut(im):
+    """Share of the most crowded border strip covered by bright content. A sign should sit
+    inside its image; > 0.3 means the generator cropped it (measured: cut lightbox 0.57,
+    every complete neon sign <= 0.17). Not applied to ads: full-bleed posters touch edges."""
+    a = np.asarray(im.convert("RGB").resize((256, 256)), dtype=np.float32).max(axis=2) / 255.0
+    return float(max((e > 0.45).mean() for e in (a[:, :3], a[:, -3:], a[:3, :], a[-3:, :])))
+
+
 def dark_background(im, share=0.45):
     """True if at least `share` of the image is near-black: then it renders as an additive
     hologram (black = transparent). Bright-faced art (photo posters, cream lightboxes) stays
@@ -115,6 +123,9 @@ def main():
     buckets = {b[0]: [] for b in BUCKETS}
     for path, kind in collect():
         im = Image.open(path).convert("RGB")
+        if kind == "neon" and edge_cut(im) > 0.3:
+            print(f"SKIPPED (sign cut off at the image edge): {path.name}")
+            continue
         a = im.width / im.height
         name = next(b[0] for b in BUCKETS if a <= b[4])
         buckets[name].append((path, kind, im))
