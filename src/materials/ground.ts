@@ -10,6 +10,8 @@ export interface GroundUniforms {
   uWet: { value: number };
   /** Top-down colored sign glow (see src/scene/lampmap.ts). */
   uSignMap: { value: THREE.Texture | null };
+  /** Shared clock (rain ripples). */
+  uTime: { value: number };
 }
 
 const sodium = new THREE.Color(palette.sodium);
@@ -37,6 +39,7 @@ uniform sampler2D uReflection;
 uniform mat4 uReflMatrix;
 uniform float uWet;
 uniform sampler2D uSignMap;
+uniform float uTime;
 varying vec3 vGWorld;
 float gHash(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 float gNoise(vec2 p) {
@@ -62,6 +65,14 @@ vec4 gRp = uReflMatrix * vec4(vGWorld.x, 0.0, vGWorld.z, 1.0);
 vec2 gRuv = gRp.xy / gRp.w;
 vec2 gN = vec2(gNoise(vGWorld.xz * 1.9), gNoise(vGWorld.xz * 1.9 + 11.3)) - 0.5;
 // Barely any sideways wobble (that reads as water); mostly vertical jitter and smear.
+// Rain ripples: rings expanding in a jittered 0.7 m grid, each on its own cycle (puddles only).
+vec2 gCell = floor(vGWorld.xz / 0.7);
+vec2 gOff = vec2(gHash(gCell), gHash(gCell + 5.1)) * 0.5 + 0.1;
+float gPh = fract(uTime * 1.1 + gHash(gCell + 9.7));
+float gD = length(vGWorld.xz - (gCell + gOff) * 0.7);
+float gRing = exp(-pow((gD - gPh * 0.3) / 0.018, 2.0)) * (1.0 - gPh) * gPuddle;
+gRing *= 1.0 - smoothstep(0.02, 0.08, length(fwidth(vGWorld.xz)));   // gone before it aliases
+gRuv += gRing * 0.012;
 gRuv += gN * vec2(mix(0.003, 0.0012, gPuddle), mix(0.012, 0.003, gPuddle));
 float gSpan = mix(0.08, 0.018, gPuddle);
 vec3 gRefl = vec3(0.0);
@@ -91,5 +102,6 @@ export function createGroundUniforms(lampRect: { value: THREE.Vector4 }): Ground
     uReflMatrix: { value: new THREE.Matrix4() },
     uWet: { value: 1 },
     uSignMap: { value: null },
+    uTime: { value: 0 },
   };
 }

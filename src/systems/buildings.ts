@@ -23,7 +23,7 @@ export interface FacadeLod {
  * All facade-shaded instances in one BatchedMesh: one geometry per asset (plus its LOD
  * variants), one draw call (multi-draw), per-instance frustum culling and sorting.
  */
-export async function buildFacadeBatch(instances: LayoutInstance[], loader: AssetLoader, material: THREE.Material) {
+export async function buildFacadeBatch(instances: LayoutInstance[], loader: AssetLoader, material: THREE.Material, dynamic: string[] = []) {
   const byAsset = new Map<string, LayoutInstance[]>();
   for (const inst of instances) {
     const list = byAsset.get(inst.asset) ?? [];
@@ -39,7 +39,7 @@ export async function buildFacadeBatch(instances: LayoutInstance[], loader: Asse
       .sort((a, b) => a.distance - b.distance);
     if (lods.length) lodsOf.set(id, lods);
   }
-  const ids = [...byAsset.keys(), ...[...lodsOf.values()].flat().map((l) => l.id)];
+  const ids = [...new Set([...byAsset.keys(), ...[...lodsOf.values()].flat().map((l) => l.id), ...dynamic])];
   const geometries = new Map<string, THREE.BufferGeometry>();
   await Promise.all(ids.map(async (id) => {
     const gltf = await loader.load(getAsset(id)!);
@@ -51,7 +51,7 @@ export async function buildFacadeBatch(instances: LayoutInstance[], loader: Asse
     vertices += g.getAttribute('position').count;
     indices += g.getIndex()!.count;
   }
-  const batch = new THREE.BatchedMesh(instances.length, vertices, indices, material);
+  const batch = new THREE.BatchedMesh(instances.length + dynamic.length, vertices, indices, material);
   batch.name = 'facade-batch';
   batch.perObjectFrustumCulled = true;
   batch.sortObjects = true;
@@ -68,7 +68,11 @@ export async function buildFacadeBatch(instances: LayoutInstance[], loader: Asse
       if (ladder.length > 1) tracked.push({ instance, pos: new THREE.Vector3(...inst.position), ladder, current: gid });
     }
   }
+  // Moving instances (vehicles), placed by their motion system every frame. Their paths
+  // leave the static bounding sphere, so the batch as a whole is never culled.
+  const dynamicIds = dynamic.map((id) => batch.addInstance(gidOf.get(id)!));
   batch.computeBoundingSphere();
+  if (dynamic.length) batch.frustumCulled = false;
 
   const eye = new THREE.Vector3();
   const lod: FacadeLod = {
@@ -86,7 +90,7 @@ export async function buildFacadeBatch(instances: LayoutInstance[], loader: Asse
       }
     },
   };
-  return { batch, lod };
+  return { batch, lod, dynamicIds };
 }
 
 /** Merge every mesh of a glTF scene into one float, indexed geometry in scene space. */

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { AssetLoader, getAsset } from '../assets/registry';
 import { buildFacadeBatch, type FacadeLod } from './buildings';
+import { createVehicleMotion, planVehicles } from './vehicles';
 import type { Layout, LayoutInstance } from './layout';
 
 const Y = new THREE.Vector3(0, 1, 0);
@@ -20,7 +21,7 @@ export function instanceMatrix(i: LayoutInstance): THREE.Matrix4 {
  * facade material; anything else gets one InstancedMesh per (asset, mesh) with its own
  * glTF materials.
  */
-export async function buildInstances(layout: Layout, loader: AssetLoader, facadeMaterial: THREE.Material) {
+export async function buildInstances(layout: Layout, loader: AssetLoader, facadeMaterial: THREE.Material, vehicleDensity = 1) {
   const group = new THREE.Group();
   group.name = `layout:${layout.name}`;
   const missing = new Set<string>();
@@ -42,10 +43,14 @@ export async function buildInstances(layout: Layout, loader: AssetLoader, facade
     for (const [x, z, angle] of layout.lamps) facade.push({ asset: LAMP, position: [x, 0, z], rotationY: angle, scale: 1 });
   }
   let lod: FacadeLod | null = null;
+  let vehicles: { update(time: number): void } | null = null;
   if (facade.length) {
-    const built = await buildFacadeBatch(facade, loader, facadeMaterial);
+    const plan = planVehicles(layout, vehicleDensity);
+    const dyn = plan.assets.filter((id) => getAsset(id));
+    const built = await buildFacadeBatch(facade, loader, facadeMaterial, dyn.length === plan.assets.length ? dyn : []);
     group.add(built.batch);
     lod = built.lod;
+    if (built.dynamicIds.length) vehicles = createVehicleMotion(built.batch, built.dynamicIds, plan);
   }
 
   await Promise.all(
@@ -67,5 +72,5 @@ export async function buildInstances(layout: Layout, loader: AssetLoader, facade
     }),
   );
 
-  return { group, missing: [...missing], lod };
+  return { group, missing: [...missing], lod, vehicles };
 }

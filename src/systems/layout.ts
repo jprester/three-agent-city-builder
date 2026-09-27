@@ -67,6 +67,10 @@ export interface Layout {
   hero?: { road: number; width: number; a: Vec2; b: Vec2 } | null;
   /** [x, z, arm angle, road id] */
   lamps?: [number, number, number, number][];
+  /** Ground traffic lanes (art/layouts/lib/traffic.mjs trafficPosition reads them). */
+  traffic?: { road: number; cls: string; a: Vec2; b: Vec2; length: number; direction: number; offset: number; count: number; speed: number; phase: number }[];
+  /** Closed flying-vehicle loops. */
+  skyLanes?: { points: Vec3[]; closed: boolean; count: number; speed: number; direction: number }[];
   /** Street furniture (same shape as instances; always facade-shaded props). */
   props?: LayoutInstance[];
   signs?: LayoutSign[];

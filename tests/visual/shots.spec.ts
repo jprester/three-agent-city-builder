@@ -75,3 +75,16 @@ for (const vp of VIEWPOINTS) {
     await expect(page).toHaveScreenshot([LAYOUT, `${vp.name}.png`]);
   });
 }
+
+// Phase 4 acceptance: everything animated (rain, traffic, flyers, flicker) reads the shared
+// clock, so two loads frozen at the same time must render identical pixels.
+test(`${LAYOUT} frozen time is reproducible`, async ({ page }) => {
+  const shot = async () => {
+    await page.goto(`/?layout=${LAYOUT}&viewpoint=fly-0&t=${FROZEN_TIME}`);
+    await page.waitForFunction(() => window.__READY === true, undefined, { timeout: 45_000 });
+    return page.screenshot();
+  };
+  const a = await shot();
+  const b = await shot();
+  expect(Buffer.compare(a, b), 'two renders at the same frozen time differ').toBe(0);
+});

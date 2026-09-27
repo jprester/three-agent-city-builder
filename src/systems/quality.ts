@@ -14,14 +14,16 @@ export interface QualityPreset {
   signCount: number;
   /** Multiplier on LOD switch distances. */
   lodDistanceScale: number;
+  /** Share of the layout's traffic that is driven. */
+  vehicleDensity: number;
 }
 
 export type QualityName = 'low' | 'med' | 'high';
 
 export const QUALITY_PRESETS: Record<QualityName, QualityPreset> = {
-  low: { name: 'low', pixelRatio: 1, reflectionScale: 0.25, bloomLevels: 4, rainCount: 3000, signCount: 80, lodDistanceScale: 0.5 },
-  med: { name: 'med', pixelRatio: 1.25, reflectionScale: 0.25, bloomLevels: 6, rainCount: 6000, signCount: 140, lodDistanceScale: 0.75 },
-  high: { name: 'high', pixelRatio: 1.5, reflectionScale: 0.5, bloomLevels: 8, rainCount: 12000, signCount: 220, lodDistanceScale: 1 },
+  low: { name: 'low', pixelRatio: 1, reflectionScale: 0.25, bloomLevels: 4, rainCount: 3000, signCount: 80, lodDistanceScale: 0.5, vehicleDensity: 0.35 },
+  med: { name: 'med', pixelRatio: 1.25, reflectionScale: 0.25, bloomLevels: 6, rainCount: 6000, signCount: 140, lodDistanceScale: 0.75, vehicleDensity: 0.65 },
+  high: { name: 'high', pixelRatio: 1.5, reflectionScale: 0.5, bloomLevels: 8, rainCount: 12000, signCount: 220, lodDistanceScale: 1, vehicleDensity: 1 },
 };
 
 export function isQualityName(value: string): value is QualityName {

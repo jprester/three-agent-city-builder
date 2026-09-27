@@ -12,8 +12,8 @@ import { createLampMap, createSignLightMap } from './scene/lampmap';
 import { CityHazeEffect } from './scene/haze';
 import { createPost } from './scene/post';
 import { PlanarReflection } from './scene/reflection';
-import { createTraffic } from './scene/traffic';
 import { createStreets } from './scene/streets';
+import { createRain } from './scene/rain';
 import { createScreenAtlas } from './scene/screens';
 import { createBridges } from './scene/bridges';
 import { createSignAtlas } from './scene/signs/atlas';
@@ -74,6 +74,7 @@ async function main() {
 
   let layout: Layout | null = null;
   let facadeLod: FacadeLod | null = null;
+  let vehicles: { update(time: number): void } | null = null;
   const url = layoutUrl(layoutId);
   const seedParam = params.get('seed');
   const seed = seedParam === null ? null : Number.parseInt(seedParam, 10);
@@ -93,6 +94,7 @@ async function main() {
   const facadeTextures = await loadFacadeTextures(Math.min(8, renderer.capabilities.getMaxAnisotropy()));
   const facadeUniforms = createFacadeUniforms(clock.uniform, layout?.seed ?? 0, facadeTextures);
   const groundUniforms = createGroundUniforms(facadeUniforms.uLampRect);
+  groundUniforms.uTime = clock.uniform;
   const reflection = new PlanarReflection(quality.reflectionScale);
   groundUniforms.uReflection.value = reflection.target.texture;
   groundUniforms.uReflMatrix.value = reflection.matrix;
@@ -104,8 +106,10 @@ async function main() {
   }
   if (layout) {
     const facadeMaterial = createFacadeMaterial(facadeUniforms);
-    const { group, missing, lod } = await buildInstances(layout, new AssetLoader(), facadeMaterial);
+    const { group, missing, lod, vehicles: motion } = await buildInstances(layout, new AssetLoader(), facadeMaterial, quality.vehicleDensity);
     facadeLod = lod;
+    vehicles = motion;
+    vehicles?.update(clock.time);
     scene.add(group);
     const bridges = createBridges(layout, facadeMaterial);
     if (bridges) scene.add(bridges);
@@ -125,10 +129,12 @@ async function main() {
       groundUniforms.uSignMap.value = signMap;
     }
   }
-  const traffic = layout ? createTraffic(layout, quality.name === 'high' ? 1 : quality.name === 'med' ? 0.65 : 0.35) : null;
-  if (traffic) { traffic.update(clock.time); scene.add(traffic.group); }
   const streets = createStreets(layout, groundUniforms);
   scene.add(streets);
+  const rain = lamps && params.get('rain') !== '0'
+    ? createRain({ count: quality.rainCount, time: clock.uniform, lampMap: lamps.texture, signMap, lampRect: lamps.rect })
+    : null;
+  if (rain) scene.add(rain);
   if (!applyViewpoint(viewpoint, camera, controls, layout)) problems.push(`Unknown viewpoint "${viewpoint}".`);
   setStatus(problems.join(' '));
 
@@ -161,11 +167,11 @@ async function main() {
     const delta = now - last;
     last = now;
     controls.update();
-    traffic?.update(now);
+    vehicles?.update(now);
     renderer.info.reset();
     // The reflection is half resolution and smeared: simplified buildings from 1/4 the distance.
     facadeLod?.update(camera, REFLECTION_LOD_BIAS);
-    reflection.update(renderer, scene, camera, [streets]);
+    reflection.update(renderer, scene, camera, rain ? [streets, rain] : [streets]);
     facadeLod?.update(camera);
     post.composer.render(delta);
     debug?.update();
