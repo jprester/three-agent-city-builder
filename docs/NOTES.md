@@ -386,3 +386,31 @@ wanted; we keep our palette. New viewpoint `skyline` matches the screenshot's fr
   capture 0.65 → 0.45 (~30% down). Facades still read in `skyline`; less moonlit-dusk.
 - Remaining: towers have no LOD yet (ribs are cheap); switching can pop slightly at 160 m on
   the detailed slabs when flying (reveals are sub-pixel there, AC units are not).
+
+## Phase 3 — Widen (completed 2026-09-27)
+
+Most of phase 3 landed during the building/look passes after checkpoint 1 (rooftop clutter,
+facade AC units, tall signs, sign light spill, street haze, tower crowns, facade detail,
+bridges, LOD). This last stretch adds:
+- Street props (props/kiosk, guardrail, street_box: cabinet/bin/vent/bollard): 1,176 placed
+  on sidewalks by the layout (own random stream, so no existing sign/bridge moved; layout
+  diff was insertions only). Guardrails on curbs near junctions, kiosks on wide sidewalks
+  with ≥1.4 m to walk past, small items every ~16 m. All facade-shaded, in the one batch.
+  Test: props on sidewalks, off roads, clear of buildings, lamps and each other (3 seeds).
+- Sign brackets: every projecting blade gets a hanger arm from the wall along its top and a
+  bottom stub (one instanced draw). Signs no longer float.
+- Skyline ring: deliberately not built (see DECISIONS).
+
+### Critique (harsh)
+- `canyon` is the strongest shot, as phase 3 requires: stacked signs, wet reflections,
+  footbridge, traffic lights, towers closing the vista. Still weak: canyon walls are
+  evenly brown-lit end to end; no pools of shadow between lamps.
+- Street level reads as furnished now, but props are small against 3.5–4.5 m sidewalks;
+  no people (out of scope), no parked vehicles, no steam. Bins read as plain blocks up close
+  (`storefront`).
+- Guardrails only show near junctions, so the hero view barely has them.
+- `horizon`/`skyline-wide`/`aerial`: clear depth layering (dark near slabs, lit mid core,
+  tower cluster, cloud deck). The city's outer edge is still abrupt from `aerial`.
+- Budgets: 39 draw calls, 1.80M max triangles, but **22 of 25 shader programs**. New
+  material types are now the scarce resource; motion (rain, vehicles) should reuse
+  materials where possible.

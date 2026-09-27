@@ -92,3 +92,6 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 2026-09-27 | pipeline | LOD variants declared in the def (`lods`) and built as `<id>.lod<n>` with params + {lod: n} | No duplicated defs; one generator, deterministic, cache keyed on the overrides.
 2026-09-27 | runtime | LOD by per-instance geometry swap in the facade BatchedMesh at meta.lodDistance (160 m), reflection pass at 0.25× | Keeps one draw call; the reflection is half-res and smeared, so it tolerates simplified buildings much closer.
 2026-09-27 | look | Night lighting ~30% down (sky directional 0.27, hemisphere 0.11, environment 0.45) | After the Codex pass walls read as moonlit dusk rather than 2 a.m.
+2026-09-27 | layout | Street props placed by the layout with their own random stream | Adding props must not move existing signs, bridges or buildings (layout diff stayed insertions-only).
+2026-09-27 | layout | No distant skyline ring (PLAN phase 3 item) | The human rejected the scattered far field for breaking the city's cohesion; a ring of distant silhouettes risks the same read. Revisit only on request.
+2026-09-27 | signs | Blade brackets as one extra InstancedMesh (hanger arm + stub) | Signs floated 0.3 m off the wall; one draw call for ~400 blades.
