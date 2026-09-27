@@ -1,0 +1,32 @@
+{
+  "visor": {
+    "tool": "built-in image_gen",
+    "prompt": "Use case: ads-marketing. Create a single portrait 2:3 full-bleed advertising artwork for a fictional futuristic city billboard. Subject: an elegant adult East Asian woman in profile wearing a translucent augmented-reality visor, photoreal editorial beauty photograph, restrained ice-blue reflections and warm skin against deep navy. Face and visor dominate the middle and lower two thirds; top quarter is a quiet dark navy gradient for later typography. Premium optical technology campaign, detailed believable materials. No letters, no numbers, no typography, no logos, no border, no frame, no city billboard mockup, no external glow. This is flat print artwork, not a photograph of a sign.",
+    "file": "artwork/visor.png"
+  },
+  "coffee": {
+    "tool": "built-in image_gen",
+    "prompt": "Use case: ads-marketing. Single portrait 2:3 full-bleed advertising artwork for a fictional futuristic city billboard. A single unbranded matte black coffee can with a narrow brass rim, surrounded by a small splash of black coffee and a few beans. Warm amber studio highlights, sophisticated deep black background. Product dominates the lower two thirds. Premium macro beverage photography. Top quarter is quiet dark negative space reserved for later typesetting. Detailed realistic materials, strong readable silhouette. No text, no letters, no numbers, no logos, no frame, no border, no outer glow, no mockup of a physical billboard. Flat campaign artwork only.",
+    "file": "artwork/coffee.png"
+  },
+  "noodles": {
+    "tool": "built-in image_gen",
+    "prompt": "Use case: ads-marketing. Single portrait 2:3 full-bleed advertising artwork for a fictional futuristic city billboard. A steaming black ceramic bowl of ramen with golden broth, noodles, spring onions and a halved soft egg, red lacquer chopsticks diagonally beside the bowl. Appetizing premium food photography, warm amber light and restrained vermilion accents against charcoal. Bowl in the lower two thirds. Top quarter is quiet dark negative space reserved for later typesetting. Detailed realistic materials, strong readable silhouette. No text, no letters, no numbers, no logos, no frame, no border, no outer glow, no mockup of a physical billboard. Flat campaign artwork only.",
+    "file": "artwork/noodles.png"
+  },
+  "robot": {
+    "tool": "built-in image_gen",
+    "prompt": "Use case: ads-marketing. Single portrait 2:3 full-bleed advertising artwork for a fictional futuristic city billboard. A refined white ceramic and brushed titanium humanoid robot bust in three-quarter profile, intricate mechanical neck, one small amber optic, convincing industrial product photography. Charcoal black background, soft warm rim light. Robot centered in lower two thirds. Top quarter is quiet dark negative space reserved for later typesetting. Detailed realistic materials, strong readable silhouette. No text, no letters, no numbers, no logos, no frame, no border, no outer glow, no mockup of a physical billboard. Flat campaign artwork only.",
+    "file": "artwork/robot.png"
+  },
+  "tea": {
+    "tool": "built-in image_gen",
+    "prompt": "Use case: ads-marketing. Single portrait 2:3 full-bleed advertising artwork for a fictional futuristic city billboard. A tall clear glass of iced milk tea with dark tapioca pearls, delicate condensation, pale pink tea and a few cherry petals. Elegant studio drink photography on a dusty rose to plum background. Product centered in the lower two thirds, sophisticated rather than candy-colored. Top quarter is quiet dark negative space reserved for later typesetting. Detailed realistic materials, strong readable silhouette. No text, no letters, no numbers, no logos, no frame, no border, no outer glow, no mockup of a physical billboard. Flat campaign artwork only.",
+    "file": "artwork/tea.png"
+  },
+  "audio": {
+    "tool": "built-in image_gen",
+    "prompt": "Use case: ads-marketing. Single portrait 2:3 full-bleed advertising artwork for a fictional futuristic city billboard. A pair of beautifully machined over-ear headphones floating at a diagonal, dark graphite metal, subtle red inner cushions and fine concentric acoustic rings in the background. Premium studio product photography, charcoal background with restrained warm red light. Product centered in lower two thirds. Top quarter is quiet dark negative space reserved for later typesetting. Detailed realistic materials, strong readable silhouette. No text, no letters, no numbers, no logos, no frame, no border, no outer glow, no mockup of a physical billboard. Flat campaign artwork only.",
+    "file": "artwork/audio.png"
+  }
+}

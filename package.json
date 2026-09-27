@@ -18,7 +18,8 @@
     "shots:approve": "playwright test --update-snapshots=all",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "check": "npm run typecheck && npm run budgets"
+    "check": "npm run typecheck && npm run budgets",
+    "signs": "python3 tools/textures/build_advertising.py && npm run layouts"
   },
   "dependencies": {
     "lil-gui": "0.21.0",

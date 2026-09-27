@@ -1,0 +1,165 @@
+{
+  "version": 1,
+  "padding": 16,
+  "maxAtlasSize": 4096,
+  "signs": [
+    {
+      "id": "ramen",
+      "jp": "ラーメン",
+      "text": "NOODLE BAR",
+      "icon": "bowl",
+      "color": "sign_red",
+      "surface": "neon",
+      "orientation": "vertical"
+    },
+    {
+      "id": "hotel",
+      "jp": "ホテル",
+      "text": "HOTEL / 24H",
+      "icon": "key",
+      "color": "sign_amber",
+      "surface": "neon",
+      "orientation": "vertical"
+    },
+    {
+      "id": "pharmacy",
+      "jp": "薬局",
+      "text": "PHARMACY",
+      "icon": "cross",
+      "color": "fluorescent",
+      "surface": "neon",
+      "orientation": "vertical"
+    },
+    {
+      "id": "coffee",
+      "jp": "喫茶",
+      "text": "COFFEE",
+      "icon": "cup",
+      "color": "tungsten",
+      "surface": "lightbox",
+      "orientation": "vertical"
+    },
+    {
+      "id": "bath",
+      "jp": "温泉",
+      "text": "BATH HOUSE",
+      "icon": "steam",
+      "color": "sign_amber",
+      "surface": "neon",
+      "orientation": "vertical"
+    },
+    {
+      "id": "arcade",
+      "jp": "ゲーム",
+      "text": "ARCADE",
+      "icon": "game",
+      "color": "sign_cyan",
+      "surface": "neon",
+      "orientation": "vertical"
+    },
+    {
+      "id": "laundry",
+      "jp": "洗濯",
+      "text": "24H LAUNDRY",
+      "icon": "laundry",
+      "color": "fluorescent",
+      "surface": "lightbox",
+      "orientation": "horizontal"
+    },
+    {
+      "id": "market",
+      "jp": "夜市",
+      "text": "NIGHT MARKET",
+      "icon": "bowl",
+      "color": "sign_amber",
+      "surface": "neon",
+      "orientation": "horizontal"
+    },
+    {
+      "id": "late",
+      "jp": "営業中",
+      "text": "OPEN LATE",
+      "icon": "clock",
+      "color": "sign_red",
+      "surface": "neon",
+      "orientation": "horizontal"
+    },
+    {
+      "id": "metro",
+      "jp": "地下鉄",
+      "text": "PLATFORM 08",
+      "icon": "arrow",
+      "color": "tv_blue",
+      "surface": "lightbox",
+      "orientation": "horizontal"
+    },
+    {
+      "id": "sound",
+      "jp": "音楽",
+      "text": "SOUND ROOM",
+      "icon": "audio",
+      "color": "sign_red",
+      "surface": "neon",
+      "orientation": "horizontal"
+    },
+    {
+      "id": "diner",
+      "jp": "食堂",
+      "text": "DINER 06",
+      "icon": "cup",
+      "color": "tungsten",
+      "surface": "lightbox",
+      "orientation": "horizontal"
+    }
+  ],
+  "campaigns": [
+    {
+      "id": "visor",
+      "brand": "VEIL",
+      "category": "OPTICS",
+      "tagline": "SEE BEYOND THE EVERYDAY",
+      "color": "tv_blue",
+      "artwork": "artwork/visor.png"
+    },
+    {
+      "id": "coffee",
+      "brand": "EMBER",
+      "category": "BLACK COFFEE",
+      "tagline": "FOR THE HOURS AFTER DARK",
+      "color": "sign_amber",
+      "artwork": "artwork/coffee.png"
+    },
+    {
+      "id": "noodles",
+      "brand": "NIGHT BOWL",
+      "category": "RAMEN",
+      "tagline": "SLOW BROTH. LATE NIGHTS.",
+      "color": "sign_red",
+      "artwork": "artwork/noodles.png"
+    },
+    {
+      "id": "robot",
+      "brand": "MORROW",
+      "category": "ROBOTICS",
+      "tagline": "MORE TIME TO BE HUMAN",
+      "color": "tungsten",
+      "artwork": "artwork/robot.png"
+    },
+    {
+      "id": "tea",
+      "brand": "PETAL",
+      "category": "MILK TEA",
+      "tagline": "A SMALL PAUSE IN THE CITY",
+      "color": "paint_salmon",
+      "artwork": "artwork/tea.png"
+    },
+    {
+      "id": "audio",
+      "brand": "AFTERTONE",
+      "category": "AUDIO",
+      "tagline": "FIND YOUR OWN FREQUENCY",
+      "color": "sign_red",
+      "artwork": "artwork/audio.png"
+    }
+  ]
+}

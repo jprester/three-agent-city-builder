@@ -523,3 +523,32 @@ bridges, LOD). This last stretch adds:
 - Critique: from `skyline` they read as colorful vertical strips; at 1:4 their height is
   capped by the face width (~50 m on 20–30 m faces). Midjourney wrote "INVENTED" into four
   of them (the prompt said "invented brand"); prompt fixed in docs/SIGN-PROMPTS.md.
+
+## Advertising pilot — 2026-09-27
+
+Reviewed all 30 composed variants in the contact sheet, with street-level renders to
+check lettering, emission, cropping and housing. Original illustration sources retain
+clean detail; generated text is no longer part of the image-generation dependency.
+Vertical long-vowel marks are rotated correctly, and laundry/bath icons are distinct.
+
+First scene review exposed narrow shaft slots falling back to giant HOTEL/PHARMACY
+signs. Widened the screen allowance and removed that fallback. The second review shows
+recognizable portrait campaigns on towers and readable shop names in the canyon.
+Alpha-zero backing RGB is preserved through WebP, so non-emissive panels retain material
+color instead of disappearing into the emission mask.
+
+Critique: shop signs still share very similar borders and typography, and some repeats
+are obvious down the canyon. Hardware is clean and understated; convincing battered
+sheet metal and localized dirt would help close views. Tall campaign variants have too
+much quiet space compared with the references. The skyline is intentionally much less
+advertisement-heavy than the concept: this pilot establishes controllable, editable
+assets, but does not reproduce its composition or huge light spill. Next art iteration
+should add a few distinct layout families and curate focal placements before expanding
+with dozens of interchangeable campaigns. Do not solve those issues by adding bloom.
+
+Validation: 54 unit tests pass, type/asset budget checks pass, and production Vite build
+passes (existing large-chunk warning). Reviewed all 14 scene viewpoints and all 30 design
+previews. Frozen-time renders are identical. The 14 screenshot comparisons fail because
+no approved baselines exist; no baselines were created or approved. All scene views remain
+within budget: at most 40 draw calls, 1,988,124 triangles and 24 shader programs. Source
+and milestone images are saved in `docs/progress/advertising-pilot/`.

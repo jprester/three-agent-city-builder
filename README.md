@@ -18,6 +18,12 @@ npm test              # unit tests (vitest)
 npm run shots:approve # create initial screenshot baselines once the scene looks right
 ```
 
+## Advertising
+
+`npm run signs` rebuilds typeset shop signs, illustrated campaign atlases and their
+layout references. It requires Python 3 with Pillow; the full asset build uses it too.
+See [the advertising guide](docs/ADVERTISING.md) for copy, artwork, fonts and emission masks.
+
 ## URL parameters
 
 | Parameter | Effect |

@@ -40,6 +40,20 @@
       "attribution": "Project author",
       "importer": "tools/textures/import_ads.py",
       "notes": "Four small-ads files named after other Midjourney users are excluded by the importer (ownership unclear). All brands fictional."
+    },
+    {
+      "files": "art/external/fonts/BarlowCondensed-SemiBold.ttf",
+      "source": "https://github.com/google/fonts/tree/main/ofl/barlowcondensed",
+      "license": "SIL Open Font License 1.1; bundled adjacent OFL text",
+      "attribution": "The Barlow Project Authors",
+      "notes": "Used at build time for advertising typography; no runtime font dependency."
+    },
+    {
+      "files": "art/external/fonts/NotoSansJP.ttf",
+      "source": "https://github.com/google/fonts/tree/main/ofl/notosansjp",
+      "license": "SIL Open Font License 1.1; bundled adjacent OFL text",
+      "attribution": "Adobe; Noto Sans JP contributors",
+      "notes": "Used at build time for advertising typography; no runtime font dependency."
     }
   ]
 }

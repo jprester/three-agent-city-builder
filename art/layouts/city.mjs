@@ -67,7 +67,7 @@ const DEFAULTS = {
     tall: {
       slabChance: 0.28, heroSlabChance: 0.6, minHeight: 40, brands: 8,
       // Tower sign zones (meters): see the tower branch of sign placement.
-      zones: { streetSigns: 2, streetTop: 12, billboard: [15, 65], billboardChance: 0.7, shaftChance: 0.8, shaftSideChance: 0.5, shaftMax: 130, crownChance: 0.75 },
+      zones: { streetSigns: 2, streetTop: 12, billboard: [15, 65], billboardChance: 0.7, shaftChance: 0.8, shaftSideChance: 0.5, shaftMax: 130, shaftWidthShare: 0.85, crownChance: 0.75 },
     },
     // Ads in the rooftop billboard frames of buildings whose generator built one (meta.billboard).
     roofBillboardChance: 0.85,
@@ -518,19 +518,17 @@ export function generate({ params, seed, assets = {}, art = [] }) {
         const c = chooseArt({ kind: 'ad', aspect: [0.5, 2.2], share: 1, stroke: null }, { w: [6, faceOf(tiers[0]) - 3], h: [10, Math.min(26, Z.billboard[1] - lo)] });
         if (c) place(c, rand(lo, Z.billboard[1] - c.h), 'billboard', artFields(c));
       }
-      // Mid-shaft: very tall holographic ad on the tier with the most room above the band.
+      // Mid-shaft: physical campaign screen on the roomiest tier above the band.
       if (rng() < Z.shaftChance) {
         const spans = tiers.slice(0, -1).map((tier) => [Math.max(tier[0] * sy, Z.billboard[1] + 5), tier[1] * sy - 4, tier]).filter(([a, b]) => b - a > 40);
         if (spans.length) {
           const [a, b, tier] = spans.sort((p, q) => (q[1] - q[0]) - (p[1] - p[0]))[0];
-          // Tall ads first; shop neon ("HOTEL" 150 m up a glass tower) only if none fit. Big:
-          // they run with the shaft over many floors (as tall as the tier allows).
+          // Keep shop signage at street level; omit screens on tiers too narrow to fit.
           for (const side of rng() < Z.shaftSideChance ? [0, rng() < 0.5 ? 1 : -1] : [0]) {
             const f = sideOf(tier, side);
-            const lim = { w: [6, (2 * f.half - 3) * 0.6], h: [40, Math.min(Z.shaftMax, b - a)] };
+            const lim = { w: [6, (2 * f.half - 3) * Z.shaftWidthShare], h: [40, Math.min(Z.shaftMax, b - a)] };
             const tallest = (lo, hi) => rand(lo + (hi - lo) * 0.7, hi);
-            const c = chooseArt({ kind: 'ad', aspect: [0, 0.45], share: 1, stroke: null }, lim, tallest)
-              ?? chooseArt({ kind: 'neon', aspect: [0, 0.45], share: 1, stroke: null }, lim, tallest);
+            const c = chooseArt({ kind: 'ad', aspect: [0, 0.45], share: 1, stroke: null }, lim, tallest);
             if (c) place(c, rand(a, b - c.h), 'shaft', artFields(c), side);
           }
         }

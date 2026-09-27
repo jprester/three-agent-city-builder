@@ -54,6 +54,7 @@ export function createSigns(layout: Layout, atlas: SignAtlas, art: SignArt, unif
   const tube = new Float32Array(n * 3);
   const back = new Float32Array(n * 3);
   const params = new Float32Array(n * 4);
+  const gains = new Float32Array(n);
   const mesh = new THREE.InstancedMesh(geometry, createSignMaterial(uniforms), n);
   mesh.name = 'signs';
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
@@ -82,6 +83,7 @@ export function createSigns(layout: Layout, atlas: SignAtlas, art: SignArt, unif
       color: image ? new THREE.Color(...image.color) : design!.boxed ? backCol.clone().lerp(new THREE.Color(1, 1, 1), 0.3) : tubeCol,
       strength: image ? 0.5 : design!.boxed ? 0.6 : 1,
     });
+    gains[i] = image?.gain ?? 1;
     const branded = s.brand !== undefined;
     const broken = !branded && !image && rng() < 0.3 ? 0.15 + 0.35 * rng() : 0;
     const flicker = !branded && !image && rng() < 0.2 ? 0.1 + 0.3 * rng() : 0;
@@ -93,6 +95,7 @@ export function createSigns(layout: Layout, atlas: SignAtlas, art: SignArt, unif
   geometry.setAttribute('aTube', new THREE.InstancedBufferAttribute(tube, 3));
   geometry.setAttribute('aBack', new THREE.InstancedBufferAttribute(back, 3));
   geometry.setAttribute('aParams', new THREE.InstancedBufferAttribute(params, 4));
+  geometry.setAttribute('aGain', new THREE.InstancedBufferAttribute(gains, 1));
   mesh.instanceMatrix.needsUpdate = true;
   mesh.computeBoundingSphere();
   const holo = createHolograms(layout, holos, art, atlas, uniforms.uTime, lights);
@@ -197,30 +200,38 @@ diffuseColor = vec4(img * vHolo.z * scan * shimmer, 1.0);`)
 
 const metal = col('metal_dark');
 
-/**
- * Mounting hardware for projecting blades: a hanger arm from the wall along the sign's top
- * edge and a short stub at its bottom corner. In a blade's frame the wall is at local
- * +x = width/2 + 0.3 (layout: blades stand 0.3 m off the facade). One instanced draw.
- */
+/** Shared frames, blade arms and screen back rails, batched into one instanced draw. */
 function createBrackets(signs: NonNullable<Layout['signs']>): THREE.InstancedMesh | null {
-  const blades = signs.filter((s) => s.kind === 'blade');
-  if (!blades.length) return null;
+  const hardware: { sign: (typeof signs)[number]; center: number[]; scale: number[] }[] = [];
+  for (const s of signs) {
+    if (s.brand !== undefined) continue;
+    const [w, h, depth] = s.size;
+    const add = (x: number, y: number, z: number, sx: number, sy: number, sz: number) =>
+      hardware.push({ sign: s, center: [x,y,z], scale: [sx,sy,sz] });
+    const screen = s.art !== undefined && ART_ENTRIES[s.art].surface === 'screen';
+    const t = Math.min(screen ? 0.18 : 0.09, w * 0.045);
+    // Projecting blade, wall lightbox and tower screen share a physical metal housing.
+    add(0,h/2,0,w+t,t,depth+0.08); add(0,-h/2,0,w+t,t,depth+0.08);
+    add(-w/2,0,0,t,h,depth+0.08); add(w/2,0,0,t,h,depth+0.08);
+    if (s.kind === 'blade') {
+      add(0.15,h/2+t,0,w+0.3,t,t);
+      add(w/2+0.15,-h/2+0.2,0,0.3,t,t);
+    } else if (screen) {
+      // Back rails give large mounted displays thickness when viewed obliquely.
+      add(-w*0.3,0,-depth*0.6,t,h,t); add(w*0.3,0,-depth*0.6,t,h,t);
+    }
+  }
+  if (!hardware.length) return null;
   const mesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshStandardMaterial({ color: metal, roughness: 0.55, metalness: 0.5 }), blades.length * 2);
-  mesh.name = 'sign-brackets';
+    new THREE.MeshStandardMaterial({ color: metal, roughness: 0.55, metalness: 0.5 }), hardware.length);
+  mesh.name = 'sign-housings';
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
   const p = new THREE.Vector3();
-  blades.forEach((s, i) => {
-    const [w, h] = s.size;
+  hardware.forEach(({ sign: s, center, scale }, i) => {
     q.setFromAxisAngle(up, s.rotationY);
-    const wall = w / 2 + 0.3;
-    // [local x0, local x1, local y, thickness]
-    const bars: [number, number, number, number][] = [[-w / 2 + 0.05, wall, h / 2 + 0.09, 0.07], [w / 2 - 0.05, wall, -h / 2 + 0.2, 0.06]];
-    bars.forEach(([x0, x1, y, t], k) => {
-      p.set((x0 + x1) / 2, y, 0).applyQuaternion(q).add(new THREE.Vector3(...s.position));
-      m.compose(p, q, new THREE.Vector3(x1 - x0, t, t));
-      mesh.setMatrixAt(i * 2 + k, m);
-    });
+    p.fromArray(center).applyQuaternion(q).add(new THREE.Vector3(...s.position));
+    m.compose(p, q, new THREE.Vector3().fromArray(scale));
+    mesh.setMatrixAt(i, m);
   });
   mesh.instanceMatrix.needsUpdate = true;
   mesh.computeBoundingSphere();
@@ -238,6 +249,8 @@ attribute vec4 aRect;
 attribute vec3 aTube;
 attribute vec3 aBack;
 attribute vec4 aParams;
+attribute float aGain;
+flat varying float vGain;
 varying vec2 vSignUv;
 varying float vFace;
 flat varying vec3 vTube;
@@ -248,12 +261,14 @@ vFace = abs(normal.z) > 0.5 ? 1.0 : 0.0;
 vSignUv = aRect.xy + uv * aRect.zw;
 vTube = aTube;
 vBack = aBack;
-vParams = aParams;`);
+vParams = aParams;
+vGain = aGain;`);
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>
 uniform sampler2D uAtlas;
 uniform float uTime;
 uniform float uSignGain;
+flat varying float vGain;
 uniform sampler2D uNeonV, uNeonH, uPosterP, uPosterL;
 varying vec2 vSignUv;
 varying float vFace;
@@ -265,12 +280,12 @@ float sHash(float x) { return fract(sin(x * 127.1) * 43758.5453); }`)
 if (vFace > 0.5 && vParams.x > 1.5) {
   // Artwork (neon photos / ads): emissive as drawn; whole-sign flicker for a rare few.
   int src = int(vParams.x + 0.5);
-  vec3 img = src == 2 ? texture2D(uNeonV, vSignUv).rgb : src == 3 ? texture2D(uNeonH, vSignUv).rgb
-           : src == 4 ? texture2D(uPosterP, vSignUv).rgb : texture2D(uPosterL, vSignUv).rgb;
+  vec4 artwork = src == 2 ? texture2D(uNeonV, vSignUv) : src == 3 ? texture2D(uNeonH, vSignUv)
+           : src == 4 ? texture2D(uPosterP, vSignUv) : texture2D(uPosterL, vSignUv);
   float fl = vParams.w > 0.0 ? step(0.3, fract(sin(floor(uTime * 9.0) * 91.7 + vParams.y * 1000.0) * 4375.85)) : 1.0;
-  float gain = src <= 3 ? 2.1 : 1.0;
-  diffuseColor.rgb = img * 0.08;
-  totalEmissiveRadiance += img * gain * fl * uSignGain;
+  // Alpha is a separate emission mask, not opacity. The metal backing stays unlit.
+  diffuseColor.rgb = artwork.rgb * 0.65;
+  totalEmissiveRadiance += artwork.rgb * artwork.a * vGain * fl * uSignGain;
 } else if (vFace > 0.5) {
   vec4 s = texture2D(uAtlas, vSignUv);
   float glow = textureLod(uAtlas, vSignUv, 3.5).r;
@@ -302,6 +317,6 @@ if (vFace > 0.5 && vParams.x > 1.5) {
   totalEmissiveRadiance += e * uSignGain;
 }`);
   };
-  material.customProgramCacheKey = () => 'signs-v3';
+  material.customProgramCacheKey = () => 'signs-v4';
   return material;
 }
