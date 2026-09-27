@@ -79,6 +79,8 @@ for (const vp of VIEWPOINTS) {
 // Phase 4 acceptance: everything animated (rain, traffic, flyers, flicker) reads the shared
 // clock, so two loads frozen at the same time must render identical pixels.
 test(`${LAYOUT} frozen time is reproducible`, async ({ page }) => {
+  // Two full page loads on software WebGL: well over the 60 s default when run after the others.
+  test.setTimeout(180_000);
   const shot = async () => {
     await page.goto(`/?layout=${LAYOUT}&viewpoint=fly-0&t=${FROZEN_TIME}`);
     await page.waitForFunction(() => window.__READY === true, undefined, { timeout: 45_000 });
