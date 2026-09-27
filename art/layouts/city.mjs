@@ -67,7 +67,7 @@ const DEFAULTS = {
     tall: {
       slabChance: 0.28, heroSlabChance: 0.6, minHeight: 40, brands: 8,
       // Tower sign zones (meters): see the tower branch of sign placement.
-      zones: { streetSigns: 2, streetTop: 12, billboard: [15, 50], billboardChance: 0.6, shaftChance: 0.85, shaftSideChance: 0.5, shaftMax: 70, shaftBase: [14, 22], shaftWidthShare: 0.85, crownChance: 0.75 },
+      zones: { streetSigns: 2, streetTop: 12, billboard: [15, 50], billboardChance: 0.6, shaftChance: 0.85, shaftSideChance: 0.5, shaftMax: 70, shaftBase: [14, 22], shaftHighChance: 0.15, shaftWidthShare: 0.85, crownChance: 0.75 },
     },
     // Ads in the rooftop billboard frames of buildings whose generator built one (meta.billboard).
     roofBillboardChance: 0.85,
@@ -527,13 +527,18 @@ export function generate({ params, seed, assets = {}, art = [] }) {
       // people on the street and in cars see it (human review: not high up the tower). On the
       // front when it is free, otherwise (or additionally) on a side face.
       if (rng() < Z.shaftChance) {
+        // Varied heights: the base anywhere from just above the shops up to a quarter of the
+        // tower; most campaigns end by mid-height, a few (shaftHighChance) reach higher.
         const tier = tiers[0];
-        const a = Math.max(tier[0] * sy + 1, rand(Z.shaftBase[0], Z.shaftBase[1])), b = tier[1] * sy - 4;
+        const H = inst.h;
+        const a = Math.max(tier[0] * sy + 1, rand(Z.shaftBase[0], Math.max(Z.shaftBase[1], H * 0.25)));
+        const topCap = H * (rng() < Z.shaftHighChance ? 0.75 : 0.5);
+        const b = Math.min(tier[1] * sy - 4, topCap);
         if (b - a > 40) {
           const sides = frontUsed ? [rng() < 0.5 ? 1 : -1] : rng() < Z.shaftSideChance ? [0, rng() < 0.5 ? 1 : -1] : [0];
           for (const side of sides) {
             const f = sideOf(tier, side);
-            const lim = { w: [6, (2 * f.half - 3) * Z.shaftWidthShare], h: [40, Math.min(Z.shaftMax, b - a)] };
+            const lim = { w: [6, (2 * f.half - 3) * Z.shaftWidthShare], h: [30, Math.min(Z.shaftMax, b - a)] };
             const tallest = (lo, hi) => rand(lo + (hi - lo) * 0.7, hi);
             // Stylish brand campaigns only: food and shop ads belong at street level.
             const c = chooseArt({ kind: 'ad', aspect: [0, 0.45], share: 1, stroke: null, noShop: true }, lim, tallest);

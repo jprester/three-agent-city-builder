@@ -589,3 +589,7 @@ and milestone images are saved in `docs/progress/advertising-pilot/`.
   (docs/progress/atlas-signs/tower-street.png) the campaigns fill the view.
 - neon_v atlas grew to 6912 px; reshaped to 4000×3840 and the importer now refuses any
   atlas over 4096 px (the safe WebGL texture limit).
+- Follow-up (human): not all the way down. Campaign bases now vary from just above the
+  shops to a quarter of the tower height; 85% end by mid-height, 15% may reach 75%. Test
+  requires > 70% below mid. From `skyline` the campaigns sit in the lower towers (SHIRAYUKI,
+  龍, NEXORA), visible above the slab rooftops.

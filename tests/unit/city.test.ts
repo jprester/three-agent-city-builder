@@ -139,7 +139,7 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     expect(wrong.map((s) => [s.size, s.art, s.stroke])).toEqual([]);
   });
 
-  it('keeps tower signs in their zones (street, billboard 15–50 m, tall campaigns from 14–22 m, crown)', async () => {
+  it('keeps tower signs in their zones (street, billboard 15–50 m, tall campaigns low, mostly below mid-height, crown)', async () => {
     const L = await get();
     const wrong = L.signs!.filter((s) => s.zone).filter((s) => {
       const b = L.instances[s.building];
@@ -147,7 +147,7 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
       switch (s.zone) {
         case 'street': return y1 > 12 + 0.01 || y0 < 4;
         case 'billboard': return y0 < 15 - 0.01 || y1 > 50 + 0.01;
-        case 'shaft': return y0 < 12 || y0 > 30 || s.size[0] / s.size[1] > 0.46 || y1 > b.h! - 5;
+        case 'shaft': return y0 < 12 || y0 > Math.max(22, b.h! * 0.25) + 0.01 || s.size[0] / s.size[1] > 0.46 || y1 > b.h! * 0.75 + 0.01;
         case 'crown': {
           // On the top tier (tower height also counts spires and masts above it).
           const tiers = (ASSETS[b.asset as keyof typeof ASSETS].meta as { tiers: number[][] }).tiers;
@@ -159,6 +159,10 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
       }
     });
     expect(wrong.map((s) => [s.zone, s.position[1], s.size])).toEqual([]);
+    // Most tall campaigns end by mid-height (human review).
+    const shafts = L.signs!.filter((s) => s.zone === 'shaft');
+    const low = shafts.filter((s) => s.position[1] + s.size[1] / 2 <= L.instances[s.building].h! * 0.5 + 0.01);
+    expect(low.length / shafts.length).toBeGreaterThan(0.7);
     expect(L.signs!.filter((s) => s.stroke && s.brand === undefined)).toEqual([]);
   });
 
