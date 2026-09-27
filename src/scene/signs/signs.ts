@@ -44,7 +44,8 @@ export function createSigns(layout: Layout, atlas: SignAtlas, art: SignArt, unif
   const lights: SignLight[] = [];
   // Holographic art (dark-background neon and ads) goes to an additive plane mesh; stroke
   // designs and opaque posters stay boxes with a metal frame.
-  const isHolo = (s: (typeof signs)[number]) => s.art !== undefined && ART_ENTRIES[s.art].holo;
+  // Brand wordmarks (tower crowns) are holographic channel letters too: no board.
+  const isHolo = (s: (typeof signs)[number]) => s.brand !== undefined || (s.art !== undefined && ART_ENTRIES[s.art].holo);
   const boxes = signs.filter((s) => !isHolo(s));
   const holos = signs.filter(isHolo);
   const geometry = new THREE.BoxGeometry(1, 1, 1);
@@ -94,7 +95,7 @@ export function createSigns(layout: Layout, atlas: SignAtlas, art: SignArt, unif
   geometry.setAttribute('aParams', new THREE.InstancedBufferAttribute(params, 4));
   mesh.instanceMatrix.needsUpdate = true;
   mesh.computeBoundingSphere();
-  const holo = createHolograms(layout, holos, art, uniforms.uTime, lights);
+  const holo = createHolograms(layout, holos, art, atlas, uniforms.uTime, lights);
   return { mesh, holo, brackets: createBrackets(signs), lights };
 }
 
@@ -103,12 +104,13 @@ export function createSigns(layout: Layout, atlas: SignAtlas, art: SignArt, unif
  * transparent. Scan lines, a slow shimmer and a rare glitch sell the hologram; fog fades
  * them instead of tinting (additive fog would light up the whole rectangle). One draw call.
  */
-function createHolograms(layout: Layout, holos: NonNullable<Layout['signs']>, art: SignArt, time: { value: number }, lights: SignLight[]) {
+function createHolograms(layout: Layout, holos: NonNullable<Layout['signs']>, art: SignArt, atlas: SignAtlas, time: { value: number }, lights: SignLight[]) {
   if (!holos.length) return null;
   const geometry = new THREE.PlaneGeometry(1, 1);
   const n = holos.length;
   const rect = new Float32Array(n * 4);
   const params = new Float32Array(n * 4);
+  const tint = new Float32Array(n * 3);
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
   const material = new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: true });
   material.name = 'holo-signs';
@@ -116,12 +118,24 @@ function createHolograms(layout: Layout, holos: NonNullable<Layout['signs']>, ar
   mesh.name = 'holo-signs';
   holos.forEach((s, i) => {
     const rng = mulberry32((s.seed ^ layout.seed) >>> 0);
-    const e = ART_ENTRIES[s.art!];
-    rect.set(e.rect, i * 4);
-    const ad = e.kind === 'ad';
-    const glitchy = rng() < 0.15 ? 1 : 0;
-    params.set([atlasCode(e), rng(), ad ? 1.3 : 2.9, glitchy], i * 4);
-    lights.push({ x: s.position[0], y: s.position[1], z: s.position[2], size: Math.max(s.size[0], s.size[1]), color: new THREE.Color(...e.color), strength: ad ? 0.6 : 1 });
+    if (s.brand !== undefined) {
+      // Stroke wordmark (source 0): tube color per brand, a steady glow (brands don't glitch).
+      const brand = s.brand % BRANDS;
+      const d = (s.stroke === 'blade' ? atlas.blades : atlas.panels).find((x) => x.brand === brand)!;
+      d.rect.toArray(rect, i * 4);
+      const c = col(BRAND_COLORS[brand]);
+      c.toArray(tint, i * 3);
+      params.set([0, rng(), 2.4, 0], i * 4);
+      lights.push({ x: s.position[0], y: s.position[1], z: s.position[2], size: s.size[0], color: c, strength: 1 });
+    } else {
+      const e = ART_ENTRIES[s.art!];
+      rect.set(e.rect, i * 4);
+      const ad = e.kind === 'ad';
+      const glitchy = rng() < 0.15 ? 1 : 0;
+      tint.set([1, 1, 1], i * 3);
+      params.set([atlasCode(e), rng(), ad ? 1.3 : 2.9, glitchy], i * 4);
+      lights.push({ x: s.position[0], y: s.position[1], z: s.position[2], size: Math.max(s.size[0], s.size[1]), color: new THREE.Color(...e.color), strength: ad ? 0.6 : 1 });
+    }
     // Planes face +Z like the sign boxes; lift 0.1 m further off the wall (boxes are 0.2–0.35 deep).
     const pos = new THREE.Vector3(...s.position);
     if (s.kind === 'panel') pos.add(new THREE.Vector3(Math.sin(s.rotationY), 0, Math.cos(s.rotationY)).multiplyScalar(0.1));
@@ -130,23 +144,26 @@ function createHolograms(layout: Layout, holos: NonNullable<Layout['signs']>, ar
   });
   geometry.setAttribute('aRect', new THREE.InstancedBufferAttribute(rect, 4));
   geometry.setAttribute('aHolo', new THREE.InstancedBufferAttribute(params, 4));
+  geometry.setAttribute('aTint', new THREE.InstancedBufferAttribute(tint, 3));
   mesh.instanceMatrix.needsUpdate = true;
   mesh.computeBoundingSphere();
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uTime = time;
+    shader.uniforms.uStroke = { value: atlas.texture };
     shader.uniforms.uNeonV = { value: art.atlases[0] };
     shader.uniforms.uNeonH = { value: art.atlases[1] };
     shader.uniforms.uPosterP = { value: art.atlases[2] };
     shader.uniforms.uPosterL = { value: art.atlases[3] };
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute vec4 aRect;\nattribute vec4 aHolo;\nvarying vec2 vHoloUv;\nflat varying vec4 vHolo;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHoloUv = aRect.xy + uv * aRect.zw;\nvHolo = aHolo;');
+      .replace('#include <common>', '#include <common>\nattribute vec4 aRect;\nattribute vec4 aHolo;\nattribute vec3 aTint;\nvarying vec2 vHoloUv;\nflat varying vec4 vHolo;\nflat varying vec3 vTint;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHoloUv = aRect.xy + uv * aRect.zw;\nvHolo = aHolo;\nvTint = aTint;');
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>
 uniform float uTime;
-uniform sampler2D uNeonV, uNeonH, uPosterP, uPosterL;
+uniform sampler2D uStroke, uNeonV, uNeonH, uPosterP, uPosterL;
 varying vec2 vHoloUv;
-flat varying vec4 vHolo;`)
+flat varying vec4 vHolo;
+flat varying vec3 vTint;`)
       .replace('#include <map_fragment>', `
 int src = int(vHolo.x + 0.5);
 float seed = vHolo.y * 100.0;
@@ -154,10 +171,18 @@ vec2 huv = vHoloUv;
 // Rare glitch: a horizontal tear for a fraction of a second.
 float tear = vHolo.w * step(0.985, fract(uTime * 0.37 + vHolo.y * 13.0)) * step(0.5, fract(huv.y * 23.0 + uTime * 5.0));
 huv.x += tear * 0.015;
-vec3 img = src == 2 ? texture2D(uNeonV, huv).rgb : src == 3 ? texture2D(uNeonH, huv).rgb
-         : src == 4 ? texture2D(uPosterP, huv).rgb : texture2D(uPosterL, huv).rgb;
-// Black level: the art's near-black background must add nothing.
-img = max(img - 0.035, 0.0) * 1.04;
+vec3 img;
+if (src == 0) {
+  // Stroke atlas (brand wordmarks): tube core from R plus a soft halo from a coarse mip.
+  float core = texture2D(uStroke, huv).r;
+  float halo = textureLod(uStroke, huv, 3.0).r;
+  img = mix(vTint, vec3(1.0), 0.15) * core + vTint * halo * 0.6;
+} else {
+  img = src == 2 ? texture2D(uNeonV, huv).rgb : src == 3 ? texture2D(uNeonH, huv).rgb
+      : src == 4 ? texture2D(uPosterP, huv).rgb : texture2D(uPosterL, huv).rgb;
+  // Black level: the art's near-black background must add nothing.
+  img = max(img - 0.035, 0.0) * 1.04;
+}
 float scan = 0.86 + 0.14 * sin(gl_FragCoord.y * 1.9 + uTime * 3.0);
 float shimmer = 0.9 + 0.1 * sin(uTime * 1.7 + seed);
 diffuseColor = vec4(img * vHolo.z * scan * shimmer, 1.0);`)
@@ -165,7 +190,7 @@ diffuseColor = vec4(img * vHolo.z * scan * shimmer, 1.0);`)
   gl_FragColor.rgb *= 1.0 - heightFog(vFogWorld, fogDensity);
 #endif`);
   };
-  material.customProgramCacheKey = () => 'holo-signs-v1';
+  material.customProgramCacheKey = () => 'holo-signs-v2';
   return mesh;
 }
 
