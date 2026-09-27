@@ -60,4 +60,4 @@ def generate(ctx):
         flat_roof(mb, ctx, sw, sd, top + ch, tint, 0.0, D * 0.2, parapet=0.0)
         roof_top = max(roof_top, top + ch)
     mb.finish()
-    ctx.meta.update(footprint=[W, D], height=top + 1.1, top=roof_top, family="walkup", scalable=False, shader="facade")
+    ctx.meta.update(canopy=cd, depth=vd + 0.45, footprint=[W, D], height=top + 1.1, top=roof_top, family="walkup", scalable=False, shader="facade")

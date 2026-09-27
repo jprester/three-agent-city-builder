@@ -137,4 +137,5 @@ def generate(ctx):
     if floors >= 18:
         aviation_lights(mb, ctx, W, roof_d, top + 1.0, 0.0, roof_cy)
     mb.finish()
-    ctx.meta.update(footprint=[W, D], height=top + 1.0, top=roof_top, family="slab", scalable=False, shader="facade")
+    # depth: deepest thing on the street face (balconies, bay windows, AC units) for sign clearance.
+    ctx.meta.update(canopy=cd, depth=max(bd, ctx.p("bay_depth", 0.7), 0.55), footprint=[W, D], height=top + 1.0, top=roof_top, family="slab", scalable=False, shader="facade")

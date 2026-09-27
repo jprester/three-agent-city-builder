@@ -100,5 +100,5 @@ def generate(ctx):
         ctx.meta["billboard"] = {"width": bwid, "height": bhei, "z": top + 2.0, "y": y0, "legs": 2.0}
 
     mb.finish()
-    ctx.meta.update(footprint=[W, D], height=top + 1.0, top=roof_top, family="midrise", scalable=False, shader="facade")
+    ctx.meta.update(canopy=ctx.p("canopy_depth", 1.8) if podium_floors > 0 else 0, depth=0.8 if ctx.p("fins", False) else 0.3, footprint=[W, D], height=top + 1.0, top=roof_top, family="midrise", scalable=False, shader="facade")
     _ = rng

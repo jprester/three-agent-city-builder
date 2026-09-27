@@ -78,6 +78,8 @@ def generate(ctx):
 
 
 def _crown(mb, ctx, crown, w, d, z, tint):
+    """Builds the crown; sets meta["roof"]: the level of the roof covering the full top-tier
+    footprint, where the brand lettering stands."""
     rng = ctx.rng
     if crown == "band":
         fcol = ctx.facade["fixture_colors"][ctx.p("band_color", "white")]
@@ -87,11 +89,13 @@ def _crown(mb, ctx, crown, w, d, z, tint):
         walls(mb, ctx, w, d, z + 1.3, z + 4.0, z, [("trim", 0.0, tint)] * 4)
         z += 4.0
         flat_roof(mb, ctx, w, d, z, tint, parapet=0.0)
+        ctx.meta["roof"] = z
         mast(mb, ctx, 0.0, 0.0, z, ctx.p("mast", 18.0), red=True)
         return z
     if crown == "stepped":
         walls(mb, ctx, w, d, z, z + 3.0, z, [("trim", 0.0, tint)] * 4)
         z += 3.0
+        ctx.meta["roof"] = z
         for k in range(2):
             flat_roof(mb, ctx, w, d, z, tint, parapet=0.5)
             w, d = w * 0.7, d * 0.7
@@ -103,6 +107,7 @@ def _crown(mb, ctx, crown, w, d, z, tint):
     if crown == "spire":
         walls(mb, ctx, w, d, z, z + 3.0, z, [("trim", 0.0, tint)] * 4)
         z += 3.0
+        ctx.meta["roof"] = z
         flat_roof(mb, ctx, w, d, z, tint, parapet=0.8)
         sw = min(w, d) * 0.18
         mm, ms = surf(ctx, "metal", 0.0, 0.2)
@@ -112,6 +117,7 @@ def _crown(mb, ctx, crown, w, d, z, tint):
     if crown == "plant":
         pw, pd = w * 0.8, d * 0.8
         flat_roof(mb, ctx, w, d, z, tint, parapet=1.0)
+        ctx.meta["roof"] = z
         walls(mb, ctx, pw, pd, z, z + 7.0, z, [("metal", 0.0, tint)] * 4)
         z += 7.0
         flat_roof(mb, ctx, pw, pd, z, tint, parapet=0.0)
@@ -122,6 +128,7 @@ def _crown(mb, ctx, crown, w, d, z, tint):
     if crown == "slant":
         # Roof plane rising from the front edge to the back (pyramid-free wedge).
         rise = ctx.p("slant", 12.0)
+        ctx.meta["roof"] = z
         tm, ts = surf(ctx, "trim", 0.0, tint)
         am, as_ = surf(ctx, "atlas", 1.0, tint)
         x0, x1, y0, y1 = -w / 2, w / 2, -d / 2, d / 2
@@ -137,6 +144,7 @@ def _crown(mb, ctx, crown, w, d, z, tint):
     walls(mb, ctx, w, d, z, z + 2.0, z, [("trim", 0.0, tint)] * 4)
     z += 2.0
     flat_roof(mb, ctx, w, d, z, tint, parapet=0.9)
+    ctx.meta["roof"] = z
     for k in range(4):
         ac_cluster(mb, ctx, rng.uniform(-w / 3, w / 3), rng.uniform(-d / 3, d / 3), z, rng.randint(1, 3))
     antenna_cluster(mb, ctx, -w * 0.25, d * 0.25, z)
