@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import * as G from '../../art/layouts/lib/geom.mjs';
 import def from '../../art/layouts/defs/city.json';
 import { ASSETS } from '../../src/assets/manifest.gen';
-import { generateLayout, type Layout, type LayoutInstance, type Vec2 } from '../../src/systems/layout';
+import { SIGN_ART, generateLayout, type Layout, type LayoutInstance, type Vec2 } from '../../src/systems/layout';
 
 const box = (i: LayoutInstance) => {
   const t = i.rotationY;
@@ -126,6 +126,16 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
       return gap < 0.05 || gap > 0.5 || Math.abs(along) > hu || s.position[1] + s.size[1] / 2 > b.h!;
     });
     expect(bad.map((s) => s.position)).toEqual([]);
+  });
+
+  it('sizes every sign to its artwork aspect (no cropping or stretching)', async () => {
+    const L = await get();
+    const stroke = { blade: 130 / 472, panel: 472 / 88 };
+    const wrong = L.signs!.filter((s) => {
+      const want = s.art !== undefined ? SIGN_ART[s.art].aspect : s.stroke ? stroke[s.stroke] : null;
+      return want === null || Math.abs(s.size[0] / s.size[1] / want - 1) > 0.02;
+    });
+    expect(wrong.map((s) => [s.size, s.art, s.stroke])).toEqual([]);
   });
 
   it('puts rooftop billboards above their building, inside its footprint', async () => {

@@ -1,4 +1,8 @@
 import { ASSETS } from '../assets/manifest.gen';
+import signCatalog from '../../art/external/textures/signs/catalog.json';
+
+/** Artwork facts the layout sizes signs by (same as tools/build-layouts.mjs signArt()). */
+export const SIGN_ART = signCatalog.entries.map(({ kind, aspect, holo, hue, sat }) => ({ kind, aspect, holo, hue, sat }));
 
 export type Vec2 = [number, number];
 export type Vec3 = [number, number, number];
@@ -50,8 +54,10 @@ export interface LayoutSign {
   inset?: number;
   /** Brand of a tower logo family (wordmark / stacked logo). */
   brand?: number;
-  /** Artwork format hint: landscape ad/poster. */
-  art?: 'landscape';
+  /** Catalog artwork index (art/external/textures/signs/catalog.json entries). */
+  art?: number;
+  /** Stroke-drawn design family when not catalog art. */
+  stroke?: 'blade' | 'panel';
   /** Mounted in a rooftop billboard frame rather than on a facade. */
   roof?: boolean;
 }
@@ -105,7 +111,7 @@ interface LayoutDef {
 }
 
 interface LayoutGeneratorModule {
-  generate(input: { params: Record<string, unknown>; seed: number; assets: typeof ASSETS }): Omit<Layout, 'name'>;
+  generate(input: { params: Record<string, unknown>; seed: number; assets: typeof ASSETS; art: typeof SIGN_ART }): Omit<Layout, 'name'>;
 }
 
 export async function generateLayout(id: string, seed: number): Promise<Layout> {
@@ -115,5 +121,5 @@ export async function generateLayout(id: string, seed: number): Promise<Layout> 
   const loadGen = layoutGenerators[`/art/layouts/${def.generator}.mjs`];
   if (!loadGen) throw new Error(`Layout generator "${def.generator}" not found in art/layouts/`);
   const mod = (await loadGen()) as LayoutGeneratorModule;
-  return { name: id, ...mod.generate({ params: def.params ?? {}, seed, assets: ASSETS }) };
+  return { name: id, ...mod.generate({ params: def.params ?? {}, seed, assets: ASSETS, art: SIGN_ART }) };
 }
