@@ -1,0 +1,1167 @@
+{
+ "entries": [
+  {
+   "id": "thenightocean_vertical_neon_sign_in_Japanese_cyb",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.001302,
+    0.020833,
+    0.059896,
+    0.958333
+   ],
+   "aspect": 0.25,
+   "holo": true,
+   "color": [
+    0.769,
+    0.935,
+    0.903
+   ],
+   "hue": 168,
+   "sat": 0.18
+  },
+  {
+   "id": "thenightocean_vertical_neon_sign_in_Japanese_cyb",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.063802,
+    0.020833,
+    0.059896,
+    0.958333
+   ],
+   "aspect": 0.25,
+   "holo": true,
+   "color": [
+    0.557,
+    0.701,
+    0.711
+   ],
+   "hue": 184,
+   "sat": 0.22
+  },
+  {
+   "id": "thenightocean_vertical_neon_sign_in_Japanese_cyb",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.126302,
+    0.020833,
+    0.059896,
+    0.958333
+   ],
+   "aspect": 0.25,
+   "holo": true,
+   "color": [
+    0.562,
+    0.685,
+    0.847
+   ],
+   "hue": 214,
+   "sat": 0.34
+  },
+  {
+   "id": "thenightocean_vertical_neon_sign_in_Japanese_cyb",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.188802,
+    0.020833,
+    0.059896,
+    0.958333
+   ],
+   "aspect": 0.25,
+   "holo": true,
+   "color": [
+    0.548,
+    0.932,
+    0.927
+   ],
+   "hue": 179,
+   "sat": 0.41
+  },
+  {
+   "id": "thenightocean_vertical_neon_sign_in_Japanese_cyb",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.251302,
+    0.020833,
+    0.059896,
+    0.958333
+   ],
+   "aspect": 0.25,
+   "holo": true,
+   "color": [
+    0.8,
+    0.71,
+    0.657
+   ],
+   "hue": 22,
+   "sat": 0.18
+  },
+  {
+   "id": "thenightocean_vertical_neon_sign_in_Japanese_cyb",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.313802,
+    0.020833,
+    0.059896,
+    0.958333
+   ],
+   "aspect": 0.25,
+   "holo": true,
+   "color": [
+    0.75,
+    0.584,
+    0.553
+   ],
+   "hue": 10,
+   "sat": 0.26
+  },
+  {
+   "id": "thenightocean_vertical_neon_sign_in_Japanese_cyb",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.376302,
+    0.020833,
+    0.059896,
+    0.958333
+   ],
+   "aspect": 0.25,
+   "holo": true,
+   "color": [
+    0.867,
+    0.844,
+    0.899
+   ],
+   "hue": 265,
+   "sat": 0.06
+  },
+  {
+   "id": "thenightocean_vertical_neon_sign_in_Japanese_cyb",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.438802,
+    0.020833,
+    0.059896,
+    0.958333
+   ],
+   "aspect": 0.25,
+   "holo": true,
+   "color": [
+    0.832,
+    0.572,
+    0.625
+   ],
+   "hue": 348,
+   "sat": 0.31
+  },
+  {
+   "id": "thenightocean_vertical_neon_sign_in_Japanese_cyb",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.501302,
+    0.020833,
+    0.059896,
+    0.958333
+   ],
+   "aspect": 0.25,
+   "holo": true,
+   "color": [
+    0.922,
+    0.528,
+    0.7
+   ],
+   "hue": 334,
+   "sat": 0.43
+  },
+  {
+   "id": "thenightocean_vertical_neon_sign_in_Japanese_cyb",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.563802,
+    0.020833,
+    0.059896,
+    0.958333
+   ],
+   "aspect": 0.25,
+   "holo": true,
+   "color": [
+    0.854,
+    0.876,
+    0.869
+   ],
+   "hue": 160,
+   "sat": 0.03
+  },
+  {
+   "id": "thenightocean_vertical_neon_sign_in_Japanese_cyb",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.626302,
+    0.020833,
+    0.059896,
+    0.958333
+   ],
+   "aspect": 0.25,
+   "holo": true,
+   "color": [
+    0.955,
+    0.55,
+    0.463
+   ],
+   "hue": 11,
+   "sat": 0.51
+  },
+  {
+   "id": "thenightocean_vertical_neon_sign_in_Japanese_cyb",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.688802,
+    0.020833,
+    0.059896,
+    0.958333
+   ],
+   "aspect": 0.25,
+   "holo": true,
+   "color": [
+    0.742,
+    0.331,
+    0.726
+   ],
+   "hue": 302,
+   "sat": 0.55
+  },
+  {
+   "id": "thenightocean_vertical_neon_sign_in_japanese_glo",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.751302,
+    0.020833,
+    0.059896,
+    0.958333
+   ],
+   "aspect": 0.25,
+   "holo": true,
+   "color": [
+    0.053,
+    0.725,
+    0.677
+   ],
+   "hue": 176,
+   "sat": 0.93
+  },
+  {
+   "id": "thenightocean_vertical_neon_sign_in_japanese_glo",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.813802,
+    0.020833,
+    0.059896,
+    0.958333
+   ],
+   "aspect": 0.25,
+   "holo": true,
+   "color": [
+    0.621,
+    0.796,
+    0.859
+   ],
+   "hue": 196,
+   "sat": 0.28
+  },
+  {
+   "id": "nova",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.876302,
+    0.200521,
+    0.059896,
+    0.598958
+   ],
+   "aspect": 0.3999,
+   "holo": true,
+   "color": [
+    0.324,
+    0.323,
+    0.297
+   ],
+   "hue": 57,
+   "sat": 0.08
+  },
+  {
+   "id": "aero-9",
+   "kind": "ad",
+   "atlas": "posters_p",
+   "rect": [
+    0.001157,
+    0.586806,
+    0.108796,
+    0.326389
+   ],
+   "aspect": 1.0,
+   "holo": true,
+   "color": [
+    0.199,
+    0.318,
+    0.59
+   ],
+   "hue": 222,
+   "sat": 0.66
+  },
+  {
+   "id": "kitsune",
+   "kind": "ad",
+   "atlas": "posters_p",
+   "rect": [
+    0.112269,
+    0.586806,
+    0.108796,
+    0.326389
+   ],
+   "aspect": 1.0,
+   "holo": true,
+   "color": [
+    0.133,
+    0.294,
+    0.34
+   ],
+   "hue": 193,
+   "sat": 0.61
+  },
+  {
+   "id": "kuro-arcade",
+   "kind": "ad",
+   "atlas": "posters_p",
+   "rect": [
+    0.22338,
+    0.505208,
+    0.108796,
+    0.489583
+   ],
+   "aspect": 0.6667,
+   "holo": true,
+   "color": [
+    0.231,
+    0.218,
+    0.252
+   ],
+   "hue": 262,
+   "sat": 0.13
+  },
+  {
+   "id": "legacy-pixel-koi",
+   "kind": "ad",
+   "atlas": "posters_p",
+   "rect": [
+    0.334491,
+    0.505208,
+    0.108796,
+    0.489583
+   ],
+   "aspect": 0.6667,
+   "holo": true,
+   "color": [
+    0.82,
+    0.406,
+    0.538
+   ],
+   "hue": 341,
+   "sat": 0.51
+  },
+  {
+   "id": "luna-tea",
+   "kind": "ad",
+   "atlas": "posters_p",
+   "rect": [
+    0.445602,
+    0.505208,
+    0.108796,
+    0.489583
+   ],
+   "aspect": 0.6667,
+   "holo": true,
+   "color": [
+    0.26,
+    0.231,
+    0.348
+   ],
+   "hue": 255,
+   "sat": 0.34
+  },
+  {
+   "id": "mori-synth",
+   "kind": "ad",
+   "atlas": "posters_p",
+   "rect": [
+    0.556713,
+    0.586806,
+    0.108796,
+    0.326389
+   ],
+   "aspect": 1.0,
+   "holo": true,
+   "color": [
+    0.093,
+    0.266,
+    0.215
+   ],
+   "hue": 162,
+   "sat": 0.65
+  },
+  {
+   "id": "neon-runner",
+   "kind": "ad",
+   "atlas": "posters_p",
+   "rect": [
+    0.667824,
+    0.505208,
+    0.108796,
+    0.489583
+   ],
+   "aspect": 0.6667,
+   "holo": true,
+   "color": [
+    0.496,
+    0.378,
+    0.348
+   ],
+   "hue": 12,
+   "sat": 0.3
+  },
+  {
+   "id": "orbit-ramen",
+   "kind": "ad",
+   "atlas": "posters_p",
+   "rect": [
+    0.778935,
+    0.586806,
+    0.108796,
+    0.326389
+   ],
+   "aspect": 1.0,
+   "holo": false,
+   "color": [
+    0.767,
+    0.364,
+    0.232
+   ],
+   "hue": 15,
+   "sat": 0.7
+  },
+  {
+   "id": "thenightocean_beautiful_cyberpunk_samurai_girl_p",
+   "kind": "ad",
+   "atlas": "posters_p",
+   "rect": [
+    0.890046,
+    0.505208,
+    0.108796,
+    0.489583
+   ],
+   "aspect": 0.6667,
+   "holo": true,
+   "color": [
+    0.937,
+    0.062,
+    0.445
+   ],
+   "hue": 334,
+   "sat": 0.93
+  },
+  {
+   "id": "thenightocean_beautiful_cyberpunk_samurai_girl_p",
+   "kind": "ad",
+   "atlas": "posters_p",
+   "rect": [
+    0.001157,
+    0.005208,
+    0.108796,
+    0.489583
+   ],
+   "aspect": 0.6667,
+   "holo": false,
+   "color": [
+    0.871,
+    0.469,
+    0.614
+   ],
+   "hue": 338,
+   "sat": 0.46
+  },
+  {
+   "id": "thenightocean_cyberpunk_advertisment_holographic",
+   "kind": "ad",
+   "atlas": "posters_p",
+   "rect": [
+    0.112269,
+    0.005208,
+    0.108796,
+    0.489583
+   ],
+   "aspect": 0.6667,
+   "holo": false,
+   "color": [
+    0.501,
+    0.429,
+    0.44
+   ],
+   "hue": 351,
+   "sat": 0.14
+  },
+  {
+   "id": "thenightocean_cyberpunk_advertisment_holographic",
+   "kind": "ad",
+   "atlas": "posters_p",
+   "rect": [
+    0.22338,
+    0.005208,
+    0.108796,
+    0.489583
+   ],
+   "aspect": 0.6667,
+   "holo": true,
+   "color": [
+    0.625,
+    0.54,
+    0.536
+   ],
+   "hue": 3,
+   "sat": 0.14
+  },
+  {
+   "id": "thenightocean_cyberpunk_poster_Japanese_woman_ho",
+   "kind": "ad",
+   "atlas": "posters_p",
+   "rect": [
+    0.334491,
+    0.005208,
+    0.108796,
+    0.489583
+   ],
+   "aspect": 0.6667,
+   "holo": false,
+   "color": [
+    0.994,
+    0.881,
+    0.609
+   ],
+   "hue": 42,
+   "sat": 0.39
+  },
+  {
+   "id": "thenightocean_cyberpunk_poster_Japanese_woman_ho",
+   "kind": "ad",
+   "atlas": "posters_p",
+   "rect": [
+    0.445602,
+    0.005208,
+    0.108796,
+    0.489583
+   ],
+   "aspect": 0.6667,
+   "holo": false,
+   "color": [
+    0.856,
+    0.955,
+    0.995
+   ],
+   "hue": 197,
+   "sat": 0.14
+  },
+  {
+   "id": "thenightocean_cyberpunk_poster_Japanese_woman_ho",
+   "kind": "ad",
+   "atlas": "posters_p",
+   "rect": [
+    0.556713,
+    0.005208,
+    0.108796,
+    0.489583
+   ],
+   "aspect": 0.6667,
+   "holo": false,
+   "color": [
+    0.747,
+    0.829,
+    0.801
+   ],
+   "hue": 160,
+   "sat": 0.1
+  },
+  {
+   "id": "thenightocean_cyberpunk_poster_Japanese_woman_ho",
+   "kind": "ad",
+   "atlas": "posters_p",
+   "rect": [
+    0.667824,
+    0.005208,
+    0.108796,
+    0.489583
+   ],
+   "aspect": 0.6667,
+   "holo": false,
+   "color": [
+    0.786,
+    0.643,
+    0.467
+   ],
+   "hue": 33,
+   "sat": 0.41
+  },
+  {
+   "id": "thenightocean_cyberpunk_poster_Japanese_woman_ho",
+   "kind": "ad",
+   "atlas": "posters_p",
+   "rect": [
+    0.778935,
+    0.005208,
+    0.108796,
+    0.489583
+   ],
+   "aspect": 0.6667,
+   "holo": false,
+   "color": [
+    0.836,
+    0.806,
+    0.821
+   ],
+   "hue": 331,
+   "sat": 0.04
+  },
+  {
+   "id": "thenightocean_cyberpunk_poster_Japanese_woman_ho",
+   "kind": "ad",
+   "atlas": "posters_p",
+   "rect": [
+    0.890046,
+    0.005208,
+    0.108796,
+    0.489583
+   ],
+   "aspect": 0.6667,
+   "holo": false,
+   "color": [
+    0.615,
+    0.874,
+    0.366
+   ],
+   "hue": 91,
+   "sat": 0.58
+  },
+  {
+   "id": "dreamstate-fm",
+   "kind": "ad",
+   "atlas": "posters_l",
+   "rect": [
+    0.001488,
+    0.505208,
+    0.139881,
+    0.489583
+   ],
+   "aspect": 1.5,
+   "holo": true,
+   "color": [
+    0.329,
+    0.24,
+    0.375
+   ],
+   "hue": 280,
+   "sat": 0.36
+  },
+  {
+   "id": "nightline",
+   "kind": "ad",
+   "atlas": "posters_l",
+   "rect": [
+    0.144345,
+    0.505208,
+    0.139881,
+    0.489583
+   ],
+   "aspect": 1.5,
+   "holo": true,
+   "color": [
+    0.265,
+    0.251,
+    0.286
+   ],
+   "hue": 264,
+   "sat": 0.12
+  },
+  {
+   "id": "sora-motors",
+   "kind": "ad",
+   "atlas": "posters_l",
+   "rect": [
+    0.287202,
+    0.505208,
+    0.139881,
+    0.489583
+   ],
+   "aspect": 1.5,
+   "holo": true,
+   "color": [
+    0.161,
+    0.274,
+    0.295
+   ],
+   "hue": 190,
+   "sat": 0.45
+  },
+  {
+   "id": "volt-cola",
+   "kind": "ad",
+   "atlas": "posters_l",
+   "rect": [
+    0.43006,
+    0.505208,
+    0.139881,
+    0.489583
+   ],
+   "aspect": 1.5,
+   "holo": true,
+   "color": [
+    0.146,
+    0.473,
+    0.546
+   ],
+   "hue": 191,
+   "sat": 0.73
+  },
+  {
+   "id": "thenightocean_cyberpunk_japanese_advertisment_ho",
+   "kind": "ad",
+   "atlas": "posters_l",
+   "rect": [
+    0.572917,
+    0.505208,
+    0.139881,
+    0.489583
+   ],
+   "aspect": 1.5,
+   "holo": false,
+   "color": [
+    0.262,
+    0.779,
+    0.862
+   ],
+   "hue": 188,
+   "sat": 0.7
+  },
+  {
+   "id": "thenightocean_cyberpunk_japanese_advertisment_ho",
+   "kind": "ad",
+   "atlas": "posters_l",
+   "rect": [
+    0.715774,
+    0.505208,
+    0.139881,
+    0.489583
+   ],
+   "aspect": 1.5,
+   "holo": false,
+   "color": [
+    0.669,
+    0.447,
+    0.555
+   ],
+   "hue": 331,
+   "sat": 0.33
+  },
+  {
+   "id": "thenightocean_cyberpunk_japanese_advertisment_ho",
+   "kind": "ad",
+   "atlas": "posters_l",
+   "rect": [
+    0.858631,
+    0.505208,
+    0.139881,
+    0.489583
+   ],
+   "aspect": 1.5,
+   "holo": false,
+   "color": [
+    0.845,
+    0.687,
+    0.607
+   ],
+   "hue": 20,
+   "sat": 0.28
+  },
+  {
+   "id": "thenightocean_cyberpunk_japanese_advertisment_ho",
+   "kind": "ad",
+   "atlas": "posters_l",
+   "rect": [
+    0.001488,
+    0.005208,
+    0.139881,
+    0.489583
+   ],
+   "aspect": 1.5,
+   "holo": false,
+   "color": [
+    0.416,
+    0.632,
+    0.698
+   ],
+   "hue": 194,
+   "sat": 0.4
+  },
+  {
+   "id": "thenightocean_cyberpunk_japanese_advertisment_ho",
+   "kind": "ad",
+   "atlas": "posters_l",
+   "rect": [
+    0.144345,
+    0.005208,
+    0.139881,
+    0.489583
+   ],
+   "aspect": 1.5,
+   "holo": true,
+   "color": [
+    0.768,
+    0.832,
+    0.9
+   ],
+   "hue": 211,
+   "sat": 0.15
+  },
+  {
+   "id": "thenightocean_cyberpunk_poster_Japanese_woman_--",
+   "kind": "ad",
+   "atlas": "posters_l",
+   "rect": [
+    0.287202,
+    0.005208,
+    0.139881,
+    0.489583
+   ],
+   "aspect": 1.5,
+   "holo": false,
+   "color": [
+    0.706,
+    0.235,
+    0.513
+   ],
+   "hue": 325,
+   "sat": 0.67
+  },
+  {
+   "id": "thenightocean_cyberpunk_poster_Japanese_woman_--",
+   "kind": "ad",
+   "atlas": "posters_l",
+   "rect": [
+    0.43006,
+    0.005208,
+    0.139881,
+    0.489583
+   ],
+   "aspect": 1.5,
+   "holo": false,
+   "color": [
+    0.823,
+    0.745,
+    0.533
+   ],
+   "hue": 44,
+   "sat": 0.35
+  },
+  {
+   "id": "thenightocean_cyberpunk_poster_Japanese_woman_ho",
+   "kind": "ad",
+   "atlas": "posters_l",
+   "rect": [
+    0.572917,
+    0.005208,
+    0.139881,
+    0.489583
+   ],
+   "aspect": 1.5,
+   "holo": false,
+   "color": [
+    0.801,
+    0.238,
+    0.421
+   ],
+   "hue": 340,
+   "sat": 0.7
+  },
+  {
+   "id": "thenightocean_cyberpunk_poster_Japanese_woman_ho",
+   "kind": "ad",
+   "atlas": "posters_l",
+   "rect": [
+    0.715774,
+    0.005208,
+    0.139881,
+    0.489583
+   ],
+   "aspect": 1.5,
+   "holo": false,
+   "color": [
+    0.796,
+    0.526,
+    0.414
+   ],
+   "hue": 18,
+   "sat": 0.48
+  },
+  {
+   "id": "thenightocean_cyberpunk_poster_Japanese_woman_ho",
+   "kind": "ad",
+   "atlas": "posters_l",
+   "rect": [
+    0.858631,
+    0.005208,
+    0.139881,
+    0.489583
+   ],
+   "aspect": 1.5,
+   "holo": false,
+   "color": [
+    0.687,
+    0.202,
+    0.444
+   ],
+   "hue": 330,
+   "sat": 0.71
+  },
+  {
+   "id": "thenightocean_horizontal_neon_sign_in_Japanese_c",
+   "kind": "neon",
+   "atlas": "neon_h",
+   "rect": [
+    0.004167,
+    0.510417,
+    0.191667,
+    0.479167
+   ],
+   "aspect": 4.0,
+   "holo": true,
+   "color": [
+    0.951,
+    0.471,
+    0.522
+   ],
+   "hue": 354,
+   "sat": 0.51
+  },
+  {
+   "id": "thenightocean_horizontal_neon_sign_in_Japanese_c",
+   "kind": "neon",
+   "atlas": "neon_h",
+   "rect": [
+    0.204167,
+    0.510417,
+    0.191667,
+    0.479167
+   ],
+   "aspect": 4.0,
+   "holo": true,
+   "color": [
+    0.874,
+    0.709,
+    0.719
+   ],
+   "hue": 356,
+   "sat": 0.19
+  },
+  {
+   "id": "thenightocean_horizontal_neon_sign_in_Japanese_c",
+   "kind": "neon",
+   "atlas": "neon_h",
+   "rect": [
+    0.404167,
+    0.510417,
+    0.191667,
+    0.479167
+   ],
+   "aspect": 4.0,
+   "holo": true,
+   "color": [
+    0.833,
+    0.634,
+    0.434
+   ],
+   "hue": 30,
+   "sat": 0.48
+  },
+  {
+   "id": "thenightocean_horizontal_neon_sign_in_Japanese_c",
+   "kind": "neon",
+   "atlas": "neon_h",
+   "rect": [
+    0.604167,
+    0.510417,
+    0.191667,
+    0.479167
+   ],
+   "aspect": 4.0,
+   "holo": true,
+   "color": [
+    0.988,
+    0.363,
+    0.178
+   ],
+   "hue": 14,
+   "sat": 0.82
+  },
+  {
+   "id": "thenightocean_horizontal_neon_sign_in_Japanese_c",
+   "kind": "neon",
+   "atlas": "neon_h",
+   "rect": [
+    0.804167,
+    0.510417,
+    0.191667,
+    0.479167
+   ],
+   "aspect": 4.0,
+   "holo": true,
+   "color": [
+    0.858,
+    0.829,
+    0.922
+   ],
+   "hue": 259,
+   "sat": 0.1
+  },
+  {
+   "id": "thenightocean_horizontal_neon_sign_in_Japanese_c",
+   "kind": "neon",
+   "atlas": "neon_h",
+   "rect": [
+    0.004167,
+    0.010417,
+    0.191667,
+    0.479167
+   ],
+   "aspect": 4.0,
+   "holo": true,
+   "color": [
+    0.571,
+    0.673,
+    0.651
+   ],
+   "hue": 167,
+   "sat": 0.15
+  },
+  {
+   "id": "thenightocean_horizontal_neon_sign_in_Japanese_c",
+   "kind": "neon",
+   "atlas": "neon_h",
+   "rect": [
+    0.204167,
+    0.010417,
+    0.191667,
+    0.479167
+   ],
+   "aspect": 4.0,
+   "holo": true,
+   "color": [
+    0.34,
+    0.848,
+    0.908
+   ],
+   "hue": 186,
+   "sat": 0.63
+  },
+  {
+   "id": "thenightocean_horizontal_neon_sign_in_Japanese_c",
+   "kind": "neon",
+   "atlas": "neon_h",
+   "rect": [
+    0.404167,
+    0.010417,
+    0.191667,
+    0.479167
+   ],
+   "aspect": 4.0,
+   "holo": true,
+   "color": [
+    0.87,
+    0.662,
+    0.758
+   ],
+   "hue": 332,
+   "sat": 0.24
+  },
+  {
+   "id": "thenightocean_horizontal_neon_sign_in_Japanese_c",
+   "kind": "neon",
+   "atlas": "neon_h",
+   "rect": [
+    0.604167,
+    0.010417,
+    0.191667,
+    0.479167
+   ],
+   "aspect": 4.0,
+   "holo": true,
+   "color": [
+    0.445,
+    0.875,
+    0.938
+   ],
+   "hue": 188,
+   "sat": 0.52
+  },
+  {
+   "id": "thenightocean_horizontal_neon_sign_in_Japanese_c",
+   "kind": "neon",
+   "atlas": "neon_h",
+   "rect": [
+    0.804167,
+    0.010417,
+    0.191667,
+    0.479167
+   ],
+   "aspect": 4.0,
+   "holo": true,
+   "color": [
+    0.922,
+    0.909,
+    0.974
+   ],
+   "hue": 252,
+   "sat": 0.07
+  }
+ ],
+ "sizes": {
+  "neon_v": [
+   3072,
+   768
+  ],
+  "posters_p": [
+   3456,
+   1152
+  ],
+  "posters_l": [
+   4032,
+   768
+  ],
+  "neon_h": [
+   3840,
+   384
+  ]
+ },
+ "screens": {
+  "count": 18,
+  "cols": 9,
+  "rows": 2
+ }
+}
