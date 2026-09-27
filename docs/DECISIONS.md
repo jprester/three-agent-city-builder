@@ -89,3 +89,6 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 - 2026-09-27: Visual tests pause the renderer after readiness through a dedicated test hook; this preserves the completed frame during slow software capture without changing normal interaction.
 2026-09-27 | facade | Window faces encode a deterministic opening pattern in COLOR_0.g ((code+0.5)/64: 0 blank, 63 grid, 62/61 alternate, else a mask of columns 0–5) instead of a fill probability | Per-cell random openings produced scattered holes on side walls; structure must be ordered and identical floor to floor.
 2026-09-27 | facade | Column patterns wider than the 6-column mask fall back to alternate | A clamped mask made lopsided stair columns on wide office faces.
+2026-09-27 | pipeline | LOD variants declared in the def (`lods`) and built as `<id>.lod<n>` with params + {lod: n} | No duplicated defs; one generator, deterministic, cache keyed on the overrides.
+2026-09-27 | runtime | LOD by per-instance geometry swap in the facade BatchedMesh at meta.lodDistance (160 m), reflection pass at 0.25× | Keeps one draw call; the reflection is half-res and smeared, so it tolerates simplified buildings much closer.
+2026-09-27 | look | Night lighting ~30% down (sky directional 0.27, hemisphere 0.11, environment 0.45) | After the Codex pass walls read as moonlit dusk rather than 2 a.m.

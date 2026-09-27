@@ -369,3 +369,20 @@ wanted; we keep our palette. New viewpoint `skyline` matches the screenshot's fr
   stray distant glow. Budgets unchanged (37 calls, 2.81M max triangles).
 - Remaining: wide office faces (>6 cells) can only use grid/alternate/blank; column masks
   address columns 0–5.
+
+## LOD pass and darker night (2026-09-27)
+
+- Pipeline: a def's `lods: [{ distance, ...params }]` builds extra assets `<id>.lod<n>` from
+  the same generator with `lod: n`. Generators drop fine detail at lod ≥ 1 (recessed reveals,
+  balcony rails, pipes, side AC units, antenna crossarms/dishes, tank bracing, roof railings,
+  veranda laundry poles, estate AC units) but keep every random draw, so windows, balconies
+  and clutter do not move when a building switches. Full-detail GLBs are byte-identical to
+  before; the layout is identical and never places LOD assets (test).
+- Runtime: the facade BatchedMesh holds both geometries and swaps per instance
+  (`setGeometryIdAt`) at 160 m; the reflection pass switches at a quarter of that distance.
+- Result (same 37 draw calls): aerial 2.81M → 1.60M triangles, canyon 2.12M → 1.25M,
+  storefront 2.30M → 1.35M. LOD variants are ~23–60% of full triangles (slab_b 5,396 → 1,452).
+- Night mood: sky directional light 0.38 → 0.27, hemisphere 0.16 → 0.11, city reflection
+  capture 0.65 → 0.45 (~30% down). Facades still read in `skyline`; less moonlit-dusk.
+- Remaining: towers have no LOD yet (ribs are cheap); switching can pop slightly at 160 m on
+  the detailed slabs when flying (reveals are sub-pixel there, AC units are not).
