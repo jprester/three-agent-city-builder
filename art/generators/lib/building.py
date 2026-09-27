@@ -248,7 +248,9 @@ def screen(mb, ctx, w, d, z0, z1, frac=0.6, side=0, cx=0.0, cy=0.0):
     """Video screen on a face: a quad 0.3 m off the wall with UVs normalized over the screen,
     plus a dark frame. Content is animated in the shader."""
     fw, xf = side_frame(side, w, d, cx, cy)
-    sw = fw * frac
+    # Exactly 2:3 (portrait ads fill it undistorted), anchored at the top z1.
+    sw = min(fw * frac, (z1 - z0) / 1.5)
+    z0 = z1 - sw * 1.5
     x0, x1 = -sw / 2, sw / 2
     sm, ss = surf(ctx, "screen", ctx.rng.random(), ctx.rng.random())
 
