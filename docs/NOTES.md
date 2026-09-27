@@ -552,3 +552,17 @@ previews. Frozen-time renders are identical. The 14 screenshot comparisons fail 
 no approved baselines exist; no baselines were created or approved. All scene views remain
 within budget: at most 40 draw calls, 1,988,124 triangles and 24 shader programs. Source
 and milestone images are saved in `docs/progress/advertising-pilot/`.
+
+## ChatGPT sign atlases replace the typeset pilot (2026-09-27)
+- Human review of the Codex typeset pilot: technically sound (editable copy, reflowed
+  formats) but visually a step back — flat wayfinding boards, 12 signs + 6 campaigns
+  repeated over ~900 placements, tall formats mostly empty. Human agreed to switch.
+- 4 human ChatGPT atlases sliced automatically (28 + 22 + 41 + 44 panels; two gutterless
+  pairs split; excluded: a real-brand beer can, a sparkle-only strip). 221 designs total
+  with the curated Midjourney art; 199+ in use across 936 signs.
+- Rooftop frames: ads now 1.8–2.7:1 (the human's 2:1 Midjourney ads plus wide atlas cells),
+  filling the frames. Mirrored hologram text fixed. Excluded two Midjourney signs with
+  misspelt/gibberish text (HOTTEL, PAIWHPON).
+- Critique: canyon reads as a real neon street with correct Japanese. The atlases lean
+  cyan/magenta; warm weighting keeps red/amber leading at street level. Tower shaft ads now
+  mostly come from the tall atlas cells (薬, 鮨, anime posters) and read from `skyline`.

@@ -85,8 +85,8 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 - 2026-09-26: Use deterministic, opposing light-pair traffic streams on existing wide roads; these are distant visual cues, not vehicle hulls or an intersection simulation. Shared-clock motion and lower-density quality presets keep screenshots reproducible.
 - 2026-09-26: Replace projected cloud noise with angular 3D noise, and add low haze pockets within the existing ray march; no extra atmosphere passes or dependencies.
 - 2026-09-26: Decode sign stroke IDs from unfiltered coverage-corrected atlas data and average broken strokes at distance; filtering categorical IDs caused salt-and-pepper neon edges.
-- 2026-09-27: Guard parallel interior-map ray divisions and clamp Fresnel inputs; two NaN pixels in fly-0 poisoned the entire bloom chain. Added a screenshot brightness assertion because draw-count checks cannot catch a black frame.
-- 2026-09-27: Visual tests pause the renderer after readiness through a dedicated test hook; this preserves the completed frame during slow software capture without changing normal interaction.
+2026-09-27 | signs | Guard parallel interior-map ray divisions and clamp Fresnel inputs (Codex pilot) | two NaN pixels in fly-0 poisoned the entire bloom chain. Added a screenshot brightness assertion because draw-count checks cannot catch a black frame.
+2026-09-27 | signs | Visual tests pause the renderer after readiness through a dedicated test hook (Codex pilot) | this preserves the completed frame during slow software capture without changing normal interaction.
 2026-09-27 | facade | Window faces encode a deterministic opening pattern in COLOR_0.g ((code+0.5)/64: 0 blank, 63 grid, 62/61 alternate, else a mask of columns 0–5) instead of a fill probability | Per-cell random openings produced scattered holes on side walls; structure must be ordered and identical floor to floor.
 2026-09-27 | facade | Column patterns wider than the 6-column mask fall back to alternate | A clamped mask made lopsided stair columns on wide office faces.
 2026-09-27 | pipeline | LOD variants declared in the def (`lods`) and built as `<id>.lod<n>` with params + {lod: n} | No duplicated defs; one generator, deterministic, cache keyed on the overrides.
@@ -116,9 +116,13 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 2026-09-27 | assets | Tower screens removed from defs | The layout's non-uniform vertical scale stretched them; billboards come from the zones.
 2026-09-27 | signs | Shaft-zone ads may also go on a tower's side face (50%), sized near the tier's maximum | 1:4 art is width-limited; a second face doubles the mid-height color without crowding the front.
 
-- 2026-09-27: Advertising pilot separates six generated text-free campaign illustrations from font-rendered copy, so spelling/layout remain editable without regenerating art; preserve originals and exact prompts.
-- 2026-09-27: Bundle OFL Noto Sans JP and Barlow Condensed for offline Pillow composition; reuse existing Python image tooling, with no new runtime dependency.
-- 2026-09-27: Reuse the established runtime instanced sign geometry for housings rather than introduce Blender frame assets; variable sign dimensions remain supported in one hardware draw.
-- 2026-09-27: Store emission in atlas alpha while keeping sign surfaces opaque; preserve transparent-pixel RGB in WebP and extrude padding to avoid dark borders/neighbor bleed.
-- 2026-09-27: Tower shaft screens may fill 85% of usable face width; remove high-rise shop-neon fallback so thin towers remain unadvertised instead of displaying giant pharmacies.
-- 2026-09-27: Keep the Midjourney library unchanged as source history and switch runtime imports to a separate generated pilot catalogue; generated layout indices must ship with their matching atlas catalogue.
+2026-09-27 | signs | Advertising pilot separates six generated text-free campaign illustrations from font-rendered copy, so spelling/layout remain editable without regenerating art (Codex pilot) | preserve originals and exact prompts.
+2026-09-27 | signs | Bundle OFL Noto Sans JP and Barlow Condensed for offline Pillow composition (Codex pilot) | reuse existing Python image tooling, with no new runtime dependency.
+2026-09-27 | signs | Reuse the established runtime instanced sign geometry for housings rather than introduce Blender frame assets (Codex pilot) | variable sign dimensions remain supported in one hardware draw.
+2026-09-27 | signs | Store emission in atlas alpha while keeping sign surfaces opaque (Codex pilot) | preserve transparent-pixel RGB in WebP and extrude padding to avoid dark borders/neighbor bleed.
+2026-09-27 | signs | Tower shaft screens may fill 85% of usable face width (Codex pilot) | remove high-rise shop-neon fallback so thin towers remain unadvertised instead of displaying giant pharmacies.
+2026-09-27 | signs | Keep the Midjourney library unchanged as source history and switch runtime imports to a separate generated pilot catalogue (Codex pilot) | generated layout indices must ship with their matching atlas catalogue.
+2026-09-27 | signs | Runtime sign library = human ChatGPT atlases sliced by tools/textures/slice_atlas.py (recursive XY-cut on dark gutters) + curated Midjourney images; Codex's typeset builder kept as `npm run signs:typeset`, no longer run by `npm run assets` | Human decision: the atlases look like real neon with correct text; the typeset pilot read as flat wayfinding and repeated 18 designs.
+2026-09-27 | signs | Atlas sheets take a sidecar JSON (kind, expected panel count, splits for gutterless pairs, excludes with reasons) | Slicing must fail loudly if a sheet changes; real-brand and junk cells stay out with a visible reason.
+2026-09-27 | signs | Rooftop billboard frames only take ads within ±25% of the frame aspect | Narrower ads left dark panels at the frame sides (human review).
+2026-09-27 | signs | Hologram back-face mirroring decided geometrically (camera vs plane normal), not gl_FrontFacing | gl_FrontFacing was wrong under SwiftShader: blade text read mirrored from one side.
