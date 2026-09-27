@@ -423,3 +423,34 @@ bridges, LOD). This last stretch adds:
   falling down the wall, columns every 5.4 m, parked cars in 2.6 m bays (body + cabin,
   vans taller, varied paint, occasional taillight), averaged to a lit band at distance.
   `docs/progress/phase-3/carpark-deck.png`.
+
+## Phase 4 — Motion (2026-09-27)
+
+- Vehicles: Blender assets (vehicles/car, flyer; 4 car and 2 flyer variants) living in the
+  facade BatchedMesh as dynamic instances moved each frame, so no extra draw calls or shader
+  programs. 666 cars on 100 lanes (headway 24/30/34 m on arterial/hero/secondary, scaled by
+  quality), 12 flyers on three loops at 95/150/230 m.
+- Lanes are now layout data (`traffic`, `skyLanes`) instead of runtime-only; sky loops are
+  pushed outward around towers (push widened over neighbors so the curve between samples
+  stays clear). Test: flyers clear every building and skybridge (3 seeds).
+- Rain: camera-relative box of 12k streaks (quality-scaled), lit by the lamp and sign maps
+  (orange near lamps), faded near the lens and at the volume edge, excluded from the
+  reflection pass; `?rain=0` disables it. Puddles get rain ripples (fade before aliasing).
+- Flicker: TV windows, sign flicker and broken tubes already ran on the shared clock.
+- Determinism: shot test renders `fly-0` twice at t=12 and requires identical pixels (passes).
+- Budgets: 36 draw calls (down 3: old light-box traffic removed), 1.89M max triangles,
+  22 programs.
+
+### Critique rounds
+1. Car bodies used the wall surface (tiled concrete cars) and the taxi used shopfronts;
+   bodies are dark metal, taxis get a lit roof sign.
+2. Flyers were dark silhouettes: thruster glow only faced down and side lights were soft
+   strips. Now bright cabin strips, nose light, full-width tail bar; they read at 300+ m.
+3. A raindrop right at the lens drew a long bright line in `aerial`; near fade 2–5 m.
+4. Inner sky loop climbed to 390 m over the tower cluster; re-centred over the old core.
+
+### Remaining (harsh)
+- Cars are boxy and all move at walking-car speeds (5–9 m/s); no turning at junctions,
+  they fade out at lane ends. From above the streams read well; up close they are simple.
+- No steam at street level yet.
+- Flyers do not bank; they yaw along the loop.

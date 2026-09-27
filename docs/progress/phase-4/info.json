@@ -1,0 +1,109 @@
+{
+  "layout": "city",
+  "t": 12,
+  "budget": {
+    "maxDrawCalls": 250,
+    "maxTriangles": 3000000,
+    "maxPrograms": 25
+  },
+  "viewpoints": {
+    "canyon": {
+      "calls": 36,
+      "triangles": 1455420,
+      "programs": 22,
+      "textures": 45,
+      "geometries": 10
+    },
+    "storefront": {
+      "calls": 36,
+      "triangles": 1587954,
+      "programs": 22,
+      "textures": 45,
+      "geometries": 10
+    },
+    "facade": {
+      "calls": 36,
+      "triangles": 1401906,
+      "programs": 22,
+      "textures": 45,
+      "geometries": 10
+    },
+    "skyline": {
+      "calls": 36,
+      "triangles": 920970,
+      "programs": 22,
+      "textures": 45,
+      "geometries": 10
+    },
+    "rooftops": {
+      "calls": 36,
+      "triangles": 876726,
+      "programs": 22,
+      "textures": 45,
+      "geometries": 10
+    },
+    "aerial": {
+      "calls": 36,
+      "triangles": 1892876,
+      "programs": 22,
+      "textures": 45,
+      "geometries": 10
+    },
+    "horizon": {
+      "calls": 36,
+      "triangles": 1298240,
+      "programs": 22,
+      "textures": 45,
+      "geometries": 10
+    },
+    "fly-0": {
+      "calls": 36,
+      "triangles": 1508960,
+      "programs": 22,
+      "textures": 45,
+      "geometries": 10
+    },
+    "fly-25": {
+      "calls": 36,
+      "triangles": 1570694,
+      "programs": 22,
+      "textures": 45,
+      "geometries": 10
+    },
+    "fly-50": {
+      "calls": 36,
+      "triangles": 1369104,
+      "programs": 22,
+      "textures": 45,
+      "geometries": 10
+    },
+    "fly-75": {
+      "calls": 36,
+      "triangles": 1699660,
+      "programs": 22,
+      "textures": 45,
+      "geometries": 10
+    },
+    "skyline-wide": {
+      "calls": 36,
+      "triangles": 1448216,
+      "programs": 22,
+      "textures": 45,
+      "geometries": 10
+    },
+    "architecture": {
+      "calls": 36,
+      "triangles": 1306692,
+      "programs": 22,
+      "textures": 45,
+      "geometries": 10
+    },
+    "tower-detail": {
+      "calls": 35,
+      "triangles": 110474,
+      "programs": 22,
+      "textures": 45,
+      "geometries": 10
+    }
+  }
+}

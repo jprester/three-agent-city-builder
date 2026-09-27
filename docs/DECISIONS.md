@@ -96,3 +96,7 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 2026-09-27 | layout | No distant skyline ring (PLAN phase 3 item) | The human rejected the scattered far field for breaking the city's cohesion; a ring of distant silhouettes risks the same read. Revisit only on request.
 2026-09-27 | signs | Blade brackets as one extra InstancedMesh (hanger arm + stub) | Signs floated 0.3 m off the wall; one draw call for ~400 blades.
 2026-09-27 | facade | Car-park decks get their own surface type ("deck": g = deck height/8, b = band height/4) | The dark recessed wall made car parks read as black slabs; interiors are shaded like windows, no extra geometry.
+2026-09-27 | motion | Cars and flyers are facade-shaded Blender assets moved as dynamic instances of the facade BatchedMesh | Shader programs are the scarce budget (22/25); this adds zero programs and zero draw calls.
+2026-09-27 | layout | Traffic lanes and sky lanes are layout data | PLAN §3 (placement belongs to the layout); lets tests check sky-lane clearance.
+2026-09-27 | motion | Rain as a camera-relative instanced streak volume lit from the lamp/sign maps, hidden in the reflection pass | PLAN §4; lit rain reads orange under lamps without real lights.
+2026-09-27 | config | Added a `vehicles` budget category (1500 tris, 64 KB) to pipeline.config.json | New asset category needs a budget or check fails.
