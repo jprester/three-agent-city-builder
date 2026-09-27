@@ -1,12 +1,12 @@
 import * as THREE from 'three';
-import catalog from '../../../art/textures/advertising/catalog.json';
-import neonV from '../../../art/textures/advertising/neon_v.webp?url';
-import neonH from '../../../art/textures/advertising/neon_h.webp?url';
-import posterP from '../../../art/textures/advertising/posters_p.webp?url';
-import posterL from '../../../art/textures/advertising/posters_l.webp?url';
-import screens from '../../../art/textures/advertising/screens.webp?url';
+import catalog from '../../../art/external/textures/signs/catalog.json';
+import neonV from '../../../art/external/textures/signs/neon_v.webp?url';
+import neonH from '../../../art/external/textures/signs/neon_h.webp?url';
+import posterP from '../../../art/external/textures/signs/posters_p.webp?url';
+import posterL from '../../../art/external/textures/signs/posters_l.webp?url';
+import screens from '../../../art/external/textures/signs/screens.webp?url';
 
-/** One image sign / ad (tools/textures/build_advertising.py catalog.json). Layout signs refer to it by index. */
+/** One image sign / ad (tools/textures/import_ads.py catalog.json). Layout signs refer to it by index. */
 export type ArtEntry = (typeof catalog.entries)[number];
 export const ART_ENTRIES: ArtEntry[] = catalog.entries;
 

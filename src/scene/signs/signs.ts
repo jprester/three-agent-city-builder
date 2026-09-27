@@ -159,19 +159,26 @@ function createHolograms(layout: Layout, holos: NonNullable<Layout['signs']>, ar
     shader.uniforms.uPosterP = { value: art.atlases[2] };
     shader.uniforms.uPosterL = { value: art.atlases[3] };
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute vec4 aRect;\nattribute vec4 aHolo;\nattribute vec3 aTint;\nvarying vec2 vHoloUv;\nflat varying vec4 vHolo;\nflat varying vec3 vTint;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHoloUv = aRect.xy + uv * aRect.zw;\nvHolo = aHolo;\nvTint = aTint;');
+      .replace('#include <common>', '#include <common>\nattribute vec4 aRect;\nattribute vec4 aHolo;\nattribute vec3 aTint;\nvarying vec2 vHoloUv;\nflat varying vec4 vHolo;\nflat varying vec3 vTint;\nflat varying vec4 vRect;\nvarying vec3 vPlaneW;\nflat varying vec3 vPlaneN;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHoloUv = aRect.xy + uv * aRect.zw;\nvHolo = aHolo;\nvTint = aTint;\nvRect = aRect;\nvPlaneW = (modelMatrix * instanceMatrix * vec4(position, 1.0)).xyz;\nvPlaneN = normalize(mat3(modelMatrix) * mat3(instanceMatrix) * vec3(0.0, 0.0, 1.0));');
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>
 uniform float uTime;
 uniform sampler2D uStroke, uNeonV, uNeonH, uPosterP, uPosterL;
 varying vec2 vHoloUv;
 flat varying vec4 vHolo;
-flat varying vec3 vTint;`)
+flat varying vec3 vTint;
+flat varying vec4 vRect;
+varying vec3 vPlaneW;
+flat varying vec3 vPlaneN;`)
       .replace('#include <map_fragment>', `
 int src = int(vHolo.x + 0.5);
 float seed = vHolo.y * 100.0;
 vec2 huv = vHoloUv;
+// Double-sided plane: seen from behind, mirror u within the art's rect so text reads
+// correctly from both sides (blades over the street are viewed from both directions).
+// Decided geometrically: gl_FrontFacing is unreliable on some GL backends (SwiftShader).
+if (dot(vPlaneN, cameraPosition - vPlaneW) < 0.0) huv.x = vRect.x + vRect.z - (huv.x - vRect.x);
 // Rare glitch: a horizontal tear for a fraction of a second.
 float tear = vHolo.w * step(0.985, fract(uTime * 0.37 + vHolo.y * 13.0)) * step(0.5, fract(huv.y * 23.0 + uTime * 5.0));
 huv.x += tear * 0.015;
@@ -194,7 +201,7 @@ diffuseColor = vec4(img * vHolo.z * scan * shimmer, 1.0);`)
   gl_FragColor.rgb *= 1.0 - heightFog(vFogWorld, fogDensity);
 #endif`);
   };
-  material.customProgramCacheKey = () => 'holo-signs-v2';
+  material.customProgramCacheKey = () => 'holo-signs-v4';
   return mesh;
 }
 
