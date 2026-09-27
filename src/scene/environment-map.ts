@@ -12,7 +12,7 @@ export function captureCityEnvironment(renderer: THREE.WebGLRenderer, scene: THR
     position: new THREE.Vector3(origin[0] + direction[0] * 180, 65, origin[2] + direction[1] * 180),
   });
   scene.environment = capture.texture;
-  scene.environmentIntensity = 0.65;
+  scene.environmentIntensity = 0.45;
   pmrem.dispose();
   return capture;
 }

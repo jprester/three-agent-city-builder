@@ -1,15 +1,27 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { ASSETS } from '../assets/manifest.gen';
 import { AssetLoader, getAsset } from '../assets/registry';
+import type { AssetMeta } from '../assets/types';
 import { instanceMatrix } from './instancing';
 import type { LayoutInstance } from './layout';
 
 /** Attributes the facade material reads; everything else is dropped. */
 const ATTRIBUTES = { position: 3, normal: 3, uv: 2, color: 3 } as const;
 
+/** Runtime level-of-detail control for the facade batch. */
+export interface FacadeLod {
+  /**
+   * Pick each instance's geometry by distance from `camera`: full detail near, the asset's
+   * LOD variants (meta.lodOf) beyond their meta.lodDistance × `bias`. Call before every
+   * render that uses a different camera or bias (e.g. the reflection pass with bias < 1).
+   */
+  update(camera: THREE.Camera, bias?: number): void;
+}
+
 /**
- * All facade-shaded instances in one BatchedMesh: one geometry per asset, one draw call
- * (multi-draw), per-instance frustum culling and front-to-back sorting.
+ * All facade-shaded instances in one BatchedMesh: one geometry per asset (plus its LOD
+ * variants), one draw call (multi-draw), per-instance frustum culling and sorting.
  */
 export async function buildFacadeBatch(instances: LayoutInstance[], loader: AssetLoader, material: THREE.Material) {
   const byAsset = new Map<string, LayoutInstance[]>();
@@ -18,8 +30,18 @@ export async function buildFacadeBatch(instances: LayoutInstance[], loader: Asse
     list.push(inst);
     byAsset.set(inst.asset, list);
   }
+  // LOD variants built by the pipeline for each placed asset, nearest first.
+  const lodsOf = new Map<string, { id: string; distance: number }[]>();
+  for (const id of byAsset.keys()) {
+    const lods = Object.entries(ASSETS)
+      .filter(([, e]) => (e.meta as AssetMeta).lodOf === id)
+      .map(([lid, e]) => ({ id: lid, distance: Number((e.meta as AssetMeta).lodDistance ?? Infinity) }))
+      .sort((a, b) => a.distance - b.distance);
+    if (lods.length) lodsOf.set(id, lods);
+  }
+  const ids = [...byAsset.keys(), ...[...lodsOf.values()].flat().map((l) => l.id)];
   const geometries = new Map<string, THREE.BufferGeometry>();
-  await Promise.all([...byAsset.keys()].map(async (id) => {
+  await Promise.all(ids.map(async (id) => {
     const gltf = await loader.load(getAsset(id)!);
     geometries.set(id, flatten(gltf.scene));
   }));
@@ -33,12 +55,38 @@ export async function buildFacadeBatch(instances: LayoutInstance[], loader: Asse
   batch.name = 'facade-batch';
   batch.perObjectFrustumCulled = true;
   batch.sortObjects = true;
+  const gidOf = new Map<string, number>();
+  for (const id of ids) gidOf.set(id, batch.addGeometry(geometries.get(id)!));
+  // Per instance: position and the (geometry id, switch distance²) ladder, full detail first.
+  const tracked: { instance: number; pos: THREE.Vector3; ladder: { gid: number; d2: number }[]; current: number }[] = [];
   for (const [id, list] of byAsset) {
-    const gid = batch.addGeometry(geometries.get(id)!);
-    for (const inst of list) batch.setMatrixAt(batch.addInstance(gid), instanceMatrix(inst));
+    const gid = gidOf.get(id)!;
+    const ladder = [{ gid, d2: 0 }, ...(lodsOf.get(id) ?? []).map((l) => ({ gid: gidOf.get(l.id)!, d2: l.distance * l.distance }))];
+    for (const inst of list) {
+      const instance = batch.addInstance(gid);
+      batch.setMatrixAt(instance, instanceMatrix(inst));
+      if (ladder.length > 1) tracked.push({ instance, pos: new THREE.Vector3(...inst.position), ladder, current: gid });
+    }
   }
   batch.computeBoundingSphere();
-  return batch;
+
+  const eye = new THREE.Vector3();
+  const lod: FacadeLod = {
+    update(camera, bias = 1) {
+      eye.setFromMatrixPosition(camera.matrixWorld);
+      const b2 = bias * bias;
+      for (const t of tracked) {
+        const d2 = t.pos.distanceToSquared(eye);
+        let gid = t.ladder[0].gid;
+        for (const step of t.ladder) if (d2 >= step.d2 * b2) gid = step.gid;
+        if (gid !== t.current) {
+          batch.setGeometryIdAt(t.instance, gid);
+          t.current = gid;
+        }
+      }
+    },
+  };
+  return { batch, lod };
 }
 
 /** Merge every mesh of a glTF scene into one float, indexed geometry in scene space. */

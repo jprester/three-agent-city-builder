@@ -19,6 +19,7 @@ import { createBridges } from './scene/bridges';
 import { createSignAtlas } from './scene/signs/atlas';
 import { createSigns } from './scene/signs/signs';
 import { Clock, parseFrozenTime } from './systems/clock';
+import type { FacadeLod } from './systems/buildings';
 import { buildInstances } from './systems/instancing';
 import { fetchLayout, generateLayout, type Layout } from './systems/layout';
 import { isQualityName, QUALITY_PRESETS } from './systems/quality';
@@ -45,6 +46,8 @@ declare global {
 
 /** Frames rendered before the scene counts as ready (lets async shader compiles settle). */
 const READY_FRAME = 3;
+/** LOD switch distances in the reflection pass, relative to the main view. */
+const REFLECTION_LOD_BIAS = 0.25;
 
 async function main() {
   const params = new URLSearchParams(location.search);
@@ -70,6 +73,7 @@ async function main() {
   controls.enableDamping = !params.has('viewpoint');
 
   let layout: Layout | null = null;
+  let facadeLod: FacadeLod | null = null;
   const url = layoutUrl(layoutId);
   const seedParam = params.get('seed');
   const seed = seedParam === null ? null : Number.parseInt(seedParam, 10);
@@ -100,7 +104,8 @@ async function main() {
   }
   if (layout) {
     const facadeMaterial = createFacadeMaterial(facadeUniforms);
-    const { group, missing } = await buildInstances(layout, new AssetLoader(), facadeMaterial);
+    const { group, missing, lod } = await buildInstances(layout, new AssetLoader(), facadeMaterial);
+    facadeLod = lod;
     scene.add(group);
     const bridges = createBridges(layout, facadeMaterial);
     if (bridges) scene.add(bridges);
@@ -157,7 +162,10 @@ async function main() {
     controls.update();
     traffic?.update(now);
     renderer.info.reset();
+    // The reflection is half resolution and smeared: simplified buildings from 1/4 the distance.
+    facadeLod?.update(camera, REFLECTION_LOD_BIAS);
     reflection.update(renderer, scene, camera, [streets]);
+    facadeLod?.update(camera);
     post.composer.render(delta);
     debug?.update();
     if (++frames === READY_FRAME) {

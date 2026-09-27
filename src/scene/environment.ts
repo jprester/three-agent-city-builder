@@ -30,9 +30,9 @@ export function createScene(time: { value: number }): THREE.Scene {
   scene.background = color('sky');
   scene.fog = new THREE.FogExp2(haze, FOG_DENSITY);
   scene.add(createSky(haze, time));
-  scene.add(new THREE.HemisphereLight(color('tv_blue').lerp(color('fluorescent'), 0.45), color('sodium').multiplyScalar(0.035), 0.16));
+  scene.add(new THREE.HemisphereLight(color('tv_blue').lerp(color('fluorescent'), 0.45), color('sodium').multiplyScalar(0.035), 0.11));
   // Broad night-sky illumination reveals ribs, rails and roof planes; no shadow maps.
-  const skyLight = new THREE.DirectionalLight(color('tv_blue').lerp(color('fluorescent'), 0.4), 0.38);
+  const skyLight = new THREE.DirectionalLight(color('tv_blue').lerp(color('fluorescent'), 0.4), 0.27);
   skyLight.position.set(-180, 260, -90);
   scene.add(skyLight);
   return scene;

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { AssetLoader, getAsset } from '../assets/registry';
-import { buildFacadeBatch } from './buildings';
+import { buildFacadeBatch, type FacadeLod } from './buildings';
 import type { Layout, LayoutInstance } from './layout';
 
 const Y = new THREE.Vector3(0, 1, 0);
@@ -39,7 +39,12 @@ export async function buildInstances(layout: Layout, loader: AssetLoader, facade
   if (layout.lamps?.length && getAsset(LAMP)) {
     for (const [x, z, angle] of layout.lamps) facade.push({ asset: LAMP, position: [x, 0, z], rotationY: angle, scale: 1 });
   }
-  if (facade.length) group.add(await buildFacadeBatch(facade, loader, facadeMaterial));
+  let lod: FacadeLod | null = null;
+  if (facade.length) {
+    const built = await buildFacadeBatch(facade, loader, facadeMaterial);
+    group.add(built.batch);
+    lod = built.lod;
+  }
 
   await Promise.all(
     [...byAsset].map(async ([id, list]) => {
@@ -60,5 +65,5 @@ export async function buildInstances(layout: Layout, loader: AssetLoader, facade
     }),
   );
 
-  return { group, missing: [...missing] };
+  return { group, missing: [...missing], lod };
 }
