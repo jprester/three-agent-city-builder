@@ -13,6 +13,15 @@
         background: rgba(6, 9, 16, 0.75); padding: 8px 12px; border-radius: 6px;
       }
       #status:empty { display: none; }
+      #hud {
+        position: fixed; left: 16px; top: 16px; max-width: min(70ch, calc(100vw - 32px));
+        font: 13px/1.5 system-ui, sans-serif; color: #c9d1dc; pointer-events: none;
+        background: rgba(6, 9, 16, 0.6); padding: 8px 12px; border-radius: 6px;
+        opacity: 0; transition: opacity 0.8s;
+      }
+      #hud.on { opacity: 1; transition: opacity 0.2s; }
+      #hud b { color: #ffc98a; font-weight: 600; }
+      #hud span { color: #8b95a3; }
     </style>
   </head>
   <body>

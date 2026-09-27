@@ -18,11 +18,14 @@ import { createBridges } from './scene/bridges';
 import { createSignAtlas } from './scene/signs/atlas';
 import { loadSignArt } from './scene/signs/art';
 import { createSigns } from './scene/signs/signs';
+import { CameraRig, isCameraMode } from './systems/cameras';
 import { Clock, parseFrozenTime } from './systems/clock';
+import { FlythroughPath } from './systems/flythrough';
 import type { FacadeLod } from './systems/buildings';
 import { buildInstances } from './systems/instancing';
 import { fetchLayout, generateLayout, type Layout } from './systems/layout';
 import { isQualityName, QUALITY_PRESETS } from './systems/quality';
+import { createHud } from './ui/hud';
 import { setStatus } from './ui/status';
 
 export interface SceneStats {
@@ -141,7 +144,15 @@ async function main() {
     ? createRain({ count: quality.rainCount, time: clock.uniform, lampMap: lamps.texture, signMap, lampRect: lamps.rect })
     : null;
   if (rain) scene.add(rain);
-  if (!applyViewpoint(viewpoint, camera, controls, layout)) problems.push(`Unknown viewpoint "${viewpoint}".`);
+  const path = FlythroughPath.from(layout);
+  if (!applyViewpoint(viewpoint, camera, controls, layout, path)) problems.push(`Unknown viewpoint "${viewpoint}".`);
+  // ?camera=orbit|fly|flythrough picks the starting mode (keys 1–3 switch). Shots stay in orbit.
+  const cameraParam = params.get('camera') ?? 'orbit';
+  if (!isCameraMode(cameraParam)) problems.push(`?camera= must be orbit, fly or flythrough, got "${cameraParam}".`);
+  // Hidden on load for captures (fixed viewpoints, frozen time); shown on any mode change.
+  const hud = createHud(!params.has('viewpoint') && frozenAt === null);
+  const rig = new CameraRig(clock, camera, renderer.domElement, controls, path, (mode) => hud.show(mode, !!path));
+  if (isCameraMode(cameraParam)) rig.setMode(cameraParam, true);
   setStatus(problems.join(' '));
 
   // Capture before adding the reflective ground, whose target is not rendered yet.
@@ -168,11 +179,14 @@ async function main() {
   window.__PAUSE_RENDER = () => renderer.setAnimationLoop(null);
   let frames = 0;
   let last = clock.time;
+  let lastReal = performance.now();
   renderer.setAnimationLoop(() => {
     const now = clock.tick();
     const delta = now - last;
     last = now;
-    controls.update();
+    const real = performance.now();
+    rig.update((real - lastReal) / 1000);
+    lastReal = real;
     vehicles?.update(now);
     renderer.info.reset();
     // The reflection is half resolution and smeared: simplified buildings from 1/4 the distance.
