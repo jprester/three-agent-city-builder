@@ -74,6 +74,7 @@ const DEFINES = /* glsl */ `
 #define T_FIXTURE ${T.fixture}
 #define T_ATLAS ${T.atlas}
 #define T_SCREEN ${T.screen}
+#define T_DECK ${T.deck}
 const vec2 CELL_RES = vec2(${f(C.residential.w)}, ${f(C.residential.h)});
 const vec2 CELL_OFFICE = vec2(${f(C.office.w)}, ${f(C.office.h)});
 const vec2 CELL_CURTAIN = vec2(${f(C.curtain.w)}, ${f(C.curtain.h)});
@@ -603,6 +604,37 @@ if (fType == T_ATLAS) {
   fEmit = img * dots * 1.9;
   fRough = 0.3;
   fNormalW = normalize(vFNormal);
+} else if (fType == T_DECK) {
+  // Car-park deck seen through the opening: dim concrete lit by ceiling tubes, columns every
+  // 5.4 m, parked cars in 2.6 m bays (some with a taillight). v counts from the first deck.
+  float dh = fFill * 8.0, band = fTint * 4.0;
+  float vv = mod(fUv.y, dh);
+  float h = vv - band;                          // height above the deck floor
+  float room = dh - band;
+  float tubes = fBox(h, room - 0.12, room - 0.04, fFw.y) * fBox(fract(fUv.x / 3.0), 0.1, 0.7, fFw.x / 3.0);
+  float light = 0.25 + 0.75 * smoothstep(0.0, room, h);
+  float col = fBox(fract(fUv.x / 5.4) * 5.4, 0.0, 0.5, fFw.x);
+  float bay = floor(fUv.x / 2.6);
+  float deckId = floor(fUv.y / dh);
+  float hasCar = step(0.4, fHash(vec2(bay, deckId + fSeed * 17.0)));
+  float bx = fract(fUv.x / 2.6) * 2.6;
+  // Car silhouette: body up to 0.75 m, narrower cabin above (vans are taller).
+  float van = step(0.8, fHash(vec2(bay, deckId + 3.0)));
+  float body = fBox(bx, 0.35, 2.25, fFw.x) * fBox(h, 0.12, 0.75, fFw.y);
+  float cabin = fBox(bx, 0.65 - 0.25 * van, 1.95 + 0.25 * van, fFw.x) * fBox(h, 0.7, 1.3 + 0.5 * van, fFw.y);
+  float car = hasCar * max(body, cabin);
+  float pc = fHash(vec2(bay, deckId + 7.0));
+  vec3 carCol = pc < 0.3 ? P_METAL * 1.2 : pc < 0.55 ? P_CONCRETE * 1.4 : pc < 0.75 ? P_TILE * 1.6 : pc < 0.88 ? P_RED * 0.25 : P_TV * 0.18;
+  carCol = mix(carCol, carCol * 0.45, cabin * (1.0 - body));   // windows darker than paint
+  float tail = hasCar * step(0.8, fHash(vec2(bay, deckId + 9.0))) * fBox(h, 0.5, 0.65, fFw.y) * max(fBox(bx, 0.4, 0.6, fFw.x), fBox(bx, 2.0, 2.2, fFw.x));
+  // Distant decks average to a lit band instead of aliasing.
+  float far = smoothstep(0.05, 0.2, max(fFw.x, fFw.y));
+  vec3 wall = P_CONCRETE * 0.6;
+  fBase = mix(mix(wall, P_CONCRETE_DARK * 0.5, col), carCol, car);
+  fEmit = P_FLUORESCENT * (0.035 * light * (1.0 - car * 0.6) + 1.6 * tubes) + P_RED * 1.5 * tail;
+  fEmit = mix(fEmit, P_FLUORESCENT * (0.03 + 0.06), far);
+  fRough = mix(0.85, 0.3, car);
+  fNormalW = normalize(vFNormal);
 } else if (fType == T_FIXTURE) {
   // fixture_colors in facade.json: sodium 0, white 0.25, cyan 0.5, blue 0.75, red 1.
   vec3 fc = fFill < 0.125 ? P_SODIUM : fFill < 0.375 ? P_FLUORESCENT : fFill < 0.625 ? P_CYAN : fFill < 0.875 ? P_TV : P_RED;
@@ -634,7 +666,7 @@ vec3 fSign = texture2D(uSignMap, (vFWorld.xz + vFNormal.xz * 1.5 - uLampRect.xy)
 fEmit += fBase * fSign * 0.6 * exp(-max(vFWorld.y - 14.0, 0.0) / 8.0) * smoothstep(0.0, 3.0, vFWorld.y);
 
 if (fType != T_FIXTURE && fType != T_SCREEN) fEmit += fBase * fWallLight;
-fEmit *= fType == T_FIXTURE || fType == T_SOFFIT || fType == T_SCREEN ? 1.0 : uWindowGain;
+fEmit *= fType == T_FIXTURE || fType == T_SOFFIT || fType == T_SCREEN || fType == T_DECK ? 1.0 : uWindowGain;
 diffuseColor.rgb = fBase;
 `;
 
@@ -657,7 +689,7 @@ export function createFacadeMaterial(uniforms: FacadeUniforms): THREE.MeshStanda
       .replace('#include <normal_fragment_maps>', 'normal = normalize((viewMatrix * vec4(fNormalW, 0.0)).xyz);')
       .replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance = fEmit;');
   };
-  material.customProgramCacheKey = () => 'facade-v6';
+  material.customProgramCacheKey = () => 'facade-v7';
   return material;
 }
 

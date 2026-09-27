@@ -1,6 +1,6 @@
 """Multi-storey car park: concrete spandrel bands around the building with open decks
-between them. Through each opening you see a dark recessed interior and, on the slot's
-ceiling, fluorescent tubes: a strongly horizontal light pattern unlike any other block.
+between them. Through each opening you see the lit deck interior (columns, parked cars,
+fluorescent tubes; shaded at runtime): a strongly horizontal light pattern unlike any other block.
 Ground floor: shops on the front. Roof deck with sodium lamp posts."""
 from lib.building import cell, flat_roof, side_frame, walls
 from lib.mesh import MeshBuilder
@@ -23,6 +23,7 @@ def generate(ctx):
     tm, ts = surf(ctx, "trim", 0.0, tint)
     mm, ms = surf(ctx, "metal", 0.0, 0.1)
     sm, ss = surf(ctx, "soffit", 0.0, 0.0)
+    dm, ds = surf(ctx, "deck", dh / 8.0, band / 4.0)
     for side in range(4):
         fw, xf = side_frame(side, W, D)
         uvf = facade_uv(fw, ph)
@@ -32,7 +33,9 @@ def generate(ctx):
             mb.quad([(-fw / 2, 0, z), (fw / 2, 0, z), (fw / 2, 0, z + band), (-fw / 2, 0, z + band)], tm, xf, ts, uvf)
             z1 = z + dh
             # Recessed dark interior, deck floor, lit slot ceiling.
-            mb.quad([(-fw / 2, inset, z + band), (fw / 2, inset, z + band), (fw / 2, inset, z1), (-fw / 2, inset, z1)], mm, xf, ms, uvf)
+            # Recessed back wall: the lit deck interior (columns, cars, ceiling tubes), shaded
+            # by the facade shader's "deck" type; v counts from the ground-floor top.
+            mb.quad([(-fw / 2, inset, z + band), (fw / 2, inset, z + band), (fw / 2, inset, z1), (-fw / 2, inset, z1)], dm, xf, ds, uvf)
             mb.quad([(-fw / 2, 0, z + band), (fw / 2, 0, z + band), (fw / 2, inset, z + band), (-fw / 2, inset, z + band)], tm, xf, ts, uvf)
             mb.quad([(-fw / 2, inset, z1), (fw / 2, inset, z1), (fw / 2, 0, z1), (-fw / 2, 0, z1)], sm, xf, ss, uvf)
     flat_roof(mb, ctx, W, D, top, tint, parapet=1.2)

@@ -29,6 +29,7 @@ _PREVIEW = {
     "fixture": "sodium",
     "atlas": "glass_dark",
     "screen": "sign_cyan",
+    "deck": "fluorescent",
 }
 
 ATTRIBUTE = "Surface"

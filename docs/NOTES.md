@@ -414,3 +414,12 @@ bridges, LOD). This last stretch adds:
 - Budgets: 39 draw calls, 1.80M max triangles, but **22 of 25 shader programs**. New
   material types are now the scarce resource; motion (rain, vehicles) should reuse
   materials where possible.
+
+### Human review: car parks looked like dead black slabs (2026-09-27)
+- Intended (car parks have no windows), but wrong: the recessed deck wall was dark metal
+  and the lit ceiling tubes sat on the deck underside, visible only from below. From level
+  or above a car park read as black stripes.
+- Fix: new "deck" surface type for the recessed wall: fluorescent ceiling tubes, light
+  falling down the wall, columns every 5.4 m, parked cars in 2.6 m bays (body + cabin,
+  vans taller, varied paint, occasional taillight), averaged to a lit band at distance.
+  `docs/progress/phase-3/carpark-deck.png`.

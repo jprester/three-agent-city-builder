@@ -95,3 +95,4 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 2026-09-27 | layout | Street props placed by the layout with their own random stream | Adding props must not move existing signs, bridges or buildings (layout diff stayed insertions-only).
 2026-09-27 | layout | No distant skyline ring (PLAN phase 3 item) | The human rejected the scattered far field for breaking the city's cohesion; a ring of distant silhouettes risks the same read. Revisit only on request.
 2026-09-27 | signs | Blade brackets as one extra InstancedMesh (hanger arm + stub) | Signs floated 0.3 m off the wall; one draw call for ~400 blades.
+2026-09-27 | facade | Car-park decks get their own surface type ("deck": g = deck height/8, b = band height/4) | The dark recessed wall made car parks read as black slabs; interiors are shaded like windows, no extra geometry.
