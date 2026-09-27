@@ -211,25 +211,35 @@ const metal = col('metal_dark');
 function createBrackets(signs: NonNullable<Layout['signs']>): THREE.InstancedMesh | null {
   const hardware: { sign: (typeof signs)[number]; center: number[]; scale: number[] }[] = [];
   for (const s of signs) {
-    if (s.brand !== undefined) continue;
     const [w, h, depth] = s.size;
     const add = (x: number, y: number, z: number, sx: number, sy: number, sz: number) =>
       hardware.push({ sign: s, center: [x,y,z], scale: [sx,sy,sz] });
+    // Holograms (transparent around the art) and brand lettering have no frame: a frame
+    // sized to the sign box would float away from the visible glow.
+    const holo = s.brand !== undefined || (s.art !== undefined && ART_ENTRIES[s.art].holo);
     const screen = s.art !== undefined && ART_ENTRIES[s.art].surface === 'screen';
     const t = Math.min(screen ? 0.18 : 0.09, w * 0.045);
-    // Projecting blade, wall lightbox and tower screen share a physical metal housing.
-    add(0,h/2,0,w+t,t,depth+0.08); add(0,-h/2,0,w+t,t,depth+0.08);
-    add(-w/2,0,0,t,h,depth+0.08); add(w/2,0,0,t,h,depth+0.08);
+    if (!holo) {
+      add(0,h/2,0,w+t,t,depth+0.08); add(0,-h/2,0,w+t,t,depth+0.08);
+      add(-w/2,0,0,t,h,depth+0.08); add(w/2,0,0,t,h,depth+0.08);
+    }
     if (s.kind === 'blade') {
-      add(0.15,h/2+t,0,w+0.3,t,t);
-      add(w/2+0.15,-h/2+0.2,0,0.3,t,t);
-    } else if (s.roof) {
-      // Rooftop billboard: a dark back panel exactly the ad's size, two legs and a brace down
-      // to the roof (the generator only reserves the slot).
-      add(0, 0, -depth / 2 - 0.06, w, h, 0.12);
-      const legs = s.legs ?? 2;
-      for (const x of [-w * 0.32, w * 0.32]) add(x, -h / 2 - legs / 2, -depth / 2 - 0.2, 0.22, legs, 0.22);
-      add(0, -h / 2 - legs * 0.5, -depth / 2 - 0.2, w * 0.64, 0.12, 0.12);
+      // Hanger arm along the top from the far edge to the wall, and a bottom stub to the
+      // wall. The wall is at local +x = w/2 + arm (layout: arm clears balconies/AC units).
+      const arm = s.arm ?? 0.3, tb = 0.07;
+      add((arm + 0.05) / 2, h/2 + tb, 0, w + arm - 0.05, tb, tb);
+      add(w/2 + arm/2, -h/2 + 0.2, 0, arm, tb * 0.8, tb * 0.8);
+      if (holo) add(-w/2 + 0.05, h/2 - 0.02, 0, tb, tb * 2, tb);   // hanger drop at the far end
+    } else if (s.legs !== undefined) {
+      // Rooftop board or crown lettering: posts and a brace down to the roof.
+      if (!holo) add(0, 0, -depth / 2 - 0.06, w, h, 0.12);
+      const legs = s.legs, n = w > 14 ? 4 : 2;
+      for (let k = 0; k < n; k++) {
+        const x = -w * 0.4 + (w * 0.8 * k) / (n - 1);
+        add(x, -h / 2 - legs / 2, -depth / 2 - 0.2, 0.2, legs, 0.2);
+      }
+      add(0, -h / 2 - legs * 0.5, -depth / 2 - 0.2, w * 0.8, 0.1, 0.1);
+      if (holo) add(0, -h / 2 - 0.05, -depth / 2 - 0.2, w * 0.9, 0.1, 0.15);   // mounting rail
     } else if (screen) {
       // Back rails give large mounted displays thickness when viewed obliquely.
       add(-w*0.3,0,-depth*0.6,t,h,t); add(w*0.3,0,-depth*0.6,t,h,t);
