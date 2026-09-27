@@ -30,7 +30,7 @@ export interface SignLight {
   strength: number;
 }
 
-export function createSigns(layout: Layout, atlas: SignAtlas, uniforms: SignUniforms): { mesh: THREE.InstancedMesh; lights: SignLight[] } | null {
+export function createSigns(layout: Layout, atlas: SignAtlas, uniforms: SignUniforms): { mesh: THREE.InstancedMesh; brackets: THREE.InstancedMesh | null; lights: SignLight[] } | null {
   const signs = layout.signs ?? [];
   if (!signs.length) return null;
   const lights: SignLight[] = [];
@@ -72,10 +72,40 @@ export function createSigns(layout: Layout, atlas: SignAtlas, uniforms: SignUnif
   geometry.setAttribute('aParams', new THREE.InstancedBufferAttribute(params, 4));
   mesh.instanceMatrix.needsUpdate = true;
   mesh.computeBoundingSphere();
-  return { mesh, lights };
+  return { mesh, brackets: createBrackets(signs), lights };
 }
 
 const metal = col('metal_dark');
+
+/**
+ * Mounting hardware for projecting blades: a hanger arm from the wall along the sign's top
+ * edge and a short stub at its bottom corner. In a blade's frame the wall is at local
+ * +x = width/2 + 0.3 (layout: blades stand 0.3 m off the facade). One instanced draw.
+ */
+function createBrackets(signs: NonNullable<Layout['signs']>): THREE.InstancedMesh | null {
+  const blades = signs.filter((s) => s.kind === 'blade');
+  if (!blades.length) return null;
+  const mesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1),
+    new THREE.MeshStandardMaterial({ color: metal, roughness: 0.55, metalness: 0.5 }), blades.length * 2);
+  mesh.name = 'sign-brackets';
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
+  const p = new THREE.Vector3();
+  blades.forEach((s, i) => {
+    const [w, h] = s.size;
+    q.setFromAxisAngle(up, s.rotationY);
+    const wall = w / 2 + 0.3;
+    // [local x0, local x1, local y, thickness]
+    const bars: [number, number, number, number][] = [[-w / 2 + 0.05, wall, h / 2 + 0.09, 0.07], [w / 2 - 0.05, wall, -h / 2 + 0.2, 0.06]];
+    bars.forEach(([x0, x1, y, t], k) => {
+      p.set((x0 + x1) / 2, y, 0).applyQuaternion(q).add(new THREE.Vector3(...s.position));
+      m.compose(p, q, new THREE.Vector3(x1 - x0, t, t));
+      mesh.setMatrixAt(i * 2 + k, m);
+    });
+  });
+  mesh.instanceMatrix.needsUpdate = true;
+  mesh.computeBoundingSphere();
+  return mesh;
+}
 
 function createSignMaterial(uniforms: SignUniforms): THREE.MeshStandardMaterial {
   const material = new THREE.MeshStandardMaterial({ color: metal, roughness: 0.5, metalness: 0.4 });

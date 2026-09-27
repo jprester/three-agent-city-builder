@@ -119,6 +119,7 @@ async function main() {
     const signs = createSigns(layout, atlas, signUniforms);
     if (signs) {
       scene.add(signs.mesh);
+      if (signs.brackets) scene.add(signs.brackets);
       signMap = createSignLightMap(layout, signs.lights);
       facadeUniforms.uSignMap.value = signMap;
       groundUniforms.uSignMap.value = signMap;
