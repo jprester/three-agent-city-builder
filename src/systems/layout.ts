@@ -1,5 +1,5 @@
 import { ASSETS } from '../assets/manifest.gen';
-import signCatalog from '../../art/textures/advertising/catalog.json';
+import signCatalog from '../../art/external/textures/signs/catalog.json';
 
 /** Artwork facts the layout sizes signs by (same as tools/build-layouts.mjs signArt()). */
 export const SIGN_ART = signCatalog.entries.map(({ kind, aspect, holo, hue, sat }) => ({ kind, aspect, holo, hue, sat }));
@@ -54,7 +54,7 @@ export interface LayoutSign {
   inset?: number;
   /** Brand of a tower logo family (wordmark / stacked logo). */
   brand?: number;
-  /** Catalog artwork index (art/textures/advertising/catalog.json entries). */
+  /** Catalog artwork index (art/external/textures/signs/catalog.json entries). */
   art?: number;
   /** Stroke-drawn design family when not catalog art. */
   stroke?: 'blade' | 'panel';

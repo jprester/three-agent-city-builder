@@ -454,7 +454,10 @@ export function generate({ params, seed, assets = {}, art = [] }) {
     if (meta.billboard && rng() < P.signs.roofBillboardChance) {
       // An ad fitted inside the rooftop frame (contain: the frame plate shows around it).
       const b = meta.billboard;
-      const c = chooseArt({ kind: 'ad', aspect: [1.1, 3.5], share: 1, stroke: null }, { w: [1, b.width], h: [1, b.height] }, (lo, hi) => hi);
+      // Only ads close to the frame's shape (~2.4:1), so they fill it instead of leaving
+      // dark panels at the sides; the largest size that fits.
+      const frame = b.width / b.height;
+      const c = chooseArt({ kind: 'ad', aspect: [frame * 0.75, frame * 1.25], share: 1, stroke: null }, { w: [1, b.width], h: [1, b.height] }, (lo, hi) => hi);
       if (c) {
         // Blender space → three.js: local x stays, Blender -y is the front (+z along v).
         const out = -(b.y + 0.25);
