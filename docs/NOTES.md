@@ -486,3 +486,13 @@ bridges, LOD). This last stretch adds:
   their proportions. Street signs are slimmer than before (true 1:4); color density in the
   canyon is a bit lower than the old stretched boxes. Shader programs 24/25: the hologram
   material costs one; the budget is now effectively full.
+
+### New human artwork (2026-09-27)
+- 21 of 22 new images used: 9 warm vertical neon, 4 warm horizontal neon, 3 cream backlit
+  lightboxes (opaque: a pale face can't be additive), 3 pictorial neon (lucky cat, two noodle
+  bowls; new square/pictorial placements on blades and shop panels), 2 portrait posters.
+  Skipped: a photo of a whole neon street (reads as a picture of a city on a wall), listed
+  with its reason in signs-src/exclude.txt.
+- Neon holo vs opaque is now decided by the pale-face share (bright, unsaturated pixels):
+  lightboxes 0.29–0.35, glowing neon ≤ 0.21; threshold 0.25.
+- Warm neon: 30 of 44 neon images (was 7 of 25). Canyon now reads red/amber first.

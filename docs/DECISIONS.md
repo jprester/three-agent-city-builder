@@ -109,3 +109,4 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 2026-09-27 | signs | The layout chooses sign artwork and sizes each sign to its aspect (art catalog passed like the asset catalog) | Runtime picking forced a fixed size onto arbitrary images: cropped or stretched signs.
 2026-09-27 | signs | Neon and dark-background ads render as additive holograms (separate InstancedMesh, fog fades instead of tints) | Human request; additive makes black transparent without alpha mattes. Costs one shader program (24/25).
 2026-09-27 | screens | Tower screens generated at exactly 2:3; portrait ads letterboxed into 2:3 slots | Screens were wider than the ads and stretched them.
+2026-09-27 | signs | Rejected source art listed in signs-src/exclude.txt with reasons; neon is holographic unless its pale-face share ≥ 0.25 (lightboxes) | Keeps the human's files in place, decisions visible; additive blending washes out bright lightbox faces.

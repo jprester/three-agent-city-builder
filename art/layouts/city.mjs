@@ -400,7 +400,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
         const arm = rng() < (onHero ? 0.5 : 0.3);
         const c = arm
           ? chooseArt({ kind: 'neon', aspect: [2, 99], share, stroke: 'panel' }, { w: [2.5, onHero ? 7.5 : 4.5], h: [0.6, Math.min(2.6, top - 5.4)] })
-          : chooseArt({ kind: 'neon', aspect: [0, 0.8], share, stroke: 'blade' }, { w: [0.7, onHero ? 3.2 : 2.2], h: [2.5, Math.min(onHero ? 12 : 7, top - 5.4)] });
+          : chooseArt({ kind: 'neon', aspect: [0, 1.05], share, stroke: 'blade' }, { w: [0.7, onHero ? 3.2 : 2.4], h: [2.2, Math.min(onHero ? 12 : 7, top - 5.4)] });
         if (!c) continue;
         const { w, h } = c;
         const y = rand(5.4, top - h) + h / 2;
@@ -418,7 +418,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
     if (rng() < cfg.panelChance && hu > 2.5) {
       const aboveCanopy = rng() < 0.5;
       const c = aboveCanopy
-        ? chooseArt({ kind: 'neon', aspect: [2, 99], share, stroke: 'panel' }, { w: [2.5, Math.min(9, 2 * hu - 1)], h: [0.6, 2.6] })
+        ? chooseArt({ kind: 'neon', aspect: [0.6, 99], share, stroke: 'panel' }, { w: [1.6, Math.min(9, 2 * hu - 1)], h: [0.6, 2.8] })
         : chooseArt({ kind: 'neon', aspect: [3, 99], share: 0, stroke: 'panel' }, { w: [2.5, Math.min(9, 2 * hu - 1)], h: [0.5, 1.0] });
       if (c) {
         const { w, h } = c;

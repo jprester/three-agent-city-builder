@@ -24,8 +24,17 @@ OUT = SRC / "signs"
 EXCLUDE = ("coinone_", "disagiovanile_", "g0crazyg0stupid_", "joan12404_")
 
 
+def excluded():
+    """Filenames listed in signs-src/exclude.txt (human-reviewed rejects, with reasons)."""
+    f = SRC / "signs-src" / "exclude.txt"
+    if not f.exists():
+        return set()
+    return {l.split("#")[0].strip() for l in f.read_text().splitlines() if l.split("#")[0].strip()}
+
+
 def sources(pattern):
-    return [p for p in sorted(SRC.glob(pattern)) if not p.name.startswith(EXCLUDE)]
+    skip = excluded()
+    return [p for p in sorted(SRC.glob(pattern)) if not p.name.startswith(EXCLUDE) and p.name not in skip]
 
 
 def light_color(im):
@@ -45,11 +54,21 @@ BUCKETS = [  # (name, slot w, slot h, columns, max aspect): each image goes to t
 ]
 
 
-def dark_background(im):
-    """True if the image is mostly near-black: then it renders as an additive hologram
-    (black = transparent). Photo posters with bright backgrounds stay opaque boards."""
+def pale_face(im):
+    """Share of the image that is bright and unsaturated: the lit face of a backlit
+    lightbox. Neon tubes on black score ≤ 0.21, cream lightboxes ≥ 0.29 (measured)."""
+    a = np.asarray(im.convert("RGB").resize((64, 64)), dtype=np.float32) / 255.0
+    mx, mn = a.max(axis=2), a.min(axis=2)
+    sat = (mx - mn) / np.maximum(mx, 1e-3)
+    return float(((mx > 0.55) & (sat < 0.4)).mean())
+
+
+def dark_background(im, share=0.45):
+    """True if at least `share` of the image is near-black: then it renders as an additive
+    hologram (black = transparent). Bright-faced art (photo posters, cream lightboxes) stays
+    an opaque board, since additive blending would wash it out."""
     a = np.asarray(im.convert("RGB").resize((64, 64)), dtype=np.float32).max(axis=2) / 255.0
-    return bool((a < 0.12).mean() > 0.45)
+    return bool((a < 0.12).mean() > share)
 
 
 def pack(items, slot_w, slot_h, cols, name, gap=4):
@@ -68,7 +87,7 @@ def pack(items, slot_w, slot_h, cols, name, gap=4):
             "id": path.stem[:48], "kind": kind, "atlas": name,
             # Rect of the image itself (not its slot) in UV space, v up: aspect-exact.
             "rect": [round(ox / W, 6), round(1 - (oy + fit.height) / H, 6), round(fit.width / W, 6), round(fit.height / H, 6)],
-            "aspect": round(im.width / im.height, 4), "holo": kind == "neon" or dark_background(im),
+            "aspect": round(im.width / im.height, 4), "holo": pale_face(im) < 0.25 if kind == "neon" else dark_background(im),
             "color": color, "hue": hue, "sat": sat,
         })
     atlas.save(OUT / f"{name}.webp", quality=86, method=6)
