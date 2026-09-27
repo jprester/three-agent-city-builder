@@ -18,7 +18,7 @@ def generate(ctx):
     ptop = ph + oh
     mb = MeshBuilder(ctx.name)
     walls(mb, ctx, W, D, 0.0, ph, 0.0, [("podium", 1.0, tint), ("podium", 0.6, tint), ("trim", 0.0, tint), ("podium", 0.6, tint)])
-    walls(mb, ctx, W, D, ph, ptop, ph, [("office", 0.5, tint), ("office", 0.3, tint), ("trim", 0.0, tint), ("office", 0.3, tint)])
+    walls(mb, ctx, W, D, ph, ptop, ph, [("office", "grid", tint), ("office", "alternate", tint), ("trim", 0.0, tint), ("office", "alternate", tint)])
     flat_roof(mb, ctx, W, D, ptop, tint, parapet=1.1)
 
     n = ctx.p("towers", 2)
@@ -31,8 +31,8 @@ def generate(ctx):
         cy = (D - td) / 2 * (0.4 if k % 2 else -0.2)
         f = floors + rng.randint(-3, 3)
         t_top = ptop + f * ch
-        walls(mb, ctx, tw, td, ptop, t_top, ptop, [("residential", 1.0, tint), ("residential", 0.8, tint),
-                                                    ("residential", 1.0, tint), ("residential", 0.8, tint)], cx, cy)
+        walls(mb, ctx, tw, td, ptop, t_top, ptop, [("residential", "grid", tint), ("residential", ctx.p("side_pattern", "grid"), tint),
+                                                    ("residential", "grid", tint), ("residential", ctx.p("side_pattern", "grid"), tint)], cx, cy)
         # AC units on every face.
         for side in range(4):
             fw, xf = side_frame(side, tw, td, cx, cy)

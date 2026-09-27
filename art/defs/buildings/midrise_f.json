@@ -9,6 +9,7 @@
     "body": "residential",
     "step_every": 5,
     "tint": 0.65,
-    "setback_bays": 0
+    "setback_bays": 0,
+    "side_pattern": "stair2"
   }
 }

@@ -9,7 +9,7 @@ import { TOWER_BUNDLES, type FacadeTextures } from './textures';
  * surface types). Geometry carries only what protrudes; windows, storefronts, lit canopies
  * and fixtures are shaded here from two vertex channels written by the Blender generators
  * (art/generators/lib/surface.py):
- *   COLOR_0     r: surface type, g: fill (share of cells with a window), b: tint
+ *   COLOR_0     r: surface type, g: window opening pattern / type parameter, b: tint
  *   TEXCOORD_0  facade coordinates in meters (u along, v up; glTF-flipped v)
  * Three sources of detail:
  *   - "atlas" faces (tower shafts, office bodies) map photographic facades from the tower
@@ -273,11 +273,39 @@ float windowIntensity(vec2 cid, float s) {
   return intensity;
 }
 
+// Opening pattern of a window face (lib/surface.py window_code): which cell columns have a
+// window, the same on every floor. Codes: 0 blank, 63 all, 62 even, 61 odd, else a bit mask
+// of columns 0..5. Everything window-related (glass, spill, distant fading) reads this.
+const float OPEN_GRID = 63.5 / 64.0;
+int openCode(float g) { return int(g * 64.0); }
+float openCol(float g, float col) {
+  int code = openCode(g);
+  if (col < 0.0) return 0.0;
+  if (code >= 63) return 1.0;
+  if (code == 62) return 1.0 - mod(col, 2.0);
+  if (code == 61) return mod(col, 2.0);
+  if (col > 5.0) return 0.0;
+  return mod(floor(float(code) / exp2(col)), 2.0);
+}
+// Share of columns with windows, for facade-mean LOD (column masks: over the masked span + 1).
+float openFrac(float g) {
+  int code = openCode(g);
+  if (code >= 63) return 1.0;
+  if (code >= 61) return 0.5;
+  float n = 0.0, hi = 0.0;
+  for (int i = 0; i < 6; i++) {
+    float b = mod(floor(float(code) / exp2(float(i))), 2.0);
+    n += b;
+    if (b > 0.5) hi = float(i);
+  }
+  return n / (hi + 2.0);
+}
+
 // Light of the window in cell cid (0 if unlit): same hashes and rules as windowLayer, so
 // neighboring cells can contribute spill without seams at cell borders.
 vec3 cellLight(int type, vec2 cid, float fill, float seed) {
   float s = seed * 97.13;
-  if (fHash(cid + s) > fill) return vec3(0.0);
+  if (openCol(fill, cid.x) < 0.5) return vec3(0.0);
   float litRatio = mix(0.25, 0.55, fract(seed * 7.31));
   if (type == T_OFFICE || type == T_CURTAIN) {
     litRatio *= type == T_CURTAIN ? 0.3 : 0.5;
@@ -304,8 +332,7 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
   windowFrac = (r.y - r.x) * (r.w - r.z) / (cell.x * cell.y);
 
   float s = seed * 97.13;
-  float hWin = fHash(cid + s);
-  float present = step(hWin, fill);
+  float present = openCol(fill, cid.x);
   float litRatio = mix(0.25, 0.55, fract(seed * 7.31));
   float baseRatio = litRatio;
   if (type == T_OFFICE || type == T_CURTAIN) {
@@ -366,7 +393,7 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
     vec2 q2 = (p - (wc + o * cell)) / (wh + vec2(0.9, 0.8));
     spill += L * exp(-dot(q2, q2) * 2.2);
     vec2 local = p - o * cell;
-    float neighborPresent = step(fHash(cid + o + s), fill);
+    float neighborPresent = openCol(fill, cid.x + o.x);
     float aperture = windowCoverage(local, glassRect, footprint) * barTransmission;
     filteredEmit += L * aperture * 0.44;
     filteredGlass += neighborPresent * aperture;
@@ -374,7 +401,7 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
   }
   spill *= 0.035 * (1.0 - mask);
   spill += lit * col * inten * 0.3 * around;
-  avgSpill = fill * min(litRatio, 1.0) * windowColor(0.5) * 1.09 * 0.03;
+  avgSpill = openFrac(fill) * min(litRatio, 1.0) * windowColor(0.5) * 1.09 * 0.03;
 
   // Unlit glass reflects the sky glow; lit glass shows the room.
   vec3 rv = reflect(-vt, vec3(0.0, 0.0, 1.0));
@@ -385,7 +412,7 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
   float glassFrac = (glassRect.y - glassRect.x) * (glassRect.w - glassRect.z)
                   / (cell.x * cell.y) * barTransmission;
   vec3 meanLit = windowColor(0.5) * 0.48;
-  avgEmit = fill * glassFrac * (baseRatio * (type == T_RES ? 1.0 : 0.85) * meanLit + (1.0 - baseRatio) * dark);
+  avgEmit = openFrac(fill) * glassFrac * (baseRatio * (type == T_RES ? 1.0 : 0.85) * meanLit + (1.0 - baseRatio) * dark);
 }
 `;
 
@@ -480,7 +507,7 @@ if (fType == T_ATLAS) {
   fEmit += glassAmt * skyRefl(reflect(-fV, fNormalW)) * (0.06 + 0.6 * pow(1.0 - clamp(fVt.z, 0.0, 1.0), 4.0));
 } else if (fType == T_RES || fType == T_OFFICE || fType == T_CURTAIN || fType == T_CAGE) {
   vec3 wEmit, filteredEmit, avgEmit, wSpill, wAvgSpill; float wMask, wFrame, wFrac, wAround, filteredMask;
-  windowLayer(fType == T_CAGE ? T_RES : fType, fUv, fFw, fType == T_CAGE ? 1.0 : fFill, fSeed, fVt,
+  windowLayer(fType == T_CAGE ? T_RES : fType, fUv, fFw, fType == T_CAGE ? OPEN_GRID : fFill, fSeed, fVt,
               wEmit, wMask, wFrame, filteredEmit, filteredMask, avgEmit, wFrac, wAround, wSpill, wAvgSpill);
   // Filter interior detail first, retain the opening coverage, then average subpixel cells.
   vec2 cellSize = fType == T_OFFICE ? CELL_OFFICE : fType == T_CURTAIN ? CELL_CURTAIN : CELL_RES;
@@ -488,7 +515,7 @@ if (fType == T_ATLAS) {
   float toFiltered = smoothstep(0.12, 0.3, px);
   float toAvg = smoothstep(0.75, 1.5, px);
   vec3 e = mix(mix(wEmit, filteredEmit, toFiltered), avgEmit, toAvg);
-  float m = mix(mix(wMask, filteredMask, toFiltered), wFrac * fFill, toAvg);
+  float m = mix(mix(wMask, filteredMask, toFiltered), wFrac * (fType == T_CAGE ? 1.0 : openFrac(fFill)), toAvg);
   float detail = 1.0 - toFiltered;
   vec3 glass = fType == T_CURTAIN ? mix(P_GLASS, P_METAL, 0.3) : P_GLASS;
   if (fType == T_CURTAIN) fBase = mix(P_METAL, P_CONCRETE_DARK, 0.3 * fTint);
@@ -630,7 +657,7 @@ export function createFacadeMaterial(uniforms: FacadeUniforms): THREE.MeshStanda
       .replace('#include <normal_fragment_maps>', 'normal = normalize((viewMatrix * vec4(fNormalW, 0.0)).xyz);')
       .replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance = fEmit;');
   };
-  material.customProgramCacheKey = () => 'facade-v5';
+  material.customProgramCacheKey = () => 'facade-v6';
   return material;
 }
 

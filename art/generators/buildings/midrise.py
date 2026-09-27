@@ -27,8 +27,8 @@ def generate(ctx):
             ("podium", 1.0, tint), ("podium", 0.6, tint), ("trim", 0.0, tint), ("podium", 0.6, tint)])
         ptop = ph + (podium_floors - 1) * oh
         if podium_floors > 1:
-            mall = ctx.p("mall_fill", 0.5)
-            walls(mb, ctx, W, D, ph, ptop, ph, [("office", mall, tint), ("office", mall * 0.6, tint), ("trim", 0.0, tint), ("office", mall * 0.6, tint)])
+            walls(mb, ctx, W, D, ph, ptop, ph, [("office", ctx.p("mall_pattern", "grid"), tint), ("office", "blank", tint),
+                                                ("trim", 0.0, tint), ("office", "blank", tint)])
         cd = ctx.p("canopy_depth", 1.8)
         if cd > 0:
             fw, xf = side_frame(0, W, D)
@@ -44,10 +44,11 @@ def generate(ctx):
     bw, bd = W - 2 * setback, D - setback
     cy = setback / 2
     top = ptop + floors * bh
-    fill = ctx.p("fill", 1.0 if podium_floors > 0 else 0.35)
     step_every = ctx.p("step_every", 0)
-    kinds = [(body, fill, tint), (body, fill * ctx.p("side_fill", 0.5), tint),
-             (body, fill * 0.8, tint), (body, fill * ctx.p("side_fill", 0.5), tint)]
+    # Opening patterns (lib.surface.window_code); industrial blocks default to sparse ones.
+    front = ctx.p("front_pattern", "grid" if podium_floors > 0 else "alternate")
+    side = ctx.p("side_pattern", "alternate" if podium_floors > 0 else "stair2")
+    kinds = [(body, front, tint), (body, side, tint), (body, ctx.p("back_pattern", front), tint), (body, side, tint)]
     if body == "office" and podium_floors > 0 and not ctx.p("procedural", False):
         # Office bodies take a photographic facade like the towers.
         walls(mb, ctx, bw, bd, ptop, top, ptop, [("atlas", 1.0, tint)] * 4, 0.0, cy)

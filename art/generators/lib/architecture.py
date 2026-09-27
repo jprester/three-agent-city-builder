@@ -3,7 +3,7 @@ Openings carry the existing procedural glass shader on a recessed plane; wall an
 reveal faces are real geometry. No overlapping front wall remains behind an opening.
 """
 from lib.building import side_frame
-from lib.surface import facade_uv, surf
+from lib.surface import cols_of, facade_uv, surf
 
 
 def recessed_front(mb, ctx, W, D, z0, z1, vbase, kinds, cell_size, rect, depth):
@@ -11,7 +11,7 @@ def recessed_front(mb, ctx, W, D, z0, z1, vbase, kinds, cell_size, rect, depth):
     for side, (kind, fill, tint) in enumerate(kinds):
         fw, xf = side_frame(side, W, D)
         uvf = facade_uv(fw, vbase)
-        m, s = surf(ctx, kind, fill, tint)
+        m, s = surf(ctx, kind, fill, tint, cols_of(ctx, kind, fw))
         tm, ts = surf(ctx, "trim", 0.0, tint)
         def front(x0, x1, low, high, y=0.0):
             if x1 > x0 and high > low:

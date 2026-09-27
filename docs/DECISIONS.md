@@ -87,3 +87,5 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 - 2026-09-26: Decode sign stroke IDs from unfiltered coverage-corrected atlas data and average broken strokes at distance; filtering categorical IDs caused salt-and-pepper neon edges.
 - 2026-09-27: Guard parallel interior-map ray divisions and clamp Fresnel inputs; two NaN pixels in fly-0 poisoned the entire bloom chain. Added a screenshot brightness assertion because draw-count checks cannot catch a black frame.
 - 2026-09-27: Visual tests pause the renderer after readiness through a dedicated test hook; this preserves the completed frame during slow software capture without changing normal interaction.
+2026-09-27 | facade | Window faces encode a deterministic opening pattern in COLOR_0.g ((code+0.5)/64: 0 blank, 63 grid, 62/61 alternate, else a mask of columns 0–5) instead of a fill probability | Per-cell random openings produced scattered holes on side walls; structure must be ordered and identical floor to floor.
+2026-09-27 | facade | Column patterns wider than the 6-column mask fall back to alternate | A clamped mask made lopsided stair columns on wide office faces.

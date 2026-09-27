@@ -2,8 +2,9 @@
 
 Every face of a facade-shaded asset carries, in the "Surface" color attribute (COLOR_0):
   r = (type code + 0.5) / 16   which shader branch (codes in art/style/facade.json)
-  g = fill                     residential/office/curtain/podium: share of cells with a window;
-                               other types: free parameter (unused so far)
+  g = window faces (residential/office/curtain): opening pattern code, (code + 0.5) / 64,
+                               see window_code(); podium: share of shop bays open;
+                               fixture: color; screen: seed
   b = tint                     0..1 picks the base color within the type's palette range
 
 UVs (TEXCOORD_0) are facade coordinates in meters: u along the facade from its left edge
@@ -34,15 +35,72 @@ ATTRIBUTE = "Surface"
 PREVIEW_ATTRIBUTE = "Preview"
 
 
-def surf(ctx, kind, fill=1.0, tint=0.0):
+WINDOW_KINDS = ("residential", "office", "curtain")
+
+# Opening pattern codes (must match openCol() in src/materials/facade.ts). Openings are
+# whole cell columns, identical on every floor: structure is ordered, life inside varies.
+CODE_BLANK, CODE_GRID, CODE_EVEN, CODE_ODD = 0, 63, 62, 61
+MASK_COLUMNS = 6   # bit masks address columns 0..5; wider patterns use grid/even/odd
+
+
+def window_code(pattern, cols):
+    """Opening pattern for a window face `cols` cells wide. `pattern` is a name:
+      grid       every column (exposed facades)
+      blank      no openings (party walls)
+      alternate  every other column
+      stair      one column in the middle (stairwell / bathroom stack)
+      stair2     two columns, one bay in from each end
+      ends       the two end columns (corner rooms)
+    or a legacy number (old fill share): >= 0.75 grid, >= 0.35 alternate, > 0 stair, else blank.
+    Returns the integer code 0..63."""
+    if not isinstance(pattern, str):
+        f = float(pattern)
+        pattern = "grid" if f >= 0.75 else "alternate" if f >= 0.35 else "stair" if f > 0 else "blank"
+    cols = max(1, int(round(cols)))
+    if pattern == "grid":
+        return CODE_GRID
+    if pattern == "blank":
+        return CODE_BLANK
+    if pattern == "alternate":
+        return CODE_EVEN if cols % 2 else CODE_ODD   # odd widths: symmetric with both ends open
+    picks = {
+        "stair": [cols // 2],
+        "stair2": [1, cols - 2] if cols >= 4 else [cols // 2],
+        "ends": [0, cols - 1] if cols >= 2 else [0],
+    }.get(pattern)
+    if picks is None:
+        raise ValueError(f"unknown window pattern {pattern!r}")
+    if max(picks) >= MASK_COLUMNS:
+        # Too wide for a column mask: an ordered alternate pattern instead of a lopsided one.
+        return CODE_EVEN if cols % 2 else CODE_ODD
+    mask = 0
+    for c in picks:
+        mask |= 1 << c
+    return min(mask, CODE_ODD - 1) or CODE_BLANK
+
+
+def surf(ctx, kind, fill=1.0, tint=0.0, cols=None):
     """(material, (surface color, preview color)) for a face of type `kind`.
+
+    For window kinds `fill` is an opening pattern (see window_code; `cols` = face width in
+    cells, needed by column patterns); for other kinds it is the type's own parameter.
 
     Every facade-shaded face uses the same material: Blender 5.2's glTF exporter writes the
     color attribute correctly only for a mesh's first material and exports the others white,
     so a facade mesh must be a single primitive anyway."""
     code = ctx.facade["types"][kind]
     mat = material(ctx, "M_facade", "concrete", roughness=0.8)
-    return mat, (((code + 0.5) / 16.0, float(fill), float(tint)), ctx.color(_PREVIEW[kind]))
+    if kind in WINDOW_KINDS:
+        g = (window_code(fill, cols or 1) + 0.5) / 64.0
+    else:
+        g = float(fill)
+    return mat, (((code + 0.5) / 16.0, g, float(tint)), ctx.color(_PREVIEW[kind]))
+
+
+def cols_of(ctx, kind, width):
+    """Face width in whole window cells of `kind` (1 for non-window kinds)."""
+    cell = ctx.facade["cells"].get(kind)
+    return max(1, int(round(width / cell["w"]))) if cell else 1
 
 
 def facade_uv(fw, vbase):

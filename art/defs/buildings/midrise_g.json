@@ -8,6 +8,7 @@
     "floors": 14,
     "body": "residential",
     "fins": true,
-    "tint": 0.2
+    "tint": 0.2,
+    "side_pattern": "blank"
   }
 }

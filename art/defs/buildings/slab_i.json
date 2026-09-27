@@ -11,6 +11,8 @@
     "ac_ratio": 0.4,
     "bay_ratio": 0.5,
     "ledges": true,
-    "canopy_depth": 2.4
+    "canopy_depth": 2.4,
+    "side_pattern": "stair",
+    "side_pattern_left": "blank"
   }
 }

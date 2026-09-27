@@ -1,7 +1,7 @@
 """Parts shared by the building families: walls on a box, flat roofs with parapets,
 rooftop clutter. Everything is facade-shaded (lib/surface.py). Coordinates are Blender
 building space: origin at the footprint center on the ground, front facing -Y."""
-from lib.surface import facade_uv, fixture, plan_uv, surf
+from lib.surface import cols_of, facade_uv, fixture, plan_uv, surf
 from lib.transforms import facade_width, facade_xf
 
 
@@ -24,11 +24,12 @@ def side_frame(side, W, D, cx=0.0, cy=0.0):
 
 
 def walls(mb, ctx, W, D, z0, z1, vbase, kinds, cx=0.0, cy=0.0):
-    """Four walls of a W×D box between z0 and z1. kinds[side] = (kind, fill, tint)."""
+    """Four walls of a W×D box between z0 and z1. kinds[side] = (kind, fill, tint); for
+    window kinds `fill` is an opening pattern (lib.surface.window_code)."""
     for side in range(4):
         fw, xf = side_frame(side, W, D, cx, cy)
         kind, fill, tint = kinds[side]
-        m, s = surf(ctx, kind, fill, tint)
+        m, s = surf(ctx, kind, fill, tint, cols_of(ctx, kind, fw))
         mb.quad([(-fw / 2, 0, z0), (fw / 2, 0, z0), (fw / 2, 0, z1), (-fw / 2, 0, z1)], m, xf, s, facade_uv(fw, vbase))
 
 

@@ -21,13 +21,14 @@ def generate(ctx):
     mb = MeshBuilder(ctx.name)
 
     walls(mb, ctx, W, D, ph, top, ph, [
-        ("residential", 1.0, tint), ("residential", 0.08, tint), ("residential", 0.7, tint), ("residential", 0.08, tint)])
+        ("residential", "grid", tint), ("residential", ctx.p("side_pattern", "blank"), tint),
+        ("residential", ctx.p("back_pattern", "alternate"), tint), ("residential", ctx.p("side_pattern", "blank"), tint)])
     walls(mb, ctx, W, D, 0.0, ph, 0.0, [("podium", 1.0, tint), ("trim", 0.0, tint), ("trim", 0.0, tint), ("trim", 0.0, tint)])
 
     fw, xf = side_frame(0, W, D)
     tm, ts = surf(ctx, "trim", 0.0, tint)
     sm, ss = surf(ctx, "soffit", 0.0, 0.0)
-    rm, rs = surf(ctx, "residential", 1.0, tint)
+    rm, rs = surf(ctx, "residential", "grid", tint, bays)
     mm, ms = surf(ctx, "metal", 0.0, 0.4)
     cd = ctx.p("canopy_depth", 1.8)
     mb.box(-fw / 2, fw / 2, -cd, 0.0, ph - 0.45, ph - 0.1, tm, xf, ("back",), ts, facade_uv(fw, 0.0), faces={"bottom": (sm, ss)})
@@ -55,7 +56,7 @@ def generate(ctx):
     roof_top = roof_clutter(mb, ctx, W, D, top, tint, ctx.p("clutter", 1.3))
     if rng.random() < ctx.p("shack_chance", 0.5):
         sw, sd = W * 0.6, D * 0.5
-        walls(mb, ctx, sw, sd, top, top + ch, top, [("residential", 0.5, tint)] * 4, 0.0, D * 0.2)
+        walls(mb, ctx, sw, sd, top, top + ch, top, [("residential", "stair", tint)] * 4, 0.0, D * 0.2)
         flat_roof(mb, ctx, sw, sd, top + ch, tint, 0.0, D * 0.2, parapet=0.0)
         roof_top = max(roof_top, top + ch)
     mb.finish()

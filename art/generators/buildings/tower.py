@@ -34,7 +34,7 @@ def generate(ctx):
 
     base_top = ph + ctx.p("base_floors", 2) * oh
     walls(mb, ctx, W, D, 0.0, ph, 0.0, [("podium", 1.0, tint), ("podium", 0.7, tint), ("podium", 0.5, tint), ("podium", 0.7, tint)])
-    walls(mb, ctx, W, D, ph, base_top, ph, [("office", 0.7, tint)] * 4)
+    walls(mb, ctx, W, D, ph, base_top, ph, [("office", "grid", tint)] * 4)
 
     z = base_top
     w, d = W, D
@@ -91,7 +91,7 @@ def _crown(mb, ctx, crown, w, d, z, tint):
         for k in range(2):
             flat_roof(mb, ctx, w, d, z, tint, parapet=0.5)
             w, d = w * 0.7, d * 0.7
-            walls(mb, ctx, w, d, z, z + 6.0, z, [("office", 0.4, tint)] * 4)
+            walls(mb, ctx, w, d, z, z + 6.0, z, [("office", "alternate", tint)] * 4)
             z += 6.0
         flat_roof(mb, ctx, w, d, z, tint, parapet=0.4)
         mast(mb, ctx, 0.0, 0.0, z, ctx.p("mast", 14.0), red=True)

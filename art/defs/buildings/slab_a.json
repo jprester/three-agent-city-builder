@@ -11,6 +11,7 @@
     "ac_ratio": 0.35,
     "ledges": true,
     "bay_ratio": 0.25,
-    "architectural_detail": true
+    "architectural_detail": true,
+    "side_pattern": "stair2"
   }
 }

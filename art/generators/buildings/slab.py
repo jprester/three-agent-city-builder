@@ -28,9 +28,10 @@ def generate(ctx):
     main_top = ph + front_floors * ch
 
     mb = MeshBuilder(ctx.name)
-    side_fill = ctx.p("side_fill", 0.18)
-    kinds = [("residential", 1.0, tint), ("residential", side_fill, tint),
-             ("residential", ctx.p("back_fill", 0.85), tint), ("residential", side_fill, tint)]
+    # Opening patterns per face (lib.surface.window_code): the street front is a full grid;
+    # sides default to a stair/bathroom column, since slabs usually stand wall to wall.
+    kinds = [("residential", "grid", tint), ("residential", ctx.p("side_pattern", "stair"), tint),
+             ("residential", ctx.p("back_pattern", "grid"), tint), ("residential", ctx.p("side_pattern_left", ctx.p("side_pattern", "stair")), tint)]
     detailed = ctx.p("architectural_detail", False)
     if detailed:
         recessed_front(mb, ctx, W, D, ph, main_top, ph, kinds, (cw, ch),
@@ -64,7 +65,7 @@ def generate(ctx):
     # Bay windows: box-outs over a run of floors in some non-balcony columns. Their front face
     # keeps the facade's cell coordinates, so the shaded windows land on it.
     bay_cols = {c for c in range(bays) if c not in balcony_cols and rng.random() < ctx.p("bay_ratio", 0.0)}
-    rm, rs = surf(ctx, "residential", 1.0, tint)
+    rm, rs = surf(ctx, "residential", "grid", tint, bays)
     bw = ctx.p("bay_depth", 0.7)
     for c in bay_cols:
         u0 = -fw / 2 + c * cw
@@ -126,7 +127,7 @@ def generate(ctx):
         sw, sd = cw * max(1, bays // 2 - 1), cw * 2
         sx = rng.choice((-1, 1)) * (W - sw) / 2 * 0.6
         sy = (D - sd) / 2 - 0.4
-        walls(mb, ctx, sw, sd, top, top + ch, top, [("residential", 0.7, tint)] * 4, sx, sy)
+        walls(mb, ctx, sw, sd, top, top + ch, top, [("residential", "alternate", tint)] * 4, sx, sy)
         flat_roof(mb, ctx, sw, sd, top + ch, tint, sx, sy, parapet=0.0)
         roof_top = max(roof_top, top + ch)
 

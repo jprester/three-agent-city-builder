@@ -12,6 +12,7 @@
     "fins": true,
     "canopy_depth": 2.8,
     "bay_ratio": 0.3,
-    "architectural_detail": true
+    "architectural_detail": true,
+    "side_pattern": "stair"
   }
 }

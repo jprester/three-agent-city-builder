@@ -8,6 +8,7 @@
     "tint": 0.65,
     "enclosed": 0.55,
     "canopy_depth": 2.2,
-    "railing": 0.8
+    "railing": 0.8,
+    "side_pattern": "stair"
   }
 }

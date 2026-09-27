@@ -348,3 +348,24 @@ wanted; we keep our palette. New viewpoint `skyline` matches the screenshot's fr
 - Composition: existing comparison cameras remain fixed. Added skyline-wide, architecture and tower-detail. The compact city's exposed outer edge and abrupt tower-district boundary remain obvious from aerial; deliberately did not revive the previously rejected scattered far field. More detail alone cannot solve that composition constraint.
 - Final regression investigation (2026-09-27): fly-0 initially rendered entirely black although its geometry counts passed. Reading the HDR scene buffer found exactly two NaN pixels; guarding parallel room-ray division reduced that to zero. Bloom had spread the invalid pixels across the frame. The visual harness now rejects blank images and pauses the completed frame during software screenshot capture to avoid capture stalls.
 - Final validation: inspected all 14 scene views and saved the final contact sheet and full renders. Maximum 2,806,840 triangles / 37 calls / 20 programs; 32 unit tests, typecheck, asset budgets and production build pass. All 14 visual comparisons fail only for missing approved baselines. No baselines approved; hardware FPS not measured. The brighter surfaces reveal repeated wall textures and simple interiors, so this is an incremental realism pass rather than concept-art parity.
+
+## Window opening patterns (human review, 2026-09-27)
+
+- Problem: some residential sides had randomly scattered windows. Window faces carried a
+  fill probability (slab sides 0.18, walk-up sides 0.08) and the shader hashed every cell,
+  so openings appeared at arbitrary places.
+- Fix: window faces now carry a deterministic opening pattern (lib/surface.py window_code):
+  grid, blank (party wall), alternate columns, stair (one column), stair2 (two columns),
+  ends (corner rooms). Openings are whole columns, identical on every floor. One shader
+  function (openCol/openFrac) drives glass, neighboring spill and distant LOD, so removed
+  windows neither glow nor reappear at distance. Randomness now only drives lighting,
+  blinds and interiors.
+- Assigned per variant in defs (side_pattern, side_pattern_left, back_pattern,
+  front_pattern, mall_pattern): slabs mix stair/stair2/ends/blank/grid/alternate sides,
+  walk-ups default to blank party walls (b/d have a stair column), estates grid or
+  alternate, mid-rise mall floors grid front with blank sides, industrial blocks alternate.
+- Verified: pattern codes decoded from every GLB (all valid); `rooftops`/`skyline` close-ups
+  show blank party walls and continuous stair columns; `aerial`/`fly-75`/`horizon` show no
+  stray distant glow. Budgets unchanged (37 calls, 2.81M max triangles).
+- Remaining: wide office faces (>6 cells) can only use grid/alternate/blank; column masks
+  address columns 0–5.

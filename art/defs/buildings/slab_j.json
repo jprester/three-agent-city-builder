@@ -10,6 +10,7 @@
     "cage_ratio": 0.15,
     "ac_ratio": 0.35,
     "step_floors": 3,
-    "fins": true
+    "fins": true,
+    "side_pattern": "alternate"
   }
 }

@@ -9,6 +9,7 @@
     "balcony_ratio": 0.0,
     "cage_ratio": 0.3,
     "ac_ratio": 0.35,
-    "canopy_depth": 0.0
+    "canopy_depth": 0.0,
+    "side_pattern": "blank"
   }
 }

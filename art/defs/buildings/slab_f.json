@@ -10,6 +10,7 @@
     "cage_ratio": 0.1,
     "ac_ratio": 0.4,
     "shack_chance": 0.7,
-    "ledges": true
+    "ledges": true,
+    "side_pattern": "grid"
   }
 }

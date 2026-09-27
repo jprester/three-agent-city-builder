@@ -11,6 +11,7 @@
     "ac_ratio": 0.3,
     "bay_ratio": 0.35,
     "step_floors": 2,
-    "canopy_depth": 2.8
+    "canopy_depth": 2.8,
+    "side_pattern": "stair"
   }
 }
