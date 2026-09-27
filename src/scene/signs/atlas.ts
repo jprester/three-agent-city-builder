@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mulberry32 } from '../../../art/layouts/lib/rng.mjs';
-import { latin, pseudoCjk, WORDS, type Glyph } from './glyphs';
+import { brandName, ICONS, latin, pseudoCjk, WORDS, type Glyph } from './glyphs';
 
 /**
  * Canvas atlas of invented sign faces, drawn once at startup. Channels are data, colored
@@ -15,12 +15,18 @@ export interface SignDesign {
   boxed: boolean;
   /** UV rect: u0, v0, du, dv (v up, as three samples it). */
   rect: THREE.Vector4;
+  /** Brand wordmark / stacked logo of brand `brand` (tower logo families). */
+  brand?: number;
 }
+
+/** Number of invented brands; each gets a vertical logo blade and a wordmark panel. */
+export const BRANDS = 8;
 
 export interface SignAtlas {
   texture: THREE.CanvasTexture;
   blades: SignDesign[];
   panels: SignDesign[];
+  brandNames: string[];
 }
 
 const SIZE = 2048;
@@ -41,19 +47,29 @@ export function createSignAtlas(seed: number): SignAtlas {
   const rect = (x: number, y: number, w: number, h: number) =>
     new THREE.Vector4(x / SIZE, 1 - (y + h) / SIZE, w / SIZE, h / SIZE);
 
-  // Blades: 12 × 2 slots of 170 × 512 in the top half.
-  for (let row = 0; row < 2; row++) for (let col = 0; col < 12; col++) {
-    const x = col * 170, y = row * 512;
-    const boxed = rng() < 0.45;
-    drawBlade(g, rng, x + GUTTER, y + GUTTER, 170 - 2 * GUTTER, 512 - 2 * GUTTER, boxed);
-    blades.push({ kind: 'blade', boxed, rect: rect(x + GUTTER, y + GUTTER, 170 - 2 * GUTTER, 512 - 2 * GUTTER) });
+  const brandNames = Array.from({ length: BRANDS }, () => brandName(rng));
+  const icons = Object.keys(ICONS);
+  // Blades: 12 × 2 slots of 170 × 512 in the top half. The last BRANDS slots are stacked
+  // brand logos; the first few carry a pictorial neon icon over a caption.
+  for (let i = 0; i < 24; i++) {
+    const x = (i % 12) * 170, y = Math.floor(i / 12) * 512;
+    const [bx, by, bw, bh] = [x + GUTTER, y + GUTTER, 170 - 2 * GUTTER, 512 - 2 * GUTTER];
+    const brand = i >= 24 - BRANDS ? i - (24 - BRANDS) : undefined;
+    const boxed = brand === undefined && rng() < 0.4;
+    if (brand !== undefined) drawStacked(g, rng, brandNames[brand], bx, by, bw, bh);
+    else if (i < icons.length) drawPictorial(g, rng, ICONS[icons[i]], bx, by, bw, bh, boxed);
+    else drawBlade(g, rng, bx, by, bw, bh, boxed);
+    blades.push({ kind: 'blade', boxed, brand, rect: rect(bx, by, bw, bh) });
   }
-  // Panels: 4 × 8 slots of 512 × 128 in the bottom half.
-  for (let row = 0; row < 8; row++) for (let col = 0; col < 4; col++) {
-    const x = col * 512, y = 1024 + row * 128;
-    const boxed = rng() < 0.6;
-    drawPanel(g, rng, x + GUTTER, y + GUTTER, 512 - 2 * GUTTER, 128 - 2 * GUTTER, boxed);
-    panels.push({ kind: 'panel', boxed, rect: rect(x + GUTTER, y + GUTTER, 512 - 2 * GUTTER, 128 - 2 * GUTTER) });
+  // Panels: 4 × 8 slots of 512 × 128 in the bottom half; the last BRANDS are wordmarks.
+  for (let i = 0; i < 32; i++) {
+    const x = (i % 4) * 512, y = 1024 + Math.floor(i / 4) * 128;
+    const [bx, by, bw, bh] = [x + GUTTER, y + GUTTER, 512 - 2 * GUTTER, 128 - 2 * GUTTER];
+    const brand = i >= 32 - BRANDS ? i - (32 - BRANDS) : undefined;
+    const boxed = brand === undefined && rng() < 0.6;
+    if (brand !== undefined) drawWordmark(g, rng, brandNames[brand], bx, by, bw, bh);
+    else drawPanel(g, rng, bx, by, bw, bh, boxed);
+    panels.push({ kind: 'panel', boxed, brand, rect: rect(bx, by, bw, bh) });
   }
 
   const texture = new THREE.CanvasTexture(canvas);
@@ -61,7 +77,7 @@ export function createSignAtlas(seed: number): SignAtlas {
   texture.generateMipmaps = true;
   texture.minFilter = THREE.LinearMipmapLinearFilter;
   texture.anisotropy = 4;
-  return { texture, blades, panels };
+  return { texture, blades, panels, brandNames };
 }
 
 type Ctx = CanvasRenderingContext2D;
@@ -130,4 +146,39 @@ function roundRect(g: Ctx, x: number, y: number, w: number, h: number, r: number
   g.arcTo(x, y + h, x, y, r);
   g.arcTo(x, y, x + w, y, r);
   g.closePath();
+}
+
+function drawPictorial(g: Ctx, rng: () => number, icon: Glyph, x: number, y: number, w: number, h: number, boxed: boolean) {
+  frame(g, rng, x, y, w, h, boxed);
+  const pad = w * 0.14, iw = w - 2 * pad;
+  strokeGlyph(g, rng, icon, x + pad, y + pad * 1.5, iw, iw, w * 0.05, boxed);
+  const n = 2 + Math.floor(rng() * 2);
+  const top = y + pad * 2 + iw, cell = Math.min(iw * 0.75, (h - (top - y) - pad) / n);
+  for (let i = 0; i < n; i++) {
+    strokeGlyph(g, rng, pseudoCjk(rng), x + (w - cell) / 2, top + i * cell + cell * 0.1, cell * 0.8, cell * 0.8, cell * 0.08, boxed);
+  }
+}
+
+/** Brand name, letters stacked vertically inside a tube border (the tower's corner logo). */
+function drawStacked(g: Ctx, rng: () => number, name: string, x: number, y: number, w: number, h: number) {
+  g.lineWidth = w * 0.035;
+  g.strokeStyle = `rgb(255,${40 + Math.floor(rng() * 215)},0)`;
+  roundRect(g, x + 4, y + 4, w - 8, h - 8, w * 0.2);
+  g.stroke();
+  const cell = Math.min((h - 30) / name.length, w * 0.9);
+  const cw = cell * 0.62, top = y + (h - cell * name.length) / 2;
+  [...name].forEach((c, i) => strokeGlyph(g, rng, latin(c), x + (w - cw) / 2, top + i * cell + cell * 0.12, cw, cell * 0.76, cell * 0.09, false));
+}
+
+/** Brand wordmark: widely tracked letters with an underline tube (the tower crown sign). */
+function drawWordmark(g: Ctx, rng: () => number, name: string, x: number, y: number, w: number, h: number) {
+  const ch = h * 0.62, track = Math.min(ch * 0.95, (w - 20) / name.length);
+  const cw = ch * 0.62, left = x + (w - track * name.length) / 2 + (track - cw) / 2;
+  [...name].forEach((c, i) => strokeGlyph(g, rng, latin(c), left + i * track, y + h * 0.08, cw, ch, ch * 0.1, false));
+  g.lineWidth = h * 0.05;
+  g.strokeStyle = `rgb(255,${40 + Math.floor(rng() * 215)},0)`;
+  g.beginPath();
+  g.moveTo(x + w * 0.15, y + h * 0.88);
+  g.lineTo(x + w * 0.85, y + h * 0.88);
+  g.stroke();
 }

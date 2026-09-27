@@ -2,13 +2,23 @@ import * as THREE from 'three';
 import palette from '../../../art/style/palette.json';
 import { mulberry32, weightedChoice } from '../../../art/layouts/lib/rng.mjs';
 import type { Layout } from '../../systems/layout';
-import type { SignAtlas } from './atlas';
+import { BRANDS, type SignAtlas, type SignDesign } from './atlas';
+import { artWeight, coverRect, SRC, type ArtEntry, type SignArt } from './art';
 
 export interface SignUniforms {
   uTime: { value: number };
   uAtlas: { value: THREE.Texture | null };
   uSignGain: { value: number };
+  uNeonV: { value: THREE.Texture | null };
+  uNeonH: { value: THREE.Texture | null };
+  uPosterP: { value: THREE.Texture | null };
+  uPosterL: { value: THREE.Texture | null };
 }
+
+// Brand colors (tower logo families): one fixed tube color per brand.
+const BRAND_COLORS = ['sign_red', 'sign_amber', 'tungsten', 'sign_red', 'fluorescent', 'sodium', 'sign_cyan', 'sign_amber'];
+/** Share of signs showing the human's artwork rather than a stroke-drawn design. */
+const IMAGE_SHARE = { street: 0.6, tower: 0.85 };
 
 // Mostly practical colors; saturated neon as the accent; cyan kept rare (style bible).
 const TUBE_COLORS: Record<string, number> = { sign_red: 32, sign_amber: 25, tungsten: 14, fluorescent: 16, sign_cyan: 3, sodium: 10 };
@@ -30,10 +40,11 @@ export interface SignLight {
   strength: number;
 }
 
-export function createSigns(layout: Layout, atlas: SignAtlas, uniforms: SignUniforms): { mesh: THREE.InstancedMesh; brackets: THREE.InstancedMesh | null; lights: SignLight[] } | null {
+export function createSigns(layout: Layout, atlas: SignAtlas, art: SignArt, uniforms: SignUniforms): { mesh: THREE.InstancedMesh; brackets: THREE.InstancedMesh | null; lights: SignLight[] } | null {
   const signs = layout.signs ?? [];
   if (!signs.length) return null;
   const lights: SignLight[] = [];
+  const uses = new Map<ArtEntry, number>();
   const geometry = new THREE.BoxGeometry(1, 1, 1);
   const n = signs.length;
   const rect = new Float32Array(n * 4);
@@ -46,23 +57,50 @@ export function createSigns(layout: Layout, atlas: SignAtlas, uniforms: SignUnif
 
   signs.forEach((s, i) => {
     const rng = mulberry32((s.seed ^ layout.seed) >>> 0);
-    // Tall signs use tall designs, wide ones (panels and arms) wide designs.
-    const designs = s.size[1] > s.size[0] ? atlas.blades : atlas.panels;
-    const d = designs[Math.floor(rng() * designs.length)];
-    d.rect.toArray(rect, i * 4);
-    const tubeCol = col(weightedChoice(rng, TUBE_COLORS));
+    const tall = s.size[1] > s.size[0] * 1.3;
+    const aspect = s.size[0] / s.size[1];
+    // Weighted by warmth, divided by how often each image is already used, so a few warm
+    // signs do not repeat down the whole street.
+    const w = (e: ArtEntry) => artWeight(e) / (1 + 1.5 * (uses.get(e) ?? 0));
+    const pickArt = (list: ArtEntry[]) => {
+      let r = rng() * list.reduce((a, e) => a + w(e), 0);
+      let pick = list[list.length - 1];
+      for (const e of list) if ((r -= w(e)) <= 0) { pick = e; break; }
+      uses.set(pick, (uses.get(pick) ?? 0) + 1);
+      return pick;
+    };
+    let source: number, design: SignDesign | null = null, image: ArtEntry | null = null;
+    if (s.brand !== undefined) {
+      const brand = s.brand;
+      design = (tall ? atlas.blades : atlas.panels).find((d) => d.brand === brand % BRANDS)!;
+      source = 0;
+    } else if (s.art === 'landscape') {
+      image = pickArt(art.entries.posterL);
+      source = SRC.posterL;
+    } else if (rng() < (s.inset !== undefined ? IMAGE_SHARE.tower : IMAGE_SHARE.street)) {
+      image = pickArt(tall ? art.entries.neonV : art.entries.neonH);
+      source = tall ? SRC.neonV : SRC.neonH;
+    } else {
+      const pool = (tall ? atlas.blades : atlas.panels).filter((d) => d.brand === undefined);
+      design = pool[Math.floor(rng() * pool.length)];
+      source = design.boxed ? 1 : 0;
+    }
+    (image ? coverRect(image, aspect) : design!.rect).toArray(rect, i * 4);
+    const tubeCol = s.brand !== undefined ? col(BRAND_COLORS[s.brand % BRANDS]) : col(weightedChoice(rng, TUBE_COLORS));
     const backCol = col(weightedChoice(rng, BOX_COLORS));
     tubeCol.toArray(tube, i * 3);
     backCol.toArray(back, i * 3);
+    const lightCol = image ? new THREE.Color(...image.color) : design!.boxed ? backCol.clone().lerp(new THREE.Color(1, 1, 1), 0.3) : tubeCol;
     lights.push({
       x: s.position[0], y: s.position[1], z: s.position[2],
       size: Math.max(s.size[0], s.size[1]),
-      color: d.boxed ? backCol.clone().lerp(new THREE.Color(1, 1, 1), 0.3) : tubeCol,
-      strength: d.boxed ? 0.6 : 1,
+      color: lightCol,
+      strength: image ? (source >= SRC.posterP ? 0.5 : 0.9) : design!.boxed ? 0.6 : 1,
     });
-    const broken = rng() < 0.3 ? 0.15 + 0.35 * rng() : 0;
-    const flicker = rng() < 0.2 ? 0.1 + 0.3 * rng() : 0;
-    params.set([d.boxed ? 1 : 0, rng(), broken, flicker], i * 4);
+    const branded = s.brand !== undefined;
+    const broken = !branded && !image && rng() < 0.3 ? 0.15 + 0.35 * rng() : 0;
+    const flicker = !branded && rng() < (image ? 0.05 : 0.2) ? 0.1 + 0.3 * rng() : 0;
+    params.set([source, rng(), broken, flicker], i * 4);
     m.compose(new THREE.Vector3(...s.position), q.setFromAxisAngle(up, s.rotationY), new THREE.Vector3(...s.size));
     mesh.setMatrixAt(i, m);
   });
@@ -134,6 +172,7 @@ vParams = aParams;`);
 uniform sampler2D uAtlas;
 uniform float uTime;
 uniform float uSignGain;
+uniform sampler2D uNeonV, uNeonH, uPosterP, uPosterL;
 varying vec2 vSignUv;
 varying float vFace;
 flat varying vec3 vTube;
@@ -141,7 +180,16 @@ flat varying vec3 vBack;
 flat varying vec4 vParams;
 float sHash(float x) { return fract(sin(x * 127.1) * 43758.5453); }`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-if (vFace > 0.5) {
+if (vFace > 0.5 && vParams.x > 1.5) {
+  // Artwork (neon photos / ads): emissive as drawn; whole-sign flicker for a rare few.
+  int src = int(vParams.x + 0.5);
+  vec3 img = src == 2 ? texture2D(uNeonV, vSignUv).rgb : src == 3 ? texture2D(uNeonH, vSignUv).rgb
+           : src == 4 ? texture2D(uPosterP, vSignUv).rgb : texture2D(uPosterL, vSignUv).rgb;
+  float fl = vParams.w > 0.0 ? step(0.3, fract(sin(floor(uTime * 9.0) * 91.7 + vParams.y * 1000.0) * 4375.85)) : 1.0;
+  float gain = src <= 3 ? 2.1 : 1.0;
+  diffuseColor.rgb = img * 0.08;
+  totalEmissiveRadiance += img * gain * fl * uSignGain;
+} else if (vFace > 0.5) {
   vec4 s = texture2D(uAtlas, vSignUv);
   float glow = textureLod(uAtlas, vSignUv, 3.5).r;
   // Decode stroke IDs before filtering: coverage-filtered IDs produce random edge speckles.
@@ -172,6 +220,6 @@ if (vFace > 0.5) {
   totalEmissiveRadiance += e * uSignGain;
 }`);
   };
-  material.customProgramCacheKey = () => 'signs-v2';
+  material.customProgramCacheKey = () => 'signs-v3';
   return material;
 }

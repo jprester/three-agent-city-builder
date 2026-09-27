@@ -115,3 +115,58 @@ export function pseudoCjk(rng: Rng): Glyph {
   }
   return strokes;
 }
+
+// ---- Pictorial neon icons (idea from the human's earlier future-cityscape project): a trade
+// drawn as one or two neon tubes, read instantly at distance. Unit box, y down.
+const circle = (cx: number, cy: number, r: number, a0 = 0, a1 = Math.PI * 2, n = 18): [number, number][] =>
+  Array.from({ length: n + 1 }, (_, k) => {
+    const a = a0 + ((a1 - a0) * k) / n;
+    return [cx + Math.cos(a) * r, cy + Math.sin(a) * r] as [number, number];
+  });
+
+export const ICONS: Record<string, Glyph> = {
+  ramen: [
+    [[0.08, 0.55], [0.92, 0.55]],
+    circle(0.5, 0.55, 0.42, 0, Math.PI, 14),
+    [[0.62, 0.52], [0.95, 0.1]], [[0.7, 0.52], [0.98, 0.18]],
+    [[0.32, 0.4], [0.28, 0.3], [0.34, 0.2], [0.3, 0.1]], [[0.46, 0.4], [0.42, 0.3], [0.48, 0.2], [0.44, 0.1]],
+  ],
+  torii: [
+    [[0.02, 0.14], [0.2, 0.2], [0.5, 0.22], [0.8, 0.2], [0.98, 0.14]],
+    [[0.12, 0.34], [0.88, 0.34]],
+    [[0.24, 0.2], [0.2, 0.98]], [[0.76, 0.2], [0.8, 0.98]], [[0.5, 0.22], [0.5, 0.34]],
+  ],
+  koi: [
+    [[0.1, 0.5], [0.3, 0.3], [0.6, 0.28], [0.78, 0.45], [0.6, 0.62], [0.3, 0.66], [0.1, 0.5]],
+    [[0.78, 0.45], [0.98, 0.25], [0.92, 0.48], [0.98, 0.7], [0.78, 0.45]],
+    [[0.4, 0.3], [0.5, 0.14], [0.56, 0.29]], circle(0.24, 0.47, 0.035, 0, Math.PI * 2, 8),
+  ],
+  martini: [
+    [[0.1, 0.12], [0.9, 0.12], [0.5, 0.58], [0.1, 0.12]],
+    [[0.5, 0.58], [0.5, 0.9]], [[0.3, 0.92], [0.7, 0.92]],
+    [[0.62, 0.3], [0.8, 0.05]], circle(0.58, 0.34, 0.06, 0, Math.PI * 2, 10),
+  ],
+  cat: [
+    circle(0.5, 0.55, 0.3, 0, Math.PI * 2, 20),
+    [[0.26, 0.38], [0.28, 0.12], [0.44, 0.27]], [[0.56, 0.27], [0.72, 0.12], [0.74, 0.38]],
+    [[0.8, 0.5], [0.86, 0.26], [0.95, 0.22]],
+    circle(0.4, 0.52, 0.04, 0, Math.PI * 2, 8), circle(0.6, 0.52, 0.04, 0, Math.PI * 2, 8),
+  ],
+  dice: [
+    [[0.14, 0.14], [0.86, 0.14], [0.86, 0.86], [0.14, 0.86], [0.14, 0.14]],
+    circle(0.32, 0.32, 0.06, 0, Math.PI * 2, 8), circle(0.5, 0.5, 0.06, 0, Math.PI * 2, 8), circle(0.68, 0.68, 0.06, 0, Math.PI * 2, 8),
+  ],
+  pill: [
+    [[0.3, 0.1], [0.7, 0.1], [0.7, 0.9], [0.3, 0.9], [0.3, 0.1]],
+    [[0.5, 0.25], [0.5, 0.75]], [[0.25, 0.5], [0.75, 0.5]],
+  ],
+};
+
+// Invented brand syllables for tower wordmarks (logo families: one brand on one tower in
+// several placements). Short, so stacked vertical versions fit a blade.
+const SYL = ['ZEN', 'KOR', 'NEO', 'ONI', 'RYU', 'AKA', 'KAI', 'GEN', 'NEX', 'ION', 'OTO', 'VOL', 'HEX', 'MIRA', 'SHIN', 'DYN'];
+export function brandName(rng: () => number): string {
+  let a = SYL[Math.floor(rng() * SYL.length)], b = SYL[Math.floor(rng() * SYL.length)];
+  if (a === b) b = 'TEK';
+  return (a + b).slice(0, 7);
+}

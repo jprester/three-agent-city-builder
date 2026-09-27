@@ -14,9 +14,9 @@ import { createPost } from './scene/post';
 import { PlanarReflection } from './scene/reflection';
 import { createStreets } from './scene/streets';
 import { createRain } from './scene/rain';
-import { createScreenAtlas } from './scene/screens';
 import { createBridges } from './scene/bridges';
 import { createSignAtlas } from './scene/signs/atlas';
+import { loadSignArt } from './scene/signs/art';
 import { createSigns } from './scene/signs/signs';
 import { Clock, parseFrozenTime } from './systems/clock';
 import type { FacadeLod } from './systems/buildings';
@@ -98,7 +98,6 @@ async function main() {
   const reflection = new PlanarReflection(quality.reflectionScale);
   groundUniforms.uReflection.value = reflection.target.texture;
   groundUniforms.uReflMatrix.value = reflection.matrix;
-  facadeUniforms.uScreens.value = createScreenAtlas(layout?.seed ?? 0);
   if (lamps) {
     facadeUniforms.uLampMap.value = lamps.texture;
     facadeUniforms.uLampRect.value.copy(lamps.rect);
@@ -116,11 +115,17 @@ async function main() {
     if (missing.length) problems.push(`Layout references unbuilt assets: ${missing.join(', ')}`);
   }
   let signMap: THREE.Texture | null = null;
-  const signUniforms = { uTime: clock.uniform, uAtlas: { value: null as THREE.Texture | null }, uSignGain: { value: 1 } };
+  const signArt = await loadSignArt(Math.min(8, renderer.capabilities.getMaxAnisotropy()));
+  facadeUniforms.uScreens.value = signArt.textures.posterP;
+  const signUniforms = {
+    uTime: clock.uniform, uAtlas: { value: null as THREE.Texture | null }, uSignGain: { value: 1 },
+    uNeonV: { value: signArt.textures.neonV }, uNeonH: { value: signArt.textures.neonH },
+    uPosterP: { value: signArt.textures.posterP }, uPosterL: { value: signArt.textures.posterL },
+  };
   if (layout) {
     const atlas = createSignAtlas(layout.seed);
     signUniforms.uAtlas.value = atlas.texture;
-    const signs = createSigns(layout, atlas, signUniforms);
+    const signs = createSigns(layout, atlas, signArt, signUniforms);
     if (signs) {
       scene.add(signs.mesh);
       if (signs.brackets) scene.add(signs.brackets);
