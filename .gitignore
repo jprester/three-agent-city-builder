@@ -9,3 +9,6 @@ __pycache__/
 .DS_Store
 *.blend
 .vite/
+art/external/textures/small-ads/
+art/external/textures/ads-v2/
+.DS_Store
