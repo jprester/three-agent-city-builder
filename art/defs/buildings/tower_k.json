@@ -17,7 +17,6 @@
       ]
     ],
     "crown": "stepped",
-    "screen": 0.8,
     "structural_ribs": true,
     "rib_spacing": 7
   }

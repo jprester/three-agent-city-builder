@@ -22,7 +22,6 @@
     ],
     "crown": "spire",
     "spire": 45,
-    "screen": 0.55,
     "structural_ribs": true,
     "rib_spacing": 8
   }

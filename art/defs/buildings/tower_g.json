@@ -17,7 +17,6 @@
       ]
     ],
     "crown": "flat",
-    "screen": 0.7,
     "crane": true,
     "crane_angle": 2.2,
     "structural_ribs": true,

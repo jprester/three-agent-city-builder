@@ -13,7 +13,8 @@ Crowns (param "crown"):
 Accents (param "accent"): "corners" (LED strips on every tier's vertical edges) or
 "stripes" (two vertical LED stripes on the front and back faces), in "accent_color"
 (facade.json fixture_colors). "screen": a video screen on the lowest tier's front,
-covering that fraction of the face width. Every crown gets red aviation lights.
+covering that fraction of the face width (unused by current defs: the layout's vertical
+scaling would stretch it; tower billboards come from the layout's sign zones). Every crown gets red aviation lights.
 Width and depth are whole curtain cells (1.5 m)."""
 from lib.building import ac_cluster, antenna_cluster, aviation_lights, cell, corner_strips, crane, face_stripes, flat_roof, mast, screen, walls
 from lib.architecture import tower_structure
@@ -71,7 +72,8 @@ def generate(ctx):
         top = max(top, crane(mb, ctx, w * 0.2, d * 0.15, top if crown != "spire" else z + 3.0,
                              ctx.p("crane_height", 22.0), ctx.p("crane_jib", 34.0), ctx.p("crane_angle", 0.6)))
     mb.finish()
-    ctx.meta.update(footprint=[W, D], height=top, family="tower", scalable=True, shader="facade", tiers=tier_meta,
+    # base: top of the office base (storefront zone below it) for the layout's sign zones.
+    ctx.meta.update(footprint=[W, D], height=top, family="tower", scalable=True, shader="facade", tiers=tier_meta, base=base_top,
                     screen=bool(ctx.p("screen", 0)))
 
 
@@ -79,8 +81,10 @@ def _crown(mb, ctx, crown, w, d, z, tint):
     rng = ctx.rng
     if crown == "band":
         fcol = ctx.facade["fixture_colors"][ctx.p("band_color", "white")]
-        walls(mb, ctx, w, d, z, z + 1.2, z, [("fixture", fcol, 0.0)] * 4)
-        walls(mb, ctx, w, d, z + 1.2, z + 4.0, z, [("trim", 0.0, tint)] * 4)
+        # Thin soft LED band (strip fixture), not a hot point-light slab.
+        walls(mb, ctx, w, d, z + 0.8, z + 1.3, z, [("fixture", fcol, 1.0)] * 4)
+        walls(mb, ctx, w, d, z, z + 0.8, z, [("trim", 0.0, tint)] * 4)
+        walls(mb, ctx, w, d, z + 1.3, z + 4.0, z, [("trim", 0.0, tint)] * 4)
         z += 4.0
         flat_roof(mb, ctx, w, d, z, tint, parapet=0.0)
         mast(mb, ctx, 0.0, 0.0, z, ctx.p("mast", 18.0), red=True)
