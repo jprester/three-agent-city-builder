@@ -1,1 +1,11 @@
-{ "kind": "ad", "expect": 22 }
+{
+  "kind": "ad",
+  "expect": 22,
+  "shop": {
+    "0": "canned coffee",
+    "1": "ramen",
+    "2": "sushi",
+    "3": "milk tea",
+    "11": "pharmacy"
+  }
+}

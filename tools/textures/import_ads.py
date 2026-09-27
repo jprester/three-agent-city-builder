@@ -85,7 +85,7 @@ def pack(items, slot_w, slot_h, cols, name, gap=4):
     # RGBA: alpha is the emission mask read by the sign shader (not opacity); fully emissive.
     atlas = Image.new("RGBA", (W, H), (0, 0, 0, 255))
     entries = []
-    for i, (ident, kind, im) in enumerate(items):
+    for i, (ident, kind, im, shop) in enumerate(items):
         x, y = (i % cols) * slot_w, (i // cols) * slot_h
         fit = im.copy()
         fit.thumbnail((slot_w - 2 * gap, slot_h - 2 * gap), Image.LANCZOS)
@@ -102,6 +102,7 @@ def pack(items, slot_w, slot_h, cols, name, gap=4):
             # Emission gain (sign shader): neon burns hotter than printed/backlit ads.
             "gain": 2.1 if kind == "neon" else 1.0,
             "surface": "neon" if kind == "neon" else "poster",
+            "shop": shop,
         })
     atlas.save(OUT / f"{name}.webp", quality=86, method=6, exact=True)
     return entries
@@ -119,7 +120,7 @@ def collect():
         for p in sources(pattern):
             if p.suffix.lower() not in (".png", ".jpg", ".jpeg", ".webp") or (kind == "ad" and p.name == "nova.png"):
                 continue
-            out.append((p.stem, kind, Image.open(p).convert("RGB"), True))
+            out.append((p.stem, kind, Image.open(p).convert("RGB"), True, False))
     out += atlas_cells()
     return out
 
@@ -131,6 +132,7 @@ def atlas_cells():
       expect    number of panels the slicer must find (guards against silent mis-slicing)
       split     {"<index>": n}: panels with no gutter between them, split into n equal columns
       exclude   {"<index>": "reason"}: cells not to use (after splitting, reading order)
+      shop      {"<index>": "what"}: shop/food ads: street level only, never tower billboards
     """
     import sys
     sys.path.insert(0, str(Path(__file__).parent))
@@ -157,21 +159,21 @@ def atlas_cells():
                 continue
             # Inset 2 px: drop the gutter edge the cut landed on.
             crop = im.crop((x0 + 2, y0 + 2, x1 - 2, y1 - 2))
-            out.append((f"{tag}-{k:02d}", cfg.get("kind", "ad"), crop, False))
+            out.append((f"{tag}-{k:02d}", cfg.get("kind", "ad"), crop, False, str(k) in cfg.get("shop", {})))
     return out
 
 
 def main():
     OUT.mkdir(exist_ok=True)
     buckets = {b[0]: [] for b in BUCKETS}
-    for ident, kind, im, whole in collect():
+    for ident, kind, im, whole, shop in collect():
         # Whole images must contain their sign; atlas cells are cut exactly at their gutters.
         if whole and kind == "neon" and edge_cut(im) > 0.3:
             print(f"SKIPPED (sign cut off at the image edge): {ident}")
             continue
         a = im.width / im.height
         name = next(b[0] for b in BUCKETS if a <= b[4])
-        buckets[name].append((ident, kind, im))
+        buckets[name].append((ident, kind, im, shop))
     entries, sizes = [], {}
     for name, w, h, cols, _ in BUCKETS:
         es = pack(buckets[name], w, h, cols, name)
@@ -179,7 +181,7 @@ def main():
         img = Image.open(OUT / f"{name}.webp")
         sizes[name] = [img.width, img.height]
     # Screens: portrait ads letterboxed into uniform 2:3 slots, addressed by index.
-    screens = [(p, k, im) for p, k, im in buckets["posters_p"] if k == "ad"]
+    screens = [(p, k, im, sh) for p, k, im, sh in buckets["posters_p"] if k == "ad" and not sh]
     pack(screens, 384, 576, 9, "screens")
     (OUT / "catalog.json").write_text(json.dumps({"entries": entries, "sizes": sizes,
         "screens": {"count": len(screens), "cols": 9, "rows": max(1, (len(screens) + 8) // 9)}}, indent=1) + "\n")

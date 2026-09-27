@@ -1,6 +1,25 @@
 {
   "kind": "ad",
   "expect": 41,
-  "split": { "10": 2, "20": 2 },
-  "exclude": { "13": "real brand (Sapporo beer): no real brands in signage (PLAN)" }
+  "split": {
+    "10": 2,
+    "20": 2
+  },
+  "exclude": {
+    "13": "real brand (Sapporo beer): no real brands in signage (PLAN)"
+  },
+  "shop": {
+    "0": "ramen",
+    "1": "izakaya",
+    "3": "karaoke",
+    "7": "arcade",
+    "9": "pharmacy",
+    "18": "sushi",
+    "25": "hotel",
+    "26": "tea",
+    "27": "ramen",
+    "29": "metro",
+    "33": "24h store",
+    "34": "yakitori"
+  }
 }
