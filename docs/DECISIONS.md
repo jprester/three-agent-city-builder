@@ -100,3 +100,9 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 2026-09-27 | layout | Traffic lanes and sky lanes are layout data | PLAN §3 (placement belongs to the layout); lets tests check sky-lane clearance.
 2026-09-27 | motion | Rain as a camera-relative instanced streak volume lit from the lamp/sign maps, hidden in the reflection pass | PLAN §4; lit rain reads orange under lamps without real lights.
 2026-09-27 | config | Added a `vehicles` budget category (1500 tris, 64 KB) to pipeline.config.json | New asset category needs a budget or check fails.
+2026-09-27 | signs | Human-provided neon signs and ads packed into four atlases by tools/textures/import_ads.py; sources gitignored, atlases (~1.3 MB) committed | Sources are ~110 MB; the importer is reproducible like import_highrise.py.
+2026-09-27 | signs | Four small-ads files named after other Midjourney users are excluded | Ownership unclear; every external asset needs a license entry.
+2026-09-27 | signs | Image signs share the sign InstancedMesh (source code in aParams.x, four extra samplers), cover-cropped to the sign's aspect | No new shader program; layout sign sizes stay valid for bridge/placement tests.
+2026-09-27 | signs | Artwork picks weighted 3:1 toward warm hues and divided by prior use | The provided set skews cyan/magenta; style bible wants neon as accent over warm practical light.
+2026-09-27 | signs | Pictorial neon icons and tower brand logo families (crown wordmark + stacked logo), ported as ideas from the human's future-cityscape project onto our stroke glyphs | Stroke glyphs avoid system fonts, keeping screenshots machine-independent.
+2026-09-27 | signs | Screens show the portrait poster/ad atlas; the drawn poster generator is retired | Human-provided artwork replaces placeholders.

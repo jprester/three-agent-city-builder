@@ -454,3 +454,18 @@ bridges, LOD). This last stretch adds:
   they fade out at lane ends. From above the streams read well; up close they are simple.
 - No steam at street level yet.
 - Flyers do not bank; they yaw along the loop.
+
+## Signs and ads from human artwork (2026-09-27)
+- 15 vertical + 10 horizontal neon photos, 18 portrait and 14 landscape posters/ads packed
+  into atlases. ~60% of street signs and ~85% of tower signs now use them; the rest stay
+  stroke-drawn (they alone can have individual broken/flickering tubes).
+- New placements: 36 tower brand signs (crown wordmark, sometimes a matching stacked logo),
+  45 landscape billboards (tower tiers and 39 rooftop billboard frames that stood empty),
+  pictorial neon icons (ramen bowl, torii, koi, martini, lucky cat, dice, pharmacy cross).
+- Screens cycle the human's portrait posters instead of drawn placeholders.
+- Tests: rooftop billboards sit on their roof inside the footprint (44 tests).
+- Critique: `canyon`/`fly-0` gain real neon texture (housings, glow halos) next to the flat
+  stroke boxes, which now look plain by comparison; the big salmon "SAUNA" boxed panels are
+  the weakest element. `NOVA` repeated until picks were usage-balanced. Posters on towers
+  read from `skyline`; crown wordmarks are small at that distance. More warm art would help
+  (prompts in docs/SIGN-PROMPTS.md).
