@@ -1,0 +1,8 @@
+{
+  "generator": "props/street_box",
+  "seed": 14,
+  "params": {
+    "kind": "cabinet",
+    "led": "cyan"
+  }
+}

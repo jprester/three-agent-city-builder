@@ -61,7 +61,14 @@ export const ASSETS = {
   "buildings/walkup_d.lod1": { url: "assets/buildings/walkup_d.lod1.glb", category: "buildings", meta: {"footprint":[9.600000000000001,9.600000000000001],"height":29.900000000000002,"top":39.5486109484857,"family":"walkup","scalable":false,"shader":"facade","lodOf":"buildings/walkup_d","lod":1,"lodDistance":160} },
   "kit/wall_panel_a": { url: "assets/kit/wall_panel_a.glb", category: "kit", meta: {} },
   "kit/window_a": { url: "assets/kit/window_a.glb", category: "kit", meta: {} },
+  "props/bin": { url: "assets/props/bin.glb", category: "props", meta: {"footprint":[0.5,0.5],"height":0.85,"shader":"facade","family":"prop"} },
+  "props/bollard": { url: "assets/props/bollard.glb", category: "props", meta: {"footprint":[0.2,0.2],"height":0.9,"shader":"facade","family":"prop"} },
+  "props/cabinet": { url: "assets/props/cabinet.glb", category: "props", meta: {"footprint":[0.9,0.45],"height":1.35,"shader":"facade","family":"prop"} },
+  "props/guardrail": { url: "assets/props/guardrail.glb", category: "props", meta: {"footprint":[6,0.12],"height":1.05,"shader":"facade","family":"prop"} },
+  "props/kiosk_a": { url: "assets/props/kiosk_a.glb", category: "props", meta: {"footprint":[3.7,1.5],"height":3.2,"shader":"facade","family":"prop"} },
+  "props/kiosk_b": { url: "assets/props/kiosk_b.glb", category: "props", meta: {"footprint":[3.3,1.4],"height":3,"shader":"facade","family":"prop"} },
   "props/street_lamp": { url: "assets/props/street_lamp.glb", category: "props", meta: {"height":8,"shader":"facade","family":"lamp"} },
+  "props/vent": { url: "assets/props/vent.glb", category: "props", meta: {"footprint":[1,1],"height":2.48,"shader":"facade","family":"prop"} },
 } as const satisfies Record<string, AssetEntry>;
 
 export const LAYOUTS = {

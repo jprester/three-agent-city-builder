@@ -1,0 +1,7 @@
+{
+  "generator": "props/street_box",
+  "seed": 16,
+  "params": {
+    "kind": "vent"
+  }
+}

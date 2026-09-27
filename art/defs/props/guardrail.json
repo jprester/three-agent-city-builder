@@ -1,0 +1,7 @@
+{
+  "generator": "props/guardrail",
+  "seed": 13,
+  "params": {
+    "length": 6.0
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "generator": "props/kiosk",
+  "seed": 11,
+  "params": {
+    "width": 2.4,
+    "depth": 1.5,
+    "tint": 0.3
+  }
+}
