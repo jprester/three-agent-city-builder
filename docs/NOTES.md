@@ -469,3 +469,20 @@ bridges, LOD). This last stretch adds:
   the weakest element. `NOVA` repeated until picks were usage-balanced. Posters on towers
   read from `skyline`; crown wordmarks are small at that distance. More warm art would help
   (prompts in docs/SIGN-PROMPTS.md).
+
+### Human review: cropped and stretched signs; want transparent holographic neon (2026-09-27)
+- Cause: the layout fixed sign sizes before the runtime picked an image, which was then
+  cover-cropped (cut signs) or, on tower screens, stretched (screens were wider than 2:3).
+- Fix (aspect system): the importer records each image's exact aspect and packs it
+  uncropped into the atlas whose slot shape fits (any aspect accepted; new drop folders
+  signs-src/neon and signs-src/ads). The layout receives the art catalog, chooses artwork per
+  placement from images whose aspect suits it, and sizes the sign to that aspect within the
+  placement's limits; stroke designs are sized to their slot aspect too. Screens are built at
+  exactly 2:3. Test: every sign's w/h matches its artwork within 2%.
+- Holograms: neon (all) and dark-background ads render as additive planes: black is
+  transparent, scan lines, slow shimmer, rare horizontal tear; fog fades rather than tints
+  them. Bright photo posters stay opaque boards.
+- Critique: canyon neon now reads as floating light, uncropped; tower posters and strips keep
+  their proportions. Street signs are slimmer than before (true 1:4); color density in the
+  canyon is a bit lower than the old stretched boxes. Shader programs 24/25: the hologram
+  material costs one; the budget is now effectively full.

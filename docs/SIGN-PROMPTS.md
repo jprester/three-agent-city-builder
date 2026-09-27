@@ -1,8 +1,17 @@
 # Midjourney prompts for signs and ads
 
+## How to add artwork (any aspect ratio)
+1. Drop images into `art/external/textures/signs-src/neon/` (signs: shown as holograms, black
+   background = transparent) or `art/external/textures/signs-src/ads/` (billboards, screens;
+   dark-background ads also render as holograms, bright photo posters as opaque boards).
+2. Run `python3 tools/textures/import_ads.py`, then `npm run layouts`.
+Any aspect works. The layout places each image where its shape fits (tall ≤ 0.8: blades and
+tower strips; wide ≥ 2: arms, shop panels; 0.5–2.2: tower billboards; 1.1–3.5: rooftop
+frames) and sizes the sign to that exact aspect, never cropping or stretching. Portrait ads
+also feed the 2:3 tower screens. Near-black backgrounds work best (they become transparent).
+
 What the city needs most (the current set skews cyan/magenta; the style bible wants warm
-practical light with neon as an accent). Drop results into `art/external/textures/small-ads/`
-(same folders by aspect) or `ads-v2/`, then run `python3 tools/textures/import_ads.py`.
+practical light with neon as an accent).
 
 Keep for every image: near-black background, no real brands or logos, no frame or mockup,
 no people's real names. Invented text is fine (Midjourney's gibberish reads as signage).

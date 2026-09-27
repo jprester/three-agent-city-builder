@@ -106,3 +106,6 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 2026-09-27 | signs | Artwork picks weighted 3:1 toward warm hues and divided by prior use | The provided set skews cyan/magenta; style bible wants neon as accent over warm practical light.
 2026-09-27 | signs | Pictorial neon icons and tower brand logo families (crown wordmark + stacked logo), ported as ideas from the human's future-cityscape project onto our stroke glyphs | Stroke glyphs avoid system fonts, keeping screenshots machine-independent.
 2026-09-27 | signs | Screens show the portrait poster/ad atlas; the drawn poster generator is retired | Human-provided artwork replaces placeholders.
+2026-09-27 | signs | The layout chooses sign artwork and sizes each sign to its aspect (art catalog passed like the asset catalog) | Runtime picking forced a fixed size onto arbitrary images: cropped or stretched signs.
+2026-09-27 | signs | Neon and dark-background ads render as additive holograms (separate InstancedMesh, fog fades instead of tints) | Human request; additive makes black transparent without alpha mattes. Costs one shader program (24/25).
+2026-09-27 | screens | Tower screens generated at exactly 2:3; portrait ads letterboxed into 2:3 slots | Screens were wider than the ads and stretched them.
