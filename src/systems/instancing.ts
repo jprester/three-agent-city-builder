@@ -35,7 +35,9 @@ export async function buildInstances(layout: Layout, loader: AssetLoader, facade
     list.push(inst);
     byAsset.set(inst.asset, list);
   }
-  // Street lamps from the layout's lamp list join the same batch.
+  // Street props and lamps join the same batch.
+  for (const prop of layout.props ?? []) if (getAsset(prop.asset)) facade.push(prop);
+  // Street lamps from the layout's lamp list.
   if (layout.lamps?.length && getAsset(LAMP)) {
     for (const [x, z, angle] of layout.lamps) facade.push({ asset: LAMP, position: [x, 0, z], rotationY: angle, scale: 1 });
   }

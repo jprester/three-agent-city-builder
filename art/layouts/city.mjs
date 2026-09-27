@@ -38,6 +38,13 @@ const DEFAULTS = {
   heroBuildings: null,
   lampSpacing: { arterial: 30, secondary: 26, hero: 15, alley: 24 },
   flythrough: { cruise: 190, wide: 430 },
+  // Street furniture on sidewalks. Chances are per candidate slot; ids are asset ids.
+  props: {
+    kiosks: ['props/kiosk_a', 'props/kiosk_b'], kioskEvery: 45, kioskChance: { arterial: 0.35, hero: 0.5, secondary: 0.2 },
+    guardrail: 'props/guardrail', guardrailChance: { arterial: 0.8, hero: 0.7, secondary: 0.5 },
+    small: { 'props/cabinet': 3, 'props/bin': 4, 'props/vent': 1, 'props/bollard': 2 }, smallEvery: 16, smallChance: 0.55,
+    clearLamp: 1.4, gap: 0.5,
+  },
   // Enclosed bridges: skybridges between nearby towers, footbridges over core streets.
   bridges: {
     sky: { max: 7, perTower: 2, dist: [30, 95], height: [0.2, 0.5], width: 4.5, depth: 4.2 },
@@ -59,7 +66,7 @@ const EDGE_PRIORITY = { hero: 0, arterial: 1, secondary: 2, edge: 3, alley: 4 };
 export function generate({ params, seed, assets = {} }) {
   const P = { ...DEFAULTS, ...params };
   // Nested option groups merge with their defaults instead of replacing them.
-  for (const k of ['roads', 'sidewalks', 'lampSpacing', 'flythrough', 'signs', 'bridges']) P[k] = { ...DEFAULTS[k], ...(params[k] ?? {}) };
+  for (const k of ['roads', 'sidewalks', 'lampSpacing', 'flythrough', 'signs', 'bridges', 'props']) P[k] = { ...DEFAULTS[k], ...(params[k] ?? {}) };
   const D = {};
   for (const k of Object.keys(DISTRICT_DEFAULTS)) D[k] = { ...DISTRICT_DEFAULTS[k], ...(params.districts?.[k] ?? {}) };
   const rng = mulberry32(seed);
@@ -298,6 +305,10 @@ export function generate({ params, seed, assets = {} }) {
     }
   }
 
+  // ---- street props on the sidewalk band between curb and building lots. Own random stream,
+  // so adding or tuning props never moves signs, bridges or anything else.
+  const props = placeProps(P.props, blocks, roads, lamps, P.sidewalks, tagClass, assets, mulberry32((seed ^ 0x9a0b5eed) >>> 0));
+
   // ---- flythrough and bridges come before signs: bridges are structure, signs avoid them.
   const flythrough = hero ? buildFlythrough(hero, instances, P, W, Dp) : undefined;
   const bridges = buildBridges(P.bridges, instances, roads, [], lamps, hero, flythrough, rng);
@@ -433,6 +444,7 @@ export function generate({ params, seed, assets = {} }) {
     blocks: blocks.map((b) => ({ district: b.district, points: b.pts.map((p) => p.map(r3)), edges: b.tags.map((t) => (t === 'edge' ? -1 : t)) })),
     hero: hero ? { road: hero.id, width: hero.width, a: hero.a.map(r3), b: hero.b.map(r3) } : null,
     lamps,
+    props,
     signs,
     anchors,
     instances,
@@ -496,6 +508,74 @@ function buildFlythrough(hero, instances, P, W, Dp) {
   key(entry, Math.max(150, clearance(wide, entry) + 40), at(40), 0);
   key(at(-7), 45, at(80), 8);
   return { points: pts, look, closed: true };
+}
+
+/**
+ * Street furniture along every block edge that fronts a road: guardrails near junctions on
+ * the curb, kiosks and small items (cabinets, bins, vents, bollards) spaced along the
+ * sidewalk. Everything stays inside the sidewalk band (between curb and lot), faces the
+ * road, and keeps clear of lamps and of each other.
+ * Returns [{ asset, position, rotationY, scale, fp }].
+ */
+function placeProps(cfg, blocks, roads, lamps, sidewalks, tagClass, assets, rng) {
+  const rand = (lo, hi) => lo + (hi - lo) * rng();
+  const out = [];
+  const boxes = [];
+  const fp = (id) => assets[id]?.meta?.footprint;
+  const tryPlace = (id, q0, t, nIn, s, inset) => {
+    const f = fp(id);
+    if (!f) return false;
+    const c = G.add(G.add(q0, G.mul(t, s)), G.mul(nIn, inset + f[1] / 2));
+    const box = G.obb(c, G.mul(t, -1), f[0] / 2, f[1] / 2);
+    const grown = G.obb(c, box.u, box.hu + cfg.gap, box.hv + cfg.gap);
+    if (boxes.some((b) => G.obbOverlap(b, grown, 0))) return false;
+    if ((lamps ?? []).some((l) => G.insideConvex(G.obb(c, box.u, box.hu + cfg.clearLamp, box.hv + cfg.clearLamp).corners, [l[0], l[1]]))) return false;
+    boxes.push(box);
+    out.push({ asset: id, position: [r3(c[0]), 0, r3(c[1])], rotationY: r3(Math.atan2(-nIn[0], -nIn[1])), scale: 1, fp: [r3(box.hu), r3(box.hv)] });
+    return true;
+  };
+  for (const block of blocks) {
+    const pts = block.pts;
+    for (let i = 0; i < pts.length; i++) {
+      const tag = block.tags[i];
+      if (tag === 'edge') continue;
+      const cls = tagClass(tag);
+      const sw = sidewalks[cls];
+      const q0 = pts[i], q1 = pts[(i + 1) % pts.length];
+      const L = G.dist(q0, q1);
+      if (L < 14) continue;
+      const t = G.norm(G.sub(q1, q0)), nIn = G.perp(t);
+      // Guardrails on the curb near both junctions.
+      if (cfg.guardrailChance[cls]) {
+        const gl = fp(cfg.guardrail)?.[0] ?? 6;
+        for (const end of [0, 1]) {
+          if (rng() > cfg.guardrailChance[cls]) continue;
+          const n = 1 + Math.floor(rng() * 2);
+          for (let k = 0; k < n; k++) {
+            const s = end === 0 ? 3 + gl * (k + 0.5) : L - 3 - gl * (k + 0.5);
+            if (s - gl / 2 < 2 || s + gl / 2 > L - 2) continue;
+            tryPlace(cfg.guardrail, q0, t, nIn, s, 0.3);
+          }
+        }
+      }
+      // Kiosks: wide sidewalks only, leaving ≥ 1.4 m to walk past.
+      const kioskChance = cfg.kioskChance[cls] ?? 0;
+      if (kioskChance && sw >= 3.4) {
+        for (let s = cfg.kioskEvery * rand(0.4, 1); s < L - 8; s += cfg.kioskEvery) {
+          if (rng() > kioskChance) continue;
+          const id = cfg.kiosks[Math.floor(rng() * cfg.kiosks.length)];
+          if (sw - 0.5 - fp(id)[1] >= 1.4) tryPlace(id, q0, t, nIn, s, 0.5);
+        }
+      }
+      // Small items just off the curb.
+      for (let s = rand(4, cfg.smallEvery); s < L - 4; s += cfg.smallEvery * rand(0.6, 1.4)) {
+        if (rng() > cfg.smallChance) continue;
+        const id = weightedChoice(rng, cfg.small);
+        if (fp(id) && fp(id)[1] + 0.45 < sw) tryPlace(id, q0, t, nIn, s, 0.45);
+      }
+    }
+  }
+  return out;
 }
 
 /** Oriented box of a layout instance's footprint. */

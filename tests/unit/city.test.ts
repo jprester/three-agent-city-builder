@@ -32,6 +32,25 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     expect(lods.map((i) => i.asset)).toEqual([]);
   });
 
+  it('keeps street props on sidewalks: off roads, clear of buildings, lamps and each other', async () => {
+    const L = await get();
+    const props = L.props!;
+    expect(props.length).toBeGreaterThan(200);
+    const pb = props.map(box);
+    const roads = L.roads!.map(roadBox);
+    const buildings = L.instances.map(box);
+    const bad: string[] = [];
+    pb.forEach((b, k) => {
+      const id = props[k].asset;
+      if (!L.blocks.some((bl) => b.corners.every((p) => G.insideConvex(bl.points, p, 0.05)))) bad.push(`${id} outside sidewalks`);
+      if (roads.some((r) => G.obbOverlap(r, b, 0.01))) bad.push(`${id} on a road`);
+      if (buildings.some((bx) => G.dist(bx.c, b.c) < 120 && G.obbOverlap(bx, b, 0.01))) bad.push(`${id} inside a building`);
+      if (L.lamps!.some(([x, z]) => G.insideConvex(b.corners, [x, z], 0))) bad.push(`${id} on a lamp`);
+      for (let j = k + 1; j < pb.length; j++) if (G.dist(pb[j].c, b.c) < 20 && G.obbOverlap(pb[j], b, 0.01)) bad.push(`${id} overlaps ${props[j].asset}`);
+    });
+    expect(bad.slice(0, 10)).toEqual([]);
+  });
+
   it('puts the hero street in the old core', async () => {
     const L = await get();
     const along = L.blocks.filter((b) => b.edges?.includes(L.hero!.road));

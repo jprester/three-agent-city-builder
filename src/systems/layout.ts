@@ -67,6 +67,8 @@ export interface Layout {
   hero?: { road: number; width: number; a: Vec2; b: Vec2 } | null;
   /** [x, z, arm angle, road id] */
   lamps?: [number, number, number, number][];
+  /** Street furniture (same shape as instances; always facade-shaded props). */
+  props?: LayoutInstance[];
   signs?: LayoutSign[];
   /** Enclosed bridges: centerline a→b on the ground plane, floor at y, `depth` tall. */
   bridges?: { kind: 'sky' | 'foot'; a: Vec2; b: Vec2; y: number; width: number; depth: number }[];
