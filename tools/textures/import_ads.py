@@ -47,7 +47,7 @@ def light_color(im):
 
 
 BUCKETS = [  # (name, slot w, slot h, columns, max aspect): each image goes to the first that fits
-    ("neon_v", 192, 768, 16, 0.5),
+    ("neon_v", 160, 640, 25, 0.5),
     ("posters_p", 384, 576, 9, 1.2),
     ("posters_l", 576, 384, 7, 2.5),
     ("neon_h", 768, 192, 5, 99),
@@ -85,7 +85,7 @@ def pack(items, slot_w, slot_h, cols, name, gap=4):
     # RGBA: alpha is the emission mask read by the sign shader (not opacity); fully emissive.
     atlas = Image.new("RGBA", (W, H), (0, 0, 0, 255))
     entries = []
-    for i, (ident, kind, im, shop) in enumerate(items):
+    for i, (ident, kind, im, shop, weight) in enumerate(items):
         x, y = (i % cols) * slot_w, (i // cols) * slot_h
         fit = im.copy()
         fit.thumbnail((slot_w - 2 * gap, slot_h - 2 * gap), Image.LANCZOS)
@@ -102,8 +102,11 @@ def pack(items, slot_w, slot_h, cols, name, gap=4):
             # Emission gain (sign shader): neon burns hotter than printed/backlit ads.
             "gain": 2.1 if kind == "neon" else 1.0,
             "surface": "neon" if kind == "neon" else "poster",
-            "shop": shop,
+            "shop": shop, "weight": weight,
         })
+    # 4096 is the largest texture size safe on every WebGL device.
+    if W > 4096 or H > 4096:
+        raise SystemExit(f"{name}: atlas {W}x{H} exceeds 4096; add columns or shrink its slots in BUCKETS")
     atlas.save(OUT / f"{name}.webp", quality=86, method=6, exact=True)
     return entries
 
@@ -120,7 +123,7 @@ def collect():
         for p in sources(pattern):
             if p.suffix.lower() not in (".png", ".jpg", ".jpeg", ".webp") or (kind == "ad" and p.name == "nova.png"):
                 continue
-            out.append((p.stem, kind, Image.open(p).convert("RGB"), True, False))
+            out.append((p.stem, kind, Image.open(p).convert("RGB"), True, False, 1))
     out += atlas_cells()
     return out
 
@@ -133,6 +136,8 @@ def atlas_cells():
       split     {"<index>": n}: panels with no gutter between them, split into n equal columns
       exclude   {"<index>": "reason"}: cells not to use (after splitting, reading order)
       shop      {"<index>": "what"}: shop/food ads: street level only, never tower billboards
+      weight    placement weight multiplier for every cell of the sheet (default 1)
+      thresh    gutter darkness threshold (default 0.1; lower for panels with near-black edges)
     """
     import sys
     sys.path.insert(0, str(Path(__file__).parent))
@@ -145,7 +150,7 @@ def atlas_cells():
         side = sheet.with_suffix(".json")
         cfg = json.loads(side.read_text()) if side.exists() else {}
         im = Image.open(sheet).convert("RGB")
-        boxes = panels(im)
+        boxes = panels(im, thresh=cfg.get("thresh", 0.1))
         if "expect" in cfg and len(boxes) != cfg["expect"]:
             raise SystemExit(f"{sheet.name}: slicer found {len(boxes)} panels, sidecar expects {cfg['expect']}")
         cells = []
@@ -159,21 +164,21 @@ def atlas_cells():
                 continue
             # Inset 2 px: drop the gutter edge the cut landed on.
             crop = im.crop((x0 + 2, y0 + 2, x1 - 2, y1 - 2))
-            out.append((f"{tag}-{k:02d}", cfg.get("kind", "ad"), crop, False, str(k) in cfg.get("shop", {})))
+            out.append((f"{tag}-{k:02d}", cfg.get("kind", "ad"), crop, False, str(k) in cfg.get("shop", {}), cfg.get("weight", 1)))
     return out
 
 
 def main():
     OUT.mkdir(exist_ok=True)
     buckets = {b[0]: [] for b in BUCKETS}
-    for ident, kind, im, whole, shop in collect():
+    for ident, kind, im, whole, shop, weight in collect():
         # Whole images must contain their sign; atlas cells are cut exactly at their gutters.
         if whole and kind == "neon" and edge_cut(im) > 0.3:
             print(f"SKIPPED (sign cut off at the image edge): {ident}")
             continue
         a = im.width / im.height
         name = next(b[0] for b in BUCKETS if a <= b[4])
-        buckets[name].append((ident, kind, im, shop))
+        buckets[name].append((ident, kind, im, shop, weight))
     entries, sizes = [], {}
     for name, w, h, cols, _ in BUCKETS:
         es = pack(buckets[name], w, h, cols, name)
@@ -181,7 +186,7 @@ def main():
         img = Image.open(OUT / f"{name}.webp")
         sizes[name] = [img.width, img.height]
     # Screens: portrait ads letterboxed into uniform 2:3 slots, addressed by index.
-    screens = [(p, k, im, sh) for p, k, im, sh in buckets["posters_p"] if k == "ad" and not sh]
+    screens = [(p, k, im, sh, w) for p, k, im, sh, w in buckets["posters_p"] if k == "ad" and not sh]
     pack(screens, 384, 576, 9, "screens")
     (OUT / "catalog.json").write_text(json.dumps({"entries": entries, "sizes": sizes,
         "screens": {"count": len(screens), "cols": 9, "rows": max(1, (len(screens) + 8) // 9)}}, indent=1) + "\n")

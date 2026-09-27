@@ -5,10 +5,10 @@
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.001302,
-    0.860119,
-    0.059896,
-    0.136905
+    0.001,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -21,17 +21,18 @@
    "sat": 0.69,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_vertical_neon_sign~-b226e07959f8_2",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.063802,
-    0.860119,
-    0.059896,
-    0.136905
+    0.041,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -44,17 +45,18 @@
    "sat": 0.99,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_vertical_neon_sign~-03b2294d2345_0",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.126302,
-    0.860119,
-    0.059896,
-    0.136905
+    0.081,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -67,17 +69,18 @@
    "sat": 0.63,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_vertical_neon_sign~-03b2294d2345_1",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.188802,
-    0.860119,
-    0.059896,
-    0.136905
+    0.121,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -90,17 +93,18 @@
    "sat": 0.58,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_vertical_neon_sign~-03b2294d2345_3",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.251302,
-    0.860119,
-    0.059896,
-    0.136905
+    0.161,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -113,17 +117,18 @@
    "sat": 0.61,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_vertical_neon_sign~-71c6624c653f_0",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.313802,
-    0.860119,
-    0.059896,
-    0.136905
+    0.201,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -136,17 +141,18 @@
    "sat": 0.82,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_vertical_neon_sign~-71c6624c653f_3",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.376302,
-    0.860119,
-    0.059896,
-    0.136905
+    0.241,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -159,17 +165,18 @@
    "sat": 0.63,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_vertical_neon_sign~-20ebdf9f78fe_0",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.438802,
-    0.860119,
-    0.059896,
-    0.136905
+    0.281,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -182,17 +189,18 @@
    "sat": 0.18,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_vertical_neon_sign~-20ebdf9f78fe_1",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.501302,
-    0.860119,
-    0.059896,
-    0.136905
+    0.321,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -205,17 +213,18 @@
    "sat": 0.22,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_vertical_neon_sign~-20ebdf9f78fe_2",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.563802,
-    0.860119,
-    0.059896,
-    0.136905
+    0.361,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -228,17 +237,18 @@
    "sat": 0.34,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_vertical_neon_sign~-20ebdf9f78fe_3",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.626302,
-    0.860119,
-    0.059896,
-    0.136905
+    0.401,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -251,17 +261,18 @@
    "sat": 0.41,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_vertical_neon_sign~-d6ebee37ca91_0",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.688802,
-    0.860119,
-    0.059896,
-    0.136905
+    0.441,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -274,17 +285,18 @@
    "sat": 0.18,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_vertical_neon_sign~-d6ebee37ca91_2",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.751302,
-    0.860119,
-    0.059896,
-    0.136905
+    0.481,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -297,17 +309,18 @@
    "sat": 0.26,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_vertical_neon_sign~-d6ebee37ca91_3",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.813802,
-    0.860119,
-    0.059896,
-    0.136905
+    0.521,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -320,17 +333,18 @@
    "sat": 0.06,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_vertical_neon_sign~-8100d1c3c94a_0",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.876302,
-    0.860119,
-    0.059896,
-    0.136905
+    0.561,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -343,17 +357,18 @@
    "sat": 0.31,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_vertical_neon_sign~-8100d1c3c94a_1",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.938802,
-    0.860119,
-    0.059896,
-    0.136905
+    0.601,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -366,17 +381,18 @@
    "sat": 0.43,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_vertical_neon_sign~-8100d1c3c94a_2",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.001302,
-    0.717262,
-    0.059896,
-    0.136905
+    0.641,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -389,17 +405,18 @@
    "sat": 0.03,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_vertical_neon_sign~-8100d1c3c94a_3",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.063802,
-    0.717262,
-    0.059896,
-    0.136905
+    0.681,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -412,17 +429,18 @@
    "sat": 0.51,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_vertical_neon_sign~-a07da0aac1ff_2",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.126302,
-    0.717262,
-    0.059896,
-    0.136905
+    0.721,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -435,17 +453,18 @@
    "sat": 0.55,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_vertical_neon_sign~-d0d6ba5813f4_0",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.188802,
-    0.717262,
-    0.059896,
-    0.136905
+    0.761,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -458,17 +477,18 @@
    "sat": 0.93,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_vertical_neon_sign~-960fcd6aaaaf_2",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.251302,
-    0.717262,
-    0.059896,
-    0.136905
+    0.801,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -481,17 +501,18 @@
    "sat": 0.28,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "nova",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.313802,
-    0.742932,
-    0.059896,
-    0.085565
+    0.841,
+    0.867188,
+    0.038,
+    0.098958
    ],
    "aspect": 0.3999,
    "holo": true,
@@ -504,17 +525,18 @@
    "sat": 0.08,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_tall_vertical_holo~-d99cd4dbbf65_0",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.376302,
-    0.717262,
-    0.059896,
-    0.136905
+    0.881,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -527,17 +549,18 @@
    "sat": 0.29,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_tall_vertical_holo~-9b0392ee0586_0",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.438802,
-    0.717262,
-    0.059896,
-    0.136905
+    0.921,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -550,17 +573,18 @@
    "sat": 0.21,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_tall_vertical_holo~-4e8f6060e4ca_3",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.501302,
-    0.717262,
-    0.059896,
-    0.136905
+    0.961,
+    0.8375,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -573,17 +597,18 @@
    "sat": 0.29,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_tall_vertical_holo~-c63d22cfc3bb_0",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.563802,
-    0.717262,
-    0.059896,
-    0.136905
+    0.001,
+    0.670833,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -596,17 +621,18 @@
    "sat": 0.28,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_tall_vertical_holo~-8f0ef78e8dbe_3",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.626302,
-    0.717262,
-    0.059896,
-    0.136905
+    0.041,
+    0.670833,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -619,17 +645,18 @@
    "sat": 0.26,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_tall_vertical_holo~-c07a697762f1_3",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.688802,
-    0.717262,
-    0.059896,
-    0.136905
+    0.081,
+    0.670833,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -642,17 +669,18 @@
    "sat": 0.09,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_tall_vertical_holo~-1335769ff27e_2",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.751302,
-    0.717262,
-    0.059896,
-    0.136905
+    0.121,
+    0.670833,
+    0.038,
+    0.158333
    ],
    "aspect": 0.25,
    "holo": true,
@@ -665,17 +693,786 @@
    "sat": 0.19,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-00",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.168,
+    0.703385,
+    0.024,
+    0.093229
+   ],
+   "aspect": 0.2682,
+   "holo": true,
+   "color": [
+    0.995,
+    0.7,
+    0.539
+   ],
+   "hue": 21,
+   "sat": 0.46,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-01",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.20675,
+    0.705469,
+    0.02625,
+    0.089063
+   ],
+   "aspect": 0.307,
+   "holo": true,
+   "color": [
+    0.985,
+    0.811,
+    0.598
+   ],
+   "hue": 33,
+   "sat": 0.39,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-02",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.248,
+    0.703906,
+    0.02375,
+    0.092188
+   ],
+   "aspect": 0.2684,
+   "holo": true,
+   "color": [
+    0.995,
+    0.791,
+    0.486
+   ],
+   "hue": 36,
+   "sat": 0.51,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-03",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.28725,
+    0.703906,
+    0.02525,
+    0.092188
+   ],
+   "aspect": 0.2853,
+   "holo": true,
+   "color": [
+    0.993,
+    0.728,
+    0.225
+   ],
+   "hue": 39,
+   "sat": 0.77,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-04",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.32825,
+    0.705469,
+    0.02325,
+    0.089063
+   ],
+   "aspect": 0.2719,
+   "holo": true,
+   "color": [
+    0.995,
+    0.871,
+    0.626
+   ],
+   "hue": 40,
+   "sat": 0.37,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-05",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.36575,
+    0.704688,
+    0.0285,
+    0.090625
+   ],
+   "aspect": 0.3276,
+   "holo": true,
+   "color": [
+    0.993,
+    0.677,
+    0.396
+   ],
+   "hue": 28,
+   "sat": 0.6,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-06",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.408,
+    0.70599,
+    0.02375,
+    0.088281
+   ],
+   "aspect": 0.2802,
+   "holo": true,
+   "color": [
+    0.996,
+    0.782,
+    0.442
+   ],
+   "hue": 37,
+   "sat": 0.56,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-07",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.447,
+    0.70599,
+    0.026,
+    0.088281
+   ],
+   "aspect": 0.3068,
+   "holo": true,
+   "color": [
+    0.991,
+    0.905,
+    0.667
+   ],
+   "hue": 44,
+   "sat": 0.33,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-08",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.4865,
+    0.70625,
+    0.02675,
+    0.0875
+   ],
+   "aspect": 0.3185,
+   "holo": true,
+   "color": [
+    0.995,
+    0.852,
+    0.624
+   ],
+   "hue": 37,
+   "sat": 0.37,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-09",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.53075,
+    0.713281,
+    0.0185,
+    0.073698
+   ],
+   "aspect": 0.2615,
+   "holo": true,
+   "color": [
+    0.992,
+    0.832,
+    0.483
+   ],
+   "hue": 41,
+   "sat": 0.51,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-19",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.567,
+    0.707292,
+    0.02575,
+    0.085677
+   ],
+   "aspect": 0.3131,
+   "holo": true,
+   "color": [
+    0.996,
+    0.816,
+    0.281
+   ],
+   "hue": 45,
+   "sat": 0.72,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-20",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.60825,
+    0.709115,
+    0.02325,
+    0.081771
+   ],
+   "aspect": 0.2962,
+   "holo": true,
+   "color": [
+    0.995,
+    0.72,
+    0.55
+   ],
+   "hue": 23,
+   "sat": 0.45,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-21",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.64775,
+    0.708333,
+    0.0245,
+    0.083594
+   ],
+   "aspect": 0.3053,
+   "holo": true,
+   "color": [
+    0.998,
+    0.826,
+    0.422
+   ],
+   "hue": 42,
+   "sat": 0.58,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-22",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.6885,
+    0.709375,
+    0.023,
+    0.08151
+   ],
+   "aspect": 0.2939,
+   "holo": false,
+   "color": [
+    0.991,
+    0.88,
+    0.701
+   ],
+   "hue": 37,
+   "sat": 0.29,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-23",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.72825,
+    0.707812,
+    0.0235,
+    0.084635
+   ],
+   "aspect": 0.2892,
+   "holo": true,
+   "color": [
+    0.984,
+    0.853,
+    0.597
+   ],
+   "hue": 40,
+   "sat": 0.39,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-24",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.76875,
+    0.709896,
+    0.0225,
+    0.080208
+   ],
+   "aspect": 0.2922,
+   "holo": true,
+   "color": [
+    0.995,
+    0.712,
+    0.274
+   ],
+   "hue": 36,
+   "sat": 0.72,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-25",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.80775,
+    0.706771,
+    0.02425,
+    0.086719
+   ],
+   "aspect": 0.2913,
+   "holo": true,
+   "color": [
+    0.995,
+    0.618,
+    0.458
+   ],
+   "hue": 18,
+   "sat": 0.54,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-26",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.84725,
+    0.707812,
+    0.0255,
+    0.084635
+   ],
+   "aspect": 0.3138,
+   "holo": true,
+   "color": [
+    0.995,
+    0.793,
+    0.235
+   ],
+   "hue": 44,
+   "sat": 0.76,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-27",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.88725,
+    0.708333,
+    0.0255,
+    0.083333
+   ],
+   "aspect": 0.3187,
+   "holo": true,
+   "color": [
+    0.995,
+    0.879,
+    0.636
+   ],
+   "hue": 41,
+   "sat": 0.36,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-28",
+   "kind": "neon",
+   "atlas": "neon_v",
+   "rect": [
+    0.92675,
+    0.708594,
+    0.0265,
+    0.083073
+   ],
+   "aspect": 0.3323,
+   "holo": true,
+   "color": [
+    0.992,
+    0.799,
+    0.556
+   ],
+   "hue": 33,
+   "sat": 0.44,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "2f76e560572f-00",
+   "kind": "ad",
+   "atlas": "neon_v",
+   "rect": [
+    0.961,
+    0.682031,
+    0.038,
+    0.136198
+   ],
+   "aspect": 0.2905,
+   "holo": false,
+   "color": [
+    0.861,
+    0.699,
+    0.541
+   ],
+   "hue": 30,
+   "sat": 0.37,
+   "gain": 1.0,
+   "surface": "poster",
+   "shop": false,
+   "weight": 3
+  },
+  {
+   "id": "2f76e560572f-01",
+   "kind": "ad",
+   "atlas": "neon_v",
+   "rect": [
+    0.001,
+    0.513281,
+    0.038,
+    0.140365
+   ],
+   "aspect": 0.2821,
+   "holo": false,
+   "color": [
+    0.913,
+    0.751,
+    0.534
+   ],
+   "hue": 34,
+   "sat": 0.41,
+   "gain": 1.0,
+   "surface": "poster",
+   "shop": false,
+   "weight": 3
+  },
+  {
+   "id": "2f76e560572f-02",
+   "kind": "ad",
+   "atlas": "neon_v",
+   "rect": [
+    0.041,
+    0.5125,
+    0.038,
+    0.141667
+   ],
+   "aspect": 0.2792,
+   "holo": false,
+   "color": [
+    0.749,
+    0.577,
+    0.374
+   ],
+   "hue": 33,
+   "sat": 0.5,
+   "gain": 1.0,
+   "surface": "poster",
+   "shop": false,
+   "weight": 3
+  },
+  {
+   "id": "2f76e560572f-03",
+   "kind": "ad",
+   "atlas": "neon_v",
+   "rect": [
+    0.081,
+    0.5125,
+    0.038,
+    0.141927
+   ],
+   "aspect": 0.2787,
+   "holo": false,
+   "color": [
+    0.666,
+    0.41,
+    0.274
+   ],
+   "hue": 21,
+   "sat": 0.59,
+   "gain": 1.0,
+   "surface": "poster",
+   "shop": false,
+   "weight": 3
+  },
+  {
+   "id": "2f76e560572f-04",
+   "kind": "ad",
+   "atlas": "neon_v",
+   "rect": [
+    0.121,
+    0.513802,
+    0.038,
+    0.139063
+   ],
+   "aspect": 0.2847,
+   "holo": false,
+   "color": [
+    0.707,
+    0.533,
+    0.376
+   ],
+   "hue": 28,
+   "sat": 0.47,
+   "gain": 1.0,
+   "surface": "poster",
+   "shop": false,
+   "weight": 3
+  },
+  {
+   "id": "2f76e560572f-05",
+   "kind": "ad",
+   "atlas": "neon_v",
+   "rect": [
+    0.161,
+    0.515365,
+    0.038,
+    0.136198
+   ],
+   "aspect": 0.2905,
+   "holo": false,
+   "color": [
+    0.864,
+    0.665,
+    0.427
+   ],
+   "hue": 33,
+   "sat": 0.51,
+   "gain": 1.0,
+   "surface": "poster",
+   "shop": false,
+   "weight": 3
+  },
+  {
+   "id": "2f76e560572f-06",
+   "kind": "ad",
+   "atlas": "neon_v",
+   "rect": [
+    0.201,
+    0.515104,
+    0.038,
+    0.136458
+   ],
+   "aspect": 0.29,
+   "holo": false,
+   "color": [
+    0.947,
+    0.773,
+    0.554
+   ],
+   "hue": 33,
+   "sat": 0.42,
+   "gain": 1.0,
+   "surface": "poster",
+   "shop": false,
+   "weight": 3
+  },
+  {
+   "id": "2f76e560572f-07",
+   "kind": "ad",
+   "atlas": "neon_v",
+   "rect": [
+    0.241,
+    0.5125,
+    0.038,
+    0.141667
+   ],
+   "aspect": 0.2795,
+   "holo": false,
+   "color": [
+    0.772,
+    0.459,
+    0.322
+   ],
+   "hue": 18,
+   "sat": 0.58,
+   "gain": 1.0,
+   "surface": "poster",
+   "shop": false,
+   "weight": 3
+  },
+  {
+   "id": "2f76e560572f-08",
+   "kind": "ad",
+   "atlas": "neon_v",
+   "rect": [
+    0.281,
+    0.511719,
+    0.038,
+    0.143229
+   ],
+   "aspect": 0.2762,
+   "holo": false,
+   "color": [
+    0.936,
+    0.838,
+    0.71
+   ],
+   "hue": 34,
+   "sat": 0.24,
+   "gain": 1.0,
+   "surface": "poster",
+   "shop": false,
+   "weight": 3
+  },
+  {
+   "id": "2f76e560572f-09",
+   "kind": "ad",
+   "atlas": "neon_v",
+   "rect": [
+    0.321,
+    0.513021,
+    0.038,
+    0.140625
+   ],
+   "aspect": 0.2817,
+   "holo": false,
+   "color": [
+    0.844,
+    0.64,
+    0.485
+   ],
+   "hue": 26,
+   "sat": 0.43,
+   "gain": 1.0,
+   "surface": "poster",
+   "shop": false,
+   "weight": 3
+  },
+  {
+   "id": "2f76e560572f-10",
+   "kind": "ad",
+   "atlas": "neon_v",
+   "rect": [
+    0.361,
+    0.51276,
+    0.038,
+    0.141406
+   ],
+   "aspect": 0.28,
+   "holo": false,
+   "color": [
+    0.876,
+    0.668,
+    0.419
+   ],
+   "hue": 33,
+   "sat": 0.52,
+   "gain": 1.0,
+   "surface": "poster",
+   "shop": false,
+   "weight": 3
+  },
+  {
+   "id": "2f76e560572f-11",
+   "kind": "ad",
+   "atlas": "neon_v",
+   "rect": [
+    0.401,
+    0.514062,
+    0.038,
+    0.138802
+   ],
+   "aspect": 0.285,
+   "holo": false,
+   "color": [
+    0.881,
+    0.663,
+    0.424
+   ],
+   "hue": 31,
+   "sat": 0.52,
+   "gain": 1.0,
+   "surface": "poster",
+   "shop": false,
+   "weight": 3
   },
   {
    "id": "2026070304PM-00",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.825521,
-    0.741815,
-    0.036458,
-    0.087798
+    0.446,
+    0.521875,
+    0.028,
+    0.122917
    ],
    "aspect": 0.2373,
    "holo": true,
@@ -688,17 +1485,18 @@
    "sat": 0.34,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-01",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.889323,
-    0.742374,
-    0.033854,
-    0.086682
+    0.487,
+    0.522656,
+    0.026,
+    0.121354
    ],
    "aspect": 0.2232,
    "holo": false,
@@ -711,17 +1509,18 @@
    "sat": 0.12,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-02",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.951823,
-    0.742001,
-    0.033854,
-    0.087426
+    0.527,
+    0.522135,
+    0.026,
+    0.122396
    ],
    "aspect": 0.2213,
    "holo": true,
@@ -734,17 +1533,18 @@
    "sat": 0.25,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-03",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.013997,
-    0.598772,
-    0.03418,
-    0.08817
+    0.56675,
+    0.521615,
+    0.02625,
+    0.123438
    ],
    "aspect": 0.2215,
    "holo": true,
@@ -757,17 +1557,18 @@
    "sat": 0.24,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-04",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.075521,
-    0.599144,
-    0.036458,
-    0.087612
+    0.606,
+    0.522135,
+    0.028,
+    0.122656
    ],
    "aspect": 0.2378,
    "holo": true,
@@ -780,17 +1581,18 @@
    "sat": 0.33,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-05",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.137695,
-    0.598958,
-    0.036784,
-    0.087984
+    0.64575,
+    0.521875,
+    0.02825,
+    0.123177
    ],
    "aspect": 0.2389,
    "holo": true,
@@ -803,17 +1605,18 @@
    "sat": 0.3,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-06",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.207031,
-    0.601004,
-    0.023112,
-    0.083705
+    0.691,
+    0.52474,
+    0.01775,
+    0.117188
    ],
    "aspect": 0.1578,
    "holo": false,
@@ -826,17 +1629,18 @@
    "sat": 0.11,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-07",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.263672,
-    0.598958,
-    0.034831,
-    0.087984
+    0.7265,
+    0.521875,
+    0.02675,
+    0.123177
    ],
    "aspect": 0.2262,
    "holo": false,
@@ -849,17 +1653,18 @@
    "sat": 0.12,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-08",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.325846,
-    0.5984,
-    0.035482,
-    0.0891
+    0.76625,
+    0.521094,
+    0.02725,
+    0.12474
    ],
    "aspect": 0.2276,
    "holo": true,
@@ -872,17 +1677,18 @@
    "sat": 0.18,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-13",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.388021,
-    0.612723,
-    0.036133,
-    0.060454
+    0.806,
+    0.541146,
+    0.02775,
+    0.084635
    ],
    "aspect": 0.3415,
    "holo": true,
@@ -895,17 +1701,18 @@
    "sat": 0.29,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-14",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.443685,
-    0.612723,
-    0.049805,
-    0.060268
+    0.841,
+    0.541406,
+    0.038,
+    0.083854
    ],
    "aspect": 0.4722,
    "holo": true,
@@ -918,17 +1725,18 @@
    "sat": 0.41,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-15",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.513672,
-    0.612723,
-    0.034831,
-    0.060268
+    0.8865,
+    0.541146,
+    0.02675,
+    0.084375
    ],
    "aspect": 0.3302,
    "holo": true,
@@ -941,17 +1749,18 @@
    "sat": 0.18,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-16",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.570964,
-    0.614769,
-    0.045247,
-    0.056362
+    0.9225,
+    0.54401,
+    0.03475,
+    0.078906
    ],
    "aspect": 0.4587,
    "holo": true,
@@ -964,17 +1773,18 @@
    "sat": 0.26,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-17",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.638346,
-    0.612537,
-    0.035807,
-    0.06064
+    0.96625,
+    0.540885,
+    0.0275,
+    0.084896
    ],
    "aspect": 0.3374,
    "holo": true,
@@ -987,17 +1797,18 @@
    "sat": 0.26,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-18",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.697266,
-    0.612723,
-    0.042643,
-    0.060454
+    0.0035,
+    0.374479,
+    0.03275,
+    0.084635
    ],
    "aspect": 0.4031,
    "holo": true,
@@ -1010,17 +1821,18 @@
    "sat": 0.19,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-19",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.763672,
-    0.612723,
-    0.034831,
-    0.060454
+    0.0465,
+    0.374479,
+    0.02675,
+    0.084635
    ],
    "aspect": 0.3292,
    "holo": true,
@@ -1033,17 +1845,18 @@
    "sat": 0.21,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-20",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.828776,
-    0.613653,
-    0.029948,
-    0.058408
+    0.0885,
+    0.375781,
+    0.023,
+    0.081771
    ],
    "aspect": 0.293,
    "holo": true,
@@ -1056,17 +1869,18 @@
    "sat": 0.49,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-23",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.895182,
-    0.624628,
-    0.022135,
-    0.036644
+    0.1315,
+    0.391146,
+    0.017,
+    0.051302
    ],
    "aspect": 0.3452,
    "holo": true,
@@ -1079,17 +1893,18 @@
    "sat": 0.23,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-24",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.958008,
-    0.624628,
-    0.021159,
-    0.036644
+    0.17175,
+    0.391146,
+    0.01625,
+    0.051302
    ],
    "aspect": 0.3299,
    "holo": true,
@@ -1102,17 +1917,18 @@
    "sat": 0.25,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070811PM-00",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.009115,
-    0.464658,
-    0.043945,
-    0.070871
+    0.203,
+    0.367188,
+    0.03375,
+    0.099219
    ],
    "aspect": 0.3543,
    "holo": false,
@@ -1125,17 +1941,18 @@
    "sat": 0.54,
    "gain": 1.0,
    "surface": "poster",
-   "shop": true
+   "shop": true,
+   "weight": 1
   },
   {
    "id": "2026070811PM-01",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.067708,
-    0.464472,
-    0.052083,
-    0.071057
+    0.241,
+    0.369531,
+    0.038,
+    0.094531
    ],
    "aspect": 0.4188,
    "holo": false,
@@ -1148,17 +1965,18 @@
    "sat": 0.29,
    "gain": 1.0,
    "surface": "poster",
-   "shop": true
+   "shop": true,
+   "weight": 1
   },
   {
    "id": "2026070811PM-02",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.130859,
-    0.464658,
-    0.050781,
-    0.070871
+    0.281,
+    0.36849,
+    0.038,
+    0.096615
    ],
    "aspect": 0.4094,
    "holo": false,
@@ -1171,17 +1989,18 @@
    "sat": 0.51,
    "gain": 1.0,
    "surface": "poster",
-   "shop": true
+   "shop": true,
+   "weight": 1
   },
   {
    "id": "2026070811PM-03",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.194661,
-    0.464658,
-    0.047852,
-    0.070685
+    0.3215,
+    0.367188,
+    0.03675,
+    0.098958
    ],
    "aspect": 0.3868,
    "holo": false,
@@ -1194,17 +2013,18 @@
    "sat": 0.19,
    "gain": 1.0,
    "surface": "poster",
-   "shop": true
+   "shop": true,
+   "weight": 1
   },
   {
    "id": "2026070811PM-04",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.255534,
-    0.464472,
-    0.051432,
-    0.071057
+    0.361,
+    0.36901,
+    0.038,
+    0.095573
    ],
    "aspect": 0.4136,
    "holo": false,
@@ -1217,17 +2037,18 @@
    "sat": 0.36,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070811PM-05",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.316732,
-    0.464472,
-    0.054036,
-    0.071057
+    0.401,
+    0.371094,
+    0.038,
+    0.091146
    ],
    "aspect": 0.4346,
    "holo": false,
@@ -1240,17 +2061,18 @@
    "sat": 0.36,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070811PM-06",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.376302,
-    0.465402,
-    0.059896,
-    0.069196
+    0.441,
+    0.376823,
+    0.038,
+    0.079948
    ],
    "aspect": 0.4948,
    "holo": false,
@@ -1263,17 +2085,18 @@
    "sat": 0.4,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070811PM-11",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.446615,
-    0.469866,
-    0.044271,
-    0.060268
+    0.483,
+    0.374479,
+    0.034,
+    0.084375
    ],
    "aspect": 0.4198,
    "holo": false,
@@ -1286,17 +2109,18 @@
    "sat": 0.24,
    "gain": 1.0,
    "surface": "poster",
-   "shop": true
+   "shop": true,
+   "weight": 1
   },
   {
    "id": "2026071126PM-00",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.515951,
-    0.464472,
-    0.030599,
-    0.071243
+    0.52825,
+    0.366927,
+    0.0235,
+    0.09974
    ],
    "aspect": 0.2454,
    "holo": false,
@@ -1309,17 +2133,18 @@
    "sat": 0.52,
    "gain": 1.0,
    "surface": "poster",
-   "shop": true
+   "shop": true,
+   "weight": 1
   },
   {
    "id": "2026071126PM-01",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.578125,
-    0.464286,
-    0.030924,
-    0.071429
+    0.568,
+    0.366667,
+    0.02375,
+    0.1
    ],
    "aspect": 0.2474,
    "holo": false,
@@ -1332,17 +2157,18 @@
    "sat": 0.08,
    "gain": 1.0,
    "surface": "poster",
-   "shop": true
+   "shop": true,
+   "weight": 1
   },
   {
    "id": "2026071126PM-02",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.639648,
-    0.464286,
-    0.032878,
-    0.071615
+    0.60725,
+    0.366667,
+    0.02525,
+    0.10026
    ],
    "aspect": 0.2623,
    "holo": false,
@@ -1355,17 +2181,18 @@
    "sat": 0.31,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-03",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.704753,
-    0.464472,
-    0.027995,
-    0.071243
+    0.64925,
+    0.366927,
+    0.0215,
+    0.09974
    ],
    "aspect": 0.2245,
    "holo": false,
@@ -1378,17 +2205,18 @@
    "sat": 0.38,
    "gain": 1.0,
    "surface": "poster",
-   "shop": true
+   "shop": true,
+   "weight": 1
   },
   {
    "id": "2026071126PM-04",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.764323,
-    0.464286,
-    0.033854,
-    0.071429
+    0.687,
+    0.366667,
+    0.026,
+    0.1
    ],
    "aspect": 0.2708,
    "holo": false,
@@ -1401,17 +2229,18 @@
    "sat": 0.62,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-05",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.826823,
-    0.464472,
-    0.033529,
-    0.071243
+    0.727,
+    0.366927,
+    0.02575,
+    0.09974
    ],
    "aspect": 0.2689,
    "holo": false,
@@ -1424,17 +2253,18 @@
    "sat": 0.13,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-06",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.893229,
-    0.464286,
-    0.025716,
-    0.071615
+    0.77,
+    0.366667,
+    0.01975,
+    0.10026
    ],
    "aspect": 0.2052,
    "holo": false,
@@ -1447,17 +2277,18 @@
    "sat": 0.28,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-07",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.950521,
-    0.464286,
-    0.036133,
-    0.071615
+    0.806,
+    0.366667,
+    0.02775,
+    0.10026
    ],
    "aspect": 0.2883,
    "holo": false,
@@ -1470,17 +2301,18 @@
    "sat": 0.38,
    "gain": 1.0,
    "surface": "poster",
-   "shop": true
+   "shop": true,
+   "weight": 1
   },
   {
    "id": "2026071126PM-08",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.015299,
-    0.321429,
-    0.031901,
-    0.071615
+    0.84775,
+    0.366667,
+    0.0245,
+    0.10026
    ],
    "aspect": 0.2545,
    "holo": false,
@@ -1493,17 +2325,18 @@
    "sat": 0.46,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-09",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.078451,
-    0.321615,
-    0.030599,
-    0.071243
+    0.88825,
+    0.366927,
+    0.0235,
+    0.09974
    ],
    "aspect": 0.2454,
    "holo": false,
@@ -1516,17 +2349,18 @@
    "sat": 0.11,
    "gain": 1.0,
    "surface": "poster",
-   "shop": true
+   "shop": true,
+   "weight": 1
   },
   {
    "id": "2026071126PM-10",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.139323,
-    0.321429,
-    0.033854,
-    0.071615
+    0.927,
+    0.366667,
+    0.026,
+    0.10026
    ],
    "aspect": 0.2701,
    "holo": false,
@@ -1539,17 +2373,18 @@
    "sat": 0.05,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-11",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.201823,
-    0.321429,
-    0.033854,
-    0.071615
+    0.967,
+    0.366667,
+    0.026,
+    0.10026
    ],
    "aspect": 0.2701,
    "holo": false,
@@ -1562,17 +2397,18 @@
    "sat": 0.57,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-12",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.264648,
-    0.328683,
-    0.032878,
-    0.05692
+    0.00725,
+    0.210156,
+    0.02525,
+    0.079687
    ],
    "aspect": 0.3301,
    "holo": false,
@@ -1585,17 +2421,18 @@
    "sat": 0.26,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-14",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.329102,
-    0.329055,
-    0.028971,
-    0.056362
+    0.04875,
+    0.210677,
+    0.02225,
+    0.078906
    ],
    "aspect": 0.2937,
    "holo": false,
@@ -1608,17 +2445,18 @@
    "sat": 0.77,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-15",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.391602,
-    0.328683,
-    0.028971,
-    0.05692
+    0.08875,
+    0.210156,
+    0.02225,
+    0.079687
    ],
    "aspect": 0.2908,
    "holo": false,
@@ -1631,17 +2469,18 @@
    "sat": 0.07,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-16",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.451497,
-    0.328869,
-    0.034505,
-    0.056734
+    0.12675,
+    0.210417,
+    0.0265,
+    0.079427
    ],
    "aspect": 0.3475,
    "holo": false,
@@ -1654,17 +2493,18 @@
    "sat": 0.01,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-17",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.514648,
-    0.329055,
-    0.032878,
-    0.056176
+    0.16725,
+    0.210677,
+    0.02525,
+    0.078646
    ],
    "aspect": 0.3344,
    "holo": false,
@@ -1677,17 +2517,18 @@
    "sat": 0.44,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-18",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.577474,
-    0.328869,
-    0.032227,
-    0.056548
+    0.2075,
+    0.210417,
+    0.02475,
+    0.079167
    ],
    "aspect": 0.3257,
    "holo": false,
@@ -1700,17 +2541,18 @@
    "sat": 0.17,
    "gain": 1.0,
    "surface": "poster",
-   "shop": true
+   "shop": true,
+   "weight": 1
   },
   {
    "id": "2026071126PM-19",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.640951,
-    0.328869,
-    0.030599,
-    0.056548
+    0.24825,
+    0.210417,
+    0.0235,
+    0.079167
    ],
    "aspect": 0.3092,
    "holo": false,
@@ -1723,17 +2565,18 @@
    "sat": 0.26,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-20",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.697917,
-    0.328869,
-    0.041667,
-    0.056548
+    0.284,
+    0.210417,
+    0.032,
+    0.079167
    ],
    "aspect": 0.4211,
    "holo": false,
@@ -1746,17 +2589,18 @@
    "sat": 0.2,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-21",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.768229,
-    0.328683,
-    0.025716,
-    0.05692
+    0.33,
+    0.210156,
+    0.01975,
+    0.079687
    ],
    "aspect": 0.2582,
    "holo": false,
@@ -1769,17 +2613,18 @@
    "sat": 0.41,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-22",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.830729,
-    0.328683,
-    0.026042,
-    0.05692
+    0.37,
+    0.210156,
+    0.02,
+    0.079687
    ],
    "aspect": 0.2614,
    "holo": false,
@@ -1792,17 +2637,18 @@
    "sat": 0.26,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-23",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.890951,
-    0.328683,
-    0.030599,
-    0.05692
+    0.40825,
+    0.210156,
+    0.0235,
+    0.079687
    ],
    "aspect": 0.3072,
    "holo": false,
@@ -1815,17 +2661,18 @@
    "sat": 0.33,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-25",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.95638,
-    0.332961,
-    0.024414,
-    0.048549
+    0.4505,
+    0.216146,
+    0.01875,
+    0.067969
    ],
    "aspect": 0.2874,
    "holo": false,
@@ -1838,17 +2685,18 @@
    "sat": 0.28,
    "gain": 1.0,
    "surface": "poster",
-   "shop": true
+   "shop": true,
+   "weight": 1
   },
   {
    "id": "2026071126PM-26",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.015625,
-    0.19029,
-    0.030924,
-    0.048177
+    0.488,
+    0.216406,
+    0.02375,
+    0.067448
    ],
    "aspect": 0.3668,
    "holo": false,
@@ -1861,17 +2709,18 @@
    "sat": 0.22,
    "gain": 1.0,
    "surface": "poster",
-   "shop": true
+   "shop": true,
+   "weight": 1
   },
   {
    "id": "2026071126PM-27",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.079427,
-    0.190104,
-    0.02832,
-    0.048363
+    0.529,
+    0.216146,
+    0.02175,
+    0.067708
    ],
    "aspect": 0.3346,
    "holo": false,
@@ -1884,17 +2733,18 @@
    "sat": 0.08,
    "gain": 1.0,
    "surface": "poster",
-   "shop": true
+   "shop": true,
+   "weight": 1
   },
   {
    "id": "2026071126PM-29",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.141927,
-    0.19029,
-    0.028646,
-    0.047991
+    0.569,
+    0.216406,
+    0.022,
+    0.067187
    ],
    "aspect": 0.3411,
    "holo": false,
@@ -1907,17 +2757,18 @@
    "sat": 0.28,
    "gain": 1.0,
    "surface": "poster",
-   "shop": true
+   "shop": true,
+   "weight": 1
   },
   {
    "id": "2026071126PM-30",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.201497,
-    0.190104,
-    0.034505,
-    0.048549
+    0.60675,
+    0.216146,
+    0.0265,
+    0.067969
    ],
    "aspect": 0.4061,
    "holo": false,
@@ -1930,17 +2781,18 @@
    "sat": 0.4,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-31",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.265625,
-    0.193824,
-    0.03125,
-    0.040923
+    0.648,
+    0.221354,
+    0.024,
+    0.057292
    ],
    "aspect": 0.4364,
    "holo": false,
@@ -1953,17 +2805,18 @@
    "sat": 0.14,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-33",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.331706,
-    0.19029,
-    0.024089,
-    0.047991
+    0.69075,
+    0.216406,
+    0.0185,
+    0.067187
    ],
    "aspect": 0.2868,
    "holo": false,
@@ -1976,17 +2829,18 @@
    "sat": 0.05,
    "gain": 1.0,
    "surface": "poster",
-   "shop": true
+   "shop": true,
+   "weight": 1
   },
   {
    "id": "2026071126PM-34",
    "kind": "ad",
    "atlas": "neon_v",
    "rect": [
-    0.391276,
-    0.190104,
-    0.029948,
-    0.048363
+    0.7285,
+    0.216146,
+    0.023,
+    0.067708
    ],
    "aspect": 0.3538,
    "holo": false,
@@ -1999,17 +2853,18 @@
    "sat": 0.28,
    "gain": 1.0,
    "surface": "poster",
-   "shop": true
+   "shop": true,
+   "weight": 1
   },
   {
    "id": "2026072031PM-00",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.451497,
-    0.175223,
-    0.03418,
-    0.078311
+    0.76675,
+    0.195312,
+    0.02625,
+    0.109635
    ],
    "aspect": 0.2494,
    "holo": true,
@@ -2022,17 +2877,18 @@
    "sat": 0.12,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-01",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.513997,
-    0.175409,
-    0.03418,
-    0.077939
+    0.80675,
+    0.195573,
+    0.02625,
+    0.109115
    ],
    "aspect": 0.2506,
    "holo": true,
@@ -2045,17 +2901,18 @@
    "sat": 0.19,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-02",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.576823,
-    0.175409,
-    0.033854,
-    0.077753
+    0.847,
+    0.195573,
+    0.026,
+    0.108854
    ],
    "aspect": 0.2488,
    "holo": true,
@@ -2068,17 +2925,18 @@
    "sat": 0.21,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-03",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.639648,
-    0.175409,
-    0.032878,
-    0.077753
+    0.88725,
+    0.195573,
+    0.02525,
+    0.108854
    ],
    "aspect": 0.2416,
    "holo": true,
@@ -2091,17 +2949,18 @@
    "sat": 0.25,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-04",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.700521,
-    0.175223,
-    0.036133,
-    0.078125
+    0.926,
+    0.195312,
+    0.02775,
+    0.109375
    ],
    "aspect": 0.2643,
    "holo": true,
@@ -2114,17 +2973,18 @@
    "sat": 0.36,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-05",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.763997,
-    0.175409,
-    0.03418,
-    0.077753
+    0.96675,
+    0.195573,
+    0.02625,
+    0.108854
    ],
    "aspect": 0.2512,
    "holo": true,
@@ -2137,17 +2997,18 @@
    "sat": 0.2,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-06",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.826172,
-    0.175409,
-    0.034831,
-    0.077753
+    0.0065,
+    0.028906,
+    0.02675,
+    0.108854
    ],
    "aspect": 0.256,
    "holo": true,
@@ -2160,17 +3021,18 @@
    "sat": 0.13,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-07",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.887044,
-    0.175409,
-    0.038086,
-    0.077753
+    0.04525,
+    0.028906,
+    0.02925,
+    0.108854
    ],
    "aspect": 0.2799,
    "holo": true,
@@ -2183,17 +3045,18 @@
    "sat": 0.26,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-09",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.954102,
-    0.175223,
-    0.029297,
-    0.078125
+    0.08875,
+    0.028646,
+    0.0225,
+    0.109375
    ],
    "aspect": 0.2143,
    "holo": true,
@@ -2206,17 +3069,18 @@
    "sat": 0.25,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-10",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.014323,
-    0.032366,
-    0.033529,
-    0.078125
+    0.127,
+    0.028646,
+    0.02575,
+    0.109375
    ],
    "aspect": 0.2452,
    "holo": true,
@@ -2229,17 +3093,18 @@
    "sat": 0.13,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-11",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.076823,
-    0.043713,
-    0.033529,
-    0.055432
+    0.167,
+    0.044531,
+    0.02575,
+    0.077604
    ],
    "aspect": 0.3456,
    "holo": true,
@@ -2252,17 +3117,18 @@
    "sat": 0.15,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-12",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.138997,
-    0.043713,
-    0.03418,
-    0.055618
+    0.20675,
+    0.044531,
+    0.02625,
+    0.077865
    ],
    "aspect": 0.3512,
    "holo": true,
@@ -2275,17 +3141,18 @@
    "sat": 0.16,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-13",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.200846,
-    0.043713,
-    0.035482,
-    0.055432
+    0.24625,
+    0.044531,
+    0.02725,
+    0.077604
    ],
    "aspect": 0.3658,
    "holo": true,
@@ -2298,17 +3165,18 @@
    "sat": 0.2,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-14",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.263997,
-    0.043713,
-    0.034505,
-    0.055432
+    0.28675,
+    0.044531,
+    0.0265,
+    0.077604
    ],
    "aspect": 0.3557,
    "holo": true,
@@ -2321,17 +3189,18 @@
    "sat": 0.18,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-15",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.326172,
-    0.043713,
-    0.035156,
-    0.055432
+    0.3265,
+    0.044531,
+    0.027,
+    0.077604
    ],
    "aspect": 0.3624,
    "holo": true,
@@ -2344,17 +3213,18 @@
    "sat": 0.17,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-16",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.388346,
-    0.043713,
-    0.035807,
-    0.055432
+    0.36625,
+    0.044531,
+    0.0275,
+    0.077604
    ],
    "aspect": 0.3691,
    "holo": true,
@@ -2367,17 +3237,18 @@
    "sat": 0.21,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-17",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.447917,
-    0.043713,
-    0.041667,
-    0.055432
+    0.404,
+    0.044531,
+    0.032,
+    0.077604
    ],
    "aspect": 0.4295,
    "holo": true,
@@ -2390,17 +3261,18 @@
    "sat": 0.21,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-18",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.508138,
-    0.043713,
-    0.045898,
-    0.055618
+    0.44225,
+    0.044531,
+    0.03525,
+    0.077865
    ],
    "aspect": 0.4716,
    "holo": true,
@@ -2413,17 +3285,18 @@
    "sat": 0.42,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-19",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.576172,
-    0.043713,
-    0.034831,
-    0.055432
+    0.4865,
+    0.044531,
+    0.02675,
+    0.077604
    ],
    "aspect": 0.3591,
    "holo": true,
@@ -2436,17 +3309,18 @@
    "sat": 0.16,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-20",
    "kind": "neon",
    "atlas": "neon_v",
    "rect": [
-    0.639648,
-    0.043713,
-    0.032878,
-    0.055432
+    0.52725,
+    0.044531,
+    0.02525,
+    0.077604
    ],
    "aspect": 0.3389,
    "holo": true,
@@ -2459,7 +3333,8 @@
    "sat": 0.25,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_neon_sign_shaped_l~-b9299e5fe8db_0",
@@ -2482,7 +3357,8 @@
    "sat": 0.7,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_neon_sign_shaped_l~-14a9db18842b_0",
@@ -2505,7 +3381,8 @@
    "sat": 0.69,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_neon_sign_shaped_l~-14a9db18842b_1",
@@ -2528,7 +3405,8 @@
    "sat": 0.54,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "aero-9",
@@ -2551,7 +3429,8 @@
    "sat": 0.66,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "kitsune",
@@ -2574,7 +3453,8 @@
    "sat": 0.61,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "kuro-arcade",
@@ -2597,7 +3477,8 @@
    "sat": 0.13,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "legacy-pixel-koi",
@@ -2620,7 +3501,8 @@
    "sat": 0.51,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "luna-tea",
@@ -2643,7 +3525,8 @@
    "sat": 0.34,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "mori-synth",
@@ -2666,7 +3549,8 @@
    "sat": 0.65,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "neon-runner",
@@ -2689,7 +3573,8 @@
    "sat": 0.3,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "orbit-ramen",
@@ -2712,7 +3597,8 @@
    "sat": 0.7,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_beautiful_cyberpun~-a1dbe6b26c20_2",
@@ -2735,7 +3621,8 @@
    "sat": 0.93,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_beautiful_cyberpun~-a1dbe6b26c20_3",
@@ -2758,7 +3645,8 @@
    "sat": 0.46,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_advertis~-e326e47b4779_2",
@@ -2781,7 +3669,8 @@
    "sat": 0.14,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_advertis~-0ec858b5d1d7_1",
@@ -2804,7 +3693,8 @@
    "sat": 0.14,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_poster_J~-a8b3ed5b9023_0",
@@ -2827,7 +3717,8 @@
    "sat": 0.39,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_poster_J~-ba16828c41e9_2",
@@ -2850,7 +3741,8 @@
    "sat": 0.14,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_poster_J~-38a4ca9e55ae_1",
@@ -2873,7 +3765,8 @@
    "sat": 0.1,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_poster_J~-726b18bc8078_0",
@@ -2896,7 +3789,8 @@
    "sat": 0.41,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_poster_J~-ff2cde779e95_2",
@@ -2919,7 +3813,8 @@
    "sat": 0.04,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_poster_J~-3a13e89c4971_0",
@@ -2942,7 +3837,8 @@
    "sat": 0.58,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070811PM-07",
@@ -2965,7 +3861,8 @@
    "sat": 0.5,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070811PM-08",
@@ -2988,7 +3885,8 @@
    "sat": 0.44,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070811PM-09",
@@ -3011,7 +3909,8 @@
    "sat": 0.18,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070811PM-10",
@@ -3034,7 +3933,8 @@
    "sat": 0.52,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070811PM-12",
@@ -3057,7 +3957,8 @@
    "sat": 0.29,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070811PM-13",
@@ -3080,7 +3981,8 @@
    "sat": 0.49,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070811PM-17",
@@ -3103,7 +4005,8 @@
    "sat": 0.3,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070811PM-18",
@@ -3126,7 +4029,8 @@
    "sat": 0.28,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070811PM-19",
@@ -3149,7 +4053,8 @@
    "sat": 0.42,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070811PM-20",
@@ -3172,7 +4077,8 @@
    "sat": 0.37,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-24",
@@ -3195,7 +4101,8 @@
    "sat": 0.73,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-28",
@@ -3218,7 +4125,8 @@
    "sat": 0.62,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-32",
@@ -3241,7 +4149,8 @@
    "sat": 0.55,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-34",
@@ -3264,7 +4173,8 @@
    "sat": 0.15,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-36",
@@ -3287,7 +4197,8 @@
    "sat": 0.29,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-38",
@@ -3310,7 +4221,8 @@
    "sat": 0.36,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-39",
@@ -3333,7 +4245,8 @@
    "sat": 0.11,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-40",
@@ -3356,7 +4269,8 @@
    "sat": 0.38,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_poster_J~-340146b2730d_0",
@@ -3364,9 +4278,9 @@
    "atlas": "posters_l",
    "rect": [
     0.000992,
-    0.875744,
+    0.891276,
     0.140873,
-    0.105655
+    0.092448
    ],
    "aspect": 2.0,
    "holo": false,
@@ -3379,7 +4293,8 @@
    "sat": 0.46,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_poster_J~-340146b2730d_1",
@@ -3387,9 +4302,9 @@
    "atlas": "posters_l",
    "rect": [
     0.143849,
-    0.875744,
+    0.891276,
     0.140873,
-    0.105655
+    0.092448
    ],
    "aspect": 2.0,
    "holo": false,
@@ -3402,7 +4317,8 @@
    "sat": 0.59,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_poster_J~-340146b2730d_2",
@@ -3410,9 +4326,9 @@
    "atlas": "posters_l",
    "rect": [
     0.286706,
-    0.875744,
+    0.891276,
     0.140873,
-    0.105655
+    0.092448
    ],
    "aspect": 2.0,
    "holo": false,
@@ -3425,7 +4341,8 @@
    "sat": 0.66,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_poster_J~-340146b2730d_3",
@@ -3433,9 +4350,9 @@
    "atlas": "posters_l",
    "rect": [
     0.429563,
-    0.875744,
+    0.891276,
     0.140873,
-    0.105655
+    0.092448
    ],
    "aspect": 2.0,
    "holo": false,
@@ -3448,17 +4365,42 @@
    "sat": 0.2,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "thenightocean_cyberpunk_poster_J~-767da658c52a_1",
+   "kind": "ad",
+   "atlas": "posters_l",
+   "rect": [
+    0.572421,
+    0.891276,
+    0.140873,
+    0.092448
+   ],
+   "aspect": 2.0,
+   "holo": false,
+   "color": [
+    0.69,
+    0.703,
+    0.681
+   ],
+   "hue": 96,
+   "sat": 0.03,
+   "gain": 1.0,
+   "surface": "poster",
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_poster_J~-b8a22122baf8_0",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.572917,
-    0.858631,
+    0.715774,
+    0.876302,
     0.139881,
-    0.139881
+    0.122396
    ],
    "aspect": 1.5,
    "holo": false,
@@ -3471,17 +4413,18 @@
    "sat": 0.47,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_poster_J~-b8a22122baf8_1",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.715774,
     0.858631,
+    0.876302,
     0.139881,
-    0.139881
+    0.122396
    ],
    "aspect": 1.5,
    "holo": true,
@@ -3494,17 +4437,18 @@
    "sat": 0.85,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "dreamstate-fm",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.858631,
-    0.858631,
+    0.001488,
+    0.751302,
     0.139881,
-    0.139881
+    0.122396
    ],
    "aspect": 1.5,
    "holo": true,
@@ -3517,17 +4461,18 @@
    "sat": 0.36,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "nightline",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.001488,
-    0.715774,
+    0.144345,
+    0.751302,
     0.139881,
-    0.139881
+    0.122396
    ],
    "aspect": 1.5,
    "holo": true,
@@ -3540,17 +4485,18 @@
    "sat": 0.12,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "sora-motors",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.144345,
-    0.715774,
+    0.287202,
+    0.751302,
     0.139881,
-    0.139881
+    0.122396
    ],
    "aspect": 1.5,
    "holo": true,
@@ -3563,17 +4509,18 @@
    "sat": 0.45,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "volt-cola",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.287202,
-    0.715774,
+    0.43006,
+    0.751302,
     0.139881,
-    0.139881
+    0.122396
    ],
    "aspect": 1.5,
    "holo": true,
@@ -3586,17 +4533,18 @@
    "sat": 0.73,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_japanese~-77be5b3af8de_0",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.43006,
-    0.715774,
+    0.572917,
+    0.751302,
     0.139881,
-    0.139881
+    0.122396
    ],
    "aspect": 1.5,
    "holo": false,
@@ -3609,17 +4557,18 @@
    "sat": 0.7,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_japanese~-77be5b3af8de_1",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.572917,
     0.715774,
+    0.751302,
     0.139881,
-    0.139881
+    0.122396
    ],
    "aspect": 1.5,
    "holo": false,
@@ -3632,17 +4581,18 @@
    "sat": 0.33,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_japanese~-77be5b3af8de_2",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.715774,
-    0.715774,
+    0.858631,
+    0.751302,
     0.139881,
-    0.139881
+    0.122396
    ],
    "aspect": 1.5,
    "holo": false,
@@ -3655,17 +4605,18 @@
    "sat": 0.28,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_japanese~-77be5b3af8de_3",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.858631,
-    0.715774,
+    0.001488,
+    0.626302,
     0.139881,
-    0.139881
+    0.122396
    ],
    "aspect": 1.5,
    "holo": false,
@@ -3678,17 +4629,18 @@
    "sat": 0.4,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_japanese~-6e5cb92cb9e4_1",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.001488,
-    0.572917,
+    0.144345,
+    0.626302,
     0.139881,
-    0.139881
+    0.122396
    ],
    "aspect": 1.5,
    "holo": true,
@@ -3701,17 +4653,18 @@
    "sat": 0.15,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_poster_J~-eac68f0982be_0",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.144345,
-    0.572917,
+    0.287202,
+    0.626302,
     0.139881,
-    0.139881
+    0.122396
    ],
    "aspect": 1.5,
    "holo": false,
@@ -3724,17 +4677,18 @@
    "sat": 0.67,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_poster_J~-eac68f0982be_1",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.287202,
-    0.572917,
+    0.43006,
+    0.626302,
     0.139881,
-    0.139881
+    0.122396
    ],
    "aspect": 1.5,
    "holo": false,
@@ -3747,17 +4701,18 @@
    "sat": 0.35,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_poster_J~-5fb115d14f50_1",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.43006,
     0.572917,
+    0.626302,
     0.139881,
-    0.139881
+    0.122396
    ],
    "aspect": 1.5,
    "holo": false,
@@ -3770,17 +4725,18 @@
    "sat": 0.7,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_poster_J~-5fb115d14f50_2",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.572917,
-    0.572917,
+    0.715774,
+    0.626302,
     0.139881,
-    0.139881
+    0.122396
    ],
    "aspect": 1.5,
    "holo": false,
@@ -3793,17 +4749,18 @@
    "sat": 0.48,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_cyberpunk_poster_J~-5fb115d14f50_3",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.715774,
-    0.572917,
+    0.858631,
+    0.626302,
     0.139881,
-    0.139881
+    0.122396
    ],
    "aspect": 1.5,
    "holo": false,
@@ -3816,17 +4773,18 @@
    "sat": 0.71,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-09",
    "kind": "neon",
    "atlas": "posters_l",
    "rect": [
-    0.904762,
-    0.617932,
     0.047619,
-    0.049851
+    0.54069,
+    0.047619,
+    0.04362
    ],
    "aspect": 1.4328,
    "holo": true,
@@ -3839,17 +4797,18 @@
    "sat": 0.25,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-11",
    "kind": "neon",
    "atlas": "posters_l",
    "rect": [
-    0.036954,
-    0.475446,
+    0.179812,
+    0.541016,
     0.0687,
-    0.049107
+    0.042969
    ],
    "aspect": 2.0985,
    "holo": true,
@@ -3862,17 +4821,18 @@
    "sat": 0.25,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-12",
    "kind": "neon",
    "atlas": "posters_l",
    "rect": [
-    0.176835,
-    0.475074,
+    0.319692,
+    0.54069,
     0.074653,
-    0.049851
+    0.04362
    ],
    "aspect": 2.2463,
    "holo": true,
@@ -3885,17 +4845,18 @@
    "sat": 0.21,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-21",
    "kind": "neon",
    "atlas": "posters_l",
    "rect": [
-    0.325397,
-    0.467634,
+    0.468254,
+    0.53418,
     0.063244,
-    0.065104
+    0.056966
    ],
    "aspect": 1.4571,
    "holo": true,
@@ -3908,17 +4869,18 @@
    "sat": 0.34,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-25",
    "kind": "neon",
    "atlas": "posters_l",
    "rect": [
-    0.468998,
-    0.467634,
+    0.611855,
+    0.53418,
     0.061756,
-    0.064732
+    0.056641
    ],
    "aspect": 1.431,
    "holo": true,
@@ -3931,17 +4893,18 @@
    "sat": 0.28,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-26",
    "kind": "neon",
    "atlas": "posters_l",
    "rect": [
-    0.609623,
-    0.467634,
+    0.75248,
+    0.53418,
     0.06622,
-    0.065104
+    0.056966
    ],
    "aspect": 1.5257,
    "holo": true,
@@ -3954,17 +4917,18 @@
    "sat": 0.33,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-27",
    "kind": "neon",
    "atlas": "posters_l",
    "rect": [
-    0.765625,
-    0.481027,
+    0.908482,
+    0.545898,
     0.040179,
-    0.038318
+    0.033529
    ],
    "aspect": 1.5728,
    "holo": true,
@@ -3977,17 +4941,18 @@
    "sat": 0.22,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070811PM-14",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.891617,
-    0.46131,
+    0.034474,
+    0.403646,
     0.073909,
-    0.077381
+    0.067708
    ],
    "aspect": 1.4327,
    "holo": false,
@@ -4000,17 +4965,18 @@
    "sat": 0.36,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070811PM-15",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.036954,
-    0.318824,
+    0.179812,
+    0.403971,
     0.0687,
-    0.077009
+    0.067383
    ],
    "aspect": 1.3382,
    "holo": false,
@@ -4023,17 +4989,18 @@
    "sat": 0.49,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070811PM-16",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.167411,
-    0.318824,
+    0.310268,
+    0.403971,
     0.093502,
-    0.077009
+    0.067383
    ],
    "aspect": 1.8213,
    "holo": false,
@@ -4046,17 +5013,18 @@
    "sat": 0.32,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070811PM-21",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.310764,
-    0.310268,
+    0.453621,
+    0.396484,
     0.09251,
-    0.094122
+    0.082357
    ],
    "aspect": 1.4743,
    "holo": false,
@@ -4069,17 +5037,18 @@
    "sat": 0.49,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-36",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.465774,
-    0.334821,
+    0.608631,
+    0.417969,
     0.068204,
-    0.044643
+    0.039062
    ],
    "aspect": 2.2917,
    "holo": false,
@@ -4092,17 +5061,18 @@
    "sat": 0.35,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-39",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.604911,
-    0.330357,
+    0.747768,
+    0.414062,
     0.075893,
-    0.053571
+    0.046875
    ],
    "aspect": 2.125,
    "holo": false,
@@ -4115,17 +5085,18 @@
    "sat": 0.29,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-40",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.751488,
-    0.329985,
+    0.894345,
+    0.413737,
     0.068452,
-    0.054315
+    0.047526
    ],
    "aspect": 1.8904,
    "holo": false,
@@ -4138,17 +5109,18 @@
    "sat": 0.32,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-41",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.888641,
-    0.329985,
+    0.031498,
+    0.288737,
     0.079613,
-    0.054315
+    0.047526
    ],
    "aspect": 2.1986,
    "holo": false,
@@ -4161,17 +5133,18 @@
    "sat": 0.4,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-42",
    "kind": "ad",
    "atlas": "posters_l",
    "rect": [
-    0.03249,
-    0.1875,
+    0.175347,
+    0.289062,
     0.077629,
-    0.053943
+    0.047201
    ],
    "aspect": 2.1586,
    "holo": false,
@@ -4184,17 +5157,18 @@
    "sat": 0.8,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-26",
    "kind": "neon",
    "atlas": "posters_l",
    "rect": [
-    0.184524,
-    0.195685,
+    0.327381,
+    0.296224,
     0.059524,
-    0.037574
+    0.032878
    ],
    "aspect": 2.3762,
    "holo": true,
@@ -4207,17 +5181,18 @@
    "sat": 0.46,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-28",
    "kind": "neon",
    "atlas": "posters_l",
    "rect": [
-    0.331597,
-    0.195685,
+    0.474454,
+    0.296224,
     0.050843,
-    0.037574
+    0.032878
    ],
    "aspect": 2.0297,
    "holo": true,
@@ -4230,17 +5205,18 @@
    "sat": 0.15,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-29",
    "kind": "neon",
    "atlas": "posters_l",
    "rect": [
-    0.473214,
-    0.195312,
+    0.616071,
+    0.295898,
     0.053571,
-    0.037946
+    0.033203
    ],
    "aspect": 2.1176,
    "holo": true,
@@ -4253,17 +5229,18 @@
    "sat": 0.19,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-30",
    "kind": "neon",
    "atlas": "posters_l",
    "rect": [
-    0.614087,
-    0.195685,
+    0.756944,
+    0.296224,
     0.05754,
-    0.037574
+    0.032878
    ],
    "aspect": 2.297,
    "holo": true,
@@ -4276,17 +5253,18 @@
    "sat": 0.13,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-31",
    "kind": "neon",
    "atlas": "posters_l",
    "rect": [
-    0.756944,
-    0.195685,
+    0.899802,
+    0.296224,
     0.057292,
-    0.037574
+    0.032878
    ],
    "aspect": 2.2871,
    "holo": true,
@@ -4299,17 +5277,18 @@
    "sat": 0.26,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-32",
    "kind": "neon",
    "atlas": "posters_l",
    "rect": [
-    0.908482,
-    0.195685,
+    0.051339,
+    0.171224,
     0.039931,
-    0.037574
+    0.032878
    ],
    "aspect": 1.5941,
    "holo": true,
@@ -4322,17 +5301,18 @@
    "sat": 0.16,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-33",
    "kind": "neon",
    "atlas": "posters_l",
    "rect": [
-    0.055804,
-    0.052827,
+    0.198661,
+    0.171224,
     0.031002,
-    0.037574
+    0.032878
    ],
    "aspect": 1.2376,
    "holo": true,
@@ -4345,17 +5325,18 @@
    "sat": 0.08,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-35",
    "kind": "neon",
    "atlas": "posters_l",
    "rect": [
-    0.192708,
-    0.052827,
+    0.335565,
+    0.171224,
     0.042907,
-    0.037574
+    0.032878
    ],
    "aspect": 1.7129,
    "holo": true,
@@ -4368,17 +5349,18 @@
    "sat": 0.26,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-37",
    "kind": "neon",
    "atlas": "posters_l",
    "rect": [
-    0.330605,
-    0.047619,
+    0.473462,
+    0.166667,
     0.053075,
-    0.047619
+    0.041667
    ],
    "aspect": 1.6719,
    "holo": true,
@@ -4391,17 +5373,18 @@
    "sat": 0.4,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-41",
    "kind": "neon",
    "atlas": "posters_l",
    "rect": [
-    0.476687,
-    0.047991,
+    0.619544,
+    0.166992,
     0.046379,
-    0.047247
+    0.041341
    ],
    "aspect": 1.4724,
    "holo": true,
@@ -4414,17 +5397,18 @@
    "sat": 0.16,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-42",
    "kind": "neon",
    "atlas": "posters_l",
    "rect": [
-    0.623264,
-    0.047991,
+    0.766121,
+    0.166992,
     0.039187,
-    0.047247
+    0.041341
    ],
    "aspect": 1.2441,
    "holo": true,
@@ -4437,17 +5421,18 @@
    "sat": 0.21,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-43",
    "kind": "neon",
    "atlas": "posters_l",
    "rect": [
-    0.759425,
-    0.047991,
+    0.902282,
+    0.166992,
     0.052331,
-    0.046875
+    0.041016
    ],
    "aspect": 1.6746,
    "holo": true,
@@ -4460,7 +5445,176 @@
    "sat": 0.33,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "2026081542PM-00",
+   "kind": "ad",
+   "atlas": "posters_l",
+   "rect": [
+    0.000992,
+    0.022461,
+    0.140873,
+    0.080404
+   ],
+   "aspect": 2.2962,
+   "holo": false,
+   "color": [
+    0.99,
+    0.726,
+    0.509
+   ],
+   "hue": 27,
+   "sat": 0.49,
+   "gain": 1.0,
+   "surface": "poster",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "2026081542PM-01",
+   "kind": "ad",
+   "atlas": "posters_l",
+   "rect": [
+    0.143849,
+    0.022461,
+    0.140873,
+    0.080404
+   ],
+   "aspect": 2.2962,
+   "holo": false,
+   "color": [
+    0.989,
+    0.376,
+    0.172
+   ],
+   "hue": 15,
+   "sat": 0.83,
+   "gain": 1.0,
+   "surface": "poster",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "2026081542PM-02",
+   "kind": "ad",
+   "atlas": "posters_l",
+   "rect": [
+    0.286706,
+    0.020182,
+    0.140873,
+    0.084961
+   ],
+   "aspect": 2.1795,
+   "holo": false,
+   "color": [
+    0.993,
+    0.728,
+    0.54
+   ],
+   "hue": 25,
+   "sat": 0.46,
+   "gain": 1.0,
+   "surface": "poster",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "2026081542PM-03",
+   "kind": "ad",
+   "atlas": "posters_l",
+   "rect": [
+    0.429563,
+    0.020508,
+    0.140873,
+    0.083984
+   ],
+   "aspect": 2.1993,
+   "holo": false,
+   "color": [
+    0.97,
+    0.482,
+    0.337
+   ],
+   "hue": 14,
+   "sat": 0.65,
+   "gain": 1.0,
+   "surface": "poster",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "2026081542PM-04",
+   "kind": "ad",
+   "atlas": "posters_l",
+   "rect": [
+    0.572421,
+    0.019531,
+    0.140873,
+    0.085938
+   ],
+   "aspect": 2.148,
+   "holo": false,
+   "color": [
+    0.993,
+    0.802,
+    0.421
+   ],
+   "hue": 40,
+   "sat": 0.58,
+   "gain": 1.0,
+   "surface": "poster",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "2026081542PM-05",
+   "kind": "ad",
+   "atlas": "posters_l",
+   "rect": [
+    0.715278,
+    0.019857,
+    0.140873,
+    0.085612
+   ],
+   "aspect": 2.163,
+   "holo": false,
+   "color": [
+    0.988,
+    0.556,
+    0.42
+   ],
+   "hue": 14,
+   "sat": 0.57,
+   "gain": 1.0,
+   "surface": "poster",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "2026081542PM-06",
+   "kind": "ad",
+   "atlas": "posters_l",
+   "rect": [
+    0.858135,
+    0.022135,
+    0.140873,
+    0.080729
+   ],
+   "aspect": 2.2874,
+   "holo": false,
+   "color": [
+    0.985,
+    0.484,
+    0.362
+   ],
+   "hue": 12,
+   "sat": 0.63,
+   "gain": 1.0,
+   "surface": "poster",
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_horizontal_neon_sh~-cc578246f370_2",
@@ -4468,9 +5622,9 @@
    "atlas": "neon_h",
    "rect": [
     0.004167,
-    0.836806,
+    0.877604,
     0.191667,
-    0.159722
+    0.119792
    ],
    "aspect": 4.0,
    "holo": false,
@@ -4483,7 +5637,8 @@
    "sat": 0.22,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_horizontal_neon_sh~-cc578246f370_3",
@@ -4491,9 +5646,9 @@
    "atlas": "neon_h",
    "rect": [
     0.204167,
-    0.836806,
+    0.877604,
     0.191667,
-    0.159722
+    0.119792
    ],
    "aspect": 4.0,
    "holo": false,
@@ -4506,7 +5661,8 @@
    "sat": 0.14,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_horizontal_neon_sh~-0c2a771dc178_0",
@@ -4514,9 +5670,9 @@
    "atlas": "neon_h",
    "rect": [
     0.404167,
-    0.836806,
+    0.877604,
     0.191667,
-    0.159722
+    0.119792
    ],
    "aspect": 4.0,
    "holo": true,
@@ -4529,7 +5685,8 @@
    "sat": 0.37,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_horizontal_neon_sh~-0c2a771dc178_3",
@@ -4537,9 +5694,9 @@
    "atlas": "neon_h",
    "rect": [
     0.604167,
-    0.836806,
+    0.877604,
     0.191667,
-    0.159722
+    0.119792
    ],
    "aspect": 4.0,
    "holo": true,
@@ -4552,7 +5709,8 @@
    "sat": 0.71,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_horizontal_neon_sh~-2e6fa36c1911_0",
@@ -4560,9 +5718,9 @@
    "atlas": "neon_h",
    "rect": [
     0.804167,
-    0.836806,
+    0.877604,
     0.191667,
-    0.159722
+    0.119792
    ],
    "aspect": 4.0,
    "holo": true,
@@ -4575,7 +5733,8 @@
    "sat": 0.93,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_horizontal_neon_sh~-2e6fa36c1911_1",
@@ -4583,9 +5742,9 @@
    "atlas": "neon_h",
    "rect": [
     0.004167,
-    0.670139,
+    0.752604,
     0.191667,
-    0.159722
+    0.119792
    ],
    "aspect": 4.0,
    "holo": true,
@@ -4598,7 +5757,8 @@
    "sat": 0.83,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_horizontal_neon_si~-0d589515038c_0",
@@ -4606,9 +5766,9 @@
    "atlas": "neon_h",
    "rect": [
     0.204167,
-    0.670139,
+    0.752604,
     0.191667,
-    0.159722
+    0.119792
    ],
    "aspect": 4.0,
    "holo": true,
@@ -4621,7 +5781,8 @@
    "sat": 0.51,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_horizontal_neon_si~-0d589515038c_1",
@@ -4629,9 +5790,9 @@
    "atlas": "neon_h",
    "rect": [
     0.404167,
-    0.670139,
+    0.752604,
     0.191667,
-    0.159722
+    0.119792
    ],
    "aspect": 4.0,
    "holo": true,
@@ -4644,7 +5805,8 @@
    "sat": 0.19,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_horizontal_neon_si~-0d589515038c_2",
@@ -4652,9 +5814,9 @@
    "atlas": "neon_h",
    "rect": [
     0.604167,
-    0.670139,
+    0.752604,
     0.191667,
-    0.159722
+    0.119792
    ],
    "aspect": 4.0,
    "holo": true,
@@ -4667,7 +5829,8 @@
    "sat": 0.48,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_horizontal_neon_si~-0d589515038c_3",
@@ -4675,9 +5838,9 @@
    "atlas": "neon_h",
    "rect": [
     0.804167,
-    0.670139,
+    0.752604,
     0.191667,
-    0.159722
+    0.119792
    ],
    "aspect": 4.0,
    "holo": true,
@@ -4690,7 +5853,8 @@
    "sat": 0.82,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_horizontal_neon_si~-e1ad29ea1a9d_2",
@@ -4698,9 +5862,9 @@
    "atlas": "neon_h",
    "rect": [
     0.004167,
-    0.503472,
+    0.627604,
     0.191667,
-    0.159722
+    0.119792
    ],
    "aspect": 4.0,
    "holo": true,
@@ -4713,7 +5877,8 @@
    "sat": 0.1,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_horizontal_neon_si~-e1ad29ea1a9d_3",
@@ -4721,9 +5886,9 @@
    "atlas": "neon_h",
    "rect": [
     0.204167,
-    0.503472,
+    0.627604,
     0.191667,
-    0.159722
+    0.119792
    ],
    "aspect": 4.0,
    "holo": true,
@@ -4736,7 +5901,8 @@
    "sat": 0.15,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_horizontal_neon_si~-e19c45d2e92d_0",
@@ -4744,9 +5910,9 @@
    "atlas": "neon_h",
    "rect": [
     0.404167,
-    0.503472,
+    0.627604,
     0.191667,
-    0.159722
+    0.119792
    ],
    "aspect": 4.0,
    "holo": true,
@@ -4759,7 +5925,8 @@
    "sat": 0.63,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_horizontal_neon_si~-e19c45d2e92d_1",
@@ -4767,9 +5934,9 @@
    "atlas": "neon_h",
    "rect": [
     0.604167,
-    0.503472,
+    0.627604,
     0.191667,
-    0.159722
+    0.119792
    ],
    "aspect": 4.0,
    "holo": true,
@@ -4782,7 +5949,8 @@
    "sat": 0.24,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_horizontal_neon_si~-e19c45d2e92d_2",
@@ -4790,9 +5958,9 @@
    "atlas": "neon_h",
    "rect": [
     0.804167,
-    0.503472,
+    0.627604,
     0.191667,
-    0.159722
+    0.119792
    ],
    "aspect": 4.0,
    "holo": true,
@@ -4805,7 +5973,8 @@
    "sat": 0.52,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "thenightocean_horizontal_neon_si~-e19c45d2e92d_3",
@@ -4813,9 +5982,9 @@
    "atlas": "neon_h",
    "rect": [
     0.004167,
-    0.336806,
+    0.502604,
     0.191667,
-    0.159722
+    0.119792
    ],
    "aspect": 4.0,
    "holo": true,
@@ -4828,17 +5997,234 @@
    "sat": 0.07,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-10",
+   "kind": "neon",
+   "atlas": "neon_h",
+   "rect": [
+    0.249479,
+    0.523438,
+    0.101042,
+    0.078125
+   ],
+   "aspect": 3.2333,
+   "holo": true,
+   "color": [
+    0.995,
+    0.675,
+    0.513
+   ],
+   "hue": 20,
+   "sat": 0.48,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-11",
+   "kind": "neon",
+   "atlas": "neon_h",
+   "rect": [
+    0.454167,
+    0.523438,
+    0.091667,
+    0.078776
+   ],
+   "aspect": 2.9091,
+   "holo": true,
+   "color": [
+    0.992,
+    0.768,
+    0.487
+   ],
+   "hue": 33,
+   "sat": 0.51,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-12",
+   "kind": "neon",
+   "atlas": "neon_h",
+   "rect": [
+    0.650521,
+    0.524089,
+    0.098698,
+    0.077474
+   ],
+   "aspect": 3.1849,
+   "holo": true,
+   "color": [
+    0.997,
+    0.771,
+    0.386
+   ],
+   "hue": 38,
+   "sat": 0.61,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-13",
+   "kind": "neon",
+   "atlas": "neon_h",
+   "rect": [
+    0.848437,
+    0.526693,
+    0.103125,
+    0.072266
+   ],
+   "aspect": 3.5676,
+   "holo": true,
+   "color": [
+    0.995,
+    0.792,
+    0.296
+   ],
+   "hue": 43,
+   "sat": 0.7,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-14",
+   "kind": "neon",
+   "atlas": "neon_h",
+   "rect": [
+    0.054427,
+    0.401693,
+    0.091146,
+    0.072266
+   ],
+   "aspect": 3.1532,
+   "holo": true,
+   "color": [
+    0.995,
+    0.767,
+    0.443
+   ],
+   "hue": 35,
+   "sat": 0.55,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-15",
+   "kind": "neon",
+   "atlas": "neon_h",
+   "rect": [
+    0.25,
+    0.402344,
+    0.1,
+    0.070312
+   ],
+   "aspect": 3.5556,
+   "holo": true,
+   "color": [
+    0.992,
+    0.843,
+    0.64
+   ],
+   "hue": 35,
+   "sat": 0.35,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-16",
+   "kind": "neon",
+   "atlas": "neon_h",
+   "rect": [
+    0.451562,
+    0.401042,
+    0.096875,
+    0.073568
+   ],
+   "aspect": 3.292,
+   "holo": true,
+   "color": [
+    0.977,
+    0.871,
+    0.63
+   ],
+   "hue": 42,
+   "sat": 0.36,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-17",
+   "kind": "neon",
+   "atlas": "neon_h",
+   "rect": [
+    0.653385,
+    0.402995,
+    0.092969,
+    0.069661
+   ],
+   "aspect": 3.3364,
+   "holo": true,
+   "color": [
+    0.995,
+    0.742,
+    0.277
+   ],
+   "hue": 39,
+   "sat": 0.72,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "7ee087ae744a-18",
+   "kind": "neon",
+   "atlas": "neon_h",
+   "rect": [
+    0.848958,
+    0.401042,
+    0.101823,
+    0.072917
+   ],
+   "aspect": 3.4911,
+   "holo": true,
+   "color": [
+    0.996,
+    0.694,
+    0.527
+   ],
+   "hue": 21,
+   "sat": 0.47,
+   "gain": 2.1,
+   "surface": "neon",
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-10",
    "kind": "neon",
    "atlas": "neon_h",
    "rect": [
-    0.254688,
-    0.359375,
+    0.054688,
+    0.269531,
     0.090365,
-    0.114583
+    0.085938
    ],
    "aspect": 2.6288,
    "holo": true,
@@ -4851,17 +6237,18 @@
    "sat": 0.31,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026070304PM-22",
    "kind": "neon",
    "atlas": "neon_h",
    "rect": [
-    0.478906,
-    0.388889,
+    0.278906,
+    0.291667,
     0.042188,
-    0.055556
+    0.041667
    ],
    "aspect": 2.5312,
    "holo": true,
@@ -4874,17 +6261,18 @@
    "sat": 0.13,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-35",
    "kind": "ad",
    "atlas": "neon_h",
    "rect": [
-    0.660156,
-    0.364583,
+    0.460156,
+    0.273438,
     0.079427,
-    0.104167
+    0.078125
    ],
    "aspect": 2.5417,
    "holo": false,
@@ -4897,17 +6285,18 @@
    "sat": 0.3,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-37",
    "kind": "ad",
    "atlas": "neon_h",
    "rect": [
-    0.858073,
-    0.364583,
+    0.658073,
+    0.273438,
     0.083594,
-    0.104167
+    0.078125
    ],
    "aspect": 2.675,
    "holo": false,
@@ -4920,17 +6309,18 @@
    "sat": 0.24,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026071126PM-38",
    "kind": "ad",
    "atlas": "neon_h",
    "rect": [
-    0.059115,
-    0.199653,
+    0.859115,
+    0.27474,
     0.081771,
-    0.100694
+    0.075521
    ],
    "aspect": 2.7069,
    "holo": false,
@@ -4943,17 +6333,18 @@
    "sat": 0.69,
    "gain": 1.0,
    "surface": "poster",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-21",
    "kind": "neon",
    "atlas": "neon_h",
    "rect": [
-    0.260417,
-    0.203993,
+    0.060417,
+    0.152995,
     0.078906,
-    0.092014
+    0.06901
    ],
    "aspect": 2.8585,
    "holo": true,
@@ -4966,17 +6357,18 @@
    "sat": 0.26,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-22",
    "kind": "neon",
    "atlas": "neon_h",
    "rect": [
-    0.457552,
-    0.204861,
+    0.257552,
+    0.153646,
     0.084635,
-    0.090278
+    0.067708
    ],
    "aspect": 3.125,
    "holo": true,
@@ -4989,17 +6381,18 @@
    "sat": 0.26,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-23",
    "kind": "neon",
    "atlas": "neon_h",
    "rect": [
-    0.663802,
-    0.204861,
+    0.463802,
+    0.153646,
     0.072135,
-    0.090278
+    0.067708
    ],
    "aspect": 2.6635,
    "holo": true,
@@ -5012,17 +6405,18 @@
    "sat": 0.19,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-24",
    "kind": "neon",
    "atlas": "neon_h",
    "rect": [
-    0.861719,
-    0.204861,
+    0.661719,
+    0.153646,
     0.076563,
-    0.091146
+    0.068359
    ],
    "aspect": 2.8,
    "holo": true,
@@ -5035,17 +6429,18 @@
    "sat": 0.24,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-25",
    "kind": "neon",
    "atlas": "neon_h",
    "rect": [
-    0.066927,
-    0.039931,
+    0.866927,
+    0.154948,
     0.065885,
-    0.087674
+    0.065755
    ],
    "aspect": 2.505,
    "holo": false,
@@ -5058,17 +6453,18 @@
    "sat": 0.1,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
   },
   {
    "id": "2026072031PM-27",
    "kind": "neon",
    "atlas": "neon_h",
    "rect": [
-    0.264583,
-    0.039931,
+    0.064583,
+    0.029948,
     0.070833,
-    0.087674
+    0.065755
    ],
    "aspect": 2.6931,
    "holo": true,
@@ -5081,13 +6477,38 @@
    "sat": 0.16,
    "gain": 2.1,
    "surface": "neon",
-   "shop": false
+   "shop": false,
+   "weight": 1
+  },
+  {
+   "id": "2026081542PM-07",
+   "kind": "ad",
+   "atlas": "neon_h",
+   "rect": [
+    0.238542,
+    0.002604,
+    0.122917,
+    0.119792
+   ],
+   "aspect": 2.5647,
+   "holo": false,
+   "color": [
+    0.946,
+    0.63,
+    0.428
+   ],
+   "hue": 23,
+   "sat": 0.55,
+   "gain": 1.0,
+   "surface": "poster",
+   "shop": false,
+   "weight": 1
   }
  ],
  "sizes": {
   "neon_v": [
-   3072,
-   5376
+   4000,
+   3840
   ],
   "posters_p": [
    3456,
@@ -5095,11 +6516,11 @@
   ],
   "posters_l": [
    4032,
-   2688
+   3072
   ],
   "neon_h": [
    3840,
-   1152
+   1536
   ]
  },
  "screens": {
