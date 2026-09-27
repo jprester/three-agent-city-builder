@@ -3,7 +3,7 @@ import palette from '../../../art/style/palette.json';
 import { mulberry32, weightedChoice } from '../../../art/layouts/lib/rng.mjs';
 import type { Layout } from '../../systems/layout';
 import { BRANDS, type SignAtlas, type SignDesign } from './atlas';
-import { artWeight, coverRect, SRC, type ArtEntry, type SignArt } from './art';
+import { ART_ENTRIES, atlasCode, type ArtEntry, type SignArt } from './art';
 
 export interface SignUniforms {
   uTime: { value: number };
@@ -17,8 +17,6 @@ export interface SignUniforms {
 
 // Brand colors (tower logo families): one fixed tube color per brand.
 const BRAND_COLORS = ['sign_red', 'sign_amber', 'tungsten', 'sign_red', 'fluorescent', 'sodium', 'sign_cyan', 'sign_amber'];
-/** Share of signs showing the human's artwork rather than a stroke-drawn design. */
-const IMAGE_SHARE = { street: 0.6, tower: 0.85 };
 
 // Mostly practical colors; saturated neon as the accent; cyan kept rare (style bible).
 const TUBE_COLORS: Record<string, number> = { sign_red: 32, sign_amber: 25, tungsten: 14, fluorescent: 16, sign_cyan: 3, sodium: 10 };
@@ -40,13 +38,17 @@ export interface SignLight {
   strength: number;
 }
 
-export function createSigns(layout: Layout, atlas: SignAtlas, art: SignArt, uniforms: SignUniforms): { mesh: THREE.InstancedMesh; brackets: THREE.InstancedMesh | null; lights: SignLight[] } | null {
+export function createSigns(layout: Layout, atlas: SignAtlas, art: SignArt, uniforms: SignUniforms): { mesh: THREE.InstancedMesh; holo: THREE.InstancedMesh | null; brackets: THREE.InstancedMesh | null; lights: SignLight[] } | null {
   const signs = layout.signs ?? [];
   if (!signs.length) return null;
   const lights: SignLight[] = [];
-  const uses = new Map<ArtEntry, number>();
+  // Holographic art (dark-background neon and ads) goes to an additive plane mesh; stroke
+  // designs and opaque posters stay boxes with a metal frame.
+  const isHolo = (s: (typeof signs)[number]) => s.art !== undefined && ART_ENTRIES[s.art].holo;
+  const boxes = signs.filter((s) => !isHolo(s));
+  const holos = signs.filter(isHolo);
   const geometry = new THREE.BoxGeometry(1, 1, 1);
-  const n = signs.length;
+  const n = boxes.length;
   const rect = new Float32Array(n * 4);
   const tube = new Float32Array(n * 3);
   const back = new Float32Array(n * 3);
@@ -55,51 +57,33 @@ export function createSigns(layout: Layout, atlas: SignAtlas, art: SignArt, unif
   mesh.name = 'signs';
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
 
-  signs.forEach((s, i) => {
+  boxes.forEach((s, i) => {
     const rng = mulberry32((s.seed ^ layout.seed) >>> 0);
-    const tall = s.size[1] > s.size[0] * 1.3;
-    const aspect = s.size[0] / s.size[1];
-    // Weighted by warmth, divided by how often each image is already used, so a few warm
-    // signs do not repeat down the whole street.
-    const w = (e: ArtEntry) => artWeight(e) / (1 + 1.5 * (uses.get(e) ?? 0));
-    const pickArt = (list: ArtEntry[]) => {
-      let r = rng() * list.reduce((a, e) => a + w(e), 0);
-      let pick = list[list.length - 1];
-      for (const e of list) if ((r -= w(e)) <= 0) { pick = e; break; }
-      uses.set(pick, (uses.get(pick) ?? 0) + 1);
-      return pick;
-    };
     let source: number, design: SignDesign | null = null, image: ArtEntry | null = null;
-    if (s.brand !== undefined) {
-      const brand = s.brand;
-      design = (tall ? atlas.blades : atlas.panels).find((d) => d.brand === brand % BRANDS)!;
-      source = 0;
-    } else if (s.art === 'landscape') {
-      image = pickArt(art.entries.posterL);
-      source = SRC.posterL;
-    } else if (rng() < (s.inset !== undefined ? IMAGE_SHARE.tower : IMAGE_SHARE.street)) {
-      image = pickArt(tall ? art.entries.neonV : art.entries.neonH);
-      source = tall ? SRC.neonV : SRC.neonH;
+    if (s.art !== undefined) {
+      image = ART_ENTRIES[s.art];
+      source = atlasCode(image);
     } else {
-      const pool = (tall ? atlas.blades : atlas.panels).filter((d) => d.brand === undefined);
+      const tall = s.stroke ? s.stroke === 'blade' : s.size[1] > s.size[0];
+      const pool = (tall ? atlas.blades : atlas.panels).filter((d) => (s.brand !== undefined ? d.brand === s.brand % BRANDS : d.brand === undefined));
       design = pool[Math.floor(rng() * pool.length)];
       source = design.boxed ? 1 : 0;
     }
-    (image ? coverRect(image, aspect) : design!.rect).toArray(rect, i * 4);
+    // The layout sized the sign to this artwork's aspect: show the whole image, uncropped.
+    (image ? new THREE.Vector4(...image.rect) : design!.rect).toArray(rect, i * 4);
     const tubeCol = s.brand !== undefined ? col(BRAND_COLORS[s.brand % BRANDS]) : col(weightedChoice(rng, TUBE_COLORS));
     const backCol = col(weightedChoice(rng, BOX_COLORS));
     tubeCol.toArray(tube, i * 3);
     backCol.toArray(back, i * 3);
-    const lightCol = image ? new THREE.Color(...image.color) : design!.boxed ? backCol.clone().lerp(new THREE.Color(1, 1, 1), 0.3) : tubeCol;
     lights.push({
       x: s.position[0], y: s.position[1], z: s.position[2],
       size: Math.max(s.size[0], s.size[1]),
-      color: lightCol,
-      strength: image ? (source >= SRC.posterP ? 0.5 : 0.9) : design!.boxed ? 0.6 : 1,
+      color: image ? new THREE.Color(...image.color) : design!.boxed ? backCol.clone().lerp(new THREE.Color(1, 1, 1), 0.3) : tubeCol,
+      strength: image ? 0.5 : design!.boxed ? 0.6 : 1,
     });
     const branded = s.brand !== undefined;
     const broken = !branded && !image && rng() < 0.3 ? 0.15 + 0.35 * rng() : 0;
-    const flicker = !branded && rng() < (image ? 0.05 : 0.2) ? 0.1 + 0.3 * rng() : 0;
+    const flicker = !branded && !image && rng() < 0.2 ? 0.1 + 0.3 * rng() : 0;
     params.set([source, rng(), broken, flicker], i * 4);
     m.compose(new THREE.Vector3(...s.position), q.setFromAxisAngle(up, s.rotationY), new THREE.Vector3(...s.size));
     mesh.setMatrixAt(i, m);
@@ -110,7 +94,79 @@ export function createSigns(layout: Layout, atlas: SignAtlas, art: SignArt, unif
   geometry.setAttribute('aParams', new THREE.InstancedBufferAttribute(params, 4));
   mesh.instanceMatrix.needsUpdate = true;
   mesh.computeBoundingSphere();
-  return { mesh, brackets: createBrackets(signs), lights };
+  const holo = createHolograms(layout, holos, art, uniforms.uTime, lights);
+  return { mesh, holo, brackets: createBrackets(signs), lights };
+}
+
+/**
+ * Holographic signs and ads: additive planes, so the art's black background is simply
+ * transparent. Scan lines, a slow shimmer and a rare glitch sell the hologram; fog fades
+ * them instead of tinting (additive fog would light up the whole rectangle). One draw call.
+ */
+function createHolograms(layout: Layout, holos: NonNullable<Layout['signs']>, art: SignArt, time: { value: number }, lights: SignLight[]) {
+  if (!holos.length) return null;
+  const geometry = new THREE.PlaneGeometry(1, 1);
+  const n = holos.length;
+  const rect = new Float32Array(n * 4);
+  const params = new Float32Array(n * 4);
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
+  const material = new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: true });
+  material.name = 'holo-signs';
+  const mesh = new THREE.InstancedMesh(geometry, material, n);
+  mesh.name = 'holo-signs';
+  holos.forEach((s, i) => {
+    const rng = mulberry32((s.seed ^ layout.seed) >>> 0);
+    const e = ART_ENTRIES[s.art!];
+    rect.set(e.rect, i * 4);
+    const ad = e.kind === 'ad';
+    const glitchy = rng() < 0.15 ? 1 : 0;
+    params.set([atlasCode(e), rng(), ad ? 1.3 : 2.9, glitchy], i * 4);
+    lights.push({ x: s.position[0], y: s.position[1], z: s.position[2], size: Math.max(s.size[0], s.size[1]), color: new THREE.Color(...e.color), strength: ad ? 0.6 : 1 });
+    // Planes face +Z like the sign boxes; lift 0.1 m further off the wall (boxes are 0.2–0.35 deep).
+    const pos = new THREE.Vector3(...s.position);
+    if (s.kind === 'panel') pos.add(new THREE.Vector3(Math.sin(s.rotationY), 0, Math.cos(s.rotationY)).multiplyScalar(0.1));
+    m.compose(pos, q.setFromAxisAngle(up, s.rotationY), new THREE.Vector3(s.size[0], s.size[1], 1));
+    mesh.setMatrixAt(i, m);
+  });
+  geometry.setAttribute('aRect', new THREE.InstancedBufferAttribute(rect, 4));
+  geometry.setAttribute('aHolo', new THREE.InstancedBufferAttribute(params, 4));
+  mesh.instanceMatrix.needsUpdate = true;
+  mesh.computeBoundingSphere();
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.uTime = time;
+    shader.uniforms.uNeonV = { value: art.atlases[0] };
+    shader.uniforms.uNeonH = { value: art.atlases[1] };
+    shader.uniforms.uPosterP = { value: art.atlases[2] };
+    shader.uniforms.uPosterL = { value: art.atlases[3] };
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nattribute vec4 aRect;\nattribute vec4 aHolo;\nvarying vec2 vHoloUv;\nflat varying vec4 vHolo;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHoloUv = aRect.xy + uv * aRect.zw;\nvHolo = aHolo;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', `#include <common>
+uniform float uTime;
+uniform sampler2D uNeonV, uNeonH, uPosterP, uPosterL;
+varying vec2 vHoloUv;
+flat varying vec4 vHolo;`)
+      .replace('#include <map_fragment>', `
+int src = int(vHolo.x + 0.5);
+float seed = vHolo.y * 100.0;
+vec2 huv = vHoloUv;
+// Rare glitch: a horizontal tear for a fraction of a second.
+float tear = vHolo.w * step(0.985, fract(uTime * 0.37 + vHolo.y * 13.0)) * step(0.5, fract(huv.y * 23.0 + uTime * 5.0));
+huv.x += tear * 0.015;
+vec3 img = src == 2 ? texture2D(uNeonV, huv).rgb : src == 3 ? texture2D(uNeonH, huv).rgb
+         : src == 4 ? texture2D(uPosterP, huv).rgb : texture2D(uPosterL, huv).rgb;
+// Black level: the art's near-black background must add nothing.
+img = max(img - 0.035, 0.0) * 1.04;
+float scan = 0.86 + 0.14 * sin(gl_FragCoord.y * 1.9 + uTime * 3.0);
+float shimmer = 0.9 + 0.1 * sin(uTime * 1.7 + seed);
+diffuseColor = vec4(img * vHolo.z * scan * shimmer, 1.0);`)
+      .replace('#include <fog_fragment>', `#ifdef USE_FOG
+  gl_FragColor.rgb *= 1.0 - heightFog(vFogWorld, fogDensity);
+#endif`);
+  };
+  material.customProgramCacheKey = () => 'holo-signs-v1';
+  return mesh;
 }
 
 const metal = col('metal_dark');

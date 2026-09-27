@@ -116,11 +116,11 @@ async function main() {
   }
   let signMap: THREE.Texture | null = null;
   const signArt = await loadSignArt(Math.min(8, renderer.capabilities.getMaxAnisotropy()));
-  facadeUniforms.uScreens.value = signArt.textures.posterP;
+  facadeUniforms.uScreens.value = signArt.screens;
   const signUniforms = {
     uTime: clock.uniform, uAtlas: { value: null as THREE.Texture | null }, uSignGain: { value: 1 },
-    uNeonV: { value: signArt.textures.neonV }, uNeonH: { value: signArt.textures.neonH },
-    uPosterP: { value: signArt.textures.posterP }, uPosterL: { value: signArt.textures.posterL },
+    uNeonV: { value: signArt.atlases[0] }, uNeonH: { value: signArt.atlases[1] },
+    uPosterP: { value: signArt.atlases[2] }, uPosterL: { value: signArt.atlases[3] },
   };
   if (layout) {
     const atlas = createSignAtlas(layout.seed);
@@ -129,6 +129,7 @@ async function main() {
     if (signs) {
       scene.add(signs.mesh);
       if (signs.brackets) scene.add(signs.brackets);
+      if (signs.holo) scene.add(signs.holo);
       signMap = createSignLightMap(layout, signs.lights);
       facadeUniforms.uSignMap.value = signMap;
       groundUniforms.uSignMap.value = signMap;

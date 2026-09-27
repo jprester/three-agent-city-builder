@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import facade from '../../art/style/facade.json';
 import palette from '../../art/style/palette.json';
-import { SCREEN_COLS, SCREEN_ROWS } from '../scene/screens';
+import { SCREEN_COLS, SCREEN_COUNT, SCREEN_ROWS } from '../scene/screens';
 import { TOWER_BUNDLES, type FacadeTextures } from './textures';
 
 /**
@@ -586,7 +586,7 @@ if (fType == T_ATLAS) {
   float cyc = uTime / 7.0 + sid;
   float clip = floor(cyc);
   float ct = fract(cyc);
-  float n = float(${SCREEN_COLS * SCREEN_ROWS});
+  float n = float(${SCREEN_COUNT});
   vec2 zoom = (sp - 0.5) / (1.0 + 0.06 * ct) + 0.5;
   vec2 slot = vec2(1.0 / ${SCREEN_COLS}.0, 1.0 / ${SCREEN_ROWS}.0);
   vec2 pad = slot * vec2(0.01, 0.005);
