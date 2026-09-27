@@ -112,7 +112,7 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
   it('mounts every sign on a building face that fronts a street', async () => {
     const L = await get();
     expect(L.signs!.length).toBeGreaterThan(50);
-    const bad = L.signs!.filter((s) => {
+    const bad = L.signs!.filter((s) => !s.roof).filter((s) => {
       const b = L.instances[s.building] as LayoutInstance & { road?: number; interior?: boolean };
       if (!b || b.interior || b.road === undefined || b.road < 0) return true;
       const t = b.rotationY;
@@ -124,6 +124,18 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
       // Blades start just off the wall and reach out by their width; panels hug the wall.
       const gap = s.kind === 'blade' ? out - s.size[0] / 2 : out + (s.inset ?? 0);
       return gap < 0.05 || gap > 0.5 || Math.abs(along) > hu || s.position[1] + s.size[1] / 2 > b.h!;
+    });
+    expect(bad.map((s) => s.position)).toEqual([]);
+  });
+
+  it('puts rooftop billboards above their building, inside its footprint', async () => {
+    const L = await get();
+    const roof = L.signs!.filter((s) => s.roof);
+    expect(roof.length).toBeGreaterThan(3);
+    const bad = roof.filter((s) => {
+      const b = L.instances[s.building];
+      const bx = box(b);
+      return s.position[1] - s.size[1] / 2 < b.h! - 1.5 || !G.insideConvex(bx.corners, [s.position[0], s.position[2]], 0.05);
     });
     expect(bad.map((s) => s.position)).toEqual([]);
   });

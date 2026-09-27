@@ -48,6 +48,12 @@ export interface LayoutSign {
   seed: number;
   /** Panels on a set-back tower tier: distance of that wall behind the footprint face. */
   inset?: number;
+  /** Brand of a tower logo family (wordmark / stacked logo). */
+  brand?: number;
+  /** Artwork format hint: landscape ad/poster. */
+  art?: 'landscape';
+  /** Mounted in a rooftop billboard frame rather than on a facade. */
+  roof?: boolean;
 }
 
 /** Named frame on the ground: origin and forward axis (x, z). Viewpoints can be relative to it. */

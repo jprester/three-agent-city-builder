@@ -64,7 +64,9 @@ const DEFAULTS = {
     // Signs per frontage building above: hero street dense, old core sparse, elsewhere none.
     // Tall signs climbing buildings at mid-height: flat panels on tower shafts, tall blades on
     // old slabs taller than `minHeight`.
-    tall: { towerChance: 0.75, slabChance: 0.28, heroSlabChance: 0.6, minHeight: 40 },
+    tall: { towerChance: 0.75, slabChance: 0.28, heroSlabChance: 0.6, minHeight: 40, brands: 8, brandChance: 0.6, billboardShare: 0.45 },
+    // Ads in the rooftop billboard frames of buildings whose generator built one (meta.billboard).
+    roofBillboardChance: 0.85,
   },
 };
 
@@ -395,25 +397,52 @@ export function generate({ params, seed, assets = {} }) {
     const [hu, hv] = inst.fp;
     const s3 = Array.isArray(inst.scale) ? inst.scale : [inst.scale, inst.scale, inst.scale];
     const front = [inst.position[0] + v[0] * hv, inst.position[2] + v[1] * hv];
-    if (meta.family === 'tower' && meta.tiers?.length && !meta.screen) {
-      if (rng() > tallCfg.towerChance) return;
-      // A vertical panel on the first shaft tier's front wall, somewhere in its middle.
-      const [z0, z1, inset] = meta.tiers[0];
-      const y0 = z0 * s3[1] + 8, y1 = z1 * s3[1] - 6;
-      const faceHalf = hu - inset * s3[0];
-      const w = Math.min(rand(6, 11), 2 * faceHalf - 3);
-      const h = Math.min(w * rand(2.6, 4.0), y1 - y0);
-      if (w < 3 || h < 10) return;
-      const y = rand(y0, y1 - h) + h / 2;
-      const off = rand(-faceHalf + w / 2 + 1, faceHalf - w / 2 - 1);
-      // The tier's wall stands `setback` behind the footprint face; the panel sits 0.25 m off it.
-      const setback = inset * s3[2];
-      const out = 0.25 - setback;
+    if (meta.billboard && rng() < P.signs.roofBillboardChance) {
+      // Blender space → three.js: local x stays, Blender -y is the front (+z along v).
+      const b = meta.billboard;
+      const out = -(b.y + 0.25);
       signs.push({
-        building: index, kind: 'panel', inset: r3(setback),
-        position: [r3(front[0] + u[0] * off + v[0] * out), r3(y), r3(front[1] + u[1] * off + v[1] * out)],
-        rotationY: r3(t), size: [r3(w), r3(h), 0.3], seed: Math.floor(rng() * 2 ** 31),
+        building: index, kind: 'panel', roof: true, art: 'landscape',
+        position: [r3(inst.position[0] + v[0] * out), r3(b.z + b.height / 2), r3(inst.position[2] + v[1] * out)],
+        rotationY: r3(t), size: [r3(b.width), r3(b.height), 0.2], seed: Math.floor(rng() * 2 ** 31),
       });
+    }
+    if (meta.family === 'tower' && meta.tiers?.length) {
+      // A brand per tower: its wordmark on the crown tier, sometimes its stacked logo too.
+      const brand = Math.floor(rng() * tallCfg.brands);
+      const hasBrand = rng() < tallCfg.brandChance;
+      const tierSign = (tier, w, h, yFrac, extra) => {
+        const [z0, z1, inset] = tier;
+        const setback = inset * s3[2];
+        const faceHalf = hu - inset * s3[0];
+        if (w > 2 * faceHalf - 3 || h > (z1 - z0) * s3[1] - 6) return;
+        const y = z0 * s3[1] + 4 + h / 2 + yFrac * ((z1 - z0) * s3[1] - 8 - h);
+        const off = rand(-faceHalf + w / 2 + 1, faceHalf - w / 2 - 1);
+        const out = 0.25 - setback;
+        signs.push({
+          building: index, kind: 'panel', inset: r3(setback), ...extra,
+          position: [r3(front[0] + u[0] * off + v[0] * out), r3(y), r3(front[1] + u[1] * off + v[1] * out)],
+          rotationY: r3(t), size: [r3(w), r3(h), 0.3], seed: Math.floor(rng() * 2 ** 31),
+        });
+      };
+      const tiers = meta.tiers;
+      if (hasBrand) {
+        const top = tiers[tiers.length - 1];
+        const faceHalf = hu - top[2] * s3[0];
+        const w = Math.min(2 * faceHalf - 4, 30);
+        tierSign(top, w, w / 4, 1, { brand });
+      }
+      if (meta.screen || rng() > tallCfg.towerChance) return;
+      const r = rng();
+      if (r < tallCfg.billboardShare) {
+        // Large landscape billboard on the lowest shaft tier.
+        const w = rand(14, 24);
+        tierSign(tiers[0], w, w / 1.5, rand(0.2, 0.8), { art: 'landscape' });
+      } else {
+        // A vertical strip in the middle of the shaft: the brand's stacked logo or a neon sign.
+        const w = rand(6, 11);
+        tierSign(tiers[0], w, w * rand(2.6, 4.0), rand(0.2, 0.8), hasBrand && r > 0.75 ? { brand } : {});
+      }
     } else if (meta.family === 'slab' && inst.h >= tallCfg.minHeight) {
       const onHero = hero && inst.road === hero.id;
       if (rng() > (onHero ? tallCfg.heroSlabChance : tallCfg.slabChance) || hu < 3) return;
