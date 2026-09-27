@@ -2,7 +2,7 @@ import { ASSETS } from '../assets/manifest.gen';
 import signCatalog from '../../art/external/textures/signs/catalog.json';
 
 /** Artwork facts the layout sizes signs by (same as tools/build-layouts.mjs signArt()). */
-export const SIGN_ART = signCatalog.entries.map(({ kind, aspect, holo, hue, sat }) => ({ kind, aspect, holo, hue, sat }));
+export const SIGN_ART = signCatalog.entries.map(({ kind, aspect, holo, hue, sat, shop }) => ({ kind, aspect, holo, hue, sat, shop: !!shop }));
 
 export type Vec2 = [number, number];
 export type Vec3 = [number, number, number];
@@ -62,6 +62,8 @@ export interface LayoutSign {
   side?: number;
   /** Tower sign zone (street | billboard | shaft | crown). */
   zone?: 'street' | 'billboard' | 'shaft' | 'crown';
+  /** Rooftop board: leg length (m) from the roof to the board's bottom edge. */
+  legs?: number;
   /** Mounted in a rooftop billboard frame rather than on a facade. */
   roof?: boolean;
 }

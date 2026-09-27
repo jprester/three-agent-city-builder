@@ -223,6 +223,13 @@ function createBrackets(signs: NonNullable<Layout['signs']>): THREE.InstancedMes
     if (s.kind === 'blade') {
       add(0.15,h/2+t,0,w+0.3,t,t);
       add(w/2+0.15,-h/2+0.2,0,0.3,t,t);
+    } else if (s.roof) {
+      // Rooftop billboard: a dark back panel exactly the ad's size, two legs and a brace down
+      // to the roof (the generator only reserves the slot).
+      add(0, 0, -depth / 2 - 0.06, w, h, 0.12);
+      const legs = s.legs ?? 2;
+      for (const x of [-w * 0.32, w * 0.32]) add(x, -h / 2 - legs / 2, -depth / 2 - 0.2, 0.22, legs, 0.22);
+      add(0, -h / 2 - legs * 0.5, -depth / 2 - 0.2, w * 0.64, 0.12, 0.12);
     } else if (screen) {
       // Back rails give large mounted displays thickness when viewed obliquely.
       add(-w*0.3,0,-depth*0.6,t,h,t); add(w*0.3,0,-depth*0.6,t,h,t);

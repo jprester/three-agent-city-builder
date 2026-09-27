@@ -361,7 +361,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
   const chooseArt = (want, lim, pickH = (lo, hi) => rand(lo, hi)) => {
     if (want.stroke === null || rng() < want.share) {
       const kinds = [].concat(want.kind);
-      const pool = ART.filter((e) => kinds.includes(e.kind) && e.aspect >= want.aspect[0] && e.aspect <= want.aspect[1] && heightRange(e.aspect, lim));
+      const pool = ART.filter((e) => (kinds.includes(e.kind) || (want.shopAds && e.shop)) && !(want.noShop && e.shop) && e.aspect >= want.aspect[0] && e.aspect <= want.aspect[1] && heightRange(e.aspect, lim));
       if (pool.length) {
         let r = rng() * pool.reduce((acc, e) => acc + artWeight(e), 0);
         let e = pool[pool.length - 1];
@@ -405,7 +405,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
         const arm = rng() < (onHero ? 0.5 : 0.3);
         const c = arm
           ? chooseArt({ kind: 'neon', aspect: [2, 99], share, stroke: null }, { w: [2.5, onHero ? 7.5 : 4.5], h: [0.6, Math.min(2.6, top - 5.4)] })
-          : chooseArt({ kind: 'neon', aspect: [0, 1.05], share, stroke: null }, { w: [0.7, onHero ? 3.2 : 2.4], h: [2.2, Math.min(onHero ? 12 : 7, top - 5.4)] });
+          : chooseArt({ kind: 'neon', shopAds: true, aspect: [0, 1.05], share, stroke: null }, { w: [0.7, onHero ? 3.2 : 2.4], h: [2.2, Math.min(onHero ? 12 : 7, top - 5.4)] });
         if (!c) continue;
         const { w, h } = c;
         const y = rand(5.4, top - h) + h / 2;
@@ -456,13 +456,13 @@ export function generate({ params, seed, assets = {}, art = [] }) {
       const b = meta.billboard;
       // Only ads close to the frame's shape (~2.4:1), so they fill it instead of leaving
       // dark panels at the sides; the largest size that fits.
-      const frame = b.width / b.height;
-      const c = chooseArt({ kind: 'ad', aspect: [frame * 0.75, frame * 1.25], share: 1, stroke: null }, { w: [1, b.width], h: [1, b.height] }, (lo, hi) => hi);
+      // Any landscape ad, at the largest size the slot allows; the board is built to fit it.
+      const c = chooseArt({ kind: 'ad', aspect: [1.3, 3.5], share: 1, stroke: null, noShop: true }, { w: [1, b.width], h: [1, b.height] }, (lo, hi) => hi);
       if (c) {
         // Blender space → three.js: local x stays, Blender -y is the front (+z along v).
         const out = -(b.y + 0.25);
         signs.push({
-          building: index, kind: 'panel', roof: true, ...artFields(c),
+          building: index, kind: 'panel', roof: true, legs: r3((b.legs ?? 2) + (b.height - c.h) / 2), ...artFields(c),
           position: [r3(inst.position[0] + v[0] * out), r3(b.z + b.height / 2), r3(inst.position[2] + v[1] * out)],
           rotationY: r3(t), size: [r3(c.w), r3(c.h), 0.2], seed: Math.floor(rng() * 2 ** 31),
         });
@@ -518,7 +518,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
       // Billboard band.
       if (rng() < Z.billboardChance) {
         const lo = Math.max(Z.billboard[0], tiers[0][0] * sy + 1);
-        const c = chooseArt({ kind: 'ad', aspect: [0.5, 2.2], share: 1, stroke: null }, { w: [6, faceOf(tiers[0]) - 3], h: [10, Math.min(26, Z.billboard[1] - lo)] });
+        const c = chooseArt({ kind: 'ad', aspect: [0.5, 2.2], share: 1, stroke: null, noShop: true }, { w: [6, faceOf(tiers[0]) - 3], h: [10, Math.min(26, Z.billboard[1] - lo)] });
         if (c) place(c, rand(lo, Z.billboard[1] - c.h), 'billboard', artFields(c));
       }
       // Mid-shaft: physical campaign screen on the roomiest tier above the band.
@@ -531,7 +531,8 @@ export function generate({ params, seed, assets = {}, art = [] }) {
             const f = sideOf(tier, side);
             const lim = { w: [6, (2 * f.half - 3) * Z.shaftWidthShare], h: [40, Math.min(Z.shaftMax, b - a)] };
             const tallest = (lo, hi) => rand(lo + (hi - lo) * 0.7, hi);
-            const c = chooseArt({ kind: 'ad', aspect: [0, 0.45], share: 1, stroke: null }, lim, tallest);
+            // Stylish brand campaigns only: food and shop ads belong at street level.
+            const c = chooseArt({ kind: 'ad', aspect: [0, 0.45], share: 1, stroke: null, noShop: true }, lim, tallest);
             if (c) place(c, rand(a, b - c.h), 'shaft', artFields(c), side);
           }
         }
