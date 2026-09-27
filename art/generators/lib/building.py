@@ -75,9 +75,9 @@ def water_tank(mb, ctx, x, y, z, size):
             mb.box(lx - 0.07, lx + 0.07, ly - 0.07, ly + 0.07, z, z + stand, m, None, ("bottom", "top"), s, plan_uv)
     # Cross braces at mid height and a platform ring under the tank.
     zb = z + stand * 0.5
-    for dy in (-1, 1):
+    for dy in (-1, 1) if not ctx.p("lod", 0) else ():
         mb.box(x - leg, x + leg, y + dy * leg - 0.04, y + dy * leg + 0.04, zb - 0.04, zb + 0.04, m, None, (), s, plan_uv)
-    for dx in (-1, 1):
+    for dx in (-1, 1) if not ctx.p("lod", 0) else ():
         mb.box(x + dx * leg - 0.04, x + dx * leg + 0.04, y - leg, y + leg, zb - 0.04, zb + 0.04, m, None, (), s, plan_uv)
     mb.box(x - r * 0.9, x + r * 0.9, y - r * 0.9, y + r * 0.9, z + stand, z + stand + 0.15, m, None, (), s, plan_uv)
     body = tm if rng.random() < 0.6 else m
@@ -91,6 +91,7 @@ def antenna_cluster(mb, ctx, x, y, z):
     """Two to four masts of different heights with crossarms and small dishes; one may carry
     a red light. Returns the top."""
     rng = ctx.rng
+    lod = ctx.p("lod", 0)
     m, s = surf(ctx, "metal", 0.0, 0.0)
     top = z
     for k in range(rng.randint(2, 4)):
@@ -100,7 +101,10 @@ def antenna_cluster(mb, ctx, x, y, z):
         for a in range(rng.randint(0, 3)):
             za = z + h * rng.uniform(0.5, 0.95)
             w = rng.uniform(0.6, 1.6)
-            if rng.random() < 0.5:
+            along_x = rng.random() < 0.5
+            if lod:
+                continue   # LOD: masts only (random draws kept so nothing else moves)
+            if along_x:
                 mb.box(mx - w, mx + w, my - 0.03, my + 0.03, za - 0.03, za + 0.03, m, None, (), s, plan_uv)
             else:
                 mb.box(mx - 0.03, mx + 0.03, my - w, my + w, za - 0.03, za + 0.03, m, None, (), s, plan_uv)
@@ -108,7 +112,8 @@ def antenna_cluster(mb, ctx, x, y, z):
             # Small dish: a thin tilted plate approximated by a box on an arm.
             zd = z + h * rng.uniform(0.3, 0.7)
             d = rng.uniform(0.35, 0.7)
-            mb.box(mx + 0.1, mx + 0.25, my - d, my + d, zd - d, zd + d, m, None, (), s, plan_uv)
+            if not lod:
+                mb.box(mx + 0.1, mx + 0.25, my - d, my + d, zd - d, zd + d, m, None, (), s, plan_uv)
         if h > 8 and rng.random() < 0.6:
             fm, fs = fixture(ctx, "red")
             mb.box(mx - 0.14, mx + 0.14, my - 0.14, my + 0.14, z + h, z + h + 0.25, fm, None, ("bottom",), fs, plan_uv)
@@ -206,7 +211,7 @@ def roof_clutter(mb, ctx, W, D, z, tint, density=1.0, cx=0.0, cy=0.0, margin=1.2
             h = rng.uniform(4, 11)
             mast(mb, ctx, x, y, z, h, red=h > 8)
         # else: leave the slot empty
-    if rng.random() < (ctx.p("railing", 0.5) if rail is None else rail):
+    if rng.random() < (ctx.p("railing", 0.5) if rail is None else rail) and not ctx.p("lod", 0):
         railing(mb, ctx, W, D, z + 1.0, cx, cy)
     return top
 

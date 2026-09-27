@@ -8,5 +8,10 @@
     "tint": 0.55,
     "enclosed": 0.4,
     "railing": 0.8
-  }
+  },
+  "lods": [
+    {
+      "distance": 160
+    }
+  ]
 }

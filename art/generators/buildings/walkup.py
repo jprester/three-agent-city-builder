@@ -46,7 +46,7 @@ def generate(ctx):
             rails = ms if rail is mm else ts
             mb.box(-fw / 2, fw / 2, -vd, -vd + 0.06, z + 0.18, z + 1.1, rail, xf, ("back", "bottom"), rails, uvf)
             # Laundry poles / clutter hint: a thin bar at head height.
-            if rng.random() < 0.4:
+            if rng.random() < 0.4 and not ctx.p("lod", 0):
                 mb.box(-fw / 2 + 0.3, fw / 2 - 0.3, -vd - 0.4, -vd - 0.35, z + 2.2, z + 2.26, mm, xf, (), ms, uvf)
     # End posts carrying the verandas.
     for u in (-fw / 2, fw / 2 - 0.3):

@@ -45,11 +45,23 @@ export const listFiles = (dir, ext) => {
 
 export const toPosix = (p) => p.split(path.sep).join('/');
 
-/** All asset defs: { id: 'buildings/tower_a', file, def, category }. */
+/**
+ * All asset defs: { id: 'buildings/tower_a', file, def, category, overrides }.
+ * A def may list `lods`: [{ distance, ...paramOverrides }]. Each becomes an extra asset
+ * `<id>.lod<n>` built by the same generator with params + { lod: n, ...overrides }; its meta
+ * gets lodOf / lod / lodDistance so the runtime can swap it in by distance.
+ */
 export const listDefs = () =>
-  listFiles(P.defs, '.json').map((file) => {
+  listFiles(P.defs, '.json').flatMap((file) => {
     const id = toPosix(path.relative(P.defs, file)).replace(/\.json$/, '');
-    return { id, file, def: readJson(file), category: id.split('/')[0] };
+    const def = readJson(file);
+    const category = id.split('/')[0];
+    const base = { id, file, def, category, overrides: null };
+    const lods = (def.lods ?? []).map(({ distance, ...params }, k) => ({
+      id: `${id}.lod${k + 1}`, file, def, category,
+      overrides: { params: { ...params, lod: k + 1 }, meta: { lodOf: id, lod: k + 1, lodDistance: distance } },
+    }));
+    return [base, ...lods];
   });
 
 export const assetOutPath = (id) => path.join(P.assetsOut, ...id.split('/')) + '.glb';

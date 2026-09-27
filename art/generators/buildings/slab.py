@@ -32,7 +32,10 @@ def generate(ctx):
     # sides default to a stair/bathroom column, since slabs usually stand wall to wall.
     kinds = [("residential", "grid", tint), ("residential", ctx.p("side_pattern", "stair"), tint),
              ("residential", ctx.p("back_pattern", "grid"), tint), ("residential", ctx.p("side_pattern_left", ctx.p("side_pattern", "stair")), tint)]
-    detailed = ctx.p("architectural_detail", False)
+    lod = ctx.p("lod", 0)
+    # Fine detail (reveals, rails, pipes, side AC units) only in the full-detail asset; LOD
+    # variants keep every random draw so windows, balconies and clutter stay put.
+    detailed = ctx.p("architectural_detail", False) and not lod
     if detailed:
         recessed_front(mb, ctx, W, D, ph, main_top, ph, kinds, (cw, ch),
                        ctx.p("window_rect", [0.8, 2.4, 0.9, 2.45]), ctx.p("reveal_depth", 0.22))
@@ -110,7 +113,7 @@ def generate(ctx):
         suvf = facade_uv(sw, ph)
         for f in range(floors):
             for k in range(int(sw // cw)):
-                if rng.random() < ctx.p("side_ac_ratio", 0.08):
+                if rng.random() < ctx.p("side_ac_ratio", 0.08) and not lod:
                     ax = -sw / 2 + (k + 0.5) * cw
                     z = ph + f * ch
                     mb.box(ax - 0.4, ax + 0.4, -0.55, 0.0, z + 0.2, z + 0.75, am, sxf, ("back",), as_, suvf)

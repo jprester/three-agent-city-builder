@@ -9,5 +9,10 @@
     "tint": 0.4,
     "tower_bays": 4,
     "side_pattern": "alternate"
-  }
+  },
+  "lods": [
+    {
+      "distance": 160
+    }
+  ]
 }

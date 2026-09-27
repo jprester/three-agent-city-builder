@@ -12,5 +12,10 @@
     "step_floors": 3,
     "fins": true,
     "side_pattern": "alternate"
-  }
+  },
+  "lods": [
+    {
+      "distance": 160
+    }
+  ]
 }

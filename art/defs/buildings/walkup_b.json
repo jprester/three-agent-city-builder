@@ -9,5 +9,10 @@
     "enclosed": 0.7,
     "railing": 0.8,
     "side_pattern": "stair"
-  }
+  },
+  "lods": [
+    {
+      "distance": 160
+    }
+  ]
 }

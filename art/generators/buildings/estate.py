@@ -42,6 +42,8 @@ def generate(ctx):
                     if rng.random() < ctx.p("ac_ratio", 0.12):
                         ax = -fw / 2 + (c + 0.5) * cw + rng.choice((-0.75, 0.75))
                         z = ptop + fl * ch
+                        if ctx.p("lod", 0):
+                            continue
                         mb.box(ax - 0.4, ax + 0.4, -0.55, 0.0, z + 0.2, z + 0.75, am, xf, ("back",), as_, uvf)
         flat_roof(mb, ctx, tw, td, t_top, tint, cx, cy, parapet=1.2)
         water_tank(mb, ctx, cx - tw * 0.2, cy, t_top, 2.6)

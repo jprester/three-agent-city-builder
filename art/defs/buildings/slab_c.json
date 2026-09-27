@@ -12,5 +12,10 @@
     "shack_chance": 0.9,
     "step_floors": 2,
     "side_pattern": "grid"
-  }
+  },
+  "lods": [
+    {
+      "distance": 160
+    }
+  ]
 }

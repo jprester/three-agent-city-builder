@@ -95,6 +95,7 @@ function assetHash(entry, blenderVersion) {
   return sha256(
     blenderVersion,
     fs.readFileSync(entry.file),
+    JSON.stringify(entry.overrides),
     ...files.flatMap((f) => [toPosix(path.relative(ROOT, f)), fs.readFileSync(f)]),
   );
 }
@@ -151,6 +152,7 @@ async function main() {
       '--background', '--factory-startup', '--python-exit-code', '1',
       '--python', path.join(P.blenderTools, 'run.py'), '--',
       '--def', entry.file, '--id', entry.id, '--out', raw,
+      ...(entry.overrides ? ['--overrides', JSON.stringify(entry.overrides)] : []),
     ];
     if (previews) {
       argv.push('--previews', path.join(P.previews, ...entry.id.split('/')),

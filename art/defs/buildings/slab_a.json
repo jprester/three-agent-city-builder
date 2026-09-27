@@ -13,5 +13,10 @@
     "bay_ratio": 0.25,
     "architectural_detail": true,
     "side_pattern": "stair2"
-  }
+  },
+  "lods": [
+    {
+      "distance": 160
+    }
+  ]
 }

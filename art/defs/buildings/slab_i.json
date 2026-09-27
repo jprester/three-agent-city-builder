@@ -14,5 +14,10 @@
     "canopy_depth": 2.4,
     "side_pattern": "stair",
     "side_pattern_left": "blank"
-  }
+  },
+  "lods": [
+    {
+      "distance": 160
+    }
+  ]
 }

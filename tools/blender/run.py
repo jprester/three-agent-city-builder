@@ -33,6 +33,8 @@ def parse_args():
     p.add_argument("--previews", default=None)
     p.add_argument("--preview-engine", default="workbench")
     p.add_argument("--preview-res", type=int, default=768)
+    # LOD variants (tools/lib/common.mjs listDefs): {"params": {...}, "meta": {...}}
+    p.add_argument("--overrides", default=None)
     return p.parse_args(argv)
 
 
@@ -44,9 +46,12 @@ def main():
 
     reset_scene()
     module = importlib.import_module(spec["generator"].replace("/", "."))
-    ctx = GenContext(args.id, spec.get("params", {}), spec.get("seed", 0), palette, facade)
+    overrides = json.loads(args.overrides) if args.overrides else {}
+    params = {**spec.get("params", {}), **overrides.get("params", {})}
+    ctx = GenContext(args.id, params, spec.get("seed", 0), palette, facade)
     module.generate(ctx)
 
+    ctx.meta.update(overrides.get("meta", {}))
     tris = triangle_count()
     # Previews first: they may show preview-only data that is stripped before export.
     if args.previews:

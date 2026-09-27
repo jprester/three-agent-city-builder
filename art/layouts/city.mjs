@@ -165,7 +165,8 @@ export function generate({ params, seed, assets = {} }) {
   for (const sb of superblocks) subdivide(sb, 0);
 
   // ---- building catalog per district
-  const buildingIds = Object.keys(assets).filter((id) => assets[id].meta?.footprint);
+  // LOD variants (meta.lodOf) are swapped in at runtime by distance, never placed.
+  const buildingIds = Object.keys(assets).filter((id) => assets[id].meta?.footprint && !assets[id].meta.lodOf);
   const resolve = (weights) => {
     const out = {};
     for (const [pattern, w] of Object.entries(weights ?? {})) {

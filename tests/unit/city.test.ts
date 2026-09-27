@@ -26,6 +26,12 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     expect(L.flythrough!.points.length).toBeGreaterThan(5);
   });
 
+  it('places only full-detail assets (LOD variants are swapped in at runtime)', async () => {
+    const L = await get();
+    const lods = L.instances.filter((i) => (ASSETS[i.asset as keyof typeof ASSETS].meta as { lodOf?: string }).lodOf);
+    expect(lods.map((i) => i.asset)).toEqual([]);
+  });
+
   it('puts the hero street in the old core', async () => {
     const L = await get();
     const along = L.blocks.filter((b) => b.edges?.includes(L.hero!.road));

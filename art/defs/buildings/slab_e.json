@@ -11,5 +11,10 @@
     "ac_ratio": 0.3,
     "canopy_depth": 2.0,
     "side_pattern": "ends"
-  }
+  },
+  "lods": [
+    {
+      "distance": 160
+    }
+  ]
 }

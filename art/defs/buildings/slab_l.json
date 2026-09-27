@@ -13,5 +13,10 @@
     "step_floors": 2,
     "canopy_depth": 2.8,
     "side_pattern": "stair"
-  }
+  },
+  "lods": [
+    {
+      "distance": 160
+    }
+  ]
 }

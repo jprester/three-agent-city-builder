@@ -12,5 +12,10 @@
     "fins": true,
     "architectural_detail": true,
     "side_pattern": "blank"
-  }
+  },
+  "lods": [
+    {
+      "distance": 160
+    }
+  ]
 }
