@@ -599,3 +599,16 @@ and milestone images are saved in `docs/progress/advertising-pilot/`.
 - After: `facade`, the new temporary crown view, plus canyon and storefront. Blade arms reach the wall and clear the AC units. Above-canopy panels stand on the canopy edge. There are no frames on holograms. The clash pass removes overlaps (903 signs remain). Crown letters (40) stand on the roof on posts and read as rooftop signs from the street.
 - Still weak: at skyline distance the crown posts are sub-pixel, so the letters look like they hover. That is acceptable at that range.
 - Baseline diffs across all 14 viewpoints are expected and not approved.
+
+## Phase 5 — cameras (2026-09-27)
+- **Before:** the loop spent under 10 % of its length in the canyon. It rocketed from 22 m to 438 m at the canyon end (fly-25 looked straight down), dipped 4 m below the street before the canyon, and dove 430 m → 45 m on the way back.
+- **After** (`docs/progress/phase-5/`):
+  - The canyon glide under the blades is the strongest part.
+  - The crane-up along the arterial, looking back at the towers (t≈84), is a real reveal.
+  - The tower orbit passes the campaigns and crowns at close range.
+  - The glide home shows the lit hero street as a slot in the dark city wall.
+- **Weak:**
+  - At t≈124 the view still tips steeply down onto the core. It reads as a deliberate overhead but is the least composed frame.
+  - The wide shot is framed by empty black ground and sky, and the city looks like an island. A skyline ring or distant lights would help (Phase 6).
+  - The glide home crosses about 300 m of featureless ground.
+  - Free-fly has no collision; the camera can enter buildings.

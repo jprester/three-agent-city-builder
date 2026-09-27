@@ -1,3 +1,13 @@
+# Checkpoint 3 — cameras (phase 5)
+
+Press `1`/`2`/`3` for the orbit, free-fly and flythrough cameras, or open `?camera=flythrough`.
+The loop is described beat by beat in `docs/FLYTHROUGH.md`. The contact sheet is in
+`docs/progress/phase-5/`, and the fly-0/25/50/75 shots are in `build/shots/city/`.
+
+- Judge the pacing: is the canyon glide (about 50 s at 7.5 m/s) too slow or just right, and is ~3 min too long?
+- Weakest frames: the overhead tip at t≈124, and the empty black ground around the wide shot.
+- Baselines are stale for all 14 viewpoints (sign and camera work); not approved.
+
 # Checkpoint 2 — widen (phases 1–3 of the revised order)
 
 Shots: `docs/progress/phase-3/` (also `build/shots/city/`), 1280×720, `t=12`. No baselines

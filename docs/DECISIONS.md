@@ -136,3 +136,9 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 2026-09-27 | signs | Holographic signs get no frame; blades get an arm that reaches the wall | Frames around additive art read as boxes floating off the wall.
 2026-09-27 | signs | Layout drops a sign that overlaps an earlier sign or enters another building's footprint | Human review: overlapping and wall-embedded signs.
 2026-09-27 | signs | Tower crown lettering stands on the roof (meta `roof`) on 1.2 m posts, 1 m behind the edge | Human review: logos should sit above the facade, attached to the rooftop.
+2026-09-27 | cameras | Flythrough speed is a function of height (7.5 m/s at street level, up to 48 m/s) | Keeps screen motion steady, eases every climb and dive, and needs no per-key timing data.
+2026-09-27 | cameras | fly-* viewpoints sample the loop by time, not arc length | The shots then match what a viewer sees at 0/25/50/75 % of the loop; by distance, the canyon got under 10 %.
+2026-09-27 | cameras | New loop: canyon → crane-up along the crossing arterial → tower orbit → wide → glide down the hero axis | The old path shot from 22 m to 438 m in 180 m of travel, dove below the ground (−4 m) and whip-panned.
+2026-09-27 | cameras | Orbit radius comes from the outermost tower footprint + 45 m, not the district radius | The district's shape varies per seed; on seed 1 a tower stood 256 m from the centre.
+2026-09-27 | layout | Signs within 2.5 m of the flythrough are dropped, and the layout samples the curve as centripetal Catmull-Rom | The flythrough is structure, as bridges already are; the layout must check the same curve three.js draws.
+2026-09-27 | cameras | Default mode stays orbit (`?camera=` picks another) | Conservative: shots and dev views rely on orbit; the flythrough is one key away.

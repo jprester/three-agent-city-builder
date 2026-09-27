@@ -30,10 +30,21 @@ See [the advertising guide](docs/ADVERTISING.md) for copy, artwork, fonts and em
 |---|---|
 | `?layout=<id>` | Layout from `public/layouts/` (default `city`). |
 | `?viewpoint=<name>` | Camera from `src/debug/viewpoints.json` (default `aerial`). |
+| `?camera=orbit\|fly\|flythrough` | Starting camera mode (default `orbit`). |
 | `?seed=<int>` | Regenerate the layout in the browser with this seed. |
 | `?t=<seconds>` | Freeze the shared clock at this time. |
 | `?quality=low\|med\|high` | Quality preset (default `high`). |
 | `?debug=1` | Show the debug GUI. |
+
+## Controls
+
+| Key | Mode |
+|---|---|
+| `1` | **Orbit**: drag to orbit, right-drag to pan, wheel to zoom. |
+| `2` | **Free-fly**: click to capture the mouse, then look around. WASD moves, Space/E goes up, C/Q goes down, Shift boosts, the wheel changes speed, Esc releases the mouse. |
+| `3` | **Flythrough**: the cinematic loop (about 3 min). See [docs/FLYTHROUGH.md](docs/FLYTHROUGH.md). |
+
+A hint in the top left shows the active mode for a few seconds after each switch.
 
 Blender is found via `BLENDER_BIN`, then `blender.path` in `pipeline.config.json`,
 then `/Applications/Blender.app/Contents/MacOS/Blender`, then `blender` on PATH.
