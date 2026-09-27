@@ -1,14 +1,20 @@
 import { mulberry32 } from './rng.mjs';
 
-/** Sparse opposing streams on wider roads. Fixed headway prevents same-lane overlap. */
+/** Meters between cars in one lane, by road class (divided by density). */
+const HEADWAY = { arterial: 24, hero: 30, secondary: 34 };
+
+/**
+ * Opposing streams on wider roads. Fixed headway prevents same-lane overlap.
+ * Browser-safe; used by the layout (art/layouts/city.mjs) and its tests.
+ */
 export function trafficLanes(roads, seed, density = 1) {
   const rng = mulberry32(seed ^ 0x74726166);
   return roads.filter(r => r.width >= 9 && r.cls !== 'alley').flatMap(r => {
     const length = Math.hypot(r.b[0] - r.a[0], r.b[1] - r.a[1]);
     if (length < 35) return [];
     return [-1, 1].map(direction => ({
-      a: r.a, b: r.b, length, direction, offset: r.width * 0.22,
-      count: Math.max(1, Math.floor(length / (85 / density))),
+      road: r.id, cls: r.cls, a: r.a, b: r.b, length, direction, offset: r.width * 0.22,
+      count: Math.max(1, Math.floor(length / ((HEADWAY[r.cls] ?? 40) / density))),
       speed: 5 + rng() * 4, phase: rng(),
     }));
   });

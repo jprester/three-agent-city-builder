@@ -15,6 +15,7 @@
 // Browser-safe: no Node APIs (it also runs in the browser for ?seed=).
 import * as G from './lib/geom.mjs';
 import { mulberry32, weightedChoice } from './lib/rng.mjs';
+import { trafficLanes } from './lib/traffic.mjs';
 
 const DISTRICT_DEFAULTS = {
   // blockArea: target block size (m²); minWidth: narrowest allowed block; secondaryFactor:
@@ -45,6 +46,13 @@ const DEFAULTS = {
     small: { 'props/cabinet': 3, 'props/bin': 4, 'props/vent': 1, 'props/bollard': 2 }, smallEvery: 16, smallChance: 0.55,
     clearLamp: 1.4, gap: 0.5,
   },
+  // Flying-vehicle loops: ellipses around the city center at three altitudes, pushed out
+  // around tall buildings and lifted where they still pass close to one.
+  skyLanes: [
+    { alt: 95, rx: 430, rz: 330, count: 5, speed: 32, direction: 1 },
+    { alt: 150, rx: 260, rz: 200, center: [-190, 110], count: 4, speed: 40, direction: -1 },
+    { alt: 230, rx: 540, rz: 420, count: 3, speed: 48, direction: 1 },
+  ],
   // Enclosed bridges: skybridges between nearby towers, footbridges over core streets.
   bridges: {
     sky: { max: 7, perTower: 2, dist: [30, 95], height: [0.2, 0.5], width: 4.5, depth: 4.2 },
@@ -312,6 +320,9 @@ export function generate({ params, seed, assets = {} }) {
   // ---- flythrough and bridges come before signs: bridges are structure, signs avoid them.
   const flythrough = hero ? buildFlythrough(hero, instances, P, W, Dp) : undefined;
   const bridges = buildBridges(P.bridges, instances, roads, [], lamps, hero, flythrough, rng);
+  const skyLanes = buildSkyLanes(P.skyLanes, instances, bridges);
+  const traffic = trafficLanes(roads.map((r) => ({ id: r.id, cls: r.cls, width: r.width, a: r.a.map(r3), b: r.b.map(r3) })), seed)
+    .map((l) => ({ ...l, speed: r3(l.speed), phase: r3(l.phase), length: r3(l.length), offset: r3(l.offset) }));
   const footBoxes = bridges.filter((b) => b.kind === 'foot').map((b) => ({
     box: G.obb(G.lerp(b.a, b.b, 0.5), G.norm(G.sub(b.b, b.a)), G.dist(b.a, b.b) / 2 + 0.5, b.width / 2 + 0.6),
     y0: b.y - 0.6, y1: b.y + b.depth + 0.6,
@@ -450,6 +461,8 @@ export function generate({ params, seed, assets = {} }) {
     instances,
     flythrough,
     bridges,
+    traffic,
+    skyLanes,
   };
 }
 
@@ -576,6 +589,50 @@ function placeProps(cfg, blocks, roads, lamps, sidewalks, tagClass, assets, rng)
     }
   }
   return out;
+}
+
+/**
+ * Closed flying lanes. Each is sampled every ~2.8° around an ellipse; a sample is pushed
+ * outward (up to +40%) while a building or skybridge rises within `clear` meters of it, then
+ * lifted if still blocked. Heights are max-filtered over neighbors so the Catmull-Rom curve
+ * through the samples stays clear between them.
+ */
+function buildSkyLanes(cfg, instances, bridges, clear = 18, n = 128) {
+  const boxes = instances.map((i) => ({ box: instanceBox(i), h: i.h }));
+  const needAt = (p) => {
+    let need = 0;
+    for (const { box, h } of boxes) {
+      if (G.dist(box.c, p) > Math.max(box.hu, box.hv) + clear + 5) continue;
+      if (G.insideConvex(G.obb(box.c, box.u, box.hu + clear, box.hv + clear).corners, p)) need = Math.max(need, h + clear);
+    }
+    for (const b of bridges) {
+      if (G.segDist(p, b.a, b.b) < b.width / 2 + clear) need = Math.max(need, b.y + b.depth + clear);
+    }
+    return need;
+  };
+  return cfg.map((lane) => {
+    const [cx, cz] = lane.center ?? [0, 0];
+    const at = (k, sc) => { const a = (k / n) * Math.PI * 2; return [cx + Math.cos(a) * lane.rx * sc, cz + Math.sin(a) * lane.rz * sc]; };
+    // Outward push per sample, widened over ±3 neighbors so the loop bulges smoothly
+    // around a tower instead of zigzagging (the curve between samples must stay clear too).
+    const push = [];
+    for (let k = 0; k < n; k++) {
+      let sc = 1;
+      while (needAt(at(k, sc)) > lane.alt && sc < 1.4) sc += 0.04;
+      push.push(sc);
+    }
+    const pts = [];
+    for (let k = 0; k < n; k++) {
+      const sc = Math.max(...[-3, -2, -1, 0, 1, 2, 3].map((o) => push[(k + o + n) % n]));
+      const p = at(k, sc);
+      pts.push([p[0], Math.max(lane.alt, needAt(p)), p[1]]);
+    }
+    const y = pts.map((_, k) => Math.max(...[-2, -1, 0, 1, 2].map((o) => pts[(k + o + n) % n][1])));
+    return {
+      points: pts.map((p, k) => [r3(p[0]), r3(y[k]), r3(p[2])]),
+      closed: true, count: lane.count, speed: lane.speed, direction: lane.direction,
+    };
+  });
 }
 
 /** Oriented box of a layout instance's footprint. */

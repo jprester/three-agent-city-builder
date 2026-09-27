@@ -51,6 +51,23 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     expect(bad.slice(0, 10)).toEqual([]);
   });
 
+  it('flies vehicles clear of buildings and skybridges, and has traffic lanes', async () => {
+    const L = await get();
+    expect(L.traffic!.length).toBeGreaterThan(20);
+    expect(L.skyLanes!.length).toBe(3);
+    const boxes = L.instances.map((i) => ({ b: G.obb([i.position[0], i.position[2]], [Math.cos(i.rotationY), -Math.sin(i.rotationY)], i.fp![0] + 8, i.fp![1] + 8), h: i.h! }));
+    const hits: string[] = [];
+    L.skyLanes!.forEach((lane, li) => {
+      const curve = new THREE.CatmullRomCurve3(lane.points.map((p) => new THREE.Vector3(...p)), true);
+      for (let k = 0; k < 3000; k++) {
+        const p = curve.getPointAt(k / 3000);
+        for (const { b, h } of boxes) if (p.y < h + 8 && G.insideConvex(b.corners, [p.x, p.z])) { hits.push(`lane ${li} t=${(k / 3000).toFixed(3)} y=${p.y.toFixed(0)} h=${h}`); break; }
+        for (const br of L.bridges!) if (Math.abs(p.y - (br.y + br.depth / 2)) < 8 && G.segDist([p.x, p.z], br.a, br.b) < br.width / 2 + 8) hits.push(`lane ${li} hits a bridge`);
+      }
+    });
+    expect(hits.slice(0, 10)).toEqual([]);
+  });
+
   it('puts the hero street in the old core', async () => {
     const L = await get();
     const along = L.blocks.filter((b) => b.edges?.includes(L.hero!.road));
