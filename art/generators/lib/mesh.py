@@ -83,6 +83,11 @@ class MeshBuilder:
             m, s = (faces or {}).get(name, (mat, surf))
             self._face([p[i] for i in ids], xf, m, s, uvf)
 
+    def discard(self):
+        """Drop everything built so far (a sink for detail that a coarse LOD leaves out while
+        still consuming its random draws)."""
+        self.bm.free()
+
     def finish(self):
         bmesh.ops.remove_doubles(self.bm, verts=self.bm.verts, dist=1e-5)
         self.bm.normal_update()

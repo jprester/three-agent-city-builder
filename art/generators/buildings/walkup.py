@@ -19,6 +19,9 @@ def generate(ctx):
     tint = ctx.p("tint", 0.5)
     top = ph + floors * ch
     mb = MeshBuilder(ctx.name)
+    # lod ≥ 2 (far field): verandas, posts and roof clutter go to a discarded builder (random
+    # draws kept); the wall behind carries the shaded windows.
+    dmb = MeshBuilder(ctx.name + "_discard") if ctx.p("lod", 0) >= 2 else mb
 
     walls(mb, ctx, W, D, ph, top, ph, [
         ("residential", "grid", tint), ("residential", ctx.p("side_pattern", "blank"), tint),
@@ -39,25 +42,27 @@ def generate(ctx):
         z = ph + f * ch
         if rng.random() < ctx.p("enclosed", 0.5):
             # Enclosed veranda: a box whose front face carries windows.
-            mb.box(-fw / 2, fw / 2, -vd, 0.0, z, z + ch, tm, xf, ("back",), ts, uvf, faces={"front": (rm, rs)})
+            dmb.box(-fw / 2, fw / 2, -vd, 0.0, z, z + ch, tm, xf, ("back",), ts, uvf, faces={"front": (rm, rs)})
         else:
-            mb.box(-fw / 2, fw / 2, -vd, 0.0, z, z + 0.18, tm, xf, ("back",), ts, uvf)
+            dmb.box(-fw / 2, fw / 2, -vd, 0.0, z, z + 0.18, tm, xf, ("back",), ts, uvf)
             rail = mm if rng.random() < 0.5 else tm
             rails = ms if rail is mm else ts
-            mb.box(-fw / 2, fw / 2, -vd, -vd + 0.06, z + 0.18, z + 1.1, rail, xf, ("back", "bottom"), rails, uvf)
+            dmb.box(-fw / 2, fw / 2, -vd, -vd + 0.06, z + 0.18, z + 1.1, rail, xf, ("back", "bottom"), rails, uvf)
             # Laundry poles / clutter hint: a thin bar at head height.
             if rng.random() < 0.4 and not ctx.p("lod", 0):
-                mb.box(-fw / 2 + 0.3, fw / 2 - 0.3, -vd - 0.4, -vd - 0.35, z + 2.2, z + 2.26, mm, xf, (), ms, uvf)
+                dmb.box(-fw / 2 + 0.3, fw / 2 - 0.3, -vd - 0.4, -vd - 0.35, z + 2.2, z + 2.26, mm, xf, (), ms, uvf)
     # End posts carrying the verandas.
     for u in (-fw / 2, fw / 2 - 0.3):
-        mb.box(u, u + 0.3, -vd, -vd + 0.3, ph, top, tm, xf, ("back", "bottom"), ts, uvf)
+        dmb.box(u, u + 0.3, -vd, -vd + 0.3, ph, top, tm, xf, ("back", "bottom"), ts, uvf)
 
     flat_roof(mb, ctx, W, D, top, tint, parapet=1.1)
-    roof_top = roof_clutter(mb, ctx, W, D, top, tint, ctx.p("clutter", 1.3))
+    roof_top = roof_clutter(dmb, ctx, W, D, top, tint, ctx.p("clutter", 1.3))
     if rng.random() < ctx.p("shack_chance", 0.5):
         sw, sd = W * 0.6, D * 0.5
         walls(mb, ctx, sw, sd, top, top + ch, top, [("residential", "stair", tint)] * 4, 0.0, D * 0.2)
         flat_roof(mb, ctx, sw, sd, top + ch, tint, 0.0, D * 0.2, parapet=0.0)
         roof_top = max(roof_top, top + ch)
+    if dmb is not mb:
+        dmb.discard()
     mb.finish()
     ctx.meta.update(canopy=cd, depth=vd + 0.45, footprint=[W, D], height=top + 1.1, top=roof_top, family="walkup", scalable=False, shader="facade")

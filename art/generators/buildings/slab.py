@@ -36,6 +36,10 @@ def generate(ctx):
     # Fine detail (reveals, rails, pipes, side AC units) only in the full-detail asset; LOD
     # variants keep every random draw so windows, balconies and clutter stay put.
     detailed = ctx.p("architectural_detail", False) and not lod
+    # lod ≥ 2 (far field): walls, roof, canopy, fins and shack only. Balconies, cages, AC
+    # units, bay windows and roof clutter go to a discarded builder, so every random draw is
+    # still made and nothing else moves; the shader draws the windows either way.
+    dmb = MeshBuilder(ctx.name + "_discard") if lod >= 2 else mb
     if detailed:
         recessed_front(mb, ctx, W, D, ph, main_top, ph, kinds, (cw, ch),
                        ctx.p("window_rect", [0.8, 2.4, 0.9, 2.45]), ctx.p("reveal_depth", 0.22))
@@ -74,7 +78,7 @@ def generate(ctx):
         u0 = -fw / 2 + c * cw
         f0 = rng.randint(0, max(0, front_floors // 3))
         f1 = front_floors - rng.randint(0, 2)
-        mb.box(u0 + 0.15, u0 + cw - 0.15, -bw, 0.0, ph + f0 * ch, ph + f1 * ch, tm, xf, ("back",), ts, uvf,
+        dmb.box(u0 + 0.15, u0 + cw - 0.15, -bw, 0.0, ph + f0 * ch, ph + f1 * ch, tm, xf, ("back",), ts, uvf,
                faces={"front": (rm, rs)})
     if ctx.p("ledges", False):
         for f in range(1, front_floors):
@@ -88,18 +92,18 @@ def generate(ctx):
         for f in range(front_floors):
             z = ph + f * ch
             if c in balcony_cols:
-                mb.box(u0 + 0.12, u0 + cw - 0.12, -bd, 0.0, z, z + 0.15, tm, xf, ("back",), ts, uvf)
+                dmb.box(u0 + 0.12, u0 + cw - 0.12, -bd, 0.0, z, z + 0.15, tm, xf, ("back",), ts, uvf)
                 if detailed:
-                    balcony_rail(mb, ctx, xf, uvf, u0 + 0.12, u0 + cw - 0.12, -bd, z + 0.15)
+                    balcony_rail(dmb, ctx, xf, uvf, u0 + 0.12, u0 + cw - 0.12, -bd, z + 0.15)
                 else:
-                    mb.box(u0 + 0.12, u0 + cw - 0.12, -bd, -bd + 0.08, z + 0.15, z + 1.1, tm, xf, ("back", "bottom"), ts, uvf)
+                    dmb.box(u0 + 0.12, u0 + cw - 0.12, -bd, -bd + 0.08, z + 0.15, z + 1.1, tm, xf, ("back", "bottom"), ts, uvf)
                 continue
             r = rng.random()
             if r < ctx.p("cage_ratio", 0.12):
-                mb.box(u0 + 0.55, u0 + cw - 0.55, -0.45, 0.0, z + 0.7, z + 2.5, cm, xf, ("back",), cs, uvf)
+                dmb.box(u0 + 0.55, u0 + cw - 0.55, -0.45, 0.0, z + 0.7, z + 2.5, cm, xf, ("back",), cs, uvf)
             elif r < ctx.p("cage_ratio", 0.12) + ctx.p("ac_ratio", 0.35):
                 ax = u0 + cw / 2 + rng.choice((-0.75, 0.75))
-                mb.box(ax - 0.4, ax + 0.4, -0.55, 0.0, z + 0.2, z + 0.75, am, xf, ("back",), as_, uvf)
+                dmb.box(ax - 0.4, ax + 0.4, -0.55, 0.0, z + 0.2, z + 0.75, am, xf, ("back",), as_, uvf)
 
     # Vertical concrete fins between bays catch street light and break up the flat front.
     if ctx.p("fins", False):
@@ -123,7 +127,7 @@ def generate(ctx):
 
     roof_d, roof_cy = D - step_depth, step_depth / 2
     flat_roof(mb, ctx, W, roof_d, top, tint, 0.0, roof_cy)
-    roof_top = roof_clutter(mb, ctx, W, roof_d, top, tint, ctx.p("clutter", 1.0), 0.0, roof_cy)
+    roof_top = roof_clutter(dmb, ctx, W, roof_d, top, tint, ctx.p("clutter", 1.0), 0.0, roof_cy)
 
     # Rooftop shack: one set-back residential floor on part of the roof.
     if rng.random() < ctx.p("shack_chance", 0.4):
@@ -136,6 +140,8 @@ def generate(ctx):
 
     if floors >= 18:
         aviation_lights(mb, ctx, W, roof_d, top + 1.0, 0.0, roof_cy)
+    if dmb is not mb:
+        dmb.discard()
     mb.finish()
     # depth: deepest thing on the street face (balconies, bay windows, AC units) for sign clearance.
     ctx.meta.update(canopy=cd, depth=max(bd, ctx.p("bay_depth", 0.7), 0.55), footprint=[W, D], height=top + 1.0, top=roof_top, family="slab", scalable=False, shader="facade")

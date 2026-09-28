@@ -16,6 +16,9 @@
   "lods": [
     {
       "distance": 160
+    },
+    {
+      "distance": 380
     }
   ]
 }
