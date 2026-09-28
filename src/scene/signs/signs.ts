@@ -5,6 +5,9 @@ import type { Layout } from '../../systems/layout';
 import { BRANDS, type SignAtlas, type SignDesign } from './atlas';
 import { ART_ENTRIES, atlasCode, type ArtEntry, type SignArt } from './art';
 
+/** Emission multiplier for the big tower ads (zones shaft and billboard; human review 2026-09-28). */
+const TOWER_AD_GAIN = 1.8;
+
 export interface SignUniforms {
   uTime: { value: number };
   uAtlas: { value: THREE.Texture | null };
@@ -83,7 +86,8 @@ export function createSigns(layout: Layout, atlas: SignAtlas, art: SignArt, unif
       color: image ? new THREE.Color(...image.color) : design!.boxed ? backCol.clone().lerp(new THREE.Color(1, 1, 1), 0.3) : tubeCol,
       strength: image ? 0.5 : design!.boxed ? 0.6 : 1,
     });
-    gains[i] = image?.gain ?? 1;
+    // Big tower campaigns (shaft, tower billboard) read from blocks away: brighter than shop art.
+    gains[i] = (image?.gain ?? 1) * (s.zone === 'shaft' || s.zone === 'billboard' ? TOWER_AD_GAIN : 1);
     const branded = s.brand !== undefined;
     const broken = !branded && !image && rng() < 0.3 ? 0.15 + 0.35 * rng() : 0;
     const flicker = !branded && !image && rng() < 0.2 ? 0.1 + 0.3 * rng() : 0;
