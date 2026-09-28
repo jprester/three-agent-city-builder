@@ -21,11 +21,14 @@ export function createStreets(layout: Layout | null, uniforms: GroundUniforms): 
 
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(GROUND_SIZE, GROUND_SIZE).rotateX(-Math.PI / 2),
-    createGroundMaterial(color('road_wet'), 0.35, uniforms),
+    createGroundMaterial(color('road_wet'), 0.35, uniforms, 1, 1, true),
   );
   ground.name = 'ground';
   group.add(ground);
   if (!layout) return group;
+  // The sprawl of lights begins outside the city's footprint.
+  const [W, D] = layout.size ?? [0, 0];
+  uniforms.uCity.value.set(-W / 2, -D / 2, W / 2, D / 2);
 
   const sidewalks = new THREE.Mesh(
     sidewalkGeometry(layout.blocks.map((b) => b.points)),
