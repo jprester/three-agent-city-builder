@@ -625,3 +625,16 @@ and milestone images are saved in `docs/progress/advertising-pilot/`.
   - `architecture` and `facade` hold up close.
   - `tower-detail` is the weakest: 139k triangles and a narrow band of detail against a big dark sky.
   - Steam at street level (style bible) is still missing. The shader-program budget (24 of 25) is the constraint; haze stands in.
+
+## Polish from human review: sprawl, glass, tower ads (2026-09-28)
+- **Sprawl carpet** (`aerial`, `fly-75`, `skyline-wide`):
+  - The city now sits in a lit metropolis that runs to the horizon, and the square edge is gone.
+  - It went through three iterations. The first averaged into a brown haze. The second read as a regular "Tron grid" with a dark moat. The third varies each street segment's brightness (arterials), warps the grids, has a sparse fringe instead of a moat, and gives window dots a one-pixel minimum.
+  - Up close it was flat discs on the ground (`horizon`); it now fades in beyond 60–220 m from the camera.
+  - Weak: the bright arterials sometimes line up into a lattice near the bottom of `aerial`; the far carpet averages to an even orange glow.
+- **Glass:**
+  - The first capture, over the old core, showed only dark sky to glass seen from below: no visible change.
+  - From inside the tower district, glass picks up the neighbours' LED strips and lit floors. `tower-detail` shows blue streaks and grey sheen on the dark panes, and the orbit (t≈100) shows bluish city reflections.
+  - It is a single static capture, so reflections do not move with traffic or flicker. That is fine at tower scale.
+- **Tower ads** are 1.8× brighter and now hold their own against the LED accent strips.
+- Budgets are unchanged: 40 calls, 0.86M triangles, 24 programs. The glass cube is rendered once at startup.

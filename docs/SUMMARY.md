@@ -28,7 +28,7 @@ is optional and not started.
 ## Where it falls short of the style bible
 
 - **Steam at street level is missing.** The haze post effect stands in for it. A particle system would need a 26th shader program, and the budget is 25.
-- **"City to the horizon"** (`ref-aerial-dense`) is not met. The city is compact and ends at a hard square edge on a dark plain, and distant horizon lights only partly hide it. This is deliberate: an earlier far field made the city feel spread out, and you asked to keep the structure. A light-only ground carpet is proposed in `docs/QUESTIONS.md`.
+- **"City to the horizon"** (`ref-aerial-dense`) is now suggested by a carpet of ground lights around the city and settlement lights on the horizon. It is flat light rather than buildings, so it reads from above and afar but not from street level beyond the city edge.
 - **Not quite "old, crowded, lived-in" up close.** Paint and tile are uniform per building (no patched or repainted floors), cars are simple boxes, and there are no parked vehicles. Pedestrians are out of scope by the plan.
 - **Tower facades repeat** their photographic texture on all four sides. `tower-detail` is the weakest shot.
 - **Some Latin text on signs** is still stroke-drawn and generic (HOTEL, NOODLE). Most signs now use your artwork.
@@ -37,7 +37,7 @@ is optional and not started.
 
 1. **Street-level steam and wet detail in the canyon:** vents and manholes breathing steam lit by the signs, plus puddles breaking up the reflection. It serves the one bold element directly. Budget one shader program for it by merging two existing materials (e.g. sidewalks and markings share the ground shader).
 2. **Weathering variation per floor on the old slabs:** repainted bands, patched tile, rust streaks under AC units, all in the facade shader keyed by floor and seed. It moves the core from "clean procedural" to lived-in at no geometry cost.
-3. **Soften the city edge**, if you agree: a light-only carpet of distant streets on the ground, or a harbour edge with piers and ship lights on the port side. It fixes the one composition problem left in `aerial` and the flythrough's wide shot.
+3. **Low-rise silhouettes at the city edge:** a ring of cheap far-field blocks (LOD2-style shells) between the city and the light carpet. The sprawl would then read from low angles too, not only from above.
 
 See `docs/NOTES.md` for per-phase critiques, `docs/DECISIONS.md` for every deviation from the
 plan, and `docs/progress/` for milestone shots.

@@ -7,8 +7,4 @@ Only questions an agent cannot resolve with a sensible default. Newest at the bo
 - ~~**Sign text**~~: answered in practice. Most signs now use your atlases and Midjourney
   artwork; stroke-drawn signs are the minority.
 - ~~**Screen artwork**~~: answered. You supplied the ads and atlases (2026-09-27).
-- **City edge** (2026-09-28): from `aerial` and the flythrough's wide shot, the city stops at a
-  hard square edge on a dark plain. A distant shore of lights now sits on the horizon. A
-  faint carpet of street lights on the ground around the city (lights only, no buildings, so
-  the city keeps its compact shape) would soften the edge further. Want it, or keep the
-  island look?
+- ~~**City edge**~~ (2026-09-28): answered. Add the light carpet (done: ground sprawl lights).
