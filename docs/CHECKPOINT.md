@@ -1,3 +1,15 @@
+# Phase 6 — performance and polish (final)
+
+`docs/SUMMARY.md` covers what was achieved, the shortfalls and the next steps. The shots are in
+`docs/progress/phase-6/`. Try `?quality=low` against the default `high`, and free-fly (`2`)
+into a wall.
+
+- Budgets at `high`: 40 calls, 0.86M triangles max (was 1.95M), 24 programs. `low`: 24 calls, about 0.38M.
+- Fixed from checkpoint 3: the overhead tip at t≈124 and free-fly entering buildings. The
+  wide shot now has a far shore of lights.
+- Open question: soften the square city edge with a light-only ground carpet? (QUESTIONS.md)
+- Baselines are still stale for all 14 viewpoints; not approved.
+
 # Checkpoint 3 — cameras (phase 5)
 
 Press `1`/`2`/`3` for the orbit, free-fly and flythrough cameras, or open `?camera=flythrough`.

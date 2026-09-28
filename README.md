@@ -44,7 +44,27 @@ See [the advertising guide](docs/ADVERTISING.md) for copy, artwork, fonts and em
 | `2` | **Free-fly**: click to capture the mouse, then look around. WASD moves, Space/E goes up, C/Q goes down, Shift boosts, the wheel changes speed, Esc releases the mouse. |
 | `3` | **Flythrough**: the cinematic loop (about 3 min). See [docs/FLYTHROUGH.md](docs/FLYTHROUGH.md). |
 
-A hint in the top left shows the active mode for a few seconds after each switch.
+A hint in the top left shows the active mode for a few seconds after each switch. Free-fly
+slides along walls and roofs instead of entering buildings.
+
+## Quality presets
+
+`?quality=low|med|high` (default `high`). Measured at 1280×720, frozen at `t=12`:
+
+| | low | med | high |
+|---|---|---|---|
+| Draw calls | 24 | 36 | 40 |
+| Triangles (aerial) | 0.38M | 0.77M | 0.81M |
+| Pixel ratio cap | 1 | 1.25 | 1.5 |
+| LOD distances | ×0.5 | ×0.75 | ×1 |
+| Ground reflection | signs + sky, ¼ res | everything, ¼ res | everything, ½ res |
+| Bloom levels / SMAA | 3 / off | 6 / on | 8 / on |
+| Rain drops / traffic | 3k / 35 % | 6k / 65 % | 12k / 100 % |
+
+Buildings are drawn at up to three levels of detail: full detail, a simplified model beyond
+160 m, and a plain shell beyond 380 m (windows are shaded, so the shell still shows them).
+Street furniture is not drawn beyond 220 m. Every preset runs at a steady 60 fps on an
+Apple M5 (the vsync limit) at this resolution.
 
 Blender is found via `BLENDER_BIN`, then `blender.path` in `pipeline.config.json`,
 then `/Applications/Blender.app/Contents/MacOS/Blender`, then `blender` on PATH.

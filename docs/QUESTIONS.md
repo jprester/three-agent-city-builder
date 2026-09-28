@@ -4,10 +4,11 @@ Only questions an agent cannot resolve with a sensible default. Newest at the bo
 
 - **Tone mapping**: AgX is in (neutral, handles the bright emissives). ACES would be punchier
   and more saturated but skews bright hues. Keep AgX, or do you want an A/B at checkpoint?
-- **Sign text**: signs use invented pseudo-CJK characters and generic English trade words
-  (HOTEL, NOODLE, PAWN, OPEN 24H…), drawn from stroke glyphs, no real font. Acceptable, or
-  should Latin text be rarer / absent?
-
-- **Screen artwork**: would you like to supply 10–32 invented billboard/poster images
-  (portrait, no brands or real people)? The screen atlas is an 8×4 grid of portrait slots,
-  so they drop straight in and would look far better than the drawn placeholders.
+- ~~**Sign text**~~: answered in practice. Most signs now use your atlases and Midjourney
+  artwork; stroke-drawn signs are the minority.
+- ~~**Screen artwork**~~: answered. You supplied the ads and atlases (2026-09-27).
+- **City edge** (2026-09-28): from `aerial` and the flythrough's wide shot, the city stops at a
+  hard square edge on a dark plain. A distant shore of lights now sits on the horizon. A
+  faint carpet of street lights on the ground around the city (lights only, no buildings, so
+  the city keeps its compact shape) would soften the edge further. Want it, or keep the
+  island look?

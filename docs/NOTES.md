@@ -611,4 +611,17 @@ and milestone images are saved in `docs/progress/advertising-pilot/`.
   - At t≈124 the view still tips steeply down onto the core. It reads as a deliberate overhead but is the least composed frame.
   - The wide shot is framed by empty black ground and sky, and the city looks like an island. A skyline ring or distant lights would help (Phase 6).
   - The glide home crosses about 300 m of featureless ground.
-  - Free-fly has no collision; the camera can enter buildings.
+  - Free-fly has no collision; the camera can enter buildings. *(Fixed in phase 6.)*
+
+## Phase 6 — performance and polish (2026-09-28)
+- **Where the triangles were:** slabs 946k, walk-ups 231k, mid-rises 118k, towers 45k, props 94k. The reflection pass re-renders all of it: about half of every frame.
+- **Budgets at `high`:** 40 calls, 0.86M max triangles (was 1.95M), 24 programs.
+- **`low`:** 24 calls and 0.32–0.39M triangles, about 45 % of `high`. Both hold 60 fps on an M5.
+- **LOD2 critique** (`rooftops`, `skyline`, `canyon` compared with the phase 5 renders): no visible change. The canyon's far end is past 380 m but is fog and sign light there. Risk: a slab switching at 380 m in the flythrough's glide can lose its roof tanks in one frame. Low contrast at that range; not seen in the sampled frames.
+- **`low` critique:** the canyon keeps its neon smears. It loses the building-window reflections on the road, a third of the traffic and most of the rain. Clearly lower quality, still the same place.
+- **Distant lights** (wide shot t≈138, `aerial`, `skyline-wide`): the city now reads as a harbour city with a far shore, not a model on a black table. The first version was a solid orange line; the density is now halved and the brightness varied. Still weak: from `aerial` the square city edge on the dark plain is abrupt (question in QUESTIONS.md).
+- **Final pass, all 14 views:**
+  - `canyon`, `fly-0` and `storefront` remain the strongest shots.
+  - `architecture` and `facade` hold up close.
+  - `tower-detail` is the weakest: 139k triangles and a narrow band of detail against a big dark sky.
+  - Steam at street level (style bible) is still missing. The shader-program budget (24 of 25) is the constraint; haze stands in.
