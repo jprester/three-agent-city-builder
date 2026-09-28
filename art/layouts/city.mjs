@@ -727,9 +727,10 @@ function buildFlythrough(hero, roads, instances, P, W, Dp) {
     const a = a0 + (sweep * k) / steps;
     const q = [tc[0] + Math.cos(a) * R, tc[1] + Math.sin(a) * R];
     const h = Math.max(y + 20, C.orbitHeight[0] + (C.orbitHeight[1] - C.orbitHeight[0]) * (k / steps));
-    // The last two keys turn the view from the towers out over the city.
-    const l = k < steps - 1 ? tc : G.lerp(tc, [-W / 2, 0], k === steps ? 0.7 : 0.35);
-    keyClear(q, h, l, h * (k < steps - 1 ? 0.75 : 0.5));
+    // The last two keys turn the view from the towers out over the city, toward its far west
+    // edge (a target between them passed right under the camera: a straight-down frame).
+    const l = k < steps - 1 ? tc : [-W / 2 - (k === steps ? 200 : 0), tc[1] * (k === steps ? 0 : 1)];
+    keyClear(q, h, l, k < steps - 1 ? h * 0.75 : 40);
   }
 
   // Wide: out beside the hero street's axis, beyond the city's west end, looking back across
