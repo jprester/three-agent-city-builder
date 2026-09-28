@@ -43,6 +43,12 @@ export interface FacadeUniforms {
   uSignMap: { value: THREE.Texture | null };
   /** Video-screen poster atlas (src/scene/screens.ts). */
   uScreens: { value: THREE.Texture | null };
+  /** City cube capture reflected by tower glass (src/scene/environment-map.ts); null: sky only. */
+  uGlassEnv: { value: THREE.CubeTexture | THREE.Texture | null };
+  /** 1 once uGlassEnv holds a capture (0 while it is being captured). */
+  uGlassOn: { value: number };
+  /** Strength of the glass reflection (debug tuning). */
+  uGlassGain: { value: number };
 }
 
 const c = (name: keyof typeof palette) => new THREE.Color(palette[name]);
@@ -153,6 +159,8 @@ uniform sampler2D uTowerNorm0, uTowerNorm1, uTowerNorm2;
 uniform sampler2D uWalls;
 uniform sampler2D uSignMap;
 uniform sampler2D uScreens;
+uniform samplerCube uGlassEnv;
+uniform float uGlassOn, uGlassGain;
 varying vec2 vFacadeUv;
 // Discrete face data and random seeds must not acquire interpolation rounding noise.
 flat varying vec3 vSurf;
@@ -503,9 +511,21 @@ if (fType == T_ATLAS) {
   fWallLight += emB * floorLit * 0.8;
   vec3 n = nm * 2.0 - 1.0;
   fNormalW = normalize(fT * n.x + fB * n.y + normalize(vFNormal) * max(n.z, 0.2));
-  // Glass picks up the sky glow.
+  // Glass reflects the city: the startup cube capture along the reflected view ray, rippled
+  // by the pane normals, blurred by pane roughness and by the ray's spread over the pixel (so
+  // distant towers show a soft average instead of shimmering). Fresnel: faint head-on, strong
+  // at grazing angles. Lit rooms show through the reflection.
   float glassAmt = 1.0 - smoothstep(0.3, 0.6, dr.a);
-  fEmit += glassAmt * skyRefl(reflect(-fV, fNormalW)) * (0.06 + 0.6 * pow(1.0 - clamp(fVt.z, 0.0, 1.0), 4.0));
+  vec3 rdir = reflect(-fV, fNormalW);
+  vec3 envC = skyRefl(rdir);
+  if (uGlassOn > 0.5) {
+    float spread = length(fwidth(rdir)) * 256.0;
+    float lod = clamp(fRough * 4.0 + log2(max(spread, 1.0)), 0.0, 7.0);
+    envC = textureLod(uGlassEnv, rdir, lod).rgb;
+  }
+  float fres = 0.18 + 0.82 * pow(1.0 - clamp(fVt.z, 0.0, 1.0), 4.0);
+  float roomLit = clamp(dot(fEmit, vec3(0.3, 0.5, 0.2)) * 1.5, 0.0, 1.0);
+  fEmit += glassAmt * envC * fres * (1.0 - 0.75 * roomLit) * uGlassGain;
 } else if (fType == T_RES || fType == T_OFFICE || fType == T_CURTAIN || fType == T_CAGE) {
   vec3 wEmit, filteredEmit, avgEmit, wSpill, wAvgSpill; float wMask, wFrame, wFrac, wAround, filteredMask;
   windowLayer(fType == T_CAGE ? T_RES : fType, fUv, fFw, fType == T_CAGE ? OPEN_GRID : fFill, fSeed, fVt,
@@ -689,7 +709,7 @@ export function createFacadeMaterial(uniforms: FacadeUniforms): THREE.MeshStanda
       .replace('#include <normal_fragment_maps>', 'normal = normalize((viewMatrix * vec4(fNormalW, 0.0)).xyz);')
       .replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance = fEmit;');
   };
-  material.customProgramCacheKey = () => 'facade-v7';
+  material.customProgramCacheKey = () => 'facade-v8';
   return material;
 }
 
@@ -713,5 +733,8 @@ export function createFacadeUniforms(time: { value: number }, seed: number, text
     uWalls: { value: t?.walls ?? null },
     uSignMap: { value: null },
     uScreens: { value: null },
+    uGlassEnv: { value: null },
+    uGlassOn: { value: 0 },
+    uGlassGain: { value: 1.6 },
   };
 }

@@ -7,7 +7,7 @@ import { createFacadeMaterial, createFacadeUniforms } from './materials/facade';
 import { loadFacadeTextures } from './materials/textures';
 import { createGroundUniforms } from './materials/ground';
 import { createRenderer, createScene } from './scene/environment';
-import { captureCityEnvironment } from './scene/environment-map';
+import { captureCityEnvironment, captureGlassEnvironment } from './scene/environment-map';
 import { createLampMap, createSignLightMap } from './scene/lampmap';
 import { CityHazeEffect } from './scene/haze';
 import { createPost } from './scene/post';
@@ -168,6 +168,9 @@ async function main() {
   streets.visible = false;
   captureCityEnvironment(renderer, scene, layout);
   streets.visible = true;
+  // Tower glass reflects this capture; the facades must not sample it while it is drawn.
+  facadeUniforms.uGlassEnv.value = captureGlassEnvironment(renderer, scene, layout, [streets, ...(rain ? [rain] : [])]);
+  facadeUniforms.uGlassOn.value = 1;
 
   const haze = lamps ? new CityHazeEffect(camera, lamps.texture, signMap, lamps.rect, clock.uniform) : undefined;
   const post = createPost(renderer, scene, camera, quality, haze);
