@@ -6,6 +6,11 @@ import type { Layout, LayoutInstance } from './layout';
 
 const Y = new THREE.Vector3(0, 1, 0);
 const LAMP = 'props/street_lamp';
+/**
+ * Street furniture is not drawn beyond this distance (× the quality preset's LOD scale): a
+ * kiosk is a few pixels there. Lamps stay: their heads are the street's light dots.
+ */
+const PROP_CULL = 220;
 
 export function instanceMatrix(i: LayoutInstance): THREE.Matrix4 {
   const s = typeof i.scale === 'number' ? new THREE.Vector3(i.scale, i.scale, i.scale) : new THREE.Vector3(...i.scale);
@@ -47,7 +52,8 @@ export async function buildInstances(layout: Layout, loader: AssetLoader, facade
   if (facade.length) {
     const plan = planVehicles(layout, vehicleDensity);
     const dyn = plan.assets.filter((id) => getAsset(id));
-    const built = await buildFacadeBatch(facade, loader, facadeMaterial, dyn.length === plan.assets.length ? dyn : []);
+    const built = await buildFacadeBatch(facade, loader, facadeMaterial, dyn.length === plan.assets.length ? dyn : [],
+      (id) => (id.startsWith('props/') && id !== LAMP ? PROP_CULL : undefined));
     group.add(built.batch);
     lod = built.lod;
     if (built.dynamicIds.length) vehicles = createVehicleMotion(built.batch, built.dynamicIds, plan);

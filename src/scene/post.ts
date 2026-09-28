@@ -15,7 +15,8 @@ export interface Post {
 
 /**
  * Bloom (mipmap blur; threshold set so only emissives bloom), AgX tone mapping, a subtle
- * vignette, grain and chromatic aberration, then SMAA on the tone-mapped image.
+ * vignette, grain and chromatic aberration, then SMAA on the tone-mapped image (unless the
+ * quality preset turns it off).
  * Half-float buffers throughout. Only one convolution effect per pass, hence three passes.
  */
 export function createPost(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, quality: QualityPreset, haze?: Effect): Post {
@@ -42,9 +43,12 @@ export function createPost(renderer: THREE.WebGLRenderer, scene: THREE.Scene, ca
   const aberration = new ChromaticAberrationEffect({ offset: new THREE.Vector2(0.0006, 0.0004), radialModulation: true, modulationOffset: 0.35 });
   composer.addPass(new EffectPass(camera, toneMapping, vignette, grain, aberration));
 
-  const smaa = new SMAAEffect();
-  composer.addPass(new EffectPass(camera, smaa));
-  // SMAA decodes its lookup textures asynchronously and fires "load" (untyped in its d.ts).
-  const ready = new Promise<void>((resolve) => (smaa as unknown as THREE.EventDispatcher<{ load: object }>).addEventListener('load', () => resolve()));
+  let ready = Promise.resolve();
+  if (quality.smaa) {
+    const smaa = new SMAAEffect();
+    composer.addPass(new EffectPass(camera, smaa));
+    // SMAA decodes its lookup textures asynchronously and fires "load" (untyped in its d.ts).
+    ready = new Promise<void>((resolve) => (smaa as unknown as THREE.EventDispatcher<{ load: object }>).addEventListener('load', () => resolve()));
+  }
   return { composer, bloom, toneMapping, ready };
 }

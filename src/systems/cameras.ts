@@ -13,17 +13,66 @@ export function isCameraMode(v: string): v is CameraMode {
 const FLY = { speed: 14, minSpeed: 2, maxSpeed: 200, boost: 5, look: 0.0022, response: 10, floor: 0.6 };
 /** Orbit target distance in front of the camera when switching into orbit mode. */
 const ORBIT_TARGET = 60;
+/** Free-fly keeps this far (m) from walls and roofs. */
+const CLEARANCE = 0.8;
+
+/** A building's footprint box for free-fly collision: center, unit x axis, half extents, roof. */
+export interface Obstacle { x: number; z: number; ux: number; uz: number; hx: number; hz: number; h: number }
+
+/** Obstacles from layout instances: footprint half extents `fp`, `rotationY`, height `h`. */
+export function obstaclesFrom(instances: { position: number[]; rotationY: number; fp?: number[]; h?: number }[]): Obstacle[] {
+  return instances.filter((i) => i.fp && i.h).map((i) => ({
+    // Same frame as the layout's instance boxes: local x = (cos t, -sin t) on the ground.
+    x: i.position[0], z: i.position[2], ux: Math.cos(i.rotationY), uz: -Math.sin(i.rotationY),
+    hx: i.fp![0], hz: i.fp![1], h: i.h!,
+  }));
+}
+
+/**
+ * Move `p` out of any building it is inside (grown by CLEARANCE), along the shallowest way
+ * out: through the nearest wall, or up onto the roof. Returns true when it landed on a roof.
+ */
+export function pushOut(p: THREE.Vector3, obstacles: Obstacle[]): boolean {
+  let roof = false;
+  for (const o of obstacles) {
+    const dx = p.x - o.x, dz = p.z - o.z;
+    if (Math.abs(dx) + Math.abs(dz) > o.hx + o.hz + 2 * CLEARANCE) continue;
+    // Local axes: x = (ux, uz), z = (-uz, ux).
+    const lx = dx * o.ux + dz * o.uz;
+    const lz = -dx * o.uz + dz * o.ux;
+    const px = o.hx + CLEARANCE - Math.abs(lx);
+    const pz = o.hz + CLEARANCE - Math.abs(lz);
+    const py = o.h + CLEARANCE - p.y;
+    if (px <= 0 || pz <= 0 || py <= 0) continue;
+    if (py <= px && py <= pz) {
+      p.y = o.h + CLEARANCE;
+      roof = true;
+    } else if (px <= pz) {
+      const s = Math.sign(lx) || 1;
+      p.x += s * px * o.ux;
+      p.z += s * px * o.uz;
+    } else {
+      const s = Math.sign(lz) || 1;
+      p.x -= s * pz * o.uz;
+      p.z += s * pz * o.ux;
+    }
+  }
+  return roof;
+}
 
 /**
  * The three camera modes (keys 1–3):
  *  orbit       OrbitControls, for development and fixed viewpoints.
  *  fly         WASD + mouse look (click to capture the pointer), Space/E up, C/Q down,
- *              Shift boost, wheel changes speed.
+ *              Shift boost, wheel changes speed. Slides along walls and roofs, never
+ *              entering a building.
  *  flythrough  the layout's cinematic loop, a pure function of the shared clock.
  * Switching keeps the current camera pose, so any mode can pick up where another left off.
  */
 export class CameraRig {
   mode: CameraMode = 'orbit';
+  /** Buildings the free-fly camera cannot enter (see obstaclesFrom). */
+  obstacles: Obstacle[] = [];
   private readonly keys = new Set<string>();
   private readonly velocity = new THREE.Vector3();
   private readonly euler = new THREE.Euler(0, 0, 0, 'YXZ');
@@ -111,6 +160,7 @@ export class CameraRig {
     this.velocity.lerp(want, 1 - Math.exp(-FLY.response * dt));
     this.camera.position.addScaledVector(this.velocity, dt);
     this.camera.position.y = Math.max(this.camera.position.y, FLY.floor);
+    if (pushOut(this.camera.position, this.obstacles)) this.velocity.y = Math.max(this.velocity.y, 0);
   }
 
   private onKey(e: KeyboardEvent, down: boolean): void {

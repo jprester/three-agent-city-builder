@@ -18,7 +18,7 @@ import { createBridges } from './scene/bridges';
 import { createSignAtlas } from './scene/signs/atlas';
 import { loadSignArt } from './scene/signs/art';
 import { createSigns } from './scene/signs/signs';
-import { CameraRig, isCameraMode } from './systems/cameras';
+import { CameraRig, isCameraMode, obstaclesFrom } from './systems/cameras';
 import { Clock, parseFrozenTime } from './systems/clock';
 import { FlythroughPath } from './systems/flythrough';
 import type { FacadeLod } from './systems/buildings';
@@ -34,6 +34,8 @@ export interface SceneStats {
   programs: number;
   textures: number;
   geometries: number;
+  /** Share of calls and triangles spent in the planar reflection pass. */
+  reflection: { calls: number; triangles: number };
 }
 
 declare global {
@@ -75,6 +77,9 @@ async function main() {
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = !params.has('viewpoint');
 
+  // Objects left out of the ground reflection: the ground itself, rain, and (on presets
+  // without building reflections) everything but the signs and sky.
+  const unreflected: THREE.Object3D[] = [];
   let layout: Layout | null = null;
   let facadeLod: FacadeLod | null = null;
   let vehicles: { update(time: number): void } | null = null;
@@ -115,6 +120,7 @@ async function main() {
     scene.add(group);
     const bridges = createBridges(layout, facadeMaterial);
     if (bridges) scene.add(bridges);
+    if (!quality.reflectBuildings) unreflected.push(group, ...(bridges ? [bridges] : []));
     if (missing.length) problems.push(`Layout references unbuilt assets: ${missing.join(', ')}`);
   }
   let signMap: THREE.Texture | null = null;
@@ -132,6 +138,7 @@ async function main() {
     if (signs) {
       scene.add(signs.mesh);
       if (signs.brackets) scene.add(signs.brackets);
+      if (signs.brackets && !quality.reflectBuildings) unreflected.push(signs.brackets);
       if (signs.holo) scene.add(signs.holo);
       signMap = createSignLightMap(layout, signs.lights);
       facadeUniforms.uSignMap.value = signMap;
@@ -144,6 +151,7 @@ async function main() {
     ? createRain({ count: quality.rainCount, time: clock.uniform, lampMap: lamps.texture, signMap, lampRect: lamps.rect })
     : null;
   if (rain) scene.add(rain);
+  unreflected.push(streets, ...(rain ? [rain] : []));
   const path = FlythroughPath.from(layout);
   if (!applyViewpoint(viewpoint, camera, controls, layout, path)) problems.push(`Unknown viewpoint "${viewpoint}".`);
   // ?camera=orbit|fly|flythrough picks the starting mode (keys 1–3 switch). Shots stay in orbit.
@@ -152,6 +160,7 @@ async function main() {
   // Hidden on load for captures (fixed viewpoints, frozen time); shown on any mode change.
   const hud = createHud(!params.has('viewpoint') && frozenAt === null);
   const rig = new CameraRig(clock, camera, renderer.domElement, controls, path, (mode) => hud.show(mode, !!path));
+  if (layout) rig.obstacles = obstaclesFrom(layout.instances);
   if (isCameraMode(cameraParam)) rig.setMode(cameraParam, true);
   setStatus(problems.join(' '));
 
@@ -190,9 +199,10 @@ async function main() {
     vehicles?.update(now);
     renderer.info.reset();
     // The reflection is half resolution and smeared: simplified buildings from 1/4 the distance.
-    facadeLod?.update(camera, REFLECTION_LOD_BIAS);
-    reflection.update(renderer, scene, camera, rain ? [streets, rain] : [streets]);
-    facadeLod?.update(camera);
+    facadeLod?.update(camera, REFLECTION_LOD_BIAS * quality.lodDistanceScale);
+    reflection.update(renderer, scene, camera, unreflected);
+    const reflCalls = renderer.info.render.calls, reflTris = renderer.info.render.triangles;
+    facadeLod?.update(camera, quality.lodDistanceScale);
     post.composer.render(delta);
     debug?.update();
     if (++frames === READY_FRAME) {
@@ -203,6 +213,7 @@ async function main() {
         programs: info.programs?.length ?? 0,
         textures: info.memory.textures,
         geometries: info.memory.geometries,
+        reflection: { calls: reflCalls, triangles: reflTris },
       };
       window.__READY = true;
     }

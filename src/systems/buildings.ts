@@ -13,17 +13,25 @@ const ATTRIBUTES = { position: 3, normal: 3, uv: 2, color: 3 } as const;
 export interface FacadeLod {
   /**
    * Pick each instance's geometry by distance from `camera`: full detail near, the asset's
-   * LOD variants (meta.lodOf) beyond their meta.lodDistance × `bias`. Call before every
-   * render that uses a different camera or bias (e.g. the reflection pass with bias < 1).
+   * LOD variants (meta.lodOf) beyond their meta.lodDistance × `bias`, hidden beyond its cull
+   * distance × `bias`. Call before every render that uses a different camera or bias (e.g.
+   * the reflection pass with bias < 1).
    */
   update(camera: THREE.Camera, bias?: number): void;
 }
 
+/** Geometry id meaning "not drawn" in an LOD ladder. */
+const HIDDEN = -1;
+
 /**
  * All facade-shaded instances in one BatchedMesh: one geometry per asset (plus its LOD
  * variants), one draw call (multi-draw), per-instance frustum culling and sorting.
+ * `cullDistance(asset)`: meters beyond which instances of that asset are not drawn at all.
  */
-export async function buildFacadeBatch(instances: LayoutInstance[], loader: AssetLoader, material: THREE.Material, dynamic: string[] = []) {
+export async function buildFacadeBatch(
+  instances: LayoutInstance[], loader: AssetLoader, material: THREE.Material, dynamic: string[] = [],
+  cullDistance: (asset: string) => number | undefined = () => undefined,
+) {
   const byAsset = new Map<string, LayoutInstance[]>();
   for (const inst of instances) {
     const list = byAsset.get(inst.asset) ?? [];
@@ -62,6 +70,8 @@ export async function buildFacadeBatch(instances: LayoutInstance[], loader: Asse
   for (const [id, list] of byAsset) {
     const gid = gidOf.get(id)!;
     const ladder = [{ gid, d2: 0 }, ...(lodsOf.get(id) ?? []).map((l) => ({ gid: gidOf.get(l.id)!, d2: l.distance * l.distance }))];
+    const cull = cullDistance(id);
+    if (cull !== undefined) ladder.push({ gid: HIDDEN, d2: cull * cull });
     for (const inst of list) {
       const instance = batch.addInstance(gid);
       batch.setMatrixAt(instance, instanceMatrix(inst));
@@ -84,7 +94,11 @@ export async function buildFacadeBatch(instances: LayoutInstance[], loader: Asse
         let gid = t.ladder[0].gid;
         for (const step of t.ladder) if (d2 >= step.d2 * b2) gid = step.gid;
         if (gid !== t.current) {
-          batch.setGeometryIdAt(t.instance, gid);
+          if (gid === HIDDEN) batch.setVisibleAt(t.instance, false);
+          else {
+            if (t.current === HIDDEN) batch.setVisibleAt(t.instance, true);
+            batch.setGeometryIdAt(t.instance, gid);
+          }
           t.current = gid;
         }
       }
