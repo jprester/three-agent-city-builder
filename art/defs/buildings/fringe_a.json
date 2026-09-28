@@ -1,0 +1,14 @@
+{
+  "generator": "buildings/walkup",
+  "seed": 901,
+  "params": {
+    "bays": 5,
+    "depth_bays": 5,
+    "floors": 5,
+    "tint": 0.6,
+    "side_pattern": "grid",
+    "back_pattern": "grid",
+    "shack_chance": 0.6,
+    "lod": 2
+  }
+}

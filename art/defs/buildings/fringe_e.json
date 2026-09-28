@@ -1,0 +1,13 @@
+{
+  "generator": "buildings/slab",
+  "seed": 905,
+  "params": {
+    "bays": 8,
+    "depth_bays": 4,
+    "floors": 9,
+    "tint": 0.3,
+    "side_pattern": "stair",
+    "shack_chance": 0.7,
+    "lod": 2
+  }
+}

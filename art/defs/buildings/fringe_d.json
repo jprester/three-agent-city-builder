@@ -1,0 +1,13 @@
+{
+  "generator": "buildings/slab",
+  "seed": 904,
+  "params": {
+    "bays": 5,
+    "depth_bays": 4,
+    "floors": 18,
+    "tint": 0.7,
+    "step_floors": 3,
+    "side_pattern": "grid",
+    "lod": 2
+  }
+}
