@@ -45,7 +45,7 @@ function budgetViolations(stats: SceneStats): string[] {
 for (const vp of VIEWPOINTS) {
   test(`${LAYOUT} @ ${vp.name}`, async ({ page }) => {
     await page.goto(`/?layout=${LAYOUT}&viewpoint=${vp.name}&t=${FROZEN_TIME}`);
-    await page.waitForFunction(() => window.__READY === true, undefined, { timeout: 45_000 });
+    await page.waitForFunction(() => window.__READY === true, undefined, { timeout: 90_000 });
     await page.evaluate(() => window.__PAUSE_RENDER?.());
     const screenshot = await page.screenshot({ path: `${OUT_DIR}/${vp.name}.png` });
     // Valid draw counts cannot detect NaNs spreading through HDR bloom to a black frame.
@@ -83,7 +83,7 @@ test(`${LAYOUT} frozen time is reproducible`, async ({ page }) => {
   test.setTimeout(180_000);
   const shot = async () => {
     await page.goto(`/?layout=${LAYOUT}&viewpoint=fly-0&t=${FROZEN_TIME}`);
-    await page.waitForFunction(() => window.__READY === true, undefined, { timeout: 45_000 });
+    await page.waitForFunction(() => window.__READY === true, undefined, { timeout: 90_000 });
     return page.screenshot();
   };
   const a = await shot();

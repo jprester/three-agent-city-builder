@@ -41,7 +41,11 @@ export async function buildInstances(layout: Layout, loader: AssetLoader, facade
     list.push(inst);
     byAsset.set(inst.asset, list);
   }
-  // Street props and lamps join the same batch.
+  // The far-field ring, street props and lamps join the same batch.
+  for (const inst of layout.fringe ?? []) {
+    if (getAsset(inst.asset)) facade.push(inst);
+    else missing.add(inst.asset);
+  }
   for (const prop of layout.props ?? []) if (getAsset(prop.asset)) facade.push(prop);
   // Street lamps from the layout's lamp list.
   if (layout.lamps?.length && getAsset(LAMP)) {

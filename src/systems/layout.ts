@@ -83,6 +83,8 @@ export interface Layout {
   size: Vec2;
   blocks: LayoutBlock[];
   instances: LayoutInstance[];
+  /** Low-rise far field around the city (district 'fringe'); drawn with the buildings. */
+  fringe?: LayoutInstance[];
   roads?: LayoutRoad[];
   hero?: { road: number; width: number; a: Vec2; b: Vec2 } | null;
   /** [x, z, arm angle, road id] */

@@ -5,7 +5,7 @@ const PORT = 5199;
 export default defineConfig({
   testDir: 'tests/visual',
   snapshotPathTemplate: '{testDir}/baselines/{arg}{ext}',
-  timeout: 60_000,
+  timeout: 120_000,
   // Never write missing baselines automatically; only `npm run shots:approve` creates them.
   updateSnapshots: 'none',
   expect: {

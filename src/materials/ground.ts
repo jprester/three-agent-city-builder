@@ -165,8 +165,8 @@ const SPRAWL = /* glsl */ `
     float ly = abs(fract(gp.y / 28.0 + 0.5) - 0.5) * 28.0;
     float lx = abs(fract(gp.x / 28.0 + 0.5) - 0.5) * 28.0;
     float dl = min(length(vec2(dEdge.x, ly)), length(vec2(dEdge.y, lx)));
-    float lr = max(1.3, fwMin * 0.6);
-    float lamp = smoothstep(lr, lr * 0.3, dl) * (1.3 / lr);
+    float lr = max(0.9, fwMin * 0.5);
+    float lamp = smoothstep(lr, lr * 0.3, dl) * (0.9 / lr);
     lamp = mix(lamp, 0.02, smoothstep(6.0, 14.0, fw));
     // Windows: a 9 m sub-grid inside the blocks, 40 % lit, warm or white.
     vec2 wg = gp / 9.0;
@@ -179,7 +179,7 @@ const SPRAWL = /* glsl */ `
     float win = smoothstep(wr, wr * 0.25, wd) * wLit * (0.8 / wr) * (0.6 + 0.8 * gHash(wi + 3.7));
     win = mix(win, 0.07, smoothstep(2.5, 5.0, fw));
     vec3 wCol = mix(${v3(tungsten)}, ${v3(fluorescent)}, step(0.7, gHash(wi + 11.0)));
-    vec3 sprawlLight = ${v3(sodium)} * (glow * 0.2 + lamp * 3.0) + wCol * win * 2.6;
+    vec3 sprawlLight = ${v3(sodium)} * (glow * 0.2 + lamp * 2.2) + wCol * win * 2.6;
     // Painted lights on flat ground only hold up from a distance: fade in away from the camera.
     float sNear = smoothstep(60.0, 220.0, distance(cameraPosition, vGWorld));
     totalEmissiveRadiance += sprawlLight * dens * sBand * sNear * 0.75;
