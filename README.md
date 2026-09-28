@@ -54,7 +54,7 @@ slides along walls and roofs instead of entering buildings.
 | | low | med | high |
 |---|---|---|---|
 | Draw calls | 24 | 36 | 40 |
-| Triangles (aerial) | 0.38M | 0.77M | 0.81M |
+| Triangles (aerial) | 0.49M | 0.99M | 1.03M |
 | Pixel ratio cap | 1 | 1.25 | 1.5 |
 | LOD distances | ×0.5 | ×0.75 | ×1 |
 | Ground reflection | signs + sky, ¼ res | everything, ¼ res | everything, ½ res |

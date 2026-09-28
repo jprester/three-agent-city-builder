@@ -638,3 +638,16 @@ and milestone images are saved in `docs/progress/advertising-pilot/`.
   - It is a single static capture, so reflections do not move with traffic or flicker. That is fine at tower scale.
 - **Tower ads** are 1.8× brighter and now hold their own against the LED accent strips.
 - Budgets are unchanged: 40 calls, 0.86M triangles, 24 programs. The glass cube is rendered once at startup.
+
+## Low-rise fringe around the city (human request, 2026-09-28)
+- **What it is:** 2,736 shell buildings (five fringe defs, 68–168 triangles each) in a 900 m ring. Blocks sit on a 70 m grid, split into lots, with each building facing its street. They are taller near the city and lower toward the rim, where the light carpet takes over.
+- **First pass** (650 m ring, 78 m pitch, sparse): from `aerial` it read as scattered islands with big gaps. The glide home crossed a needlessly wide empty corridor, because clearance was tested against a square around each building, and the carpet's lamp dots looked like orange fireflies there.
+- **Now:** a dense ring. Flythrough clearance is tested against the real footprint (15 m), and the lamp dots are smaller.
+  - `aerial` and the wide shot (t≈138) show a continuous metropolis running into the carpet and the horizon lights.
+  - The glide home (t≈160) now comes down a boulevard between fringe blocks into the canyon mouth, the best new frame.
+  - `horizon` is unchanged: the port camera stays clear.
+- **Cost:** high max 1.07M triangles (was 0.86M), 40 calls, 24 programs. The ring is in the one building batch, so no new draw calls.
+- **Weak:**
+  - The fringe is one axis-aligned grid, which reads as regular in `aerial`.
+  - Every fringe building is a plain shell: no rooftop clutter, no signs. That's fine at its distance, but free-fly can get close.
+  - The shot suite's frozen-time test needed longer ready timeouts, because the heavier scene loads slower in software rendering.
