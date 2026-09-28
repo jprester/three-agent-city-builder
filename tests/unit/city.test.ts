@@ -249,7 +249,7 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     const L = await get();
     const fly = L.flythrough!;
     const curve = new THREE.CatmullRomCurve3(fly.points.map((p) => new THREE.Vector3(...p)), fly.closed ?? true);
-    const boxes = L.instances.map((i) => ({ i, b: G.obb([i.position[0], i.position[2]], [Math.cos(i.rotationY), -Math.sin(i.rotationY)], i.fp![0] + 3, i.fp![1] + 3) }));
+    const boxes = [...L.instances, ...(L.fringe ?? [])].map((i) => ({ i, b: G.obb([i.position[0], i.position[2]], [Math.cos(i.rotationY), -Math.sin(i.rotationY)], i.fp![0] + 3, i.fp![1] + 3) }));
     const hits: string[] = [];
     for (let k = 0; k < 4000; k++) {
       const p = curve.getPointAt(k / 4000);
@@ -259,6 +259,26 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     }
     expect(hits.slice(0, 10)).toEqual([]);
     expect(curve.points.every((p) => p.y > 1)).toBe(true);
+  });
+
+  it('rings the city with a low-rise fringe: outside it, not overlapping, clear of the port view', async () => {
+    const L = await get();
+    const F = L.fringe!;
+    expect(F.length).toBeGreaterThan(500);
+    const [W, Dp] = L.size;
+    const bad: string[] = [];
+    const fb = F.map(box);
+    fb.forEach((b, k) => {
+      const f = F[k];
+      if (f.district !== 'fringe' || (ASSETS[f.asset as keyof typeof ASSETS].meta as { lodOf?: string }).lodOf) bad.push(`${k}: ${f.asset} not a fringe asset`);
+      // Every corner clears the city rectangle.
+      if (b.corners.some(([x, z]) => Math.abs(x) < W / 2 + 5 && Math.abs(z) < Dp / 2 + 5)) bad.push(`${k} inside the city`);
+      if (f.h! > 100) bad.push(`${k} too tall (${f.h})`);
+      for (let j = k + 1; j < fb.length; j++) if (G.dist(fb[j].c, b.c) < 90 && G.obbOverlap(fb[j], b, 0.5)) bad.push(`${k} overlaps ${j}`);
+    });
+    const port = L.anchors!.port.origin;
+    if (F.some((f) => Math.hypot(f.position[0] - port[0], f.position[2] - port[2]) < 140)) bad.push('fringe at the port viewpoint');
+    expect(bad.slice(0, 10)).toEqual([]);
   });
 
   it('keeps the flythrough above ground, clear of signs, and gently climbing', async () => {

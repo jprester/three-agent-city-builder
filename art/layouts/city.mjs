@@ -42,6 +42,16 @@ const DEFAULTS = {
   // beyond the outermost tower; orbitHeight: climb while circling the towers; orbitSweep:
   // arc in turns; wide: height of the wide shot; approach: glide length back into the canyon.
   flythrough: { street: 4, orbitGap: 45, orbitHeight: [120, 280], orbitSweep: 0.8, wide: 280, approach: 440 },
+  // Far-field ring of low-rise blocks around the city (buildFringe): `depth` meters deep,
+  // blocks on a `pitch` grid with `street`-wide streets, `margin` clear of the city edge;
+  // `split`: chance a block splits into two lots along each axis.
+  // Build chance and building mix go from `near` (at the city edge) to `far` (outer rim).
+  fringe: {
+    depth: 900, pitch: 70, street: 12, margin: 22, chance: [1.0, 0.7], lotGap: 0.06, setback: 1.5, split: 0.75,
+    near: { 'buildings/fringe_c': 1, 'buildings/fringe_d': 0.5, 'buildings/fringe_b': 1, 'buildings/fringe_e': 0.8, 'buildings/fringe_a': 0.5 },
+    far: { 'buildings/fringe_a': 1.5, 'buildings/fringe_b': 1, 'buildings/fringe_e': 0.6, 'buildings/fringe_c': 0.3 },
+    flyClear: 15, anchorClear: 150,
+  },
   // Street furniture on sidewalks. Chances are per candidate slot; ids are asset ids.
   props: {
     kiosks: ['props/kiosk_a', 'props/kiosk_b'], kioskEvery: 45, kioskChance: { arterial: 0.35, hero: 0.5, secondary: 0.2 },
@@ -87,7 +97,7 @@ const EDGE_PRIORITY = { hero: 0, arterial: 1, secondary: 2, edge: 3, alley: 4 };
 export function generate({ params, seed, assets = {}, art = [] }) {
   const P = { ...DEFAULTS, ...params };
   // Nested option groups merge with their defaults instead of replacing them.
-  for (const k of ['roads', 'sidewalks', 'lampSpacing', 'flythrough', 'signs', 'bridges', 'props']) P[k] = { ...DEFAULTS[k], ...(params[k] ?? {}) };
+  for (const k of ['roads', 'sidewalks', 'lampSpacing', 'flythrough', 'signs', 'bridges', 'props', 'fringe']) P[k] = { ...DEFAULTS[k], ...(params[k] ?? {}) };
   const D = {};
   for (const k of Object.keys(DISTRICT_DEFAULTS)) D[k] = { ...DISTRICT_DEFAULTS[k], ...(params.districts?.[k] ?? {}) };
   const rng = mulberry32(seed);
@@ -333,7 +343,13 @@ export function generate({ params, seed, assets = {}, art = [] }) {
   // ---- flythrough and bridges come before signs: bridges are structure, signs avoid them.
   const flythrough = hero ? buildFlythrough(hero, roads, instances, P, W, Dp) : undefined;
   const bridges = buildBridges(P.bridges, instances, roads, [], lamps, hero, flythrough, rng);
-  const skyLanes = buildSkyLanes(P.skyLanes, instances, bridges);
+  // ---- fringe: the low-rise far field around the city, clear of the flythrough and of the
+  // port viewpoint. Own random stream, so it never moves anything inside the city.
+  const portOrigin = [0, Dp / 2 + 60];
+  const fringe = assets['buildings/fringe_a']
+    ? buildFringe(P.fringe, W, Dp, assets, flythrough, [portOrigin], mulberry32((seed ^ 0x0f21a9e5) >>> 0))
+    : [];
+  const skyLanes = buildSkyLanes(P.skyLanes, [...instances, ...fringe], bridges);
   const traffic = trafficLanes(roads.map((r) => ({ id: r.id, cls: r.cls, width: r.width, a: r.a.map(r3), b: r.b.map(r3) })), seed)
     .map((l) => ({ ...l, speed: r3(l.speed), phase: r3(l.phase), length: r3(l.length), offset: r3(l.offset) }));
   const footBoxes = bridges.filter((b) => b.kind === 'foot').map((b) => ({
@@ -613,7 +629,6 @@ export function generate({ params, seed, assets = {}, art = [] }) {
   // ---- anchors: named frames for viewpoints ({ origin, x }: x is the frame's forward axis on the ground)
   const coreCenter = centroidOf(blocks.filter((b) => b.district === 'core').map((b) => G.centroid(b.pts))) ?? [0, 0];
   const heroDir = hero ? G.norm(G.sub(hero.b, hero.a)) : [1, 0];
-  const portOrigin = [0, Dp / 2 + 60];
   const anchors = {
     center: { origin: [0, 0, 0], x: [1, 0] },
     hero: hero ? { origin: [r3(hero.a[0]), 0, r3(hero.a[1])], x: heroDir.map(r3) } : { origin: [0, 0, 0], x: [1, 0] },
@@ -637,6 +652,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
     signs,
     anchors,
     instances,
+    fringe,
     flythrough,
     bridges,
     traffic,
@@ -745,6 +761,70 @@ function buildFlythrough(hero, roads, instances, P, W, Dp) {
   key(at(-glide * 0.27), 24, at(90), s0 + 7);
   key(at(-glide * 0.07), s0 + 1, at(110), s0 + 7);
   return { points: pts, look, closed: true };
+}
+
+/**
+ * Low-rise far field around the city: a grid of blocks from `margin` beyond the city edge out
+ * to `depth`, each split into one to four lots with a building facing its street. Nearer the
+ * city the blocks are denser and the buildings taller (the `near` mix), toward the rim sparser
+ * and lower (`far`). Buildings are family shells (fringe defs) scaled to their lot. Skipped
+ * wherever the flythrough would pass within `flyClear` of one (so the glide home keeps a clear
+ * boulevard) and within `anchorClear` of outside viewpoint anchors.
+ * Returns instances like the city's: { asset, position, rotationY, scale, seed, district, h, fp }.
+ */
+function buildFringe(cfg, W, Dp, assets, fly, keepClear, rng) {
+  const flyPts = sampleFlythrough(fly);
+  const rectDist = (p) => Math.hypot(Math.max(-W / 2 - p[0], p[0] - W / 2, 0), Math.max(-Dp / 2 - p[1], p[1] - Dp / 2, 0));
+  const blk = cfg.pitch - cfg.street;
+  const out = [];
+  const x0 = -W / 2 - cfg.depth, z0 = -Dp / 2 - cfg.depth;
+  for (let gx = x0; gx < W / 2 + cfg.depth; gx += cfg.pitch) {
+    for (let gz = z0; gz < Dp / 2 + cfg.depth; gz += cfg.pitch) {
+      const c = [gx + cfg.pitch / 2, gz + cfg.pitch / 2];
+      const d = rectDist(c);
+      // The whole block must clear the city edge by the margin.
+      if (d - blk * 0.71 < cfg.margin || d > cfg.depth) continue;
+      const t = d / cfg.depth;
+      if (rng() > cfg.chance[0] + (cfg.chance[1] - cfg.chance[0]) * t) continue;
+      const nx = rng() < cfg.split ? 2 : 1, nz = rng() < cfg.split ? 2 : 1;
+      const lw = blk / nx, ld = blk / nz;
+      for (let i = 0; i < nx; i++) {
+        for (let j = 0; j < nz; j++) {
+          // Fixed number of draws per lot, so skipping one never shifts the next.
+          const gapR = rng(), nearR = rng(), sxr = rng(), szr = rng(), syr = rng(), sideR = rng();
+          const id = weightedChoice(rng, nearR > t ? cfg.near : cfg.far);
+          const seed = Math.floor(rng() * 2 ** 31);
+          if (gapR < cfg.lotGap) continue;   // yards, car parks
+          const meta = assets[id]?.meta;
+          if (!meta) continue;
+          const lc = [gx + cfg.street / 2 + lw * (i + 0.5), gz + cfg.street / 2 + ld * (j + 0.5)];
+          // Face a street the lot touches: an x-side (street along z) or a z-side.
+          const xSide = nz === 1 && nx === 2 ? true : nx === 1 && nz === 2 ? false : sideR < 0.5;
+          const flip = sideR % 0.5 < 0.25 ? 1 : -1;
+          const nIn = xSide ? [nx === 2 ? (i === 0 ? 1 : -1) : flip, 0] : [0, nz === 2 ? (j === 0 ? 1 : -1) : flip];
+          const along = xSide ? ld : lw, deep = xSide ? lw : ld;
+          const [fw, fd] = meta.footprint;
+          const clampS = (v) => Math.min(2.6, Math.max(0.55, v));
+          const sx = clampS(((along - 2 * cfg.setback) / fw) * (0.8 + 0.2 * sxr));
+          const sz = clampS(((deep - 2 * cfg.setback) / fd) * (0.75 + 0.25 * szr));
+          const sy = (0.85 + 0.35 * syr) * (1 - 0.45 * t);
+          const fp = [(fw * sx) / 2, (fd * sz) / 2];
+          const h = meta.height * sy;
+          if (keepClear.some((a) => G.dist(a, lc) < cfg.anchorClear)) continue;
+          // Clear of the flythrough: no path point within flyClear of the footprint below h + flyClear.
+          const rotationY = Math.atan2(-nIn[0], -nIn[1]);
+          const grown = G.obb(lc, [Math.cos(rotationY), -Math.sin(rotationY)], fp[0] + cfg.flyClear, fp[1] + cfg.flyClear).corners;
+          const reach = Math.max(fp[0], fp[1]) + cfg.flyClear;
+          if (flyPts.some((p) => p[1] < h + cfg.flyClear && Math.abs(p[0] - lc[0]) < reach && Math.abs(p[2] - lc[1]) < reach && G.insideConvex(grown, [p[0], p[2]]))) continue;
+          out.push({
+            asset: id, position: [r3(lc[0]), 0, r3(lc[1])], rotationY: r3(rotationY),
+            scale: [sx, sy, sz].map(r3), seed, district: 'fringe', h: r3(h), fp: fp.map(r3),
+          });
+        }
+      }
+    }
+  }
+  return out;
 }
 
 /**
