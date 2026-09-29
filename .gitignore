@@ -12,3 +12,5 @@ __pycache__/
 art/external/textures/small-ads/
 art/external/textures/ads-v2/
 .DS_Store
+*.swp
+*.swo
