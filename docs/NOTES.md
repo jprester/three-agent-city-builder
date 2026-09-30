@@ -651,3 +651,55 @@ and milestone images are saved in `docs/progress/advertising-pilot/`.
   - The fringe is one axis-aligned grid, which reads as regular in `aerial`.
   - Every fringe building is a plain shell: no rooftop clutter, no signs. That's fine at its distance, but free-fly can get close.
   - The shot suite's frozen-time test needed longer ready timeouts, because the heavier scene loads slower in software rendering.
+
+## Cyberpunk atmosphere review — 2026-09-29
+
+Reviewed all 14 existing `build/shots/city/` images, the blue skyline and teal-fog
+references, and the current canyon in the in-app browser at `t=12`. Read the layout,
+facade, ground, rain and haze implementations. Suggestions only; no scene changes.
+
+The canyon's neon artwork and wet reflections already establish its identity. The
+remaining weakness is that the city feels systematically assembled: empty shop rooms,
+continuous bright canopy strips, identical-looking service boxes and unbroken wall
+materials. Wide views compress the towers into one bright mass, and the fringe grid
+is obvious. More uniformly distributed signs or bloom would amplify those problems.
+
+Priorities, in order:
+
+1. **Localized steam and light contrast.** Put a few slowly rising, irregular steam
+   plumes at actual vent placements beside the hero street, catching amber or red
+   practical light. Break canopy strips into operating, dim and dead sections; keep
+   dark intervals between shops. Extend the existing haze effect for a first plume
+   experiment, measuring its added ray-march cost; a particle alternative needs
+   transparency/overdraw checks. Current recorded counts are 24/25 programs, so one
+   extra program is possible but leaves no margin. Do not increase global fog blindly.
+2. **A few believable shopfronts.** The current interior mapping exists but mostly
+   reveals empty boxes. Give selected shops shelves, counters, hanging fixtures,
+   entrance clutter, vending machines and uneven awnings. Put exposed cables and
+   conduits on walls or above the camera path. Concentrate detail at `storefront`,
+   `canyon` and the opening glide; keep the flythrough and free-fly clearance valid.
+3. **Evidence of repairs.** Add seeded floor/bay patches of repainted concrete,
+   replacement tile, shutter wear and rust below specific service fixtures. Grime,
+   sill staining and faded whole-building paint already exist in the facade shader;
+   improve their spatial specificity rather than applying another uniform dirt layer.
+4. **Rain integrated with architecture.** Current additive streaks are conspicuous
+   orange lines and camera-relative rain has no canopy/roof shelter test. Make most
+   rain quieter, with brighter streaks near practical lights; add sparse runoff from
+   awnings. The ground already has puddle masks and expanding ripples. Improve curb
+   pooling and reflection breakup instead of claiming those effects are missing.
+5. **Separate skyline depth layers.** Tune localized cool haze between tower groups
+   while retaining dark foreground roofs and warm street slots. Preserve the human's
+   low campaign placement and roof lettering. The references separate silhouettes
+   more clearly; the current skyline is a single concentrated window-light cluster.
+6. **Give the fringe district structure.** Vary grid orientation and block size by
+   coherent patches, with occasional mid-rise clusters, roof beacons and darker
+   service yards. Place buildings and ground street lights from compatible structure;
+   individually random building rotations would lose frontage logic.
+
+Validation: `npm run check` passes and all 69 unit tests pass. Existing scene stats
+record at most 40 calls, 1,066,136 triangles and 24 shader programs; these are recorded
+shot results, not a fresh all-view measurement. No assets rebuilt or baselines approved.
+The live canyon renders, but the browser repeatedly warns that texture allocation
+tries to use 17–18 units on a GPU supporting 16. Investigate sampler allocation and
+consolidate tower maps or remove unnecessary active samplers before adding textures.
+Passing triangle and program budgets does not cover that compatibility constraint.
