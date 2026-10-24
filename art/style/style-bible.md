@@ -75,3 +75,14 @@ below, so agents know what to take from it.
   lights on almost every roof, warm windows against cool atmosphere.
 - `ref-aerial-dense.png` — density from above: no gaps, dark tower bodies with fine window
   grids, warm streets glowing between them, city to the horizon.
+- `ref-hk-ifc-night.jpg` — real Hong Kong (human, 2026-10-24): one hero supertall with a
+  ribbed lantern crown, dark glass with warm horizontal floor bands, a lit low cloud over
+  the island and black water. Use for tower-district landmarks and cloud/water mood, not the
+  old-core canyon.
+- `ref-hk-waterfront-night.jpg` — real Hong Kong (human, 2026-10-24): a canopy and railing
+  foreground frames a varied island skyline; warm-white windows dominate, green/cyan/red
+  crowns are rare accents and tower ads are almost absent. Use for framing, restraint and
+  crown colour.
+- `ref-hk-harbour-panorama.jpg` — real Hong Kong from above (human, 2026-10-24): residential
+  towers frame a park/water gap; the far skyline is a low band with a few landmark crowns,
+  not a uniform wall. Use for aerial composition, negative space and the supertall hierarchy.

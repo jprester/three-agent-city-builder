@@ -1,0 +1,24 @@
+{
+  "generator": "buildings/tower",
+  "seed": 403,
+  "params": {
+    "width_cells": 20,
+    "depth_cells": 18,
+    "height": 360,
+    "tint": 0.5,
+    "tiers": [
+      [0.62, 0],
+      [0.25, 2],
+      [0.13, 4]
+    ],
+    "crown": "spire",
+    "spire": 55,
+    "spire_band": true,
+    "crown_color": "white",
+    "structural_ribs": true,
+    "rib_spacing": 8,
+    "scalable": false,
+    "landmark": true,
+    "crown_signs": false
+  }
+}

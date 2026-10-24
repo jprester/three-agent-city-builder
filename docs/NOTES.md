@@ -771,3 +771,67 @@ p50 0.001 below. The skyline still carries slightly more saturation than the ref
 - Inspected all 14 shots, the 4:3 comparison, `?quality=low` and `?debug=1`.
 - Shots: `docs/progress/look-pass/` (`reference-vs-look.png`, `before-after-skyline.png`,
   plus the key views).
+
+## Landmark towers and light hierarchy (2026-10-24)
+
+The human supplied three real Hong Kong night photos for reference. I added them to
+`art/style/references/` and the style bible, then used them for the tower district only:
+the old-core canyon keeps its neon and grime.
+
+### What changed
+- **Landmarks.** Added three fixed-height, non-scalable tower defs:
+  `tower_m` (lantern crown, 406 m), `tower_n` (pale exoskeleton with an X lattice crown,
+  367 m) and `tower_o` (stepped spire with a lit crown band, 418 m). Each is placed once on
+  a reserved tower-district block and excluded from the weighted tower catalogue. Ordinary
+  towers are now 155–269 m, so the three supertalls have a real height hierarchy.
+- **Crowns and ads.** Landmarks have no tower billboards, shaft campaigns or crown
+  lettering (`meta.crownSigns = false`); they read as architecture, not as sign blades.
+  Their crowns are lit with the existing fixture surface (white) and the top edges carry
+  red aviation lights.
+- **Light hierarchy.** Tower facade windows now light in tenant bands: groups of 4–9
+  floors switch together, with ~22% of groups nearly dark. The per-floor and per-bay
+  variation remain, and both fade to their mean before they alias at distance. Ordinary
+  fixture strips drop again from 0.75 to 0.65; the landmark crowns carry the accent.
+- **Viewpoint.** Added `?viewpoint=landmarks` (all three supertalls against the lower city).
+- **References.** `ref-hk-ifc-night.jpg`, `ref-hk-waterfront-night.jpg` and
+  `ref-hk-harbour-panorama.jpg` are in `art/style/references/` with one-line notes in the
+  style bible.
+- **Test harness.** The frozen-time test now waits 800 ms after `__READY` and pauses the
+  loop before capture. The heavier scene could otherwise compare two frames while one was
+  still settling; the 31-pixel, 1-level rain difference was a capture race, not animation.
+  Timeouts are raised to 180 s ready / 360 s test.
+
+### Critique
+- **Strongest:** `landmarks` has a clear hierarchy: spire left, lattice centre, lantern
+  right, all above a lower tower carpet. `skyline-wide` now reads as a few distinctive
+  towers rather than a wall of equal boxes. `tower-detail` and `fly-50` gain believable
+  dark floor bands.
+- **Lantern crown:** at skyline distance the IFC-like crown reads mostly as a white collar
+  with a dark cap; the vertical ribs are too fine to survive. It needs either thicker lit
+  ribs or a brighter inner lantern before it carries the comparison.
+- **Lattice body:** the crown X is legible, but the pale exoskeleton on the 367 m shaft
+  almost disappears against the dark glass. The BOC-like expression is only half sold.
+- **Spire:** the stepped silhouette and lit band read; the 55 m spire is thin enough to
+  vanish at 1280 px. This is acceptable at skyline distance, weaker in `landmarks`.
+- **Normal towers:** many are now low and dark; the tower district has lost some bulk. The
+  three landmarks gain, but the mid-ground between them and the low-rise fringe is quieter
+  than before. This is the intended trade, not an accident.
+- **Still missing from the photos:** water/harbour negative space, a warm underlit cloud
+  deck, and the residential foreground towers. Those are the next pass, not this one.
+- **No new content on landmarks' street faces:** they use the same atlas glass and street
+  podium as ordinary towers. A dedicated base treatment would help close views.
+
+### Validation
+- Blender previews inspected for all three assets (`front34`, `back34`, `top`):
+  `tower_m` 1358 tris / 31.5 KB, `tower_n` 456 / 12.1 KB, `tower_o` 1198 / 27.9 KB; all
+  within the 12k / 512 KB building budget.
+- `npm run check` and `npm run build` pass; `npm test` is 72 tests, including a new
+  landmark test: exactly three landmark instances, one of each asset, all at least 20 m
+  above every ordinary tower on three seeds.
+- `npm run shots`: 15 views render non-black and within budget — 40 calls, max 1,083,832
+  triangles, 24 programs. The 15 visual comparisons fail only because
+  `tests/visual/baselines/` is empty. The frozen-time test now passes.
+- 60 fps at 1280×720 on the M5 for high and low in `build/perf.txt`. No baseline was
+  approved.
+- Shots: `docs/progress/landmarks/` (`landmarks.png`, `skyline-wide.png`, `skyline-43.png`,
+  `tower-detail.png`, `aerial.png`, `fly-50.png`, `previews.png`).

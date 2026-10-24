@@ -80,10 +80,14 @@ for (const vp of VIEWPOINTS) {
 // clock, so two loads frozen at the same time must render identical pixels.
 test(`${LAYOUT} frozen time is reproducible`, async ({ page }) => {
   // Two full page loads on software WebGL: well over the 60 s default when run after the others.
-  test.setTimeout(180_000);
+  test.setTimeout(360_000);
   const shot = async () => {
     await page.goto(`/?layout=${LAYOUT}&viewpoint=fly-0&t=${FROZEN_TIME}`);
-    await page.waitForFunction(() => window.__READY === true, undefined, { timeout: 90_000 });
+    await page.waitForFunction(() => window.__READY === true, undefined, { timeout: 180_000 });
+    // The heavy scene can still be settling its first completed frames after __READY. Let it
+    // settle, then stop the loop: capture one finished frame instead of a frame in flight.
+    await page.waitForTimeout(800);
+    await page.evaluate(() => window.__PAUSE_RENDER?.());
     return page.screenshot();
   };
   const a = await shot();

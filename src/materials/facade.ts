@@ -510,7 +510,15 @@ if (fType == T_ATLAS) {
   float bayVar = mix(0.68, 1.18, fHash(vec2(bayId, fSeed * 23.0 + 7.0)));
   float bayM = max(Dm.y / perM, 0.1);
   bayVar = mix(bayVar, 0.95, smoothstep(0.25, 0.7, fFw.x / bayM));
-  fEmit = em * 1.95 * floorLit * bayVar;
+  // Tenant bands: offices light in runs of whole floors, with long dark voids. The
+  // variation fades to its mean before a floor is smaller than a pixel.
+  float floorM = max(Dm.x / perM, 0.1);
+  float groupSize = mix(4.0, 9.0, fract(fSeed * 9.7 + 0.31));
+  float groupId = floor(floorId / groupSize);
+  float groupOn = step(0.22, fHash(vec2(groupId, fSeed * 43.0 + 7.0)));
+  float group = mix(0.12, 1.0, groupOn);
+  floorLit *= mix(group, 0.78, smoothstep(0.35, 0.9, fFw.y / floorM));
+  fEmit = em * 2.1 * floorLit * bayVar;
   // Spill: the emissive map blurred over ~a bay lights the frames and spandrels around windows.
   vec4 drB; vec3 emB, nmB;
   towerSample(bundle, auv, dFdx(L) + vec2(Dm.y * 0.8, 0.0), dFdy(L) + vec2(0.0, Dm.x * 0.8), drB, emB, nmB);
@@ -671,7 +679,7 @@ if (fType == T_ATLAS) {
   // Accent strips are white-dominant and soft; saturated cyan stripes on every tower read as
   // decoration rather than architecture. Point fixtures stay hot.
   if (strip) fc = mix(fc, vec3(1.0), 0.35);
-  fEmit = fc * (strip ? 0.75 : 4.0) * blink;
+  fEmit = fc * (strip ? 0.65 : 4.0) * blink;
   fNormalW = normalize(vFNormal);
 }
 

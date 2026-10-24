@@ -37,8 +37,8 @@
           1.0
         ],
         "heightRange": [
-          180,
-          420
+          150,
+          270
         ],
         "gap": [
           6,
@@ -65,6 +65,10 @@
       "buildings/slab_j": 1,
       "buildings/slab_l": 1,
       "buildings/walkup_*": 1.5
+    },
+    "landmarks": {
+      "count": 3,
+      "spacing": 80
     }
   }
 }
