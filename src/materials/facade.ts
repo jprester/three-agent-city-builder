@@ -503,12 +503,18 @@ if (fType == T_ATLAS) {
   fRough = clamp(dr.a + (pane - 0.5) * 0.08, 0.12, 0.95);
   fMetal = (1.0 - dr.a) * 0.4;
   float floorId = floor(L.y / Dm.x);
-  float floorLit = mix(0.35, 1.25, fHash(vec2(floorId, fSeed * 31.0))) * step(0.18, fHash(vec2(floorId, fSeed * 13.0 + 2.0)));
-  fEmit = em * 2.0 * floorLit;
+  // Not every floor is occupied: dark floors, then a slower per-bay variation so a whole
+  // facade does not pulse as one sheet. Both fade to their mean before they alias.
+  float floorLit = mix(0.35, 1.2, fHash(vec2(floorId, fSeed * 31.0))) * step(0.33, fHash(vec2(floorId, fSeed * 13.0 + 2.0)));
+  float bayId = floor(L.x / Dm.y);
+  float bayVar = mix(0.68, 1.18, fHash(vec2(bayId, fSeed * 23.0 + 7.0)));
+  float bayM = max(Dm.y / perM, 0.1);
+  bayVar = mix(bayVar, 0.95, smoothstep(0.25, 0.7, fFw.x / bayM));
+  fEmit = em * 1.95 * floorLit * bayVar;
   // Spill: the emissive map blurred over ~a bay lights the frames and spandrels around windows.
   vec4 drB; vec3 emB, nmB;
   towerSample(bundle, auv, dFdx(L) + vec2(Dm.y * 0.8, 0.0), dFdy(L) + vec2(0.0, Dm.x * 0.8), drB, emB, nmB);
-  fWallLight += emB * floorLit * 0.8;
+  fWallLight += emB * floorLit * 0.6;
   vec3 n = nm * 2.0 - 1.0;
   fNormalW = normalize(fT * n.x + fB * n.y + normalize(vFNormal) * max(n.z, 0.2));
   // Glass reflects the city: the startup cube capture along the reflected view ray, rippled
@@ -662,10 +668,22 @@ if (fType == T_ATLAS) {
   fBase = fc * 0.2;
   // Accent strips glow softly; small point fixtures (lamps, aviation lights) burn hot.
   bool strip = fTint > 0.5;   // lib/surface.py fixture(strip=True)
-  fEmit = fc * (strip ? 1.4 : 4.0) * blink;
+  // Accent strips are white-dominant and soft; saturated cyan stripes on every tower read as
+  // decoration rather than architecture. Point fixtures stay hot.
+  if (strip) fc = mix(fc, vec3(1.0), 0.35);
+  fEmit = fc * (strip ? 0.75 : 4.0) * blink;
   fNormalW = normalize(vFNormal);
 }
 
+// Rain-soaked opaque surfaces: a darker albedo with long vertical runoff, and a sharper
+// env response so the practical lights have something to sheen off. Glass and windows keep
+// their own reflection model.
+if (fType == T_RES || fType == T_OFFICE || fType == T_CAGE || fType == T_TRIM || fType == T_METAL || fType == T_ROOF) {
+  float fRunoff = fNoise(vec2(fUv.x * 2.6 + fSeed * 57.0, fUv.y * 0.09));
+  float fSoak = fType == T_ROOF ? 0.3 : 0.5;
+  fBase *= mix(1.0, 0.92, fSoak * smoothstep(0.35, 0.8, fRunoff));
+  fRough = mix(fRough, 0.45, fSoak * 0.55);
+}
 // Street light spilling up the lower floors: sample the lamp map a little in front of the wall.
 vec2 fLampUv = (vFWorld.xz + vFNormal.xz * 2.5 - uLampRect.xy) * uLampRect.zw;
 float fLamp = texture2D(uLampMap, fLampUv).r;
@@ -735,6 +753,6 @@ export function createFacadeUniforms(time: { value: number }, seed: number, text
     uScreens: { value: null },
     uGlassEnv: { value: null },
     uGlassOn: { value: 0 },
-    uGlassGain: { value: 1.6 },
+    uGlassGain: { value: 1.15 },
   };
 }

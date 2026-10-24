@@ -59,7 +59,7 @@ slides along walls and roofs instead of entering buildings.
 | LOD distances | ×0.5 | ×0.75 | ×1 |
 | Ground reflection | signs + sky, ¼ res | everything, ¼ res | everything, ½ res |
 | Bloom levels / SMAA | 3 / off | 6 / on | 8 / on |
-| Rain drops / traffic | 3k / 35 % | 6k / 65 % | 12k / 100 % |
+| Rain streaks / traffic | 4k / 35 % | 9k / 65 % | 20k / 100 % |
 
 Buildings are drawn at up to three levels of detail: full detail, a simplified model beyond
 160 m, and a plain shell beyond 380 m (windows are shaded, so the shell still shows them).
@@ -94,5 +94,5 @@ imports, the Blender tooling, the palette, the optimizer and the Blender version
 ## Not included yet
 - Lightmap/AO baking (`tools/blender/bake.py` is the natural next step; bake AO into
   tileable kit textures so instancing keeps working).
-- Image textures and KTX2 compression (extend `tools/optimize.mjs`).
-- LODs, streaming by district, post-processing (bloom).
+- KTX2/Basis texture compression (image textures are used as WebP today).
+- Streaming by district.

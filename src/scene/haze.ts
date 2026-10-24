@@ -27,6 +27,7 @@ export class CityHazeEffect extends Effect {
       uniform vec4 uRect;
       uniform float uDensity;
       uniform float uGain;
+      uniform float uAbsorb;
       uniform float uTime;
       const int STEPS = 18;
       const float MAX_DIST = 2400.0;
@@ -38,11 +39,11 @@ export class CityHazeEffect extends Effect {
       vec3 airLight(vec3 p) {
         vec2 uv = (p.xz - uRect.xy) * uRect.zw;
         float inside = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
-        vec3 near = ${v3(sodium)} * textureLod(uLampMap, uv, 4.0).r * 0.4 + textureLod(uSignMap, uv, 4.0).rgb * 0.6;
-        vec3 wide = ${v3(sodium)} * textureLod(uLampMap, uv, 7.0).r * 0.18 + textureLod(uSignMap, uv, 7.0).rgb * 0.4;
+        vec3 near = ${v3(sodium)} * textureLod(uLampMap, uv, 4.0).r * 0.35 + textureLod(uSignMap, uv, 4.0).rgb * 0.55;
+        vec3 wide = ${v3(sodium)} * textureLod(uLampMap, uv, 7.0).r * 0.17 + textureLod(uSignMap, uv, 7.0).rgb * 0.37;
         float y = max(p.y, 0.0);
         float city = textureLod(uLampMap, uv, 7.0).r;
-        vec3 upper = ${v3(cool)} * city * 0.14;
+        vec3 upper = ${v3(cool)} * city * 0.16;
         // Slowly moving low-level pockets, located by the practical street lights.
         float pocket = pow(0.5 + 0.5 * sin(p.x * 0.065 + sin(p.z * 0.09) * 2.0 - uTime * 0.07), 4.0);
         return inside * (near * exp(-y / 28.0) * (1.0 + pocket * exp(-y / 9.0) * 0.8)
@@ -69,11 +70,14 @@ export class CityHazeEffect extends Effect {
           prev = t;
           vec3 p = uCamPos + rd * t;
           float dens = uDensity * exp(-max(p.y, 0.0) * ${FOG_FALLOFF.toFixed(6)}) + 0.00018;
-          vec3 L = airLight(p) + ${v3(haze)} * 0.15;
+          vec3 L = airLight(p) + ${v3(haze)} * 0.2;
           scatter += T * dens * dt * L;
           T *= exp(-dens * dt);
         }
-        outputColor = vec4(inputColor.rgb + scatter * uGain, inputColor.a);
+        // Distance now loses a little contrast and gains cool in-scatter; the previous pass only
+        // added light, which made every far surface milky. Keep most of the scene fog.
+        float absorb = mix(1.0, T, uAbsorb);
+        outputColor = vec4(inputColor.rgb * absorb + scatter * uGain, inputColor.a);
       }`, {
       attributes: EffectAttribute.DEPTH,
       uniforms: new Map<string, THREE.Uniform>([
@@ -84,7 +88,8 @@ export class CityHazeEffect extends Effect {
         ['uSignMap', new THREE.Uniform(signMap)],
         ['uRect', new THREE.Uniform(rect)],
         ['uDensity', new THREE.Uniform(0.0016)],
-        ['uGain', new THREE.Uniform(1.0)],
+        ['uGain', new THREE.Uniform(1.02)],
+        ['uAbsorb', new THREE.Uniform(0.04)],
         ['uTime', time as THREE.Uniform],
       ]),
     });

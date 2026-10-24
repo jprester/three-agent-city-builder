@@ -703,3 +703,71 @@ The live canyon renders, but the browser repeatedly warns that texture allocatio
 tries to use 17–18 units on a GPU supporting 16. Investigate sampler allocation and
 consolidate tower maps or remove unnecessary active samplers before adding textures.
 Passing triangle and program budgets does not cover that compatibility constraint.
+
+## Look pass — reference grade, rain and wet surfaces (2026-10-24)
+
+Compared the attached 4:3 reference with the same `?viewpoint=skyline` framing at HEAD
+and after the pass. It is a mood reference, not a pixel target: its camera, rain phase and
+compression differ, so I matched tonal hierarchy rather than exact values.
+The pass changes no geometry and rebuilds no assets.
+
+### What changed
+- **Grade.** Final grade after AgX in the existing tone-map pass: exposure 1.10,
+  saturation 0.90, contrast 1.00, 14 % highlight desaturation, 1 % black lift, cool
+  shadows and warm highlights. Grades in display space; a first linear-space version with
+  a 0.18 contrast pivot crushed 37–50 % of the frame to black. Exposed in `?debug=1`.
+- **Highlights.** Bloom threshold 1.0, intensity 0.85, radius 0.62. Tower windows:
+  1.95× emissive, 67 % of floors lit (was 82 %), per-bay variation. Fixture strips:
+  0.75, mixed 35 % toward white. Glass gain 1.15. The reference leaves window detail in
+  the image; the previous version bloomed every pane into a soft blob and let cyan strips
+  carry the skyline.
+- **Rain and wet surfaces.** Rain has an 8 mm half-width instead of 11 mm, 20k/9k/4k streaks instead
+  of 12k/6k/3k, fades from 3.5–8 m, and is cooler with sodium only near lamps. Residential,
+  office, cage, trim, metal and roof surfaces get a wet film: darker albedo, a 0.45
+  roughness floor and vertical runoff. No new sampler or shader program.
+- **Atmosphere and sky.** Haze keeps a small (4 %) transmittance term and cooler air light;
+  the cloud deck is slightly more visible. Directional sky light is 0.26 (was 0.27), a
+  small change.
+
+### Measurements (same 4:3 skyline framing, directional)
+| | mean | p10 | p50 | p99 | black | saturation |
+|---|---|---|---|---|---|---|
+| reference | 0.133 | 0.054 | 0.107 | 0.569 | 0.1 % | 0.338 |
+| before | 0.121 | 0.040 | 0.096 | 0.603 | 1.0 % | 0.383 |
+| after | 0.128 | 0.057 | 0.106 | 0.592 | 0.0 % | 0.364 |
+
+The pass removes the crushed base and lands close to the reference: p10 is 0.003 above and
+p50 0.001 below. The skyline still carries slightly more saturation than the reference
+(0.364 vs 0.338), which is the remaining colour gap.
+
+### Critique
+- **Strongest:** `canyon` and `fly-0` keep the sign colour but lose the flat teal wash;
+  `storefront` reads wetter, and `tower-detail` now shows facade structure instead of
+  bloom. `rooftops` and `horizon` are the most convincing night views.
+- **Worst regression:** `aerial` is darker and flatter than before. It still has the lit
+  city and fringe, but the warm streets have lost sparkle; this is the price of the window
+  and haze cuts. It needs a street-light/traffic-trail pass, not more exposure.
+- **Skyline composition:** the reference still has a denser, warmer window mass and a
+  darker foreground. Mine has a flat blue-grey low-rise foreground; the lift that saved the
+  blacks also reduced wall contrast there. The bright water tank/billboard back at the
+  bottom of `skyline` is still the one object that reads untextured.
+- **Rain:** thinner and more numerous, but still a uniform camera-relative overlay. It is
+  not sheltered by canopies or roofs, and close-up streaks are still straight lines rather
+  than irregular drops.
+- **Still missing:** steam at street level; occupied shopfronts; tower silhouette variety;
+  and the 17-sampler facade program still has no margin on 16-texture-unit GPUs. These are
+  the next content and engineering passes, not grade tweaks.
+- **Grade risk:** the display-space conversion is a local tone curve, not a LUT. It is
+  intentionally mild; pushing contrast or lift further flattens the foreground.
+
+### Validation
+- `npm run check`, `npm test` (69) and `npm run build` pass.
+- `npm run shots`: 14 views render non-black and within budget; the 14 comparisons fail
+  only because `tests/visual/baselines/` is still empty. The frozen-time reproducibility
+  test passes. Counts: 40 calls, max 1,082,136 triangles, 24 programs (rain accounts for
+  the +16k triangles over the previous 1,066,136); `low` is 24 calls, 21 programs, max
+  493,833 triangles. No baselines were approved.
+- 60 fps at 1280×720 on the M5 is unchanged for both presets (`build/perf.txt`).
+- Inspected all 14 shots, the 4:3 comparison, `?quality=low` and `?debug=1`.
+- Shots: `docs/progress/look-pass/` (`reference-vs-look.png`, `before-after-skyline.png`,
+  plus the key views).

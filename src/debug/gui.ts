@@ -19,6 +19,13 @@ export async function createDebugGui(renderer: THREE.WebGLRenderer, scene: THREE
   look.add(parts.ground.uWet, 'value', 0, 3, 0.01).name('wet reflection');
   look.add(parts.post.bloom, 'intensity', 0, 4, 0.01).name('bloom');
   look.add(parts.post.bloom.luminanceMaterial, 'threshold', 0, 3, 0.01).name('bloom threshold');
+  const grade = parts.post.grade.settings;
+  const applyGrade = () => parts.post.grade.apply();
+  look.add(grade, 'exposure', 0.5, 1.5, 0.01).name('exposure').onChange(applyGrade);
+  look.add(grade, 'saturation', 0, 1.5, 0.01).name('saturation').onChange(applyGrade);
+  look.add(grade, 'contrast', 0.5, 1.5, 0.01).name('contrast').onChange(applyGrade);
+  look.add(grade, 'highlightDesat', 0, 0.5, 0.01).name('highlight desat').onChange(applyGrade);
+  look.add(grade, 'lift', 0, 0.03, 0.001).name('black lift').onChange(applyGrade);
 
   const info = gui.addFolder('stats');
   const readout = { time: 0, calls: 0, triangles: 0 };

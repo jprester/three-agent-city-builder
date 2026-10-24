@@ -59,13 +59,13 @@ export function createRain(opts: RainOptions): THREE.Mesh {
         vec3 base = cameraPosition + rel;
         vec3 dir = normalize(vel);
         vec3 side = normalize(cross(dir, normalize(cameraPosition - base)));
-        float len = 0.55 + 0.35 * aSeed.y;
-        vec3 world = base + dir * position.y * len + side * position.x * 0.011;
+        float len = 0.65 + 0.45 * aSeed.y;
+        vec3 world = base + dir * position.y * len + side * position.x * 0.008;
         vWorld = world;
         vUv = position.xy;
         // Fade at the volume's edges and right in front of the lens.
         vec3 e = abs(rel) / (uBox * 0.5);
-        vFade = (1.0 - smoothstep(0.7, 1.0, max(max(e.x, e.y), e.z))) * smoothstep(2.0, 5.0, length(rel));
+        vFade = (1.0 - smoothstep(0.7, 1.0, max(max(e.x, e.y), e.z))) * smoothstep(3.5, 8.0, length(rel));
         gl_Position = projectionMatrix * viewMatrix * vec4(world, 1.0);
       }`,
     fragmentShader: /* glsl */ `
@@ -79,9 +79,9 @@ export function createRain(opts: RainOptions): THREE.Mesh {
         vec2 uv = (vWorld.xz - uLampRect.xy) * uLampRect.zw;
         float lamp = texture2D(uLampMap, uv).r * exp(-max(vWorld.y - 4.0, 0.0) / 12.0);
         vec3 sign = texture2D(uSignMap, uv).rgb * exp(-max(vWorld.y - 8.0, 0.0) / 14.0);
-        vec3 light = ${v3(c('haze'))} * 1.6 + ${v3(c('sodium'))} * lamp * 2.2 + sign * 1.4;
+        vec3 light = ${v3(c('haze'))} * 1.9 + ${v3(c('sodium'))} * lamp * 1.5 + sign * 1.1;
         float streak = (1.0 - abs(vUv.x)) * smoothstep(0.0, 0.3, vUv.y) * (1.0 - smoothstep(0.7, 1.0, vUv.y));
-        gl_FragColor = vec4(light * streak * vFade * 0.55, 1.0);
+        gl_FragColor = vec4(light * streak * vFade * 0.5, 1.0);
       }`,
   });
   const mesh = new THREE.Mesh(geometry, material);
