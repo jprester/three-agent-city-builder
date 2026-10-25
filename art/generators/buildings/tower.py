@@ -213,11 +213,20 @@ def tower_exoskeleton(mb, ctx, W, D, z0, z1, tint):
             _brace(mb, ctx, xf, u0, z1, u1, z0, m, s, depth, width)
 
 
+def _cap(mb, ctx, w, d, z, tint, thick=0.45):
+    """A solid roof slab with both faces. `flat_roof` is a single upward-facing quad, so
+    looking up through an open crown (free-fly, the lattice cage) sees through it. Landmark
+    crowns use this closed slab instead, both at the shaft top and above the cage."""
+    m, s = surf(ctx, "roof", 0.0, tint)
+    mb.box(-w / 2, w / 2, -d / 2, d / 2, z - thick, z, m, None, (), s, plan_uv)
+
+
 def _crown_lantern(mb, ctx, w, d, z, tint):
     """IFC-like crown: dark mechanical collar, a ribbed cage, a lit band and a cap."""
     fcol = ctx.facade["fixture_colors"][ctx.p("crown_color", "white")]
     m, s = surf(ctx, "metal", 0.0, tint)
     tm, ts = surf(ctx, "trim", 0.0, tint)
+    _cap(mb, ctx, w, d, z, tint)
     walls(mb, ctx, w, d, z, z + 2.4, z, [("trim", 0.0, tint)] * 4)
     z += 2.4
     cw, cd = w * 0.92, d * 0.92
@@ -238,7 +247,7 @@ def _crown_lantern(mb, ctx, w, d, z, tint):
     walls(mb, ctx, cw, cd, z + 11.0, z + 14.0, z + 11.0, [("fixture", fcol, 1.0)] * 4)
     cap_w, cap_d = cw * 0.74, cd * 0.74
     walls(mb, ctx, cap_w, cap_d, z + 14.0, z + 16.6, z + 14.0, [("metal", 0.0, tint)] * 4)
-    flat_roof(mb, ctx, cap_w, cap_d, z + 16.6, tint, parapet=0.45)
+    _cap(mb, ctx, cap_w, cap_d, z + 16.6, tint)
     ctx.meta["roof"] = z + 16.6
     aviation_lights(mb, ctx, cap_w, cap_d, z + 16.6)
     mast(mb, ctx, 0.0, 0.0, z + 16.6, ctx.p("mast", 12.0), red=True)
@@ -250,6 +259,7 @@ def _crown_lattice(mb, ctx, w, d, z, tint):
     fcol = ctx.facade["fixture_colors"][ctx.p("crown_color", "white")]
     # The crown itself is the lit outline; the body lattice below stays pale metal.
     fm, fs = fixture(ctx, ctx.p("crown_color", "white"), strip=True)
+    _cap(mb, ctx, w, d, z, tint)
     h = ctx.p("lattice_crown_height", 18.0)
     post = 0.55
     for sx in (-1, 1):
@@ -260,9 +270,9 @@ def _crown_lattice(mb, ctx, w, d, z, tint):
         fw, xf = side_frame(side, w, d)
         _brace(mb, ctx, xf, -fw / 2, z, fw / 2, z + h, fm, fs, 0.4, 0.26)
         _brace(mb, ctx, xf, -fw / 2, z + h, fw / 2, z, fm, fs, 0.4, 0.26)
-    # Lit perimeter at the top of the frame, then a small roof cap.
+    # Lit perimeter at the top of the frame, then a closed roof cap.
     walls(mb, ctx, w, d, z + h, z + h + 0.9, z + h, [("fixture", fcol, 1.0)] * 4)
-    flat_roof(mb, ctx, w, d, z + h + 0.9, tint, parapet=0.4)
+    _cap(mb, ctx, w, d, z + h + 0.9, tint, thick=0.6)
     ctx.meta["roof"] = z + h + 0.9
     aviation_lights(mb, ctx, w, d, z + h + 0.9)
     mast(mb, ctx, 0.0, 0.0, z + h + 0.9, ctx.p("mast", 10.0), red=True)

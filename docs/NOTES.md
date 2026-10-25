@@ -828,10 +828,26 @@ the old-core canyon keeps its neon and grime.
 - `npm run check` and `npm run build` pass; `npm test` is 72 tests, including a new
   landmark test: exactly three landmark instances, one of each asset, all at least 20 m
   above every ordinary tower on three seeds.
-- `npm run shots`: 15 views render non-black and within budget — 40 calls, max 1,083,832
+- `npm run shots`: 15 views render non-black and within budget — 40 calls, about 1.084M
   triangles, 24 programs. The 15 visual comparisons fail only because
   `tests/visual/baselines/` is empty. The frozen-time test now passes.
 - 60 fps at 1280×720 on the M5 for high and low in `build/perf.txt`. No baseline was
   approved.
 - Shots: `docs/progress/landmarks/` (`landmarks.png`, `skyline-wide.png`, `skyline-43.png`,
   `tower-detail.png`, `aerial.png`, `fly-50.png`, `previews.png`).
+
+### Landmark roof fix (2026-10-25)
+
+Human review: one landmark crown had no roof and looked transparent. The cause was the
+shared `flat_roof` helper: it builds a single upward-facing quad, so when a free-fly camera
+looked up through the open lattice/lantern cage it saw the culled underside and straight
+through to the city behind. Street-level and skyline views never exposed it.
+
+Added a closed `_cap` slab (top, underside and side faces, 0.45–0.6 m thick) at the shaft top
+and above the lattice/lantern crown. The three landmark assets were rebuilt. `tower_m` is now
+1340 tris / 31.2 KB, `tower_n` 438 / 12.0 KB, `tower_o` unchanged at 1198 / 27.9 KB.
+
+Verified from directly under (`roof-fixed.png`) and above (`roof-fixed-above.png`) the
+`tower_n` crown: the roof is now a solid dark slab from both sides; no city shows through.
+The caps also make the lantern crown's top closed from below. `npm run check` and `npm test`
+(72) pass. No baselines were approved.
