@@ -30,7 +30,7 @@ See [the advertising guide](docs/ADVERTISING.md) for copy, artwork, fonts and em
 |---|---|
 | `?layout=<id>` | Layout from `public/layouts/` (default `city`). |
 | `?viewpoint=<name>` | Camera from `src/debug/viewpoints.json` (default `aerial`). |
-| `?camera=orbit\|fly\|flythrough` | Starting camera mode (default `orbit`). |
+| `?camera=orbit\|fly\|flythrough\|walk` | Starting camera mode (default `orbit`; `walk` without a viewpoint starts in the hero canyon). |
 | `?seed=<int>` | Regenerate the layout in the browser with this seed. |
 | `?t=<seconds>` | Freeze the shared clock at this time. |
 | `?quality=low\|med\|high` | Quality preset (default `high`). |
@@ -43,9 +43,11 @@ See [the advertising guide](docs/ADVERTISING.md) for copy, artwork, fonts and em
 | `1` | **Orbit**: drag to orbit, right-drag to pan, wheel to zoom. |
 | `2` | **Free-fly**: click to capture the mouse, then look around. WASD moves, Space/E goes up, C/Q goes down, Shift boosts, the wheel changes speed, Esc releases the mouse. |
 | `3` | **Flythrough**: the cinematic loop (about 3 min). See [docs/FLYTHROUGH.md](docs/FLYTHROUGH.md). |
+| `4` | **Walk**: first-person at 1.7 m eye height. Click to capture the mouse, then WASD walks, Shift runs, Esc releases. The camera follows the 0.15 m sidewalk/curb step and slides out of building footprints. |
 
 A hint in the top left shows the active mode for a few seconds after each switch. Free-fly
-slides along walls and roofs instead of entering buildings.
+slides along walls and roofs instead of entering buildings; walking stays on the ground and
+cannot enter buildings.
 
 ## Quality presets
 

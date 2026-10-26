@@ -51,6 +51,8 @@ plan, and `docs/progress/` for milestone shots.
   ordinary tower field, with lantern, lattice and spire crowns; an exoskeleton tower;
   tenant floor bands; and a `landmarks` viewpoint. Human Hong Kong photos were added to
   `art/style/references/`.
-- Current: 15 shot viewpoints, 72 tests, 40 calls / 1.084M triangles / 24 programs. The
+- **Walking mode.** First-person walking on roads and sidewalks with building collision,
+  pointer-lock look, Shift run, and a shared 0.15 m curb height.
+- Current: 15 shot viewpoints, 76 tests, 40 calls / 1.084M triangles / 24 programs. The
   frozen-time reproducibility test passes. Visual baselines still do not exist; no
   baseline was approved. Details and the remaining critique are in `docs/NOTES.md`.

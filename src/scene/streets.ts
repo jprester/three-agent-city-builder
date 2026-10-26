@@ -2,12 +2,13 @@ import * as THREE from 'three';
 import palette from '../../art/style/palette.json';
 import { createGroundMaterial, type GroundUniforms } from '../materials/ground';
 import type { Layout, Vec2 } from '../systems/layout';
+import { SIDEWALK_HEIGHT } from '../systems/walk';
 
 const color = (name: keyof typeof palette) => new THREE.Color(palette[name]);
 
 /** Ground plane edge length (m). Larger than twice the camera far plane so its edge is never on screen. */
 const GROUND_SIZE = 12000;
-const CURB_HEIGHT = 0.15;
+const CURB_HEIGHT = SIDEWALK_HEIGHT;
 /** Markings float this far above the asphalt to avoid z-fighting. */
 const PAINT_LIFT = 0.02;
 

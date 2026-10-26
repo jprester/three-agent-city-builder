@@ -851,3 +851,51 @@ Verified from directly under (`roof-fixed.png`) and above (`roof-fixed-above.png
 `tower_n` crown: the roof is now a solid dark slab from both sides; no city shows through.
 The caps also make the lantern crown's top closed from below. `npm run check` and `npm test`
 (72) pass. No baselines were approved.
+
+## Walking mode (2026-10-26)
+
+Human request: add a first-person walking mode to the city.
+
+### What changed
+- `walk` is the fourth camera mode (key `4`, `?camera=walk`). It uses the same pointer-lock
+  mouse look as free-fly but moves on the ground at 4.4 m/s, 9.2 m/s while Shift is held.
+- Eye height is 1.7 m. The camera samples the layout's block polygons (the sidewalk meshes in
+  `src/scene/streets.ts`) and follows the 0.15 m curb step smoothly instead of snapping.
+- Building footprints use the existing `pushOut` collision with a 0.35 m body radius and
+  roof-landing disabled. The walker slides along walls and cannot enter buildings or stand
+  on their roofs.
+- `?camera=walk` without an explicit viewpoint starts in the hero canyon (`canyon`
+  viewpoint), looking along the street.
+- The HUD now lists `4 Walk`, and the README documents the mode and URL parameter.
+- `SIDEWALK_HEIGHT` is exported from `src/systems/walk.ts` and shared with the street mesh, so
+  the walking surface and the visible curbs cannot drift apart.
+- `pushOut` gained optional `clearance` and `allowRoof` parameters. Fly behaviour is unchanged;
+  walking never chooses the roof escape.
+
+### Critique
+- **No prop collision.** The walker passes through guardrails, kiosks, bins and lamp posts;
+  only building footprints are obstacles. This is the biggest gap for a believable walk. Props
+  have footprints but no stored height, and adding all of them as obstacles risks invisible
+  snagging on small furniture; a curated obstacle set is the next step.
+- **No jump, stairs or gravity.** Ground is followed rather than simulated. Curbs work; roof
+  access and the elevated walkways do not. For a street-level walk that is acceptable, but it
+  should be stated.
+- **No head bob/footsteps.** The camera glides; it reads as a walking height but not yet as a
+  body. A tiny deterministic bob and footstep timing would help, but adds motion the quality
+  presets and shots would need to account for.
+- **Default start.** The hero canyon is the strongest walking start, but the initial camera
+  pitch comes from the fixed `canyon` viewpoint (looking up at signs); the player still has to
+  look down to see the pavement. A dedicated `walk` spawn with a level target would be better
+  once the props are collidable.
+- **First-person FOV.** It stays at the scene's 55° rather than a wider player FOV; changing it
+  would alter the camera during mode switches and needs a separate check.
+
+### Validation
+- `npm run check` and `npm run build` pass; `npm test` is 76 tests, including the no-roof
+  walker push-out and the sidewalk/road sampler tests.
+- Browser smoke test at `?camera=walk`: the HUD reports Walk and keyboard movement changes
+  the camera position. The headless browser rejects synthetic pointer lock, so look feel
+  was not exercised there; the software renderer is far below 60 fps, so speed and feel
+  need a hardware check.
+- A walking eye-level view is in `docs/progress/walk/canyon-walk.png`. No image baselines were
+  added or approved.
