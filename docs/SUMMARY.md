@@ -53,6 +53,8 @@ plan, and `docs/progress/` for milestone shots.
   `art/style/references/`.
 - **Walking mode.** First-person walking on roads and sidewalks with building collision,
   pointer-lock look, Shift run, and a shared 0.15 m curb height.
-- Current: 15 shot viewpoints, 76 tests, 40 calls / 1.084M triangles / 24 programs. The
+- **Bridge and window polish.** Closed, winding-correct bridge shells with end caps and edge
+  fascia; per-building window families with different proportions and mullion patterns.
+- Current: 15 shot viewpoints, 78 tests, 40 calls / 1.084M triangles / 24 programs. The
   frozen-time reproducibility test passes. Visual baselines still do not exist; no
   baseline was approved. Details and the remaining critique are in `docs/NOTES.md`.

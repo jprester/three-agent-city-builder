@@ -899,3 +899,50 @@ Human request: add a first-person walking mode to the city.
   need a hardware check.
 - A walking eye-level view is in `docs/progress/walk/canyon-walk.png`. No image baselines were
   added or approved.
+
+## Bridges and window variety (2026-10-26)
+
+Human review: enclosed bridges looked like they were missing parts, and residential and
+commercial buildings repeated the same 1:1 rectangular window.
+
+### Bridges
+- **Cause:** each bridge face was built with a hand-ordered quad and a separately supplied
+  outward normal. Several faces were wound inward, so back-face culling removed them from
+  the side a player actually sees. The missing end caps and edge fascia made the remaining
+  ribbon read as an unfinished box.
+- **Fix:** `quad` now checks the geometric winding against the supplied normal and flips the
+  corner/UV order when they disagree. End caps close both ends, and a slim steel fascia runs
+  along the top and bottom of both long sides. The 23 bridges are still one merged mesh.
+- **Verified:** a unit test builds one bridge and checks every triangle is wound outward and
+  that the box has the expected extents; `docs/progress/bridges-and-windows/footbridge-compare.png`
+  shows the before/after from the same street camera.
+- **Still weak:** bridges have no visible supports, hangers or portal frames at the towers;
+  they still read as a floating tube. Interior silhouettes are only the office-window
+  shader. Those are structural-detail passes, not this fix.
+
+### Windows
+- **What changed:** each facade now picks one of four window families from its instance
+  seed. Residential gets tall-narrow, original square, wide letterbox and small punched
+  panes; office gets wide punched, tall narrow, square punch and ribbon windows; curtain
+  wall gets full, narrower and deeper-spandrel variants. Frames follow the family: transoms
+  on tall windows, two mullions on letterbox/ribbon windows, clean panes on punched ones.
+- **Physical constraint:** the three detailed slabs (`slab_a/b/d`) have modelled recesses of
+  0.8–2.4 × 0.9–2.45 m. Every residential variant sits inside that rectangle, so a shader
+  style can never open beyond a modelled reveal. Office/curtain cells have no physical
+  openings and vary more freely.
+- **Scope:** the style is per building and stable across floors and faces, which is what
+  real facades do; it is not per-window random noise. Shop podiums and the photographic
+  tower atlases are untouched.
+- **Still weak:** all styles remain rectangles; there are no arches, paired sashes, bay
+  openings or shutter geometry. Style 0 is still the original 1:1 family, so a facade that
+  happens to draw it looks unchanged. The style hash is per instance, not per district, so
+  adjacent buildings can still share a language. The `facade` comparison happens to land on
+  a style-0 building; `architecture` and `storefront` show the wider range better.
+
+### Validation
+- `npm run check` and `npm run build` pass; `npm test` is 78 tests, including the bridge
+  winding/end-cap test.
+- Re-shot `canyon`, `storefront`, `facade`, `architecture` and `fly-0`: all render within
+  budget; the five comparisons fail only because baselines are absent. No baseline was
+  approved.
+- Shots and comparisons: `docs/progress/bridges-and-windows/`.

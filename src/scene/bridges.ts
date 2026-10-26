@@ -18,10 +18,17 @@ export function createBridges(layout: Layout, material: THREE.Material): THREE.M
   if (!bridges.length) return null;
   const pos: number[] = [], nrm: number[] = [], uv: number[] = [], col: number[] = [];
   const quad = (c: THREE.Vector3[], n: THREE.Vector3, uvs: [number, number][], surf: readonly number[]) => {
+    // Keep the supplied outward normal and the triangle winding consistent. A manually
+    // ordered bridge face is easy to wind inward, which makes it disappear under back-face
+    // culling — the enclosed bridges then look like a frame with parts missing.
+    const e1 = c[1].clone().sub(c[0]), e2 = c[2].clone().sub(c[0]);
+    const flip = e1.cross(e2).dot(n) < 0;
+    const corners = flip ? [c[0], c[3], c[2], c[1]] : c;
+    const tex = flip ? [uvs[0], uvs[3], uvs[2], uvs[1]] : uvs;
     for (const k of [0, 1, 2, 0, 2, 3]) {
-      pos.push(c[k].x, c[k].y, c[k].z);
+      pos.push(corners[k].x, corners[k].y, corners[k].z);
       nrm.push(n.x, n.y, n.z);
-      uv.push(uvs[k][0], 1 - uvs[k][1]);
+      uv.push(tex[k][0], 1 - tex[k][1]);
       col.push(...surf);
     }
   };
@@ -35,6 +42,7 @@ export function createBridges(layout: Layout, material: THREE.Material): THREE.M
     const up = new THREE.Vector3(0, b.depth, 0);
     const tint = (i * 0.37) % 1;
     const glazing = surfColor('office', 1, tint);
+    const frame = surfColor('metal', 0, tint);
     // Corners: l/r = left/right of the centerline, 0/1 = start/end, bottom and top.
     const l0 = a.clone().add(side), r0 = a.clone().sub(side), l1 = e.clone().add(side), r1 = e.clone().sub(side);
     const [l0t, r0t, l1t, r1t] = [l0, r0, l1, r1].map((p) => p.clone().add(up));
@@ -45,6 +53,24 @@ export function createBridges(layout: Layout, material: THREE.Material): THREE.M
     quad([r0t, r1t, l1t, l0t], new THREE.Vector3(0, 1, 0), [[0, 0], [L, 0], [L, b.width], [0, b.width]], surfColor('roof', 0, tint));
     // Lit underside (fluorescent tubes): footbridges light the street, skybridges read at night.
     quad([l0, l1, r1, r0], new THREE.Vector3(0, -1, 0), [[0, 0], [L, 0], [L, b.width], [0, b.width]], surfColor('soffit', 0, 0));
+    // Close both ends. They sit inside the connecting walls, but exposed footbridge ends
+    // must not look into the structure.
+    quad([l0, r0, r0t, l0t], dir.clone().negate(), [[0, 0], [b.width, 0], [b.width, b.depth], [0, b.depth]], glazing);
+    quad([r1, l1, l1t, r1t], dir.clone(), [[0, 0], [b.width, 0], [b.width, b.depth], [0, b.depth]], glazing);
+    // Slim top/bottom fascia: steel edge beams, not another metre of glass.
+    const edge = 0.32;
+    for (const [side, n] of [[r0, nR], [l0, nL]] as const) {
+      const at = side.clone();
+      const far = at.clone().add(dir.clone().multiplyScalar(L));
+      const low = at.clone().add(new THREE.Vector3(0, edge, 0));
+      const lowFar = far.clone().add(new THREE.Vector3(0, edge, 0));
+      const top = at.clone().add(new THREE.Vector3(0, b.depth - edge, 0));
+      const topFar = far.clone().add(new THREE.Vector3(0, b.depth - edge, 0));
+      const high = at.clone().add(new THREE.Vector3(0, b.depth, 0));
+      const highFar = far.clone().add(new THREE.Vector3(0, b.depth, 0));
+      quad([top, topFar, highFar, high], n, [[0, 0], [L, 0], [L, edge], [0, edge]], frame);
+      quad([at, far, lowFar, low], n, [[0, 0], [L, 0], [L, edge], [0, edge]], frame);
+    }
   });
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));

@@ -334,10 +334,27 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
   vec2 cell = type == T_OFFICE ? CELL_OFFICE : type == T_CURTAIN ? CELL_CURTAIN : CELL_RES;
   vec2 cid = floor(uvm / cell);
   vec2 p = uvm - cid * cell;           // meters inside the cell
+  // A facade keeps one window family; the hash is the same on every floor and face.
+  // Residential variants stay inside the 0.8..2.4 x 0.9..2.45 physical reveal used by
+  // slab_a/b/d, so a shader style can never punch outside a modelled opening.
+  int winStyle = int(fHash(vec2(seed * 73.1, float(type) * 11.7 + 4.0)) * 4.0);
   vec4 r; // window rect x0, x1, y0, y1
-  if (type == T_OFFICE) r = vec4(0.08, cell.x - 0.08, 0.95, 2.95);
-  else if (type == T_CURTAIN) r = vec4(0.05, cell.x - 0.05, 0.12, cell.y - 0.28);
-  else r = vec4(0.8, 2.4, 0.9, 2.45);
+  if (type == T_OFFICE) {
+    if (winStyle == 0) r = vec4(0.08, cell.x - 0.08, 0.95, 2.95);          // wide punched
+    else if (winStyle == 1) r = vec4(0.30, 1.30, 0.55, 3.05);              // tall narrow
+    else if (winStyle == 2) r = vec4(0.20, 1.40, 1.05, 2.60);              // square punch
+    else r = vec4(0.05, cell.x - 0.05, 1.25, 2.30);                        // ribbon
+  } else if (type == T_CURTAIN) {
+    if (winStyle == 0) r = vec4(0.05, cell.x - 0.05, 0.12, cell.y - 0.28); // full glazing
+    else if (winStyle == 1) r = vec4(0.22, cell.x - 0.22, 0.55, cell.y - 0.20);
+    else if (winStyle == 2) r = vec4(0.05, cell.x - 0.05, 0.35, cell.y - 0.45);
+    else r = vec4(0.15, cell.x - 0.15, 1.00, cell.y - 0.70);
+  } else {
+    if (winStyle == 0) r = vec4(0.8, 2.4, 0.9, 2.45);                      // original 1:1
+    else if (winStyle == 1) r = vec4(1.0, 2.2, 0.9, 2.45);                 // tall narrow
+    else if (winStyle == 2) r = vec4(0.8, 2.4, 1.1, 2.25);                 // wide letterbox
+    else r = vec4(1.05, 2.15, 1.05, 2.2);                                  // small punched
+  }
   windowFrac = (r.y - r.x) * (r.w - r.z) / (cell.x * cell.y);
 
   float s = seed * 97.13;
@@ -374,10 +391,21 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
     inside = mix(inside, col * cloth * inten * 0.5 * folds, cover);
   }
 
-  // Frame: border, a mullion and a transom (residential and office).
+  // Frame: border plus a family-specific mullion pattern. Tall windows get a transom,
+  // letterbox windows two vertical mullions, punched panes a clean sheet of glass.
   float fwm = 0.05;
   float inner = fBox(p.x, r.x + fwm, r.y - fwm, fw.x) * fBox(p.y, r.z + fwm, r.w - fwm, fw.y);
-  float bars = type == T_CURTAIN ? 0.0 : max(fBox(q.x, 0.49, 0.51, fw.x / wsize.x), fBox(q.y, 0.64, 0.665, fw.y / wsize.y));
+  float bars = 0.0;
+  if (type == T_OFFICE) {
+    if (winStyle == 1) bars = fBox(q.y, 0.55, 0.565, fw.y / wsize.y);
+    else if (winStyle == 3) bars = max(fBox(q.x, 0.32, 0.34, fw.x / wsize.x), fBox(q.x, 0.66, 0.68, fw.x / wsize.x));
+    else bars = max(fBox(q.x, 0.49, 0.51, fw.x / wsize.x), fBox(q.y, 0.64, 0.665, fw.y / wsize.y));
+  } else if (type != T_CURTAIN) {
+    if (winStyle == 1) bars = fBox(q.y, 0.52, 0.535, fw.y / wsize.y);
+    else if (winStyle == 2) bars = max(fBox(q.x, 0.32, 0.34, fw.x / wsize.x), fBox(q.x, 0.66, 0.68, fw.x / wsize.x));
+    else if (winStyle == 3) bars = 0.0;
+    else bars = max(fBox(q.x, 0.49, 0.51, fw.x / wsize.x), fBox(q.y, 0.64, 0.665, fw.y / wsize.y));
+  }
   mask = fBox(p.x, r.x, r.y, fw.x) * fBox(p.y, r.z, r.w, fw.y) * present;
   frame = mask * (1.0 - inner * (1.0 - bars));
   // Recess shadow just around the opening.
