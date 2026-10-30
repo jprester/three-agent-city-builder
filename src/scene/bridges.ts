@@ -48,8 +48,13 @@ export function createBridges(layout: Layout, material: THREE.Material): THREE.M
     const [l0t, r0t, l1t, r1t] = [l0, r0, l1, r1].map((p) => p.clone().add(up));
     const nL = side.clone().normalize(), nR = nL.clone().negate();
     // Long sides: u along the bridge, v up from the floor (window cells line up with floors).
-    quad([r0, r1, r1t, r0t], nR, [[0, 0], [L, 0], [L, b.depth], [0, b.depth]], glazing);
-    quad([l1, l0, l0t, l1t], nL, [[0, 0], [L, 0], [L, b.depth], [0, b.depth]], glazing);
+    // The glazing stops at the fascia strips (below) instead of running behind them on the same
+    // plane, which would depth-fight.
+    const edge = 0.32;
+    const lift = (p: THREE.Vector3, y: number) => p.clone().add(new THREE.Vector3(0, y, 0));
+    const g0 = edge, g1 = b.depth - edge;
+    quad([lift(r0, g0), lift(r1, g0), lift(r1, g1), lift(r0, g1)], nR, [[0, g0], [L, g0], [L, g1], [0, g1]], glazing);
+    quad([lift(l1, g0), lift(l0, g0), lift(l0, g1), lift(l1, g1)], nL, [[0, g0], [L, g0], [L, g1], [0, g1]], glazing);
     quad([r0t, r1t, l1t, l0t], new THREE.Vector3(0, 1, 0), [[0, 0], [L, 0], [L, b.width], [0, b.width]], surfColor('roof', 0, tint));
     // Lit underside (fluorescent tubes): footbridges light the street, skybridges read at night.
     quad([l0, l1, r1, r0], new THREE.Vector3(0, -1, 0), [[0, 0], [L, 0], [L, b.width], [0, b.width]], surfColor('soffit', 0, 0));
@@ -58,7 +63,6 @@ export function createBridges(layout: Layout, material: THREE.Material): THREE.M
     quad([l0, r0, r0t, l0t], dir.clone().negate(), [[0, 0], [b.width, 0], [b.width, b.depth], [0, b.depth]], glazing);
     quad([r1, l1, l1t, r1t], dir.clone(), [[0, 0], [b.width, 0], [b.width, b.depth], [0, b.depth]], glazing);
     // Slim top/bottom fascia: steel edge beams, not another metre of glass.
-    const edge = 0.32;
     for (const [side, n] of [[r0, nR], [l0, nL]] as const) {
       const at = side.clone();
       const far = at.clone().add(dir.clone().multiplyScalar(L));

@@ -35,12 +35,13 @@ export interface FacadeTextures {
  * filtering); the layers are uploaded straight from ImageBitmaps decoded without alpha
  * premultiplication, so roughness in A cannot damage RGB, and flipped at decode to keep the
  * shader's flipY = true convention (WebGL forbids UNPACK_FLIP_Y for 3D uploads).
+ *
+ * The layers exist only on the GPU (no CPU copy is kept), so after a WebGL context loss they
+ * are decoded and uploaded again when the context is restored.
  */
 async function loadArray(renderer: THREE.WebGLRenderer, urls: string[], srgb: boolean, anisotropy: number) {
-  const bitmaps = await Promise.all(urls.map(async (url) => createImageBitmap(await (await fetch(url)).blob(),
-    { imageOrientation: 'flipY', premultiplyAlpha: 'none', colorSpaceConversion: 'none' })));
-  const { width, height } = bitmaps[0];
-  const tex = new THREE.DataArrayTexture(null, width, height, bitmaps.length);
+  const bitmaps = await decodeLayers(urls);
+  const tex = new THREE.DataArrayTexture(null, bitmaps[0].width, bitmaps[0].height, bitmaps.length);
   tex.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
   tex.format = THREE.RGBAFormat;
   tex.type = THREE.UnsignedByteType;
@@ -48,7 +49,23 @@ async function loadArray(renderer: THREE.WebGLRenderer, urls: string[], srgb: bo
   tex.minFilter = THREE.LinearMipmapLinearFilter;
   tex.generateMipmaps = true;
   tex.anisotropy = anisotropy;
-  tex.source.dataReady = false;   // allocate only; the layers come next
+  tex.source.dataReady = false;   // allocate only; the layers are uploaded separately
+  uploadLayers(renderer, tex, urls, bitmaps);
+  // Registered after three.js's own handler (WebGLRenderer constructor), so its state is fresh.
+  renderer.domElement.addEventListener('webglcontextrestored', () => {
+    decodeLayers(urls).then((b) => uploadLayers(renderer, tex, urls, b)).catch((err) => console.error('Tower textures not restored:', err));
+  });
+  return tex;
+}
+
+function decodeLayers(urls: string[]) {
+  return Promise.all(urls.map(async (url) => createImageBitmap(await (await fetch(url)).blob(),
+    { imageOrientation: 'flipY', premultiplyAlpha: 'none', colorSpaceConversion: 'none' })));
+}
+
+/** Allocate `tex` in the current context and fill its layers from `bitmaps` (closed after). */
+function uploadLayers(renderer: THREE.WebGLRenderer, tex: THREE.DataArrayTexture, urls: string[], bitmaps: ImageBitmap[]) {
+  const { width, height } = tex.image;
   tex.needsUpdate = true;
   renderer.initTexture(tex);
   const gl = renderer.getContext() as WebGL2RenderingContext;
@@ -63,7 +80,6 @@ async function loadArray(renderer: THREE.WebGLRenderer, urls: string[], srgb: bo
   });
   gl.generateMipmap(gl.TEXTURE_2D_ARRAY);
   renderer.resetState();   // raw GL calls above: drop three's cached bindings
-  return tex;
 }
 
 /** Load every facade texture (imported by tools/textures/import_highrise.py) before rendering. */

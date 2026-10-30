@@ -1047,8 +1047,10 @@ function liftClear(points, instances, margin, lift, grade = 0.6, iterations = 16
   const boxes = instances.map((i) => ({ box: instanceBox(i), h: i.h }));
   const P = points.map((p) => [...p]);
   for (let it = 0; it < iterations; it++) {
-    let moved = false;
-    const lifted = [];
+    // Largest shortfall per control point over this pass, measured against the curve as it was
+    // at the start of the pass. Adding each sample's shortfall in turn would stack the raises of
+    // every blocked sample on the same segment and lift far above the needed clearance.
+    const raise = new Map();
     for (const { p, k } of sampleClosedCurve(P)) {
       let need = 0;
       for (const { box, h } of boxes) {
@@ -1057,12 +1059,13 @@ function liftClear(points, instances, margin, lift, grade = 0.6, iterations = 16
         if (G.insideConvex(G.obb(box.c, box.u, box.hu + margin, box.hv + margin).corners, [p[0], p[2]])) need = h + lift;
       }
       if (need <= p[1]) continue;
-      // Raise both ends of the segment by the shortfall (plus a little, to converge).
+      // Both ends of the segment, by the shortfall (plus a little, to converge).
       const up = need - p[1] + 1;
-      for (const j of [k, (k + 1) % P.length]) { P[j][1] += up; lifted.push(j); }
-      moved = true;
+      for (const j of [k, (k + 1) % P.length]) raise.set(j, Math.max(raise.get(j) ?? 0, up));
     }
-    if (!moved) break;
+    if (!raise.size) break;
+    const lifted = [];
+    for (const [j, up] of raise) { P[j][1] += up; lifted.push(j); }
     // Spread each lift into its neighbors (raising only), outward from the lifted points.
     const n = P.length;
     while (lifted.length) {
