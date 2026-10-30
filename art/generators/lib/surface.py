@@ -32,6 +32,7 @@ _PREVIEW = {
     "deck": "fluorescent",
     "tower_res": "clad_terracotta",
     "glass": "glass_dark",
+    "foliage": "foliage",
 }
 
 ATTRIBUTE = "Surface"

@@ -1,5 +1,5 @@
 {
-  "$comment": "Shared by Blender generators (geometry aligned to cells) and the runtime facade shader. Surface type codes are written to COLOR_0.r as (code + 0.5) / 16. 'atlas' faces use the photographic tower facades (art/external/textures), mapped at the curtain floor height. 'fixture' faces pick their color from fixture_colors via COLOR_0.g; 'screen' faces are video screens with UVs normalized 0..1 over the screen. 'tower_res' faces are residential-tower walls: residential windows and cells, more windows lit, a per-building cladding color. 'glass' faces are commercial glass skins: curtain cells, most floors lit in office white, unlit panes reflect the city. 'deck' faces are car-park interiors: g = deck height / 8, b = spandrel band height / 4 (meters).",
+  "$comment": "Shared by Blender generators (geometry aligned to cells) and the runtime facade shader. Surface type codes are written to COLOR_0.r as (code + 0.5) / 16. 'atlas' faces use the photographic tower facades (art/external/textures), mapped at the curtain floor height. 'fixture' faces pick their color from fixture_colors via COLOR_0.g; 'screen' faces are video screens with UVs normalized 0..1 over the screen. 'tower_res' faces are residential-tower walls: residential windows and cells, more windows lit, a per-building cladding color. 'glass' faces are commercial glass skins: curtain cells, most floors lit in office white, unlit panes reflect the city. 'foliage' faces are tree crowns (dark green, varied per instance). 'deck' faces are car-park interiors: g = deck height / 8, b = spandrel band height / 4 (meters).",
   "types": {
     "residential": 0,
     "office": 1,
@@ -15,7 +15,8 @@
     "screen": 11,
     "deck": 12,
     "tower_res": 13,
-    "glass": 14
+    "glass": 14,
+    "foliage": 15
   },
   "cells": {
     "residential": {

@@ -92,6 +92,7 @@ const DEFINES = /* glsl */ `
 #define T_DECK ${T.deck}
 #define T_TOWER_RES ${T.tower_res}
 #define T_GLASS ${T.glass}
+#define T_FOLIAGE ${T.foliage}
 const vec4 RES_BOX = ${roomBox(RES_SET)};
 const vec4 OFF_BOX = ${roomBox(OFF_SET)};
 const int RES_CARDS = ${RES_SET.tiles.length};
@@ -113,6 +114,7 @@ const vec3 P_GLASS = ${glslColor('glass_dark')};
 const vec3 P_TUNGSTEN = ${glslColor('tungsten')};
 const vec3 P_FLUORESCENT = ${glslColor('fluorescent')};
 const vec3 OFFICE_WHITE = ${glslColor('office_white')};
+const vec3 P_FOLIAGE = ${glslColor('foliage')};
 // Room cards are rendered in neutral light (linear ~0.1-0.6); scales them to window brightness
 // while keeping them below the tone mapper's shoulder, so the furniture stays readable.
 const float INTERIOR_GAIN = 0.85;
@@ -528,6 +530,9 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
   vec2 footprint = min(fw, cell * 2.0);
   vec4 glassRect = r + vec4(fwm, -fwm, fwm, -fwm);
   float barTransmission = type == T_CURTAIN ? 1.0 : 0.956;
+  // Glass skins light most floors, so their mid- and far-field average must match what a lit
+  // pane actually shows up close (a room card, ~0.3) or whole facades read as white blocks.
+  float glassFarLit = fGlassSkin ? 0.5 : 1.0;
   for (int j = -1; j <= 1; j++) for (int i = -1; i <= 1; i++) {
     vec2 o = vec2(float(i), float(j));
     vec3 L = cellLight(type, cid + o, fill, seed);
@@ -536,7 +541,7 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
     vec2 local = p - o * cell;
     float neighborPresent = openCol(fill, cid.x + o.x);
     float aperture = windowCoverage(local, glassRect, footprint) * barTransmission;
-    filteredEmit += L * aperture * 0.44;
+    filteredEmit += L * aperture * 0.44 * glassFarLit;
     filteredGlass += neighborPresent * aperture;
     filteredMask += neighborPresent * windowCoverage(local, r, footprint);
   }
@@ -553,7 +558,7 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
   float glassFrac = (glassRect.y - glassRect.x) * (glassRect.w - glassRect.z)
                   / (cell.x * cell.y) * barTransmission;
   vec3 meanLit = mix(windowColor(0.5), OFFICE_WHITE, fOffice.z) * 0.48;
-  avgEmit = openFrac(fill) * glassFrac * (baseRatio * (type == T_RES ? 1.0 : 0.85) * meanLit + (1.0 - baseRatio) * dark);
+  avgEmit = openFrac(fill) * glassFrac * (baseRatio * (type == T_RES ? 1.0 : 0.85) * glassFarLit * meanLit + (1.0 - baseRatio) * dark);
 }
 `;
 
@@ -752,6 +757,11 @@ if (fType == T_ATLAS) {
   fBase *= 0.7;
 } else if (fType == T_TRIM) {
   fBase *= 1.05;
+} else if (fType == T_FOLIAGE) {
+  // Tree crowns: dark green leaf clumps, varied per tree; lamps below light them warm.
+  float leaf = fNoise(vFWorld.xz * 1.7 + vFWorld.y * 0.9) * fNoise(vFWorld.xz * 0.45 + fSeed * 7.0);
+  fBase = P_FOLIAGE * mix(0.55, 1.35, leaf) * mix(0.8, 1.2, fract(fSeed * 19.3)) * mix(0.8, 1.2, fTint);
+  fRough = 0.95;
 } else if (fType == T_METAL) {
   fBase = P_METAL * mix(0.7, 1.6, fNoise(fUv * 2.0 + fSeed * 9.0));
   fRough = 0.55;
@@ -886,7 +896,7 @@ export function createFacadeMaterial(uniforms: FacadeUniforms): THREE.MeshStanda
       .replace('#include <normal_fragment_maps>', 'normal = normalize((viewMatrix * vec4(fNormalW, 0.0)).xyz);')
       .replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance = fEmit;');
   };
-  material.customProgramCacheKey = () => 'facade-v10';
+  material.customProgramCacheKey = () => 'facade-v11';
   return material;
 }
 

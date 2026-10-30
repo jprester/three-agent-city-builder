@@ -1,0 +1,11 @@
+{
+  "generator": "props/tree",
+  "seed": 42,
+  "params": {
+    "height": 10.0,
+    "radius": 2.2,
+    "lobes": 5,
+    "tint": 0.3,
+    "crown_base": 0.3
+  }
+}

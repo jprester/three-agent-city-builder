@@ -4,11 +4,17 @@
   "params": {
     "width_cells": 24,
     "depth_cells": 20,
-    "height": 380,
+    "height": 460,
     "tint": 0.35,
     "tiers": [
-      [0.76, 0],
-      [0.24, 2]
+      [
+        0.76,
+        0
+      ],
+      [
+        0.24,
+        2
+      ]
     ],
     "crown": "lantern",
     "crown_color": "white",

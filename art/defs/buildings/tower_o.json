@@ -4,12 +4,21 @@
   "params": {
     "width_cells": 20,
     "depth_cells": 18,
-    "height": 360,
+    "height": 300,
     "tint": 0.5,
     "tiers": [
-      [0.62, 0],
-      [0.25, 2],
-      [0.13, 4]
+      [
+        0.62,
+        0
+      ],
+      [
+        0.25,
+        2
+      ],
+      [
+        0.13,
+        4
+      ]
     ],
     "crown": "spire",
     "spire": 55,
