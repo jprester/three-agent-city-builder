@@ -10,6 +10,7 @@ import { createRenderer, createScene } from './scene/environment';
 import { captureCityEnvironment, captureGlassEnvironment } from './scene/environment-map';
 import { createLampMap, createSignLightMap } from './scene/lampmap';
 import { CityHazeEffect } from './scene/haze';
+import { DynamicResolution } from './systems/dynamic-resolution';
 import { createPost } from './scene/post';
 import { PlanarReflection } from './scene/reflection';
 import { createStreets } from './scene/streets';
@@ -102,7 +103,7 @@ async function main() {
 
   // Shared inputs of the city's shaders: one clock, one seed, one street-light map.
   const lamps = layout ? createLampMap(layout) : null;
-  const facadeTextures = await loadFacadeTextures(Math.min(8, renderer.capabilities.getMaxAnisotropy()));
+  const facadeTextures = await loadFacadeTextures(renderer, Math.min(8, renderer.capabilities.getMaxAnisotropy()));
   const facadeUniforms = createFacadeUniforms(clock.uniform, layout?.seed ?? 0, facadeTextures);
   const groundUniforms = createGroundUniforms(facadeUniforms.uLampRect);
   groundUniforms.uTime = clock.uniform;
@@ -175,21 +176,30 @@ async function main() {
   facadeUniforms.uGlassEnv.value = captureGlassEnvironment(renderer, scene, layout, [streets, ...(rain ? [rain] : [])]);
   facadeUniforms.uGlassOn.value = 1;
 
-  const haze = lamps ? new CityHazeEffect(camera, lamps.texture, signMap, lamps.rect, clock.uniform) : undefined;
+  const haze = lamps ? new CityHazeEffect(camera, lamps.texture, signMap, lamps.rect, clock.uniform, quality.hazeSteps) : undefined;
   const post = createPost(renderer, scene, camera, quality, haze);
   const size = renderer.getDrawingBufferSize(new THREE.Vector2());
   reflection.setSize(size.x, size.y);
   await post.ready;
   const debug = params.get('debug') === '1' ? await createDebugGui(renderer, scene, clock, { post, facade: facadeUniforms, ground: groundUniforms }) : null;
 
-  window.addEventListener('resize', () => {
+  const resize = () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
     post.composer.setSize(window.innerWidth, window.innerHeight);
     const size = renderer.getDrawingBufferSize(new THREE.Vector2());
     reflection.setSize(size.x, size.y);
-  });
+  };
+  window.addEventListener('resize', resize);
+  // Captures (fixed time) keep a fixed resolution so screenshots stay comparable.
+  const maxRatio = renderer.getPixelRatio();
+  const dynres = frozenAt === null && params.get('dynres') !== '0'
+    ? new DynamicResolution({ max: maxRatio, min: Math.min(maxRatio, quality.minPixelRatio) }, (ratio) => {
+      renderer.setPixelRatio(ratio);
+      resize();
+    })
+    : null;
 
   window.__PAUSE_RENDER = () => renderer.setAnimationLoop(null);
   let frames = 0;
@@ -201,6 +211,7 @@ async function main() {
     last = now;
     const real = performance.now();
     rig.update((real - lastReal) / 1000);
+    dynres?.update(real / 1000, real - lastReal);
     lastReal = real;
     vehicles?.update(now);
     renderer.info.reset();

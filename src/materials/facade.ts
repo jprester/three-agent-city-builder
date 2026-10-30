@@ -30,15 +30,10 @@ export interface FacadeUniforms {
   uLampRect: { value: THREE.Vector4 };
   /** Overall window emission multiplier (debug tuning). */
   uWindowGain: { value: number };
-  uTowerDiff0: { value: THREE.Texture | null };
-  uTowerDiff1: { value: THREE.Texture | null };
-  uTowerDiff2: { value: THREE.Texture | null };
-  uTowerEmit0: { value: THREE.Texture | null };
-  uTowerEmit1: { value: THREE.Texture | null };
-  uTowerEmit2: { value: THREE.Texture | null };
-  uTowerNorm0: { value: THREE.Texture | null };
-  uTowerNorm1: { value: THREE.Texture | null };
-  uTowerNorm2: { value: THREE.Texture | null };
+  /** Tower bundles, one array layer each (src/materials/textures.ts). */
+  uTowerDiff: { value: THREE.DataArrayTexture | null };
+  uTowerEmit: { value: THREE.DataArrayTexture | null };
+  uTowerNorm: { value: THREE.DataArrayTexture | null };
   uWalls: { value: THREE.Texture | null };
   /** Top-down colored sign glow (same rect as the lamp map). */
   uSignMap: { value: THREE.Texture | null };
@@ -162,9 +157,7 @@ uniform float uTime;
 uniform sampler2D uLampMap;
 uniform vec4 uLampRect;
 uniform float uWindowGain;
-uniform sampler2D uTowerDiff0, uTowerDiff1, uTowerDiff2;
-uniform sampler2D uTowerEmit0, uTowerEmit1, uTowerEmit2;
-uniform sampler2D uTowerNorm0, uTowerNorm1, uTowerNorm2;
+uniform highp sampler2DArray uTowerDiff, uTowerEmit, uTowerNorm;
 uniform sampler2D uWalls;
 uniform sampler2D uSignMap;
 uniform sampler2D uScreens;
@@ -218,13 +211,8 @@ vec3 skyRefl(vec3 r) {
 }
 
 void towerSample(int bundle, vec2 uv, vec2 dx, vec2 dy, out vec4 dr, out vec3 em, out vec3 nm) {
-  if (bundle == 0) {
-    dr = textureGrad(uTowerDiff0, uv, dx, dy); em = textureGrad(uTowerEmit0, uv, dx, dy).rgb; nm = textureGrad(uTowerNorm0, uv, dx, dy).rgb;
-  } else if (bundle == 1) {
-    dr = textureGrad(uTowerDiff1, uv, dx, dy); em = textureGrad(uTowerEmit1, uv, dx, dy).rgb; nm = textureGrad(uTowerNorm1, uv, dx, dy).rgb;
-  } else {
-    dr = textureGrad(uTowerDiff2, uv, dx, dy); em = textureGrad(uTowerEmit2, uv, dx, dy).rgb; nm = textureGrad(uTowerNorm2, uv, dx, dy).rgb;
-  }
+  vec3 l = vec3(uv, float(bundle));
+  dr = textureGrad(uTowerDiff, l, dx, dy); em = textureGrad(uTowerEmit, l, dx, dy).rgb; nm = textureGrad(uTowerNorm, l, dx, dy).rgb;
 }
 
 // Wall material cell m (4×2 atlas) at facade meters uvm, one tile per 'size' meters,
@@ -834,7 +822,7 @@ export function createFacadeMaterial(uniforms: FacadeUniforms): THREE.MeshStanda
       .replace('#include <normal_fragment_maps>', 'normal = normalize((viewMatrix * vec4(fNormalW, 0.0)).xyz);')
       .replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance = fEmit;');
   };
-  material.customProgramCacheKey = () => 'facade-v8';
+  material.customProgramCacheKey = () => 'facade-v9';
   return material;
 }
 
@@ -846,15 +834,9 @@ export function createFacadeUniforms(time: { value: number }, seed: number, text
     uLampMap: { value: null },
     uLampRect: { value: new THREE.Vector4(0, 0, 1, 1) },
     uWindowGain: { value: 1 },
-    uTowerDiff0: { value: t?.diffuse[0] ?? null },
-    uTowerDiff1: { value: t?.diffuse[1] ?? null },
-    uTowerDiff2: { value: t?.diffuse[2] ?? null },
-    uTowerEmit0: { value: t?.emissive[0] ?? null },
-    uTowerEmit1: { value: t?.emissive[1] ?? null },
-    uTowerEmit2: { value: t?.emissive[2] ?? null },
-    uTowerNorm0: { value: t?.normal[0] ?? null },
-    uTowerNorm1: { value: t?.normal[1] ?? null },
-    uTowerNorm2: { value: t?.normal[2] ?? null },
+    uTowerDiff: { value: t?.diffuse ?? null },
+    uTowerEmit: { value: t?.emissive ?? null },
+    uTowerNorm: { value: t?.normal ?? null },
     uWalls: { value: t?.walls ?? null },
     uSignMap: { value: null },
     uScreens: { value: null },

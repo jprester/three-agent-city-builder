@@ -1010,3 +1010,22 @@ Fresh shots, no code changes. Compared with the nine new photos in `art/style/re
 - **Still weak:** the reflection is the tower district seen from one point, not the actual street.
   Signs and lamps directly across the road never appear in the glass. A proper fix is a few local
   probes or screen-space reflections, both heavier.
+
+## Performance (2026-10-30, human: "really slow in FPV mode")
+- **Profile (M5, Metal, walk start, 2160×1350, uncapped):** 12–15 ms, GPU-bound, JS < 0.5 ms. About
+  half is the facade shader at street level. Post is about a third, the ground reflection about
+  15 %. Rain, glass reflections and signs each cost ≤ 1 ms.
+- **Fixed:** the facade shader used 17–18 texture units on a 16-unit GPU; the tower bundles are
+  now array textures, 11–12 units. Renders are identical (≤ 0.06 % RMSE, rain noise) and the
+  per-frame three.js warning is gone.
+- **Haze:** 12/10/8 steps by preset (was 18) and one read fewer per step. No visible change, and
+  no measurable speed-up on the M5 either; its coarse-mip reads hit cache. Kept for slower GPUs.
+- **Dynamic resolution:** this is the lever that works. On the same view, ratio 1.5 → 1.25 → 1.0
+  is 12.2–13 → 11.2 → 9.6 ms. About 4–5 ms per frame does not scale with resolution (geometry,
+  reflection pass, fixed post work). On a 2560×1600 window it dropped to 1.25 within a second
+  and held 58 fps without flicker.
+- **Not the app:** during profiling the machine was swapping heavily (8 GB compressed, about 300 MB
+  free right after the reset, with ~5 GB in VS Code extension helpers). That matches the multi-second
+  stalls, the 16–34-minute screenshot runs and the lock-up.
+- **Next if needed:** the street-level facade shader (3×3 window light-spill loop, room
+  interiors) and the resolution-independent ~4–5 ms (reflection pass draws the city a second time).

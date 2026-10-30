@@ -14,10 +14,11 @@ const v3 = (c: THREE.Color) => `vec3(${c.r.toFixed(4)}, ${c.g.toFixed(4)}, ${c.b
  * hit, and at each step the air is lit by the street lights and signs below it, read from
  * the top-down lamp and sign maps at a coarse mip. Streets glow up into the haze, lit
  * districts get a cool upper glow and practical warm light stays near the street.
- * Runs in HDR before bloom, so the glow blooms too.
+ * Runs in HDR before bloom, so the glow blooms too. `steps` (quality preset) sets the march
+ * length: the haze is the most expensive post pass, four texture reads per step per pixel.
  */
 export class CityHazeEffect extends Effect {
-  constructor(private readonly camera: THREE.PerspectiveCamera, lampMap: THREE.Texture | null, signMap: THREE.Texture | null, rect: THREE.Vector4, time: { value: number }) {
+  constructor(private readonly camera: THREE.PerspectiveCamera, lampMap: THREE.Texture | null, signMap: THREE.Texture | null, rect: THREE.Vector4, time: { value: number }, steps = 12) {
     super('CityHazeEffect', /* glsl */ `
       uniform mat4 uProjInv;
       uniform mat4 uCamWorld;
@@ -29,7 +30,7 @@ export class CityHazeEffect extends Effect {
       uniform float uGain;
       uniform float uAbsorb;
       uniform float uTime;
-      const int STEPS = 18;
+      const int STEPS = ${Math.max(4, Math.round(steps))};
       const float MAX_DIST = 2400.0;
 
       float hHash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
@@ -40,9 +41,9 @@ export class CityHazeEffect extends Effect {
         vec2 uv = (p.xz - uRect.xy) * uRect.zw;
         float inside = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
         vec3 near = ${v3(sodium)} * textureLod(uLampMap, uv, 4.0).r * 0.35 + textureLod(uSignMap, uv, 4.0).rgb * 0.55;
-        vec3 wide = ${v3(sodium)} * textureLod(uLampMap, uv, 7.0).r * 0.17 + textureLod(uSignMap, uv, 7.0).rgb * 0.37;
-        float y = max(p.y, 0.0);
         float city = textureLod(uLampMap, uv, 7.0).r;
+        vec3 wide = ${v3(sodium)} * city * 0.17 + textureLod(uSignMap, uv, 7.0).rgb * 0.37;
+        float y = max(p.y, 0.0);
         vec3 upper = ${v3(cool)} * city * 0.16;
         // Slowly moving low-level pockets, located by the practical street lights.
         float pocket = pow(0.5 + 0.5 * sin(p.x * 0.065 + sin(p.z * 0.09) * 2.0 - uTime * 0.07), 4.0);
