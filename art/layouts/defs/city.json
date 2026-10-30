@@ -25,6 +25,7 @@
           "buildings/midrise_f": 0.8,
           "buildings/midrise_g": 0.8,
           "buildings/estate_*": 1.2,
+          "buildings/restower_*": 2,
           "buildings/carpark_*": 0.6
         }
       },

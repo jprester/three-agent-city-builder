@@ -59,6 +59,7 @@ runtime code. No hex literals in generators. Add a named color there first.
 | `sidewalk` | pavements |
 | `paint` | worn road markings |
 | `paint_mint`, `paint_salmon`, `paint_cream`, `paint_blue` | faded paint on old residential slabs (desaturated; added 2026-09-25 with the building pass) |
+| `clad_terracotta`, `clad_cream`, `clad_charcoal` | cladding of residential point towers (added 2026-10-28 from the Hong Kong night photos) |
 
 Legacy keys still referenced by the template's sample generators and defs are
 kept as aliases of the colors above: `concrete_light` = `tile_stained`,

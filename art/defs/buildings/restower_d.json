@@ -1,0 +1,27 @@
+{
+  "generator": "buildings/restower",
+  "seed": 704,
+  "params": {
+    "width_bays": 5,
+    "depth_bays": 6,
+    "floors": 34,
+    "notch": 0,
+    "slots": [
+      1,
+      3
+    ],
+    "slot_depth": 1,
+    "tint": 0.55,
+    "plant_bays": [
+      3,
+      2
+    ],
+    "base_floor": false,
+    "fin_width": 0.6
+  },
+  "lods": [
+    {
+      "distance": 160
+    }
+  ]
+}

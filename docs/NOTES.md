@@ -946,3 +946,39 @@ commercial buildings repeated the same 1:1 rectangular window.
   budget; the five comparisons fail only because baselines are absent. No baseline was
   approved.
 - Shots and comparisons: `docs/progress/bridges-and-windows/`.
+
+## Review against the HK/Tokyo travel photos (2026-10-28)
+Fresh shots, no code changes. Compared with the nine new photos in `art/style/references/IMG_*`.
+
+- **Residential towers are missing.** The night photos (IMG_5419/5422) are dominated by slender
+  30–50-floor residential point towers with notched plans: deep vertical slots between the wings
+  read as dark lines. Their colour varies (terracotta, cream tile, dark glass) and 50–60 % of the
+  windows are lit. Our high-rises are all office towers, and the slabs are one uniform dark grey.
+  `rooftops` and `skyline` read as a grey mass with about 25 % of windows lit.
+- **The sky is the wrong colour.** The photos show a heavy low cloud deck lit brown/orange from below,
+  with a dark mountain ridge behind the towers. Our sky is a uniform cool blue-grey over a flat sea horizon.
+- **Office towers look like wireframes.** Every tower has white edge strips (`tower-detail`). In IMG_5507
+  offices are almost fully lit in cool white, with the crown edge as the one lit line. Residential
+  windows are warm and offices cool, which separates the two at a glance.
+- **Old walk-up facades are flat.** IMG_5292 shows window hoods, horizontal grey bands, boxed bay
+  windows, an AC unit under almost every window and a curved corner. Ours have flush windows and
+  sparse AC units.
+- **Aerial view:** the city is a disc with an even grid of gaps. The photos show continuous density
+  broken by dark tree masses (parks). The three supertalls cluster at similar heights; the harbour
+  photo has one clear hero.
+- **Canyon:** the footbridge across the street is a blank black box over the vanishing point.
+  Shopfronts are empty white light boxes. Near rain streaks still read as scratches.
+- `frozen time is reproducible` failed by 1 pixel in this run.
+
+### Residential towers (2026-10-28)
+- **What changed:** 48 point towers now stand in the old core (`restower_a..d`, 34–48 floors,
+  110–160 m). `skyline`, `rooftops` and `aerial` change the most: the core is no longer a flat
+  mat under the office towers. There is a middle height band, and the terracotta towers with
+  dense warm windows read close to `ref-hk-residential-night.jpg`.
+- **Still weak:** at shot distance the slots barely read as dark vertical lines; they are 3.2 m
+  wide and only show from oblique angles. Cream and charcoal cladding are hard to tell from plain
+  tile at night. No shot frames a tower closely yet. Crowns are generic (plant box, tank, masts).
+- **Side effect:** extra catalogue entries shift the layout RNG, so every shot changed. The
+  canyon keeps its structure, but its sign set differs (e.g. the big red horizontal sign on the
+  right is gone).
+- Shots: `docs/progress/residential-towers/`. Baselines not approved.

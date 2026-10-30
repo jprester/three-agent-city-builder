@@ -30,13 +30,16 @@ _PREVIEW = {
     "atlas": "glass_dark",
     "screen": "sign_cyan",
     "deck": "fluorescent",
+    "tower_res": "clad_terracotta",
 }
 
 ATTRIBUTE = "Surface"
 PREVIEW_ATTRIBUTE = "Preview"
 
 
-WINDOW_KINDS = ("residential", "office", "curtain")
+WINDOW_KINDS = ("residential", "office", "curtain", "tower_res")
+# Window kinds that share another kind's cell size.
+CELL_OF = {"tower_res": "residential"}
 
 # Opening pattern codes (must match openCol() in src/materials/facade.ts). Openings are
 # whole cell columns, identical on every floor: structure is ordered, life inside varies.
@@ -100,7 +103,7 @@ def surf(ctx, kind, fill=1.0, tint=0.0, cols=None):
 
 def cols_of(ctx, kind, width):
     """Face width in whole window cells of `kind` (1 for non-window kinds)."""
-    cell = ctx.facade["cells"].get(kind)
+    cell = ctx.facade["cells"].get(CELL_OF.get(kind, kind))
     return max(1, int(round(width / cell["w"]))) if cell else 1
 
 

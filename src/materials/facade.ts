@@ -81,6 +81,7 @@ const DEFINES = /* glsl */ `
 #define T_ATLAS ${T.atlas}
 #define T_SCREEN ${T.screen}
 #define T_DECK ${T.deck}
+#define T_TOWER_RES ${T.tower_res}
 const vec2 CELL_RES = vec2(${f(C.residential.w)}, ${f(C.residential.h)});
 const vec2 CELL_OFFICE = vec2(${f(C.office.w)}, ${f(C.office.h)});
 const vec2 CELL_CURTAIN = vec2(${f(C.curtain.w)}, ${f(C.curtain.h)});
@@ -100,6 +101,7 @@ const vec3 P_SKY = ${glslColor('sky')};
 const vec3 P_CYAN = ${glslColor('sign_cyan')};
 const vec3 P_AMBER = ${glslColor('sign_amber')};
 const vec3 P_PAINT[4] = vec3[4](${glslColor('paint_mint')}, ${glslColor('paint_salmon')}, ${glslColor('paint_cream')}, ${glslColor('paint_blue')});
+const vec3 P_CLAD[3] = vec3[3](${glslColor('clad_terracotta')}, ${glslColor('clad_cream')}, ${glslColor('clad_charcoal')});
 const vec4 TF_RECT[${TF_COUNT}] = vec4[${TF_COUNT}](
   ${TF_RECT});
 const vec4 TF_DIM[${TF_COUNT}] = vec4[${TF_COUNT}](
@@ -171,6 +173,8 @@ varying vec2 vRawUv;
 
 // World-space shading normal chosen by the surface code, applied in normal_fragment_maps.
 vec3 fNormalW;
+// Per-building share of lit residential windows (min, max); residential towers raise it.
+vec2 fLitRange = vec2(0.25, 0.55);
 
 float fHash(vec2 p) {
   vec3 p3 = fract(vec3(p.xyx) * 0.1031);
@@ -315,7 +319,7 @@ float openFrac(float g) {
 vec3 cellLight(int type, vec2 cid, float fill, float seed) {
   float s = seed * 97.13;
   if (openCol(fill, cid.x) < 0.5) return vec3(0.0);
-  float litRatio = mix(0.25, 0.55, fract(seed * 7.31));
+  float litRatio = mix(fLitRange.x, fLitRange.y, fract(seed * 7.31));
   if (type == T_OFFICE || type == T_CURTAIN) {
     litRatio *= type == T_CURTAIN ? 0.3 : 0.5;
     float floorOn = fHash(vec2(cid.y, floor(cid.x / 7.0) + s + 3.1));
@@ -359,7 +363,7 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
 
   float s = seed * 97.13;
   float present = openCol(fill, cid.x);
-  float litRatio = mix(0.25, 0.55, fract(seed * 7.31));
+  float litRatio = mix(fLitRange.x, fLitRange.y, fract(seed * 7.31));
   float baseRatio = litRatio;
   if (type == T_OFFICE || type == T_CURTAIN) {
     litRatio *= type == T_CURTAIN ? 0.3 : 0.5;
@@ -456,6 +460,13 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
 // Replaces color_fragment (vertex colors are data, not albedo).
 const FRAGMENT_SURFACE = /* glsl */ `
 int fType = int(vSurf.r * 16.0);
+// Residential towers shade as residential walls, with more windows lit (the night photos show
+// 50-60 %) and a cladding color instead of faded paint.
+bool fTowerRes = fType == T_TOWER_RES;
+if (fTowerRes) {
+  fType = T_RES;
+  fLitRange = vec2(0.48, 0.68);
+}
 float fFill = vSurf.g;
 float fTint = vSurf.b;
 vec2 fUv = vFacadeUv;
@@ -485,7 +496,11 @@ vec3 fBase = fWall.rgb * fTintCol * mix(0.3, 0.6, fTint) * (0.75 + 0.35 * fract(
 float fStreak = fNoise(vec2(fUv.x * 2.1 + fSeed * 50.0, fUv.y * 0.04)) * fNoise(vec2(fUv.x * 0.7, fUv.y * 0.3 + fSeed * 9.0));
 float fGrime = 1.0 - 0.55 * smoothstep(0.15, 0.6, fStreak) - 0.2 * (1.0 - smoothstep(0.0, 12.0, vFWorld.y));
 // Old residential slabs: a third get faded paint over the tile/concrete.
-if ((fType == T_RES || fType == T_CAGE || fType == T_TRIM) && fract(fSeed * 41.3) < 0.45) {
+if (fTowerRes) {
+  // Terracotta, cream tile or charcoal; a quarter keep the plain tile/concrete.
+  float k = fract(fSeed * 17.9);
+  if (k < 0.75) fBase = mix(fBase, P_CLAD[int(k / 0.25)] * mix(0.45, 0.75, fTint) * dot(fWall.rgb, vec3(0.5)) * 2.0, 0.85);
+} else if ((fType == T_RES || fType == T_CAGE || fType == T_TRIM) && fract(fSeed * 41.3) < 0.45) {
   vec3 pc = P_PAINT[int(fract(fSeed * 17.9) * 4.0)];
   fBase = mix(fBase, pc * mix(0.45, 0.75, fTint) * dot(fWall.rgb, vec3(0.5)) * 2.0, 0.8);
 }
