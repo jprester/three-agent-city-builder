@@ -39,7 +39,7 @@ export function captureGlassEnvironment(renderer: THREE.WebGLRenderer, scene: TH
 }
 
 /** Height of the glass capture (m): mid-height of the tower district. */
-const GLASS_PROBE_Y = 140;
+export const GLASS_PROBE_Y = 140;
 
 /** The point within 150 m of the tower district's center farthest from every building taller than the probe. */
 export function glassProbePosition(layout: Layout | null): THREE.Vector3 {

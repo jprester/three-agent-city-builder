@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import facade from '../../art/style/facade.json';
 import palette from '../../art/style/palette.json';
+import { GLASS_PROBE_Y } from '../scene/environment-map';
 import { SCREEN_COLS, SCREEN_COUNT, SCREEN_ROWS } from '../scene/screens';
 import { TOWER_BUNDLES, type FacadeTextures } from './textures';
 
@@ -95,6 +96,10 @@ const vec3 P_GLASS = ${glslColor('glass_dark')};
 const vec3 P_TUNGSTEN = ${glslColor('tungsten')};
 const vec3 P_FLUORESCENT = ${glslColor('fluorescent')};
 const vec3 OFFICE_WHITE = ${glslColor('office_white')};
+// Height of the startup glass cube capture and the typical roof line of the old core, for the
+// street-canyon reflection in glassReflection().
+const float GLASS_CAPTURE_Y = ${f(GLASS_PROBE_Y)};
+const float CANYON_TOP = 70.0;
 const vec3 P_TV = ${glslColor('tv_blue')};
 const vec3 P_SODIUM = ${glslColor('sodium')};
 const vec3 P_RED = ${glslColor('sign_red')};
@@ -346,16 +351,27 @@ vec3 cellLight(int type, vec2 cid, float fill, float seed) {
 // Glass reflects the city: the startup cube capture along the reflected view ray, blurred by
 // roughness and by the ray's spread over the pixel (so distant towers show a soft average
 // instead of shimmering). Fresnel: faint head-on, strong at grazing angles. Lit rooms
-// (emit) show through the reflection.
-vec3 glassReflection(vec3 v, vec3 n, float vtz, float rough, vec3 emit) {
+// (emit) show through the reflection. f0: reflectance head-on (plain glass 0.18, coated more).
+// street > 0: the pane stands in a street canyon of about that half-width; see below.
+vec3 glassReflection(vec3 v, vec3 n, float vtz, float rough, vec3 emit, float f0, vec3 wp, float street) {
   vec3 rdir = reflect(-v, n);
   vec3 envC = skyRefl(rdir);
   if (uGlassOn > 0.5) {
     float spread = length(fwidth(rdir)) * 256.0;
     float lod = clamp(rough * 4.0 + log2(max(spread, 1.0)), 0.0, 7.0);
-    envC = textureLod(uGlassEnv, rdir, lod).rgb;
+    vec3 look = rdir;
+    if (street > 0.0) {
+      // The capture is taken high in the tower district, so a ray reflected upward from a low
+      // pane finds only sky there; in the street it would hit the facades across the road.
+      // Where the ray meets a virtual ring of buildings (radius = street) below CANYON_TOP,
+      // look toward the horizon at that hit's height instead, where the capture shows lit city.
+      float hy = wp.y + rdir.y * street / max(length(rdir.xz), 0.05);
+      vec3 across = normalize(vec3(rdir.x, clamp((hy - GLASS_CAPTURE_Y) / 250.0, -0.45, 0.15), rdir.z));
+      look = normalize(mix(across, rdir, smoothstep(CANYON_TOP - 20.0, CANYON_TOP + 15.0, hy)));
+    }
+    envC = textureLod(uGlassEnv, look, lod).rgb;
   }
-  float fres = 0.18 + 0.82 * pow(1.0 - clamp(vtz, 0.0, 1.0), 4.0);
+  float fres = f0 + (1.0 - f0) * pow(1.0 - clamp(vtz, 0.0, 1.0), 4.0);
   float roomLit = clamp(dot(emit, vec3(0.3, 0.5, 0.2)) * 1.5, 0.0, 1.0);
   return envC * fres * (1.0 - 0.75 * roomLit) * uGlassGain;
 }
@@ -611,7 +627,7 @@ if (fType == T_ATLAS) {
   fNormalW = normalize(fT * n.x + fB * n.y + normalize(vFNormal) * max(n.z, 0.2));
   // Glass reflects the city, rippled by the pane normals (see glassReflection).
   float glassAmt = 1.0 - smoothstep(0.3, 0.6, dr.a);
-  fEmit += glassAmt * glassReflection(fV, fNormalW, fVt.z, fRough, fEmit);
+  fEmit += glassAmt * glassReflection(fV, fNormalW, fVt.z, fRough, fEmit, 0.18, vFWorld, 0.0);
 } else if (fType == T_RES || fType == T_OFFICE || fType == T_CURTAIN || fType == T_CAGE) {
   vec3 wEmit, filteredEmit, avgEmit, wSpill, wAvgSpill; float wMask, wFrame, wFrac, wAround, filteredMask;
   windowLayer(fType == T_CAGE ? T_RES : fType, fUv, fFw, fType == T_CAGE ? OPEN_GRID : fFill, fSeed, fVt,
@@ -632,7 +648,17 @@ if (fType == T_ATLAS) {
   fBase = mix(fBase, P_METAL * 1.3, wFrame * detail);
   fRough = mix(fRough, 0.15, m * (1.0 - wFrame));
   fEmit = e;
-  if (fGlass) fEmit += m * (1.0 - wFrame * detail) * glassReflection(fV, fNormalW, fVt.z, fRough, e);
+  if (fGlass) {
+    // Coated curtain-wall glass reflects strongly even head-on, and no two panes are quite
+    // coplanar: a small per-pane tilt makes neighbors catch different parts of the city (it
+    // fades with the window detail, before it can shimmer). Spandrel glass is back-painted:
+    // the same reflection, weaker, with nothing lit behind it.
+    vec2 pane = floor(fUv / CELL_CURTAIN);
+    vec2 tilt = (vec2(fHash(pane + fSeed * 7.0), fHash(pane + fSeed * 7.0 + 3.7)) - 0.5) * 0.08 * detail;
+    vec3 pn = normalize(fNormalW + fT * tilt.x + fB * tilt.y);
+    vec3 r = glassReflection(fV, pn, fVt.z, fRough, e, 0.4, vFWorld, 28.0);
+    fEmit += (1.0 - wFrame * detail) * mix(0.45, 1.0, m) * r;
+  }
   // Window light on the surrounding wall (lights the wall's own albedo).
   fWallLight += mix(wSpill, wAvgSpill, toAvg);
   if (fType == T_CAGE) {

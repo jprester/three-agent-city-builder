@@ -999,3 +999,14 @@ Fresh shots, no code changes. Compared with the nine new photos in `art/style/re
   most common because it fits the most lots.
 - **Flythrough:** the curve-based lift (`liftClear`) leaves canyon and crane-up keys unchanged. Orbit
   heights move by 3–27 m.
+
+### Glass reflections (2026-10-30, human feedback)
+- **Feedback:** the glass buildings' dark (unlit) panes should be more reflective up close.
+- **Cause:** plain-glass Fresnel (18 % head-on), and the single cube capture at 140 m: from the
+  street, upward reflections land on its sky.
+- **Change:** coated reflectance, per-pane tilt, spandrel reflection and a street-canyon parallax
+  approximation (glass skins only; the atlas towers keep their reflection). Up close, unlit panes
+  now show warm reflected city light that varies pane to pane, with the far faces darker blue.
+- **Still weak:** the reflection is the tower district seen from one point, not the actual street.
+  Signs and lamps directly across the road never appear in the glass. A proper fix is a few local
+  probes or screen-space reflections, both heavier.
