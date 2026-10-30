@@ -67,7 +67,9 @@ kept as aliases of the colors above: `concrete_light` = `tile_stained`,
 
 ## References
 Mood images live in `references/`. Describe what each one is for in a line
-below, so agents know what to take from it.
+below, so agents know what to take from it. Commit only downscaled copies (long edge
+1600 px, metadata stripped, `ref-<place>-<subject>.jpg`); full-resolution originals go in
+the gitignored `references/_raw/`.
 
 - `ref-skyline-blue.png` — skyline composition: many slender towers of very different
   heights, thin vertical LED lines on a few, big screens on some faces, deep blue sky.
@@ -86,3 +88,29 @@ below, so agents know what to take from it.
 - `ref-hk-harbour-panorama.jpg` — real Hong Kong from above (human, 2026-10-24): residential
   towers frame a park/water gap; the far skyline is a low band with a few landmark crowns,
   not a uniform wall. Use for aerial composition, negative space and the supertall hierarchy.
+- `ref-hk-residential-night.jpg`, `ref-hk-residential-night-wide.jpg`: real Hong Kong
+  residential district at night (human, 2026-10-28). Slender 30–50-floor point towers with
+  notched plans whose recessed slots read as dark vertical lines. Mixed cladding (terracotta,
+  cream tile, dark glass) and 50–60 % of windows lit, mostly warm with some cool white. A low
+  cloud deck lit brown-orange from below, a dark mountain ridge behind. Use for residential
+  towers, lit-window density and sky colour.
+- `ref-hk-residential-towers-day.jpg`: the same tower type by day (human, 2026-10-28):
+  plan notches, balcony stacks, roof water tanks and masts, low walk-ups below. Use for
+  residential tower massing and roof silhouettes.
+- `ref-hk-walkup-corner-day.jpg`: old Hong Kong walk-up (human, 2026-10-28). White tile
+  with grey horizontal bands, window hoods, boxed bay windows, an AC unit under almost every
+  window, a curved corner over the shopfront. Use for old residential facade detail.
+- `ref-hk-office-tower-day.jpg`: Hong Kong office tower (human, 2026-10-28): dark
+  reflective glass between pale vertical mullion fins and a stepped top. Use for curtain-wall
+  rhythm.
+- `ref-hk-tram-boulevard-day.jpg`: Hong Kong boulevard from a footbridge (human,
+  2026-10-28). Glass towers stand on 3–6-storey podiums with canopies; a footbridge crosses
+  the road; tram tracks and planters run down the median. Use for podium/street structure
+  and footbridges.
+- `ref-tokyo-sign-buildings-day.jpg`, `ref-tokyo-street-day.jpg`: Tokyo electric-town
+  streets (human, 2026-10-28). Narrow buildings carry vertical stacks of signs, box
+  billboards crown the roofs, banded mid-rise offices. Use for sign stacking and rooftop sign
+  boxes (no real brands).
+- `ref-tokyo-office-night.jpg`: Tokyo office towers at night (human, 2026-10-28): offices
+  almost fully lit in cool white, a single lit crown edge, a few thin LED accent lines, a
+  warm cloud base. Use for office-tower night lighting.
