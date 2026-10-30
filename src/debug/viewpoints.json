@@ -13,5 +13,6 @@
   {"name": "skyline-wide", "anchor": "core", "position": [-460, 85, 95], "target": [180, 160, 0]},
   {"name": "architecture", "position": [-329.358, 22, -297.663], "target": [-324.041, 25, -285.202]},
   {"name": "tower-detail", "position": [15.182, 125, -191.426], "target": [120.531, 170, -228.863]},
-  {"name": "landmarks", "position": [100, 200, 450], "target": [200, 250, -100]}
+  {"name": "landmarks", "position": [100, 200, 450], "target": [200, 250, -100]},
+  {"name": "glass", "position": [-57, 4, -127], "target": [-72, 30, -150]}
 ]

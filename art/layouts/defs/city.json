@@ -26,6 +26,11 @@
           "buildings/midrise_g": 0.8,
           "buildings/estate_*": 1.2,
           "buildings/restower_*": 2,
+          "buildings/commercial_a": 0.5,
+          "buildings/commercial_b": 0.5,
+          "buildings/commercial_c": 0.45,
+          "buildings/commercial_d": 0.35,
+          "buildings/commercial_e": 0.2,
           "buildings/carpark_*": 0.6
         }
       },

@@ -48,6 +48,7 @@ runtime code. No hex literals in generators. Add a named color there first.
 | `fluorescent` | apartment tube light |
 | `tungsten` | warm interior light |
 | `tv_blue` | rare TV flicker |
+| `office_white` | cool white of lit office floors in glass commercial blocks (added 2026-10-30 from the Tokyo night photos) |
 | `sign_red`, `sign_amber` | neon accents |
 | `sign_cyan` | neon accent, used sparingly |
 | `haze` | fog and street-level haze (cool blue-grey since 2026-09-25, per the references) |

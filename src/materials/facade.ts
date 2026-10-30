@@ -82,6 +82,7 @@ const DEFINES = /* glsl */ `
 #define T_SCREEN ${T.screen}
 #define T_DECK ${T.deck}
 #define T_TOWER_RES ${T.tower_res}
+#define T_GLASS ${T.glass}
 const vec2 CELL_RES = vec2(${f(C.residential.w)}, ${f(C.residential.h)});
 const vec2 CELL_OFFICE = vec2(${f(C.office.w)}, ${f(C.office.h)});
 const vec2 CELL_CURTAIN = vec2(${f(C.curtain.w)}, ${f(C.curtain.h)});
@@ -93,6 +94,7 @@ const vec3 P_METAL = ${glslColor('metal_dark')};
 const vec3 P_GLASS = ${glslColor('glass_dark')};
 const vec3 P_TUNGSTEN = ${glslColor('tungsten')};
 const vec3 P_FLUORESCENT = ${glslColor('fluorescent')};
+const vec3 OFFICE_WHITE = ${glslColor('office_white')};
 const vec3 P_TV = ${glslColor('tv_blue')};
 const vec3 P_SODIUM = ${glslColor('sodium')};
 const vec3 P_RED = ${glslColor('sign_red')};
@@ -175,6 +177,11 @@ varying vec2 vRawUv;
 vec3 fNormalW;
 // Per-building share of lit residential windows (min, max); residential towers raise it.
 vec2 fLitRange = vec2(0.25, 0.55);
+// Office/curtain lighting: x = curtain lit multiplier, y = share of dark floors, z = share of
+// light pushed to cool office white. Glass commercial blocks raise all three.
+vec3 fOffice = vec3(0.3, 0.45, 0.0);
+// Glass commercial skins: continuous glazing, whole floors lit at an even brightness.
+bool fGlassSkin = false;
 
 float fHash(vec2 p) {
   vec3 p3 = fract(vec3(p.xyx) * 0.1031);
@@ -314,6 +321,11 @@ float openFrac(float g) {
   return n / (hi + 2.0);
 }
 
+// Office floors on glass skins are lit evenly; everywhere else each window has its own lamp.
+float officeIntensity(vec2 cid, float s) {
+  return fGlassSkin ? 1.1 + 0.35 * fHash(vec2(cid.y, floor(cid.x / 7.0)) + s + 2.9) : windowIntensity(cid, s);
+}
+
 // Light of the window in cell cid (0 if unlit): same hashes and rules as windowLayer, so
 // neighboring cells can contribute spill without seams at cell borders.
 vec3 cellLight(int type, vec2 cid, float fill, float seed) {
@@ -321,14 +333,31 @@ vec3 cellLight(int type, vec2 cid, float fill, float seed) {
   if (openCol(fill, cid.x) < 0.5) return vec3(0.0);
   float litRatio = mix(fLitRange.x, fLitRange.y, fract(seed * 7.31));
   if (type == T_OFFICE || type == T_CURTAIN) {
-    litRatio *= type == T_CURTAIN ? 0.3 : 0.5;
+    litRatio *= type == T_CURTAIN ? fOffice.x : 0.5;
     float floorOn = fHash(vec2(cid.y, floor(cid.x / 7.0) + s + 3.1));
-    litRatio *= floorOn < 0.45 ? 0.0 : floorOn > 0.9 ? 3.0 : 1.0;
+    litRatio *= floorOn < fOffice.y ? 0.0 : floorOn > 0.9 ? 3.0 : 1.0;
   }
   if (fHash(cid + s + 17.7) > litRatio) return vec3(0.0);
   float hTemp = fHash(cid + s + 5.3);
-  vec3 col = windowColor(hTemp);
-  return col * windowIntensity(cid, s);
+  vec3 col = mix(windowColor(hTemp), OFFICE_WHITE, fOffice.z);
+  return col * officeIntensity(cid, s);
+}
+
+// Glass reflects the city: the startup cube capture along the reflected view ray, blurred by
+// roughness and by the ray's spread over the pixel (so distant towers show a soft average
+// instead of shimmering). Fresnel: faint head-on, strong at grazing angles. Lit rooms
+// (emit) show through the reflection.
+vec3 glassReflection(vec3 v, vec3 n, float vtz, float rough, vec3 emit) {
+  vec3 rdir = reflect(-v, n);
+  vec3 envC = skyRefl(rdir);
+  if (uGlassOn > 0.5) {
+    float spread = length(fwidth(rdir)) * 256.0;
+    float lod = clamp(rough * 4.0 + log2(max(spread, 1.0)), 0.0, 7.0);
+    envC = textureLod(uGlassEnv, rdir, lod).rgb;
+  }
+  float fres = 0.18 + 0.82 * pow(1.0 - clamp(vtz, 0.0, 1.0), 4.0);
+  float roomLit = clamp(dot(emit, vec3(0.3, 0.5, 0.2)) * 1.5, 0.0, 1.0);
+  return envC * fres * (1.0 - 0.75 * roomLit) * uGlassGain;
 }
 
 // Window layer for residential / office / curtain facades (cage reuses residential).
@@ -342,6 +371,7 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
   // Residential variants stay inside the 0.8..2.4 x 0.9..2.45 physical reveal used by
   // slab_a/b/d, so a shader style can never punch outside a modelled opening.
   int winStyle = int(fHash(vec2(seed * 73.1, float(type) * 11.7 + 4.0)) * 4.0);
+  if (fGlassSkin) winStyle = winStyle < 2 ? 0 : 2;   // full glazing or a slim spandrel band
   vec4 r; // window rect x0, x1, y0, y1
   if (type == T_OFFICE) {
     if (winStyle == 0) r = vec4(0.08, cell.x - 0.08, 0.95, 2.95);          // wide punched
@@ -366,18 +396,20 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
   float litRatio = mix(fLitRange.x, fLitRange.y, fract(seed * 7.31));
   float baseRatio = litRatio;
   if (type == T_OFFICE || type == T_CURTAIN) {
-    litRatio *= type == T_CURTAIN ? 0.3 : 0.5;
+    litRatio *= type == T_CURTAIN ? fOffice.x : 0.5;
     baseRatio = litRatio;
     float floorOn = fHash(vec2(cid.y, floor(cid.x / 7.0) + s + 3.1));
-    litRatio *= floorOn < 0.45 ? 0.0 : floorOn > 0.9 ? 3.0 : 1.0;
+    litRatio *= floorOn < fOffice.y ? 0.0 : floorOn > 0.9 ? 3.0 : 1.0;
+    // Far away the dark floors average in too (glass skins have many of them).
+    if (fGlassSkin) baseRatio *= 1.0 - fOffice.y;
   }
   float hLit = fHash(cid + s + 17.7);
   float lit = step(hLit, litRatio) * present;
   float hTemp = fHash(cid + s + 5.3);
   float hMod = fHash(cid + s + 9.1);
   // Mostly warm tungsten; fluorescent and TV-blue as the minority.
-  vec3 col = windowColor(hTemp);
-  float inten = windowIntensity(cid, s);
+  vec3 col = mix(windowColor(hTemp), OFFICE_WHITE, fOffice.z);
+  float inten = officeIntensity(cid, s);
 
   vec2 q = (p - r.xz) / (r.yw - r.xz);   // 0..1 across the window
   vec2 wsize = r.yw - r.xz;
@@ -452,7 +484,7 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
   filteredEmit += filteredGlass * dark;
   float glassFrac = (glassRect.y - glassRect.x) * (glassRect.w - glassRect.z)
                   / (cell.x * cell.y) * barTransmission;
-  vec3 meanLit = windowColor(0.5) * 0.48;
+  vec3 meanLit = mix(windowColor(0.5), OFFICE_WHITE, fOffice.z) * 0.48;
   avgEmit = openFrac(fill) * glassFrac * (baseRatio * (type == T_RES ? 1.0 : 0.85) * meanLit + (1.0 - baseRatio) * dark);
 }
 `;
@@ -466,6 +498,15 @@ bool fTowerRes = fType == T_TOWER_RES;
 if (fTowerRes) {
   fType = T_RES;
   fLitRange = vec2(0.48, 0.68);
+}
+// Glass commercial blocks shade as curtain wall: most floors lit in cool office white (the
+// Tokyo night photos), and unlit panes reflect the city like the photographic towers.
+bool fGlass = fType == T_GLASS;
+if (fGlass) {
+  fType = T_CURTAIN;
+  fLitRange = vec2(0.85, 0.97);
+  fOffice = vec3(1.0, 0.3, 0.75);
+  fGlassSkin = true;
 }
 float fFill = vSurf.g;
 float fTint = vSurf.b;
@@ -568,21 +609,9 @@ if (fType == T_ATLAS) {
   fWallLight += emB * floorLit * 0.6;
   vec3 n = nm * 2.0 - 1.0;
   fNormalW = normalize(fT * n.x + fB * n.y + normalize(vFNormal) * max(n.z, 0.2));
-  // Glass reflects the city: the startup cube capture along the reflected view ray, rippled
-  // by the pane normals, blurred by pane roughness and by the ray's spread over the pixel (so
-  // distant towers show a soft average instead of shimmering). Fresnel: faint head-on, strong
-  // at grazing angles. Lit rooms show through the reflection.
+  // Glass reflects the city, rippled by the pane normals (see glassReflection).
   float glassAmt = 1.0 - smoothstep(0.3, 0.6, dr.a);
-  vec3 rdir = reflect(-fV, fNormalW);
-  vec3 envC = skyRefl(rdir);
-  if (uGlassOn > 0.5) {
-    float spread = length(fwidth(rdir)) * 256.0;
-    float lod = clamp(fRough * 4.0 + log2(max(spread, 1.0)), 0.0, 7.0);
-    envC = textureLod(uGlassEnv, rdir, lod).rgb;
-  }
-  float fres = 0.18 + 0.82 * pow(1.0 - clamp(fVt.z, 0.0, 1.0), 4.0);
-  float roomLit = clamp(dot(fEmit, vec3(0.3, 0.5, 0.2)) * 1.5, 0.0, 1.0);
-  fEmit += glassAmt * envC * fres * (1.0 - 0.75 * roomLit) * uGlassGain;
+  fEmit += glassAmt * glassReflection(fV, fNormalW, fVt.z, fRough, fEmit);
 } else if (fType == T_RES || fType == T_OFFICE || fType == T_CURTAIN || fType == T_CAGE) {
   vec3 wEmit, filteredEmit, avgEmit, wSpill, wAvgSpill; float wMask, wFrame, wFrac, wAround, filteredMask;
   windowLayer(fType == T_CAGE ? T_RES : fType, fUv, fFw, fType == T_CAGE ? OPEN_GRID : fFill, fSeed, fVt,
@@ -603,6 +632,7 @@ if (fType == T_ATLAS) {
   fBase = mix(fBase, P_METAL * 1.3, wFrame * detail);
   fRough = mix(fRough, 0.15, m * (1.0 - wFrame));
   fEmit = e;
+  if (fGlass) fEmit += m * (1.0 - wFrame * detail) * glassReflection(fV, fNormalW, fVt.z, fRough, e);
   // Window light on the surrounding wall (lights the wall's own albedo).
   fWallLight += mix(wSpill, wAvgSpill, toAvg);
   if (fType == T_CAGE) {

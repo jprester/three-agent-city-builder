@@ -982,3 +982,20 @@ Fresh shots, no code changes. Compared with the nine new photos in `art/style/re
   canyon keeps its structure, but its sign set differs (e.g. the big red horizontal sign on the
   right is gone).
 - Shots: `docs/progress/residential-towers/`. Baselines not approved.
+
+## Glass commercial blocks and tower accents (2026-10-30)
+- **What changed:** 56 glass mid-rises (`commercial_a..e`, 9–22 floors) in the old core. Skins are
+  rounded glass with fins, ribbon bands, a glass box with a rooftop sign, a set-back top with
+  a lattice crown, or a slim glass tower. Glass lights whole floors in office white against
+  the warm residential windows, and unlit panes reflect the city capture. On towers, full-height
+  corner LED strips are gone from the two tallest ordinary towers.
+- **Checked:** the `glass` viewpoint (new) against `ref-tokyo-glass-corner-night.jpg`. In the first
+  pass lit panes varied wildly per window and read as punched windows. Lighting is now per
+  floor, and those floors read as office floors. `tower-detail` no longer shows the wireframe edges.
+- **Still weak:** fins catch only warm street/bounce light and read copper, not pale. The reference's
+  fins glow from the lit floors behind them. Unlit glass reflections barely show from street level
+  looking up (they reflect dark sky). The tower-district attempt is reverted (orbit radius), so
+  the office district still has no low glass blocks between towers. Banded `commercial_b` is the
+  most common because it fits the most lots.
+- **Flythrough:** the curve-based lift (`liftClear`) leaves canyon and crane-up keys unchanged. Orbit
+  heights move by 3–27 m.

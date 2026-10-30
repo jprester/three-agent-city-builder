@@ -31,15 +31,16 @@ _PREVIEW = {
     "screen": "sign_cyan",
     "deck": "fluorescent",
     "tower_res": "clad_terracotta",
+    "glass": "glass_dark",
 }
 
 ATTRIBUTE = "Surface"
 PREVIEW_ATTRIBUTE = "Preview"
 
 
-WINDOW_KINDS = ("residential", "office", "curtain", "tower_res")
+WINDOW_KINDS = ("residential", "office", "curtain", "tower_res", "glass")
 # Window kinds that share another kind's cell size.
-CELL_OF = {"tower_res": "residential"}
+CELL_OF = {"tower_res": "residential", "glass": "curtain"}
 
 # Opening pattern codes (must match openCol() in src/materials/facade.ts). Openings are
 # whole cell columns, identical on every floor: structure is ordered, life inside varies.

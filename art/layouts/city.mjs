@@ -397,6 +397,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
 
   // ---- flythrough and bridges come before signs: bridges are structure, signs avoid them.
   const flythrough = hero ? buildFlythrough(hero, roads, instances, P, W, Dp) : undefined;
+  if (flythrough) flythrough.points = liftClear(flythrough.points, instances, 5, 6);
   const bridges = buildBridges(P.bridges, instances, roads, [], lamps, hero, flythrough, rng);
   // ---- fringe: the low-rise far field around the city, clear of the flythrough and of the
   // port viewpoint. Own random stream, so it never moves anything inside the city.
@@ -405,6 +406,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
     ? buildFringe(P.fringe, W, Dp, assets, flythrough, [portOrigin], mulberry32((seed ^ 0x0f21a9e5) >>> 0))
     : [];
   const skyLanes = buildSkyLanes(P.skyLanes, [...instances, ...fringe], bridges);
+  for (const lane of skyLanes) lane.points = liftClear(lane.points, [...instances, ...fringe], 12, 14);
   const traffic = trafficLanes(roads.map((r) => ({ id: r.id, cls: r.cls, width: r.width, a: r.a.map(r3), b: r.b.map(r3) })), seed)
     .map((l) => ({ ...l, speed: r3(l.speed), phase: r3(l.phase), length: r3(l.length), offset: r3(l.offset) }));
   const footBoxes = bridges.filter((b) => b.kind === 'foot').map((b) => ({
@@ -1005,8 +1007,12 @@ function instanceBox(i) {
  * points, the same curve three.js's CatmullRomCurve3 draws at runtime.
  */
 function sampleFlythrough(fly) {
-  if (!fly) return [];
-  const P = fly.points, n = P.length, out = [];
+  return fly ? sampleClosedCurve(fly.points).map((s) => s.p) : [];
+}
+
+/** Closed centripetal Catmull-Rom through P, about every 2 m: [{ p, k }] (k = segment start). */
+function sampleClosedCurve(P) {
+  const n = P.length, out = [];
   const d4 = (a, b) => Math.pow((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2, 0.25);
   for (let k = 0; k < n; k++) {
     const p0 = P[(k - 1 + n) % n], p1 = P[k], p2 = P[(k + 1) % n], p3 = P[(k + 2) % n];
@@ -1023,10 +1029,52 @@ function sampleFlythrough(fly) {
     const steps = Math.max(8, Math.ceil(dt1 * dt1 / 2));   // dt1² is the chord length
     for (let j = 0; j < steps; j++) {
       const t = j / steps;
-      out.push(poly.map(([c0, c1, c2, c3]) => c0 + t * (c1 + t * (c2 + t * c3))));
+      out.push({ p: poly.map(([c0, c1, c2, c3]) => c0 + t * (c1 + t * (c2 + t * c3))), k });
     }
   }
   return out;
+}
+
+/**
+ * Lifts control points of a closed curve until the curve itself, not just its control
+ * points, stays `lift` meters over every roof within `margin` meters of it. Between control
+ * points a Catmull-Rom curve swings sideways (orbits, lanes bulging around towers), which a
+ * check of the points or chords misses. Only heights change; the ground plan stays. A lifted
+ * point raises its neighbors until no leg from it climbs steeper than `grade` (rise over run);
+ * legs that were steep by design (the crane-up out of the canyon) are left alone.
+ */
+function liftClear(points, instances, margin, lift, grade = 0.6, iterations = 16) {
+  const boxes = instances.map((i) => ({ box: instanceBox(i), h: i.h }));
+  const P = points.map((p) => [...p]);
+  for (let it = 0; it < iterations; it++) {
+    let moved = false;
+    const lifted = [];
+    for (const { p, k } of sampleClosedCurve(P)) {
+      let need = 0;
+      for (const { box, h } of boxes) {
+        if (h + lift <= p[1] || h + lift <= need) continue;
+        if (G.dist(box.c, [p[0], p[2]]) > Math.hypot(box.hu, box.hv) + margin) continue;
+        if (G.insideConvex(G.obb(box.c, box.u, box.hu + margin, box.hv + margin).corners, [p[0], p[2]])) need = h + lift;
+      }
+      if (need <= p[1]) continue;
+      // Raise both ends of the segment by the shortfall (plus a little, to converge).
+      const up = need - p[1] + 1;
+      for (const j of [k, (k + 1) % P.length]) { P[j][1] += up; lifted.push(j); }
+      moved = true;
+    }
+    if (!moved) break;
+    // Spread each lift into its neighbors (raising only), outward from the lifted points.
+    const n = P.length;
+    while (lifted.length) {
+      const j = lifted.pop();
+      for (const o of [-1, 1]) {
+        const b = P[(j + o + n) % n];
+        const min = P[j][1] - grade * Math.hypot(P[j][0] - b[0], P[j][2] - b[2]);
+        if (b[1] < min - 0.01) { b[1] = min; lifted.push((j + o + n) % n); }
+      }
+    }
+  }
+  return P.map((p) => p.map(r3));
 }
 
 /**
