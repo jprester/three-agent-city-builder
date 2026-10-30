@@ -1044,3 +1044,17 @@ Fresh shots, no code changes. Compared with the nine new photos in `art/style/re
   bigger props at mid-room. Shops still use the old procedural room. The cards are untextured
   boxes (no fabric, wood grain or wallpaper).
 - Shots: `docs/progress/interiors/` (includes `atlas-preview.png` and a street-level view).
+
+### Aerial-view crawl (2026-10-30, human report: 11 fps orbiting out)
+- **Not the interiors:** the commit before them was just as slow at `aerial` (~1000 ms vs ~600 ms
+  per frame, uncapped).
+- **Cause, memory paging:** with RAM free, `aerial` runs at 16–18 ms. With the Mac swapping
+  (10.6–13.8 GB of swap in use, mostly VS Code helpers, browsers and my test runs), it takes
+  600–1000 ms. Wide views touch nearly all of the app's ~0.7–1 GB of GPU data every frame (sign
+  atlases ~260 MB, tower photos ~190 MB, city geometry), so the GPU pages. Street views touch less.
+- **Fixed:** dynamic resolution ignored frames over 250 ms, so it never stepped down in exactly
+  this case.
+- **Options to shrink the footprint:** GPU-compressed textures (KTX2/Basis, roughly 4–6× smaller in
+  GPU memory), smaller sign atlases on `med`/`low`, and dropping the decoded CPU copies of loaded
+  images. The ground's 13 reflection taps per pixel are also a real GPU cost when a lot of ground
+  is visible.

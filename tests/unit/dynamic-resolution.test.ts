@@ -20,6 +20,7 @@ describe('dynamic resolution', () => {
   it('steps back up once frames are fast, after a hold', () => {
     const d = new DynamicResolution({ max: 1.5, min: 0.85 }, () => {});
     let t = run(d, 0, 2, 30);
+    t = run(d, t, 0.3, 10);   // let a step still due from the slow phase land
     const low = d.ratio;
     expect(low).toBeLessThan(1.5);
     t = run(d, t, 2, 10);
@@ -44,11 +45,17 @@ describe('dynamic resolution', () => {
     expect(d.ratio).toBeLessThanOrEqual(1.375);
   });
 
+  it('steps down during a sustained crawl of very slow frames', () => {
+    const d = new DynamicResolution({ max: 1.5, min: 0.85 }, () => {});
+    run(d, 0, 10, 600);
+    expect(d.ratio).toBe(0.85);
+  });
+
   it('ignores pauses and spikes', () => {
     const d = new DynamicResolution({ max: 1.5, min: 0.85 }, () => {});
     run(d, 0, 5, 12);
     d.update(5.1, 5000);   // tab was hidden
-    d.update(5.2, 400);
+    d.update(5.2, 400);    // one slow frame
     run(d, 5.3, 1, 12);
     expect(d.ratio).toBe(1.5);
   });

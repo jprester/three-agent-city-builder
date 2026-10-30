@@ -24,6 +24,7 @@ export class DynamicResolution {
   ratio: number;
   private avg = 0;
   private fastSince = -1;
+  private slowSince = -1;
   private lastDown = -Infinity;
   private lastUp = -Infinity;
   private upDelay = 4;
@@ -37,14 +38,20 @@ export class DynamicResolution {
   /** Call once per frame with the real time (s) and the real frame interval (ms). */
   update(now: number, frameMs: number) {
     const o = this.o;
-    if (!(frameMs > 0) || frameMs > 250) return;   // paused or hidden tab: not a measurement
-    this.avg = this.avg === 0 ? frameMs : this.avg + (Math.min(frameMs, 100) - this.avg) * 0.08;
-    if (this.avg > o.slowMs && this.ratio > o.min && now - Math.max(this.lastDown, this.lastUp) > 0.75) {
+    // Over a second: a paused or hidden tab, not a measurement. Slow frames up to that count
+    // (capped), so a sustained crawl, e.g. a GPU paging under memory pressure, still steps down.
+    if (!(frameMs > 0) || frameMs > 1000) return;
+    const ms = Math.min(frameMs, 250);
+    this.avg = this.avg === 0 ? ms : this.avg + (ms - this.avg) * 0.08;
+    // Slow for half a second, not one hitch: a single long frame decays out of the average sooner.
+    if (this.avg > o.slowMs) { if (this.slowSince < 0) this.slowSince = now; } else this.slowSince = -1;
+    if (this.slowSince >= 0 && now - this.slowSince > 0.5 && this.ratio > o.min && now - Math.max(this.lastDown, this.lastUp) > 0.75) {
       // Undoing a recent step up: wait longer before the next try.
       this.upDelay = now - this.lastUp < 2 ? Math.min(this.upDelay * 2, 30) : 4;
       this.set(this.ratio - o.step);
       this.lastDown = now;
       this.fastSince = -1;
+      this.slowSince = -1;
       this.avg = 0;   // re-measure at the new resolution
       return;
     }
