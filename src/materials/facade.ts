@@ -365,7 +365,25 @@ float openFrac(float g) {
 
 // Office floors on glass skins are lit evenly; everywhere else each window has its own lamp.
 float officeIntensity(vec2 cid, float s) {
-  return fGlassSkin ? 1.1 + 0.35 * fHash(vec2(cid.y, floor(cid.x / 7.0)) + s + 2.9) : windowIntensity(cid, s);
+  return fGlassSkin ? 0.75 + 0.8 * fHash(vec2(cid.y, floor(cid.x / 7.0)) + s + 2.9) : windowIntensity(cid, s);
+}
+
+// Light colour of a lit office window. Glass skins pick a tone per floor group (one tenant):
+// mostly cool office white, some warm, some greener fluorescent, some half-dimmed, so distant
+// glass reads as floors of different offices instead of one grey slab.
+vec3 officeColor(vec2 cid, float s, float hTemp) {
+  if (!fGlassSkin) return mix(windowColor(hTemp), OFFICE_WHITE, fOffice.z);
+  float h = fHash(vec2(cid.y, floor(cid.x / 7.0)) + s + 8.3);
+  if (h < 0.45) return OFFICE_WHITE;
+  if (h < 0.7) return mix(OFFICE_WHITE, P_TUNGSTEN, 0.8);
+  if (h < 0.85) return mix(OFFICE_WHITE, P_FLUORESCENT, 0.85);
+  return OFFICE_WHITE * 0.4;
+}
+
+// Seen from afar a lit office floor is a bright ceiling band (lit panels) over darker desks.
+// q: height within the window (0..1). Mean over the window is ~1, so averages are unchanged.
+float ceilingBand(float q) {
+  return mix(0.5, 1.9, smoothstep(0.66, 0.88, q));
 }
 
 // Light of the window in cell cid (0 if unlit): same hashes and rules as windowLayer, so
@@ -381,8 +399,7 @@ vec3 cellLight(int type, vec2 cid, float fill, float seed) {
   }
   if (fHash(cid + s + 17.7) > litRatio) return vec3(0.0);
   float hTemp = fHash(cid + s + 5.3);
-  vec3 col = mix(windowColor(hTemp), OFFICE_WHITE, fOffice.z);
-  return col * officeIntensity(cid, s);
+  return officeColor(cid, s, hTemp) * officeIntensity(cid, s);
 }
 
 // Glass reflects the city: the startup cube capture along the reflected view ray, blurred by
@@ -461,7 +478,7 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
   float hTemp = fHash(cid + s + 5.3);
   float hMod = fHash(cid + s + 9.1);
   // Mostly warm tungsten; fluorescent and TV-blue as the minority.
-  vec3 col = mix(windowColor(hTemp), OFFICE_WHITE, fOffice.z);
+  vec3 col = officeColor(cid, s, hTemp);
   float inten = officeIntensity(cid, s);
 
   vec2 q = (p - r.xz) / (r.yw - r.xz);   // 0..1 across the window
@@ -482,6 +499,13 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
     }
     // Half the per-window brightness spread: at full spread bright rooms clip to a flat glow.
     inside = col * card * INTERIOR_GAIN * mix(1.0, inten, 0.5);
+    // Glass skins: once the card blurs (a pane only a few pixels across), the ceiling band
+    // takes over, so lit floors keep their structure instead of averaging to flat grey.
+    if (fGlassSkin) {
+      float band = smoothstep(0.04, 0.15, max(fw.x / cell.x, fw.y / cell.y));
+      vec3 floorLit = col * 0.34 * ceilingBand(q.y) * mix(1.0, inten, 0.5);
+      inside = mix(inside, floorLit, band);
+    }
   }
   // Blinds (slats), curtains (fabric glowing through), or clear: about a third covered, so
   // most lit windows show their room card.
@@ -533,6 +557,8 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
   // Glass skins light most floors, so their mid- and far-field average must match what a lit
   // pane actually shows up close (a room card, ~0.3) or whole facades read as white blocks.
   float glassFarLit = fGlassSkin ? 0.5 : 1.0;
+  // Rows line up across neighbors, so this cell's own height in the window gives the band.
+  float rowBand = fGlassSkin ? ceilingBand(clamp((p.y - r.z) / (r.w - r.z), 0.0, 1.0)) : 1.0;
   for (int j = -1; j <= 1; j++) for (int i = -1; i <= 1; i++) {
     vec2 o = vec2(float(i), float(j));
     vec3 L = cellLight(type, cid + o, fill, seed);
@@ -541,7 +567,7 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
     vec2 local = p - o * cell;
     float neighborPresent = openCol(fill, cid.x + o.x);
     float aperture = windowCoverage(local, glassRect, footprint) * barTransmission;
-    filteredEmit += L * aperture * 0.44 * glassFarLit;
+    filteredEmit += L * aperture * 0.44 * glassFarLit * rowBand;
     filteredGlass += neighborPresent * aperture;
     filteredMask += neighborPresent * windowCoverage(local, r, footprint);
   }
@@ -557,7 +583,8 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
   filteredEmit += filteredGlass * dark;
   float glassFrac = (glassRect.y - glassRect.x) * (glassRect.w - glassRect.z)
                   / (cell.x * cell.y) * barTransmission;
-  vec3 meanLit = mix(windowColor(0.5), OFFICE_WHITE, fOffice.z) * 0.48;
+  // Far away a floor is one pixel row: keep each floor group's own tone and brightness.
+  vec3 meanLit = (fGlassSkin ? officeColor(cid, s, 0.5) * officeIntensity(cid, s) : mix(windowColor(0.5), OFFICE_WHITE, fOffice.z)) * 0.48;
   avgEmit = openFrac(fill) * glassFrac * (baseRatio * (type == T_RES ? 1.0 : 0.85) * glassFarLit * meanLit + (1.0 - baseRatio) * dark);
 }
 `;
@@ -896,7 +923,7 @@ export function createFacadeMaterial(uniforms: FacadeUniforms): THREE.MeshStanda
       .replace('#include <normal_fragment_maps>', 'normal = normalize((viewMatrix * vec4(fNormalW, 0.0)).xyz);')
       .replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance = fEmit;');
   };
-  material.customProgramCacheKey = () => 'facade-v11';
+  material.customProgramCacheKey = () => 'facade-v12';
   return material;
 }
 
