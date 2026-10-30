@@ -14,7 +14,7 @@ Crowns (param "crown"):
   lattice   open white/steel lattice cage above the roof (Bank of China-like)
 Accents (param "accent"): "corners" (LED strips on every tier's vertical edges) or
 "stripes" (two vertical LED stripes on the front and back faces), in "accent_color"
-(facade.json fixture_colors). "screen": a video screen on the lowest tier's front,
+(facade.json fixture_colors); "accent_top_only" limits them to the top tier. "screen": a video screen on the lowest tier's front,
 covering that fraction of the face width (unused by current defs: the layout's vertical
 scaling would stretch it; tower billboards come from the layout's sign zones). Every crown gets red aviation lights.
 
@@ -51,7 +51,7 @@ def generate(ctx):
     shaft = height - base_top - 6.0
     tiers = ctx.p("tiers", [[0.6, 1], [0.28, 3], [0.12, 5]])
     tier_meta = []
-    for frac, inset in tiers:
+    for ti, (frac, inset) in enumerate(tiers):
         flat_roof(mb, ctx, w, d, z, tint, parapet=0.6)   # ledge left by the previous tier
         w, d = W - 2 * inset * cw, D - 2 * inset * cw
         h = max(ch, round(frac * shaft / ch) * ch)
@@ -62,7 +62,7 @@ def generate(ctx):
             tower_exoskeleton(mb, ctx, w, d, z, z + h, tint)
         elif ctx.p("structural_ribs", False):
             tower_structure(mb, ctx, w, d, z, z + h, tint)
-        accent = ctx.p("accent", None)
+        accent = ctx.p("accent", None) if ti == len(tiers) - 1 or not ctx.p("accent_top_only", False) else None
         if accent == "corners":
             corner_strips(mb, ctx, w, d, z, z + h, ctx.p("accent_color", "white"))
         elif accent == "stripes":

@@ -18,6 +18,7 @@
     ],
     "crown": "plant",
     "accent": "corners",
-    "accent_color": "blue"
+    "accent_color": "blue",
+    "accent_top_only": true
   }
 }
