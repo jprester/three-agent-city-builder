@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import facade from '../../art/style/facade.json';
 import palette from '../../art/style/palette.json';
+import interiors from '../../art/textures/interiors/interiors.json';
 import { GLASS_PROBE_Y } from '../scene/environment-map';
 import { SCREEN_COLS, SCREEN_COUNT, SCREEN_ROWS } from '../scene/screens';
 import { TOWER_BUNDLES, type FacadeTextures } from './textures';
@@ -45,6 +46,8 @@ export interface FacadeUniforms {
   uGlassOn: { value: number };
   /** Strength of the glass reflection (debug tuning). */
   uGlassGain: { value: number };
+  /** Room-card atlas behind lit windows (src/materials/textures.ts). */
+  uInteriors: { value: THREE.Texture | null };
 }
 
 const c = (name: keyof typeof palette) => new THREE.Color(palette[name]);
@@ -63,6 +66,16 @@ const TF_COUNT = towerFacades.length;
 const TF_RECT = towerFacades.map((t) => `vec4(${t.rect.map(f).join(', ')})`).join(',\n  ');
 const TF_DIM = towerFacades.map((t) => `vec4(${f(t.floor)}, ${f(t.bay)}, ${f(t.wrap[0])}, ${f(t.wrap[1])})`).join(',\n  ');
 
+// Room cards (art/textures/interiors, npm run interiors): room box (W, H, D, camera distance)
+// and tile rects in texture UVs (u0, v0, u1, v1; the texture loads flipped, so v0 is the
+// tile's bottom edge = the room's floor side).
+const [IA_W, IA_H] = interiors.size;
+const roomBox = (s: { width: number; height: number; depth: number; camera: number }) =>
+  `vec4(${f(s.width)}, ${f(s.height)}, ${f(s.depth)}, ${f(s.camera)})`;
+const tileList = (t: number[][]) => t.map(([x0, y0, x1, y1]) =>
+  `vec4(${f(x0 / IA_W)}, ${f(1 - y1 / IA_H)}, ${f(x1 / IA_W)}, ${f(1 - y0 / IA_H)})`).join(', ');
+const RES_SET = interiors.sets.residential, OFF_SET = interiors.sets.office;
+
 const DEFINES = /* glsl */ `
 #define T_RES ${T.residential}
 #define T_OFFICE ${T.office}
@@ -79,6 +92,15 @@ const DEFINES = /* glsl */ `
 #define T_DECK ${T.deck}
 #define T_TOWER_RES ${T.tower_res}
 #define T_GLASS ${T.glass}
+const vec4 RES_BOX = ${roomBox(RES_SET)};
+const vec4 OFF_BOX = ${roomBox(OFF_SET)};
+const int RES_CARDS = ${RES_SET.tiles.length};
+const int OFF_CARDS = ${OFF_SET.tiles.length};
+const vec4 RES_TILES[${RES_SET.tiles.length}] = vec4[${RES_SET.tiles.length}](${tileList(RES_SET.tiles)});
+const vec4 OFF_TILES[${OFF_SET.tiles.length}] = vec4[${OFF_SET.tiles.length}](${tileList(OFF_SET.tiles)});
+// Card pixels per meter of the room front, for the mip level.
+const float RES_PX_M = ${f((RES_SET.tiles[0][2] - RES_SET.tiles[0][0]) / RES_SET.width)};
+const float OFF_PX_M = ${f((OFF_SET.tiles[0][2] - OFF_SET.tiles[0][0]) / OFF_SET.width)};
 const vec2 CELL_RES = vec2(${f(C.residential.w)}, ${f(C.residential.h)});
 const vec2 CELL_OFFICE = vec2(${f(C.office.w)}, ${f(C.office.h)});
 const vec2 CELL_CURTAIN = vec2(${f(C.curtain.w)}, ${f(C.curtain.h)});
@@ -91,6 +113,9 @@ const vec3 P_GLASS = ${glslColor('glass_dark')};
 const vec3 P_TUNGSTEN = ${glslColor('tungsten')};
 const vec3 P_FLUORESCENT = ${glslColor('fluorescent')};
 const vec3 OFFICE_WHITE = ${glslColor('office_white')};
+// Room cards are rendered in neutral light (linear ~0.1-0.6); scales them to window brightness
+// while keeping them below the tone mapper's shoulder, so the furniture stays readable.
+const float INTERIOR_GAIN = 0.85;
 // Height of the startup glass cube capture and the typical roof line of the old core, for the
 // street-canyon reflection in glassReflection().
 const float GLASS_CAPTURE_Y = ${f(GLASS_PROBE_Y)};
@@ -159,6 +184,7 @@ uniform vec4 uLampRect;
 uniform float uWindowGain;
 uniform highp sampler2DArray uTowerDiff, uTowerEmit, uTowerNorm;
 uniform sampler2D uWalls;
+uniform sampler2D uInteriors;
 uniform sampler2D uSignMap;
 uniform sampler2D uScreens;
 uniform samplerCube uGlassEnv;
@@ -267,6 +293,27 @@ vec3 room(vec2 wp, vec2 wsize, vec3 vt, vec3 col, float h) {
   vec3 lamp = vec3(size.x * mix(0.25, 0.75, h), size.y - 0.1, size.z * 0.45);
   float light = 0.18 + 1.45 * exp(-dot(p - lamp, p - lamp) / 4.0);
   return col * paint * c * light;
+}
+
+// Room card behind a window: ray-cast the card's room box from the pane point ro (meters from
+// the room's front-left floor corner) along the tangent-space view vt, then project the hit
+// through the card camera into the tile, so walls, floor, ceiling and furniture all get
+// parallax from one image (tools/blender/render_interiors.py renders with the same camera).
+// Returns the card colour lit in neutral white; the caller tints it with the window's light.
+vec3 interior(vec4 box, vec4 tile, vec2 ro, vec3 vt, float pxPerM, vec2 fw) {
+  vec3 size = box.xyz;
+  vec3 o = vec3(clamp(ro, vec2(0.01), size.xy - 0.01), 0.0);
+  vec3 d = normalize(vec3(-vt.x, -vt.y, max(vt.z, 0.08)));
+  vec3 safeD = mix(vec3(-1.0), vec3(1.0), step(0.0, d)) * max(abs(d), vec3(0.00001));
+  vec3 tm = (step(0.0, d) * size - o) / safeD;
+  vec3 h = o + d * max(min(min(tm.x, tm.y), tm.z), 0.0);
+  vec2 c = size.xy * 0.5;
+  float scale = box.w / (box.w + h.z);   // card size of a meter at the hit's depth
+  vec2 q = clamp((c + (h.xy - c) * scale) / size.xy, 0.002, 0.998);
+  // Mip from the pane footprint in card pixels at that depth (the back wall is drawn smaller,
+  // so it has fewer card pixels per meter and needs a finer level).
+  float lod = log2(max(max(fw.x, fw.y) * pxPerM * scale, 1.0));
+  return textureLod(uInteriors, mix(tile.xy, tile.zw, q), lod).rgb;
 }
 
 // Shared window colour and brightness keep interior light and wall spill consistent.
@@ -417,16 +464,33 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
 
   vec2 q = (p - r.xz) / (r.yw - r.xz);   // 0..1 across the window
   vec2 wsize = r.yw - r.xz;
-  vec3 inside = room(p - r.xz, wsize, vt, col, fHash(cid + s + 21.0)) * inten;
-  // Blinds (slats), curtains (fabric glowing through), or clear.
-  if (hMod < 0.3) {
+  // Lit windows show a room card. Homes: one room per cell. Offices and glass: four cells share
+  // one wide room, so neighboring panes look into different parts of the same floor.
+  vec3 inside = vec3(0.0);
+  if (lit > 0.5) {
+    vec3 card;
+    if (type == T_RES) {
+      int k = int(fHash(cid + s + 21.0) * float(RES_CARDS));
+      card = interior(RES_BOX, RES_TILES[k], vec2(p.x - ((r.x + r.y) * 0.5 - RES_BOX.x * 0.5), p.y - 0.15), vt, RES_PX_M, fw);
+    } else {
+      float g = floor(cid.x / 4.0);
+      int k = int(fHash(vec2(g, cid.y) + s + 21.0) * float(OFF_CARDS));
+      float x = ((cid.x - g * 4.0) * cell.x + p.x) * OFF_BOX.x / (4.0 * cell.x);
+      card = interior(OFF_BOX, OFF_TILES[k], vec2(x, p.y - 0.2), vt, OFF_PX_M * 4.0 * cell.x / OFF_BOX.x, fw);
+    }
+    // Half the per-window brightness spread: at full spread bright rooms clip to a flat glow.
+    inside = col * card * INTERIOR_GAIN * mix(1.0, inten, 0.5);
+  }
+  // Blinds (slats), curtains (fabric glowing through), or clear: about a third covered, so
+  // most lit windows show their room card.
+  if (hMod < 0.18) {
     float slat = 0.3 + 0.7 * smoothstep(0.3, 0.7, fract(q.y * 12.0));
     slat = mix(slat, 0.65, smoothstep(0.015, 0.05, fw.y));   // slats ~13 cm: average before they alias
-    float drawn = step(1.0 - mix(0.35, 1.0, fract(hMod * 3.3)), q.y);
+    float drawn = step(1.0 - mix(0.35, 1.0, fract(hMod * 5.6)), q.y);
     inside = mix(inside, col * inten * 0.55 * slat, drawn);
-  } else if (hMod < 0.55) {
+  } else if (hMod < 0.3) {
     vec3 cloth = mix(vec3(0.82, 0.78, 0.68), vec3(0.48, 0.43, 0.37), fract(hMod * 17.0));
-    float cover = fBox(q.x, hMod > 0.42 ? -0.1 : 0.5, hMod > 0.42 ? 0.5 : 1.1, 0.02);
+    float cover = fBox(q.x, hMod > 0.24 ? -0.1 : 0.5, hMod > 0.24 ? 0.5 : 1.1, 0.02);
     float folds = mix(0.75 + 0.25 * sin(q.x * 40.0), 0.75, smoothstep(0.02, 0.06, fw.x));
     inside = mix(inside, col * cloth * inten * 0.5 * folds, cover);
   }
@@ -822,7 +886,7 @@ export function createFacadeMaterial(uniforms: FacadeUniforms): THREE.MeshStanda
       .replace('#include <normal_fragment_maps>', 'normal = normalize((viewMatrix * vec4(fNormalW, 0.0)).xyz);')
       .replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance = fEmit;');
   };
-  material.customProgramCacheKey = () => 'facade-v9';
+  material.customProgramCacheKey = () => 'facade-v10';
   return material;
 }
 
@@ -843,5 +907,6 @@ export function createFacadeUniforms(time: { value: number }, seed: number, text
     uGlassEnv: { value: null },
     uGlassOn: { value: 0 },
     uGlassGain: { value: 1.15 },
+    uInteriors: { value: t?.interiors ?? null },
   };
 }

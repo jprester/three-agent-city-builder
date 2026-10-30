@@ -1029,3 +1029,18 @@ Fresh shots, no code changes. Compared with the nine new photos in `art/style/re
   stalls, the 16–34-minute screenshot runs and the lock-up.
 - **Next if needed:** the street-level facade shader (3×3 window light-spill loop, room
   interiors) and the resolution-independent ~4–5 ms (reflection pass draws the city a second time).
+
+## Interior room cards (2026-10-30)
+- **What changed:** lit windows show rendered rooms instead of a procedural box. Homes have 16
+  cards (living rooms with a TV glow and altar lamp, bedrooms with clothes racks, kitchens,
+  storage, studies). Offices have 12 (open plan, meeting, server racks, vacant floors, lobbies).
+  `npm run interiors` re-renders them in about a minute when the machine is idle.
+- **Best result:** glass offices from below. Each pane shows the ceiling-panel grid, and it
+  continues across neighbouring panes because four windows share one room. Before, they were a
+  flat glow.
+- **Still weak:** homes seen head-on across a street read only as hints (a cabinet edge, a ceiling
+  corner). A window shows a ~1.6 m slice of back wall at ~50 px, and the cards' walls are pale.
+  Further steps: darker wall paints in the cards, people and silhouettes at window height, or
+  bigger props at mid-room. Shops still use the old procedural room. The cards are untextured
+  boxes (no fabric, wood grain or wallpaper).
+- Shots: `docs/progress/interiors/` (includes `atlas-preview.png` and a street-level view).

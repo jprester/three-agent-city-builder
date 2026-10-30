@@ -9,6 +9,7 @@ import skyDiff from '../../art/external/textures/glass_sky/diffuse_rough.webp?ur
 import skyEmit from '../../art/external/textures/glass_sky/emissive.webp?url';
 import skyNorm from '../../art/external/textures/glass_sky/normal.webp?url';
 import walls from '../../art/external/textures/walls.webp?url';
+import interiors from '../../art/textures/interiors/interiors.webp?url';
 import osaka from '../../art/external/textures/osaka.json';
 import realGlass from '../../art/external/textures/real_glass.json';
 import glassSky from '../../art/external/textures/glass_sky.json';
@@ -23,6 +24,8 @@ export interface FacadeTextures {
   normal: THREE.DataArrayTexture;
   /** Wall materials, 4×2 cells: diffuse + roughness (A). */
   walls: THREE.Texture;
+  /** Room cards behind lit windows (npm run interiors; tiles in interiors.json). */
+  interiors: THREE.Texture;
 }
 
 /**
@@ -73,11 +76,12 @@ export async function loadFacadeTextures(renderer: THREE.WebGLRenderer, anisotro
     if (repeat) t.wrapS = t.wrapT = THREE.RepeatWrapping;
     return t;
   };
-  const [diffuse, emissive, normal, wallTex] = await Promise.all([
+  const [diffuse, emissive, normal, wallTex, interiorTex] = await Promise.all([
     loadArray(renderer, [osakaDiff, glassDiff, skyDiff], true, anisotropy),
     loadArray(renderer, [osakaEmit, glassEmit, skyEmit], true, anisotropy),
     loadArray(renderer, [osakaNorm, glassNorm, skyNorm], false, anisotropy),
     load(walls, true),
+    load(interiors, true),
   ]);
-  return { diffuse, emissive, normal, walls: wallTex };
+  return { diffuse, emissive, normal, walls: wallTex, interiors: interiorTex };
 }
