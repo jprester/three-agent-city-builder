@@ -1,0 +1,18 @@
+{
+  "generator": "buildings/commercial",
+  "seed": 801,
+  "params": {
+    "width_bays": 8,
+    "depth_bays": 6,
+    "floors": 12,
+    "corner_radius": 6.0,
+    "fin_every": 2,
+    "fin_depth": 0.5,
+    "tint": 0.7
+  },
+  "lods": [
+    {
+      "distance": 160
+    }
+  ]
+}

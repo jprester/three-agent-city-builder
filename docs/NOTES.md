@@ -703,3 +703,358 @@ The live canyon renders, but the browser repeatedly warns that texture allocatio
 tries to use 17–18 units on a GPU supporting 16. Investigate sampler allocation and
 consolidate tower maps or remove unnecessary active samplers before adding textures.
 Passing triangle and program budgets does not cover that compatibility constraint.
+
+## Look pass — reference grade, rain and wet surfaces (2026-10-24)
+
+Compared the attached 4:3 reference with the same `?viewpoint=skyline` framing at HEAD
+and after the pass. It is a mood reference, not a pixel target: its camera, rain phase and
+compression differ, so I matched tonal hierarchy rather than exact values.
+The pass changes no geometry and rebuilds no assets.
+
+### What changed
+- **Grade.** Final grade after AgX in the existing tone-map pass: exposure 1.10,
+  saturation 0.90, contrast 1.00, 14 % highlight desaturation, 1 % black lift, cool
+  shadows and warm highlights. Grades in display space; a first linear-space version with
+  a 0.18 contrast pivot crushed 37–50 % of the frame to black. Exposed in `?debug=1`.
+- **Highlights.** Bloom threshold 1.0, intensity 0.85, radius 0.62. Tower windows:
+  1.95× emissive, 67 % of floors lit (was 82 %), per-bay variation. Fixture strips:
+  0.75, mixed 35 % toward white. Glass gain 1.15. The reference leaves window detail in
+  the image; the previous version bloomed every pane into a soft blob and let cyan strips
+  carry the skyline.
+- **Rain and wet surfaces.** Rain has an 8 mm half-width instead of 11 mm, 20k/9k/4k streaks instead
+  of 12k/6k/3k, fades from 3.5–8 m, and is cooler with sodium only near lamps. Residential,
+  office, cage, trim, metal and roof surfaces get a wet film: darker albedo, a 0.45
+  roughness floor and vertical runoff. No new sampler or shader program.
+- **Atmosphere and sky.** Haze keeps a small (4 %) transmittance term and cooler air light;
+  the cloud deck is slightly more visible. Directional sky light is 0.26 (was 0.27), a
+  small change.
+
+### Measurements (same 4:3 skyline framing, directional)
+| | mean | p10 | p50 | p99 | black | saturation |
+|---|---|---|---|---|---|---|
+| reference | 0.133 | 0.054 | 0.107 | 0.569 | 0.1 % | 0.338 |
+| before | 0.121 | 0.040 | 0.096 | 0.603 | 1.0 % | 0.383 |
+| after | 0.128 | 0.057 | 0.106 | 0.592 | 0.0 % | 0.364 |
+
+The pass removes the crushed base and lands close to the reference: p10 is 0.003 above and
+p50 0.001 below. The skyline still carries slightly more saturation than the reference
+(0.364 vs 0.338), which is the remaining colour gap.
+
+### Critique
+- **Strongest:** `canyon` and `fly-0` keep the sign colour but lose the flat teal wash;
+  `storefront` reads wetter, and `tower-detail` now shows facade structure instead of
+  bloom. `rooftops` and `horizon` are the most convincing night views.
+- **Worst regression:** `aerial` is darker and flatter than before. It still has the lit
+  city and fringe, but the warm streets have lost sparkle; this is the price of the window
+  and haze cuts. It needs a street-light/traffic-trail pass, not more exposure.
+- **Skyline composition:** the reference still has a denser, warmer window mass and a
+  darker foreground. Mine has a flat blue-grey low-rise foreground; the lift that saved the
+  blacks also reduced wall contrast there. The bright water tank/billboard back at the
+  bottom of `skyline` is still the one object that reads untextured.
+- **Rain:** thinner and more numerous, but still a uniform camera-relative overlay. It is
+  not sheltered by canopies or roofs, and close-up streaks are still straight lines rather
+  than irregular drops.
+- **Still missing:** steam at street level; occupied shopfronts; tower silhouette variety;
+  and the 17-sampler facade program still has no margin on 16-texture-unit GPUs. These are
+  the next content and engineering passes, not grade tweaks.
+- **Grade risk:** the display-space conversion is a local tone curve, not a LUT. It is
+  intentionally mild; pushing contrast or lift further flattens the foreground.
+
+### Validation
+- `npm run check`, `npm test` (69) and `npm run build` pass.
+- `npm run shots`: 14 views render non-black and within budget; the 14 comparisons fail
+  only because `tests/visual/baselines/` is still empty. The frozen-time reproducibility
+  test passes. Counts: 40 calls, max 1,082,136 triangles, 24 programs (rain accounts for
+  the +16k triangles over the previous 1,066,136); `low` is 24 calls, 21 programs, max
+  493,833 triangles. No baselines were approved.
+- 60 fps at 1280×720 on the M5 is unchanged for both presets (`build/perf.txt`).
+- Inspected all 14 shots, the 4:3 comparison, `?quality=low` and `?debug=1`.
+- Shots: `docs/progress/look-pass/` (`reference-vs-look.png`, `before-after-skyline.png`,
+  plus the key views).
+
+## Landmark towers and light hierarchy (2026-10-24)
+
+The human supplied three real Hong Kong night photos for reference. I added them to
+`art/style/references/` and the style bible, then used them for the tower district only:
+the old-core canyon keeps its neon and grime.
+
+### What changed
+- **Landmarks.** Added three fixed-height, non-scalable tower defs:
+  `tower_m` (lantern crown, 406 m), `tower_n` (pale exoskeleton with an X lattice crown,
+  367 m) and `tower_o` (stepped spire with a lit crown band, 418 m). Each is placed once on
+  a reserved tower-district block and excluded from the weighted tower catalogue. Ordinary
+  towers are now 155–269 m, so the three supertalls have a real height hierarchy.
+- **Crowns and ads.** Landmarks have no tower billboards, shaft campaigns or crown
+  lettering (`meta.crownSigns = false`); they read as architecture, not as sign blades.
+  Their crowns are lit with the existing fixture surface (white) and the top edges carry
+  red aviation lights.
+- **Light hierarchy.** Tower facade windows now light in tenant bands: groups of 4–9
+  floors switch together, with ~22% of groups nearly dark. The per-floor and per-bay
+  variation remain, and both fade to their mean before they alias at distance. Ordinary
+  fixture strips drop again from 0.75 to 0.65; the landmark crowns carry the accent.
+- **Viewpoint.** Added `?viewpoint=landmarks` (all three supertalls against the lower city).
+- **References.** `ref-hk-ifc-night.jpg`, `ref-hk-waterfront-night.jpg` and
+  `ref-hk-harbour-panorama.jpg` are in `art/style/references/` with one-line notes in the
+  style bible.
+- **Test harness.** The frozen-time test now waits 800 ms after `__READY` and pauses the
+  loop before capture. The heavier scene could otherwise compare two frames while one was
+  still settling; the 31-pixel, 1-level rain difference was a capture race, not animation.
+  Timeouts are raised to 180 s ready / 360 s test.
+
+### Critique
+- **Strongest:** `landmarks` has a clear hierarchy: spire left, lattice centre, lantern
+  right, all above a lower tower carpet. `skyline-wide` now reads as a few distinctive
+  towers rather than a wall of equal boxes. `tower-detail` and `fly-50` gain believable
+  dark floor bands.
+- **Lantern crown:** at skyline distance the IFC-like crown reads mostly as a white collar
+  with a dark cap; the vertical ribs are too fine to survive. It needs either thicker lit
+  ribs or a brighter inner lantern before it carries the comparison.
+- **Lattice body:** the crown X is legible, but the pale exoskeleton on the 367 m shaft
+  almost disappears against the dark glass. The BOC-like expression is only half sold.
+- **Spire:** the stepped silhouette and lit band read; the 55 m spire is thin enough to
+  vanish at 1280 px. This is acceptable at skyline distance, weaker in `landmarks`.
+- **Normal towers:** many are now low and dark; the tower district has lost some bulk. The
+  three landmarks gain, but the mid-ground between them and the low-rise fringe is quieter
+  than before. This is the intended trade, not an accident.
+- **Still missing from the photos:** water/harbour negative space, a warm underlit cloud
+  deck, and the residential foreground towers. Those are the next pass, not this one.
+- **No new content on landmarks' street faces:** they use the same atlas glass and street
+  podium as ordinary towers. A dedicated base treatment would help close views.
+
+### Validation
+- Blender previews inspected for all three assets (`front34`, `back34`, `top`):
+  `tower_m` 1358 tris / 31.5 KB, `tower_n` 456 / 12.1 KB, `tower_o` 1198 / 27.9 KB; all
+  within the 12k / 512 KB building budget.
+- `npm run check` and `npm run build` pass; `npm test` is 72 tests, including a new
+  landmark test: exactly three landmark instances, one of each asset, all at least 20 m
+  above every ordinary tower on three seeds.
+- `npm run shots`: 15 views render non-black and within budget — 40 calls, about 1.084M
+  triangles, 24 programs. The 15 visual comparisons fail only because
+  `tests/visual/baselines/` is empty. The frozen-time test now passes.
+- 60 fps at 1280×720 on the M5 for high and low in `build/perf.txt`. No baseline was
+  approved.
+- Shots: `docs/progress/landmarks/` (`landmarks.png`, `skyline-wide.png`, `skyline-43.png`,
+  `tower-detail.png`, `aerial.png`, `fly-50.png`, `previews.png`).
+
+### Landmark roof fix (2026-10-25)
+
+Human review: one landmark crown had no roof and looked transparent. The cause was the
+shared `flat_roof` helper: it builds a single upward-facing quad, so when a free-fly camera
+looked up through the open lattice/lantern cage it saw the culled underside and straight
+through to the city behind. Street-level and skyline views never exposed it.
+
+Added a closed `_cap` slab (top, underside and side faces, 0.45–0.6 m thick) at the shaft top
+and above the lattice/lantern crown. The three landmark assets were rebuilt. `tower_m` is now
+1340 tris / 31.2 KB, `tower_n` 438 / 12.0 KB, `tower_o` unchanged at 1198 / 27.9 KB.
+
+Verified from directly under (`roof-fixed.png`) and above (`roof-fixed-above.png`) the
+`tower_n` crown: the roof is now a solid dark slab from both sides; no city shows through.
+The caps also make the lantern crown's top closed from below. `npm run check` and `npm test`
+(72) pass. No baselines were approved.
+
+## Walking mode (2026-10-26)
+
+Human request: add a first-person walking mode to the city.
+
+### What changed
+- `walk` is the fourth camera mode (key `4`, `?camera=walk`). It uses the same pointer-lock
+  mouse look as free-fly but moves on the ground at 4.4 m/s, 9.2 m/s while Shift is held.
+- Eye height is 1.7 m. The camera samples the layout's block polygons (the sidewalk meshes in
+  `src/scene/streets.ts`) and follows the 0.15 m curb step smoothly instead of snapping.
+- Building footprints use the existing `pushOut` collision with a 0.35 m body radius and
+  roof-landing disabled. The walker slides along walls and cannot enter buildings or stand
+  on their roofs.
+- `?camera=walk` without an explicit viewpoint starts in the hero canyon (`canyon`
+  viewpoint), looking along the street.
+- The HUD now lists `4 Walk`, and the README documents the mode and URL parameter.
+- `SIDEWALK_HEIGHT` is exported from `src/systems/walk.ts` and shared with the street mesh, so
+  the walking surface and the visible curbs cannot drift apart.
+- `pushOut` gained optional `clearance` and `allowRoof` parameters. Fly behaviour is unchanged;
+  walking never chooses the roof escape.
+
+### Critique
+- **No prop collision.** The walker passes through guardrails, kiosks, bins and lamp posts;
+  only building footprints are obstacles. This is the biggest gap for a believable walk. Props
+  have footprints but no stored height, and adding all of them as obstacles risks invisible
+  snagging on small furniture; a curated obstacle set is the next step.
+- **No jump, stairs or gravity.** Ground is followed rather than simulated. Curbs work; roof
+  access and the elevated walkways do not. For a street-level walk that is acceptable, but it
+  should be stated.
+- **No head bob/footsteps.** The camera glides; it reads as a walking height but not yet as a
+  body. A tiny deterministic bob and footstep timing would help, but adds motion the quality
+  presets and shots would need to account for.
+- **Default start.** The hero canyon is the strongest walking start, but the initial camera
+  pitch comes from the fixed `canyon` viewpoint (looking up at signs); the player still has to
+  look down to see the pavement. A dedicated `walk` spawn with a level target would be better
+  once the props are collidable.
+- **First-person FOV.** It stays at the scene's 55° rather than a wider player FOV; changing it
+  would alter the camera during mode switches and needs a separate check.
+
+### Validation
+- `npm run check` and `npm run build` pass; `npm test` is 76 tests, including the no-roof
+  walker push-out and the sidewalk/road sampler tests.
+- Browser smoke test at `?camera=walk`: the HUD reports Walk and keyboard movement changes
+  the camera position. The headless browser rejects synthetic pointer lock, so look feel
+  was not exercised there; the software renderer is far below 60 fps, so speed and feel
+  need a hardware check.
+- A walking eye-level view is in `docs/progress/walk/canyon-walk.png`. No image baselines were
+  added or approved.
+
+## Bridges and window variety (2026-10-26)
+
+Human review: enclosed bridges looked like they were missing parts, and residential and
+commercial buildings repeated the same 1:1 rectangular window.
+
+### Bridges
+- **Cause:** each bridge face was built with a hand-ordered quad and a separately supplied
+  outward normal. Several faces were wound inward, so back-face culling removed them from
+  the side a player actually sees. The missing end caps and edge fascia made the remaining
+  ribbon read as an unfinished box.
+- **Fix:** `quad` now checks the geometric winding against the supplied normal and flips the
+  corner/UV order when they disagree. End caps close both ends, and a slim steel fascia runs
+  along the top and bottom of both long sides. The 23 bridges are still one merged mesh.
+- **Verified:** a unit test builds one bridge and checks every triangle is wound outward and
+  that the box has the expected extents; `docs/progress/bridges-and-windows/footbridge-compare.png`
+  shows the before/after from the same street camera.
+- **Still weak:** bridges have no visible supports, hangers or portal frames at the towers;
+  they still read as a floating tube. Interior silhouettes are only the office-window
+  shader. Those are structural-detail passes, not this fix.
+
+### Windows
+- **What changed:** each facade now picks one of four window families from its instance
+  seed. Residential gets tall-narrow, original square, wide letterbox and small punched
+  panes; office gets wide punched, tall narrow, square punch and ribbon windows; curtain
+  wall gets full, narrower and deeper-spandrel variants. Frames follow the family: transoms
+  on tall windows, two mullions on letterbox/ribbon windows, clean panes on punched ones.
+- **Physical constraint:** the three detailed slabs (`slab_a/b/d`) have modelled recesses of
+  0.8–2.4 × 0.9–2.45 m. Every residential variant sits inside that rectangle, so a shader
+  style can never open beyond a modelled reveal. Office/curtain cells have no physical
+  openings and vary more freely.
+- **Scope:** the style is per building and stable across floors and faces, which is what
+  real facades do; it is not per-window random noise. Shop podiums and the photographic
+  tower atlases are untouched.
+- **Still weak:** all styles remain rectangles; there are no arches, paired sashes, bay
+  openings or shutter geometry. Style 0 is still the original 1:1 family, so a facade that
+  happens to draw it looks unchanged. The style hash is per instance, not per district, so
+  adjacent buildings can still share a language. The `facade` comparison happens to land on
+  a style-0 building; `architecture` and `storefront` show the wider range better.
+
+### Validation
+- `npm run check` and `npm run build` pass; `npm test` is 78 tests, including the bridge
+  winding/end-cap test.
+- Re-shot `canyon`, `storefront`, `facade`, `architecture` and `fly-0`: all render within
+  budget; the five comparisons fail only because baselines are absent. No baseline was
+  approved.
+- Shots and comparisons: `docs/progress/bridges-and-windows/`.
+
+## Review against the HK/Tokyo travel photos (2026-10-28)
+Fresh shots, no code changes. Compared with the nine new photos in `art/style/references/IMG_*`.
+
+- **Residential towers are missing.** The night photos (IMG_5419/5422) are dominated by slender
+  30–50-floor residential point towers with notched plans: deep vertical slots between the wings
+  read as dark lines. Their colour varies (terracotta, cream tile, dark glass) and 50–60 % of the
+  windows are lit. Our high-rises are all office towers, and the slabs are one uniform dark grey.
+  `rooftops` and `skyline` read as a grey mass with about 25 % of windows lit.
+- **The sky is the wrong colour.** The photos show a heavy low cloud deck lit brown/orange from below,
+  with a dark mountain ridge behind the towers. Our sky is a uniform cool blue-grey over a flat sea horizon.
+- **Office towers look like wireframes.** Every tower has white edge strips (`tower-detail`). In IMG_5507
+  offices are almost fully lit in cool white, with the crown edge as the one lit line. Residential
+  windows are warm and offices cool, which separates the two at a glance.
+- **Old walk-up facades are flat.** IMG_5292 shows window hoods, horizontal grey bands, boxed bay
+  windows, an AC unit under almost every window and a curved corner. Ours have flush windows and
+  sparse AC units.
+- **Aerial view:** the city is a disc with an even grid of gaps. The photos show continuous density
+  broken by dark tree masses (parks). The three supertalls cluster at similar heights; the harbour
+  photo has one clear hero.
+- **Canyon:** the footbridge across the street is a blank black box over the vanishing point.
+  Shopfronts are empty white light boxes. Near rain streaks still read as scratches.
+- `frozen time is reproducible` failed by 1 pixel in this run.
+
+### Residential towers (2026-10-28)
+- **What changed:** 48 point towers now stand in the old core (`restower_a..d`, 34–48 floors,
+  110–160 m). `skyline`, `rooftops` and `aerial` change the most: the core is no longer a flat
+  mat under the office towers. There is a middle height band, and the terracotta towers with
+  dense warm windows read close to `ref-hk-residential-night.jpg`.
+- **Still weak:** at shot distance the slots barely read as dark vertical lines; they are 3.2 m
+  wide and only show from oblique angles. Cream and charcoal cladding are hard to tell from plain
+  tile at night. No shot frames a tower closely yet. Crowns are generic (plant box, tank, masts).
+- **Side effect:** extra catalogue entries shift the layout RNG, so every shot changed. The
+  canyon keeps its structure, but its sign set differs (e.g. the big red horizontal sign on the
+  right is gone).
+- Shots: `docs/progress/residential-towers/`. Baselines not approved.
+
+## Glass commercial blocks and tower accents (2026-10-30)
+- **What changed:** 56 glass mid-rises (`commercial_a..e`, 9–22 floors) in the old core. Skins are
+  rounded glass with fins, ribbon bands, a glass box with a rooftop sign, a set-back top with
+  a lattice crown, or a slim glass tower. Glass lights whole floors in office white against
+  the warm residential windows, and unlit panes reflect the city capture. On towers, full-height
+  corner LED strips are gone from the two tallest ordinary towers.
+- **Checked:** the `glass` viewpoint (new) against `ref-tokyo-glass-corner-night.jpg`. In the first
+  pass lit panes varied wildly per window and read as punched windows. Lighting is now per
+  floor, and those floors read as office floors. `tower-detail` no longer shows the wireframe edges.
+- **Still weak:** fins catch only warm street/bounce light and read copper, not pale. The reference's
+  fins glow from the lit floors behind them. Unlit glass reflections barely show from street level
+  looking up (they reflect dark sky). The tower-district attempt is reverted (orbit radius), so
+  the office district still has no low glass blocks between towers. Banded `commercial_b` is the
+  most common because it fits the most lots.
+- **Flythrough:** the curve-based lift (`liftClear`) leaves canyon and crane-up keys unchanged. Orbit
+  heights move by 3–27 m.
+
+### Glass reflections (2026-10-30, human feedback)
+- **Feedback:** the glass buildings' dark (unlit) panes should be more reflective up close.
+- **Cause:** plain-glass Fresnel (18 % head-on), and the single cube capture at 140 m: from the
+  street, upward reflections land on its sky.
+- **Change:** coated reflectance, per-pane tilt, spandrel reflection and a street-canyon parallax
+  approximation (glass skins only; the atlas towers keep their reflection). Up close, unlit panes
+  now show warm reflected city light that varies pane to pane, with the far faces darker blue.
+- **Still weak:** the reflection is the tower district seen from one point, not the actual street.
+  Signs and lamps directly across the road never appear in the glass. A proper fix is a few local
+  probes or screen-space reflections, both heavier.
+
+## Performance (2026-10-30, human: "really slow in FPV mode")
+- **Profile (M5, Metal, walk start, 2160×1350, uncapped):** 12–15 ms, GPU-bound, JS < 0.5 ms. About
+  half is the facade shader at street level. Post is about a third, the ground reflection about
+  15 %. Rain, glass reflections and signs each cost ≤ 1 ms.
+- **Fixed:** the facade shader used 17–18 texture units on a 16-unit GPU; the tower bundles are
+  now array textures, 11–12 units. Renders are identical (≤ 0.06 % RMSE, rain noise) and the
+  per-frame three.js warning is gone.
+- **Haze:** 12/10/8 steps by preset (was 18) and one read fewer per step. No visible change, and
+  no measurable speed-up on the M5 either; its coarse-mip reads hit cache. Kept for slower GPUs.
+- **Dynamic resolution:** this is the lever that works. On the same view, ratio 1.5 → 1.25 → 1.0
+  is 12.2–13 → 11.2 → 9.6 ms. About 4–5 ms per frame does not scale with resolution (geometry,
+  reflection pass, fixed post work). On a 2560×1600 window it dropped to 1.25 within a second
+  and held 58 fps without flicker.
+- **Not the app:** during profiling the machine was swapping heavily (8 GB compressed, about 300 MB
+  free right after the reset, with ~5 GB in VS Code extension helpers). That matches the multi-second
+  stalls, the 16–34-minute screenshot runs and the lock-up.
+- **Next if needed:** the street-level facade shader (3×3 window light-spill loop, room
+  interiors) and the resolution-independent ~4–5 ms (reflection pass draws the city a second time).
+
+## Interior room cards (2026-10-30)
+- **What changed:** lit windows show rendered rooms instead of a procedural box. Homes have 16
+  cards (living rooms with a TV glow and altar lamp, bedrooms with clothes racks, kitchens,
+  storage, studies). Offices have 12 (open plan, meeting, server racks, vacant floors, lobbies).
+  `npm run interiors` re-renders them in about a minute when the machine is idle.
+- **Best result:** glass offices from below. Each pane shows the ceiling-panel grid, and it
+  continues across neighbouring panes because four windows share one room. Before, they were a
+  flat glow.
+- **Still weak:** homes seen head-on across a street read only as hints (a cabinet edge, a ceiling
+  corner). A window shows a ~1.6 m slice of back wall at ~50 px, and the cards' walls are pale.
+  Further steps: darker wall paints in the cards, people and silhouettes at window height, or
+  bigger props at mid-room. Shops still use the old procedural room. The cards are untextured
+  boxes (no fabric, wood grain or wallpaper).
+- Shots: `docs/progress/interiors/` (includes `atlas-preview.png` and a street-level view).
+
+### Aerial-view crawl (2026-10-30, human report: 11 fps orbiting out)
+- **Not the interiors:** the commit before them was just as slow at `aerial` (~1000 ms vs ~600 ms
+  per frame, uncapped).
+- **Cause, memory paging:** with RAM free, `aerial` runs at 16–18 ms. With the Mac swapping
+  (10.6–13.8 GB of swap in use, mostly VS Code helpers, browsers and my test runs), it takes
+  600–1000 ms. Wide views touch nearly all of the app's ~0.7–1 GB of GPU data every frame (sign
+  atlases ~260 MB, tower photos ~190 MB, city geometry), so the GPU pages. Street views touch less.
+- **Fixed:** dynamic resolution ignored frames over 250 ms, so it never stepped down in exactly
+  this case.
+- **Options to shrink the footprint:** GPU-compressed textures (KTX2/Basis, roughly 4–6× smaller in
+  GPU memory), smaller sign atlases on `med`/`low`, and dropping the decoded CPU copies of loaded
+  images. The ground's 13 reflection taps per pixel are also a real GPU cost when a lot of ground
+  is visible.

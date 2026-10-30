@@ -10,13 +10,22 @@ Crowns (param "crown"):
   spire     slim spire with an aviation light
   plant     tall louvred mechanical floor
   slant     roof sloping down to one side
+  lantern   dark ribbed crown with a warm/white lit band and a tapered cap (IFC-like)
+  lattice   open white/steel lattice cage above the roof (Bank of China-like)
 Accents (param "accent"): "corners" (LED strips on every tier's vertical edges) or
 "stripes" (two vertical LED stripes on the front and back faces), in "accent_color"
-(facade.json fixture_colors). "screen": a video screen on the lowest tier's front,
+(facade.json fixture_colors); "accent_top_only" limits them to the top tier. "screen": a video screen on the lowest tier's front,
 covering that fraction of the face width (unused by current defs: the layout's vertical
 scaling would stretch it; tower billboards come from the layout's sign zones). Every crown gets red aviation lights.
-Width and depth are whole curtain cells (1.5 m)."""
-from lib.building import ac_cluster, antenna_cluster, aviation_lights, cell, corner_strips, crane, face_stripes, flat_roof, mast, screen, walls
+
+Landmarks: `scalable: false` keeps the generated height (the layout stops stretching it),
+`landmark: true` reserves it for the layout's rare landmark placement, and
+`crown_signs: false` keeps the crown architecture free of brand lettering. `exoskeleton`
+adds diagonal braces and corner columns over every tier (BOC-like). Width and depth are
+whole curtain cells (1.5 m)."""
+import math
+
+from lib.building import ac_cluster, antenna_cluster, aviation_lights, cell, corner_strips, crane, face_stripes, flat_roof, mast, screen, side_frame, walls
 from lib.architecture import tower_structure
 from lib.mesh import MeshBuilder
 from lib.surface import fixture, plan_uv, surf
@@ -42,16 +51,18 @@ def generate(ctx):
     shaft = height - base_top - 6.0
     tiers = ctx.p("tiers", [[0.6, 1], [0.28, 3], [0.12, 5]])
     tier_meta = []
-    for frac, inset in tiers:
+    for ti, (frac, inset) in enumerate(tiers):
         flat_roof(mb, ctx, w, d, z, tint, parapet=0.6)   # ledge left by the previous tier
         w, d = W - 2 * inset * cw, D - 2 * inset * cw
         h = max(ch, round(frac * shaft / ch) * ch)
         # [z0, z1, setback of this tier's walls from the footprint edge] for sign placement.
         tier_meta.append([round(z, 3), round(z + h, 3), round(inset * cw, 3)])
         walls(mb, ctx, w, d, z, z + h, z, [("atlas", 1.0, tint)] * 4)
-        if ctx.p("structural_ribs", False):
+        if ctx.p("exoskeleton", False):
+            tower_exoskeleton(mb, ctx, w, d, z, z + h, tint)
+        elif ctx.p("structural_ribs", False):
             tower_structure(mb, ctx, w, d, z, z + h, tint)
-        accent = ctx.p("accent", None)
+        accent = ctx.p("accent", None) if ti == len(tiers) - 1 or not ctx.p("accent_top_only", False) else None
         if accent == "corners":
             corner_strips(mb, ctx, w, d, z, z + h, ctx.p("accent_color", "white"))
         elif accent == "stripes":
@@ -73,8 +84,9 @@ def generate(ctx):
                              ctx.p("crane_height", 22.0), ctx.p("crane_jib", 34.0), ctx.p("crane_angle", 0.6)))
     mb.finish()
     # base: top of the office base (storefront zone below it) for the layout's sign zones.
-    ctx.meta.update(footprint=[W, D], height=top, family="tower", scalable=True, shader="facade", tiers=tier_meta, base=base_top,
-                    screen=bool(ctx.p("screen", 0)))
+    ctx.meta.update(footprint=[W, D], height=top, family="tower", scalable=ctx.p("scalable", True), shader="facade", tiers=tier_meta, base=base_top,
+                    screen=bool(ctx.p("screen", 0)), landmark=bool(ctx.p("landmark", False)),
+                    crownSigns=bool(ctx.p("crown_signs", True)))
 
 
 def _crown(mb, ctx, crown, w, d, z, tint):
@@ -107,6 +119,10 @@ def _crown(mb, ctx, crown, w, d, z, tint):
     if crown == "spire":
         walls(mb, ctx, w, d, z, z + 3.0, z, [("trim", 0.0, tint)] * 4)
         z += 3.0
+        if ctx.p("spire_band", False):
+            fcol = ctx.facade["fixture_colors"][ctx.p("crown_color", "white")]
+            walls(mb, ctx, w, d, z, z + 2.0, z, [("fixture", fcol, 1.0)] * 4)
+            z += 2.0
         ctx.meta["roof"] = z
         flat_roof(mb, ctx, w, d, z, tint, parapet=0.8)
         sw = min(w, d) * 0.18
@@ -125,6 +141,10 @@ def _crown(mb, ctx, crown, w, d, z, tint):
             ac_cluster(mb, ctx, rng.uniform(-pw / 4, pw / 4), rng.uniform(-pd / 4, pd / 4), z, rng.randint(1, 3))
         mast(mb, ctx, pw * 0.3, pd * 0.3, z, 10.0, red=True)
         return z
+    if crown == "lantern":
+        return _crown_lantern(mb, ctx, w, d, z, tint)
+    if crown == "lattice":
+        return _crown_lattice(mb, ctx, w, d, z, tint)
     if crown == "slant":
         # Roof plane rising from the front edge to the back (pyramid-free wedge).
         rise = ctx.p("slant", 12.0)
@@ -151,3 +171,109 @@ def _crown(mb, ctx, crown, w, d, z, tint):
     if rng.random() < 0.5:
         mast(mb, ctx, w * 0.3, -d * 0.3, z, rng.uniform(6, 14), red=True)
     return z
+
+
+def _brace(mb, ctx, xf, u0, z0, u1, z1, material, surface, depth, width):
+    """A thin diagonal brace in a facade-local frame. `xf` maps facade (u, y, z) to world;
+    the brace box is built in a rotated frame so it follows the diagonal exactly."""
+    cx, cz = (u0 + u1) / 2, (z0 + z1) / 2
+    length = math.hypot(u1 - u0, z1 - z0)
+    ang = math.atan2(z1 - z0, u1 - u0)
+    c, s = math.cos(ang), math.sin(ang)
+
+    def brace_xf(x, y, z):
+        u = cx + x * c - z * s
+        zz = cz + x * s + z * c
+        return xf(u, y, zz)
+
+    mb.box(-length / 2, length / 2, -depth, 0.0, -width / 2, width / 2, material, brace_xf,
+           ("back", "bottom", "top"), surface, plan_uv)
+
+
+def tower_exoskeleton(mb, ctx, W, D, z0, z1, tint):
+    """Corner columns plus an X of diagonal braces on every face: the Bank of China
+    expression. Metal, not emissive; the crown adds its own lit edges where wanted."""
+    # Pale concrete/steel, not dark metal: the network has to read against dark glass.
+    m, s = surf(ctx, "trim", 0.0, max(tint, 0.75))
+    spacing = ctx.p("lattice_spacing", 12.0)
+    depth = ctx.p("lattice_depth", 0.45)
+    width = ctx.p("lattice_width", 0.30)
+    col = 0.6
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            x, y = sx * W / 2, sy * D / 2
+            mb.box(x - col, x + col, y - col, y + col, z0, z1, m, None, ("bottom", "top"), s, plan_uv)
+    for side in range(4):
+        fw, xf = side_frame(side, W, D)
+        n = max(2, int(round(fw / spacing)))
+        bay = fw / n
+        for k in range(n):
+            u0, u1 = -fw / 2 + k * bay, -fw / 2 + (k + 1) * bay
+            _brace(mb, ctx, xf, u0, z0, u1, z1, m, s, depth, width)
+            _brace(mb, ctx, xf, u0, z1, u1, z0, m, s, depth, width)
+
+
+def _cap(mb, ctx, w, d, z, tint, thick=0.45):
+    """A solid roof slab with both faces. `flat_roof` is a single upward-facing quad, so
+    looking up through an open crown (free-fly, the lattice cage) sees through it. Landmark
+    crowns use this closed slab instead, both at the shaft top and above the cage."""
+    m, s = surf(ctx, "roof", 0.0, tint)
+    mb.box(-w / 2, w / 2, -d / 2, d / 2, z - thick, z, m, None, (), s, plan_uv)
+
+
+def _crown_lantern(mb, ctx, w, d, z, tint):
+    """IFC-like crown: dark mechanical collar, a ribbed cage, a lit band and a cap."""
+    fcol = ctx.facade["fixture_colors"][ctx.p("crown_color", "white")]
+    m, s = surf(ctx, "metal", 0.0, tint)
+    tm, ts = surf(ctx, "trim", 0.0, tint)
+    _cap(mb, ctx, w, d, z, tint)
+    walls(mb, ctx, w, d, z, z + 2.4, z, [("trim", 0.0, tint)] * 4)
+    z += 2.4
+    cw, cd = w * 0.92, d * 0.92
+    walls(mb, ctx, cw, cd, z, z + 11.0, z, [("atlas", 1.0, tint)] * 4)
+    # Vertical ribs around the crown, standing just proud of the glass.
+    for side in range(4):
+        fw, xf = side_frame(side, cw, cd)
+        n = max(5, int(round(fw / 2.2)))
+        for k in range(n + 1):
+            u = -fw / 2 + k * fw / n
+            mb.box(u - 0.13, u + 0.13, -0.55, 0.0, z, z + 10.5, m, xf, ("back", "bottom", "top"), s, plan_uv)
+    # Four lit corner ribs catch the crown at distance; a wide lit collar and a smaller cap.
+    fm, fs = fixture(ctx, ctx.p("crown_color", "white"), strip=True)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            x, y = sx * cw / 2, sy * cd / 2
+            mb.box(x - 0.14, x + 0.14, y - 0.14, y + 0.14, z, z + 11.0, fm, None, ("bottom", "top"), fs, plan_uv)
+    walls(mb, ctx, cw, cd, z + 11.0, z + 14.0, z + 11.0, [("fixture", fcol, 1.0)] * 4)
+    cap_w, cap_d = cw * 0.74, cd * 0.74
+    walls(mb, ctx, cap_w, cap_d, z + 14.0, z + 16.6, z + 14.0, [("metal", 0.0, tint)] * 4)
+    _cap(mb, ctx, cap_w, cap_d, z + 16.6, tint)
+    ctx.meta["roof"] = z + 16.6
+    aviation_lights(mb, ctx, cap_w, cap_d, z + 16.6)
+    mast(mb, ctx, 0.0, 0.0, z + 16.6, ctx.p("mast", 12.0), red=True)
+    return z + 16.6 + ctx.p("mast", 12.0)
+
+
+def _crown_lattice(mb, ctx, w, d, z, tint):
+    """Open lattice crown: four posts, X braces on each face and a lit top band."""
+    fcol = ctx.facade["fixture_colors"][ctx.p("crown_color", "white")]
+    # The crown itself is the lit outline; the body lattice below stays pale metal.
+    fm, fs = fixture(ctx, ctx.p("crown_color", "white"), strip=True)
+    _cap(mb, ctx, w, d, z, tint)
+    h = ctx.p("lattice_crown_height", 18.0)
+    post = 0.55
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            x, y = sx * w / 2, sy * d / 2
+            mb.box(x - post, x + post, y - post, y + post, z, z + h, fm, None, ("bottom", "top"), fs, plan_uv)
+    for side in range(4):
+        fw, xf = side_frame(side, w, d)
+        _brace(mb, ctx, xf, -fw / 2, z, fw / 2, z + h, fm, fs, 0.4, 0.26)
+        _brace(mb, ctx, xf, -fw / 2, z + h, fw / 2, z, fm, fs, 0.4, 0.26)
+    # Lit perimeter at the top of the frame, then a closed roof cap.
+    walls(mb, ctx, w, d, z + h, z + h + 0.9, z + h, [("fixture", fcol, 1.0)] * 4)
+    _cap(mb, ctx, w, d, z + h + 0.9, tint, thick=0.6)
+    ctx.meta["roof"] = z + h + 0.9
+    aviation_lights(mb, ctx, w, d, z + h + 0.9)
+    mast(mb, ctx, 0.0, 0.0, z + h + 0.9, ctx.p("mast", 10.0), red=True)
+    return z + h + 0.9 + ctx.p("mast", 10.0)

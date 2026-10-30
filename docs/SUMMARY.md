@@ -41,3 +41,20 @@ is optional and not started.
 
 See `docs/NOTES.md` for per-phase critiques, `docs/DECISIONS.md` for every deviation from the
 plan, and `docs/progress/` for milestone shots.
+
+## Post-summary passes (2026-10-24)
+
+- **Look pass.** Display-space grade after AgX in the existing tone-map pass, restrained
+  bloom/window/strip emission, thinner and denser rain, and wet facade runoff. The canyon
+  keeps its neon; the tower glass and windows stop blooming into one sheet.
+- **Landmark pass.** Three fixed-height landmark towers (367–418 m) above a 155–269 m
+  ordinary tower field, with lantern, lattice and spire crowns; an exoskeleton tower;
+  tenant floor bands; and a `landmarks` viewpoint. Human Hong Kong photos were added to
+  `art/style/references/`.
+- **Walking mode.** First-person walking on roads and sidewalks with building collision,
+  pointer-lock look, Shift run, and a shared 0.15 m curb height.
+- **Bridge and window polish.** Closed, winding-correct bridge shells with end caps and edge
+  fascia; per-building window families with different proportions and mullion patterns.
+- Current: 15 shot viewpoints, 78 tests, 40 calls / 1.084M triangles / 24 programs. The
+  frozen-time reproducibility test passes. Visual baselines still do not exist; no
+  baseline was approved. Details and the remaining critique are in `docs/NOTES.md`.

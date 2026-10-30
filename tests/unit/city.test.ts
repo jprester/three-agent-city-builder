@@ -27,6 +27,17 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     expect(L.flythrough!.points.length).toBeGreaterThan(5);
   });
 
+  it('places the landmark towers once each, above the ordinary height ceiling', async () => {
+    const L = await get();
+    const isLandmark = (i: LayoutInstance) => Boolean((ASSETS[i.asset as keyof typeof ASSETS].meta as { landmark?: boolean }).landmark);
+    const landmarks = L.instances.filter(isLandmark);
+    expect(landmarks.length).toBe(3);
+    expect(new Set(landmarks.map((i) => i.asset)).size).toBe(3);
+    const normal = L.instances.filter((i) => i.district === 'towers' && !isLandmark(i));
+    const tallestNormal = Math.max(...normal.map((i) => i.h!));
+    for (const lm of landmarks) expect(lm.h!).toBeGreaterThan(tallestNormal + 20);
+  });
+
   it('places only full-detail assets (LOD variants are swapped in at runtime)', async () => {
     const L = await get();
     const lods = L.instances.filter((i) => (ASSETS[i.asset as keyof typeof ASSETS].meta as { lodOf?: string }).lodOf);

@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import type { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import type { FlythroughPath } from './flythrough';
+import type { WalkSurface } from './walk';
 
-export type CameraMode = 'orbit' | 'fly' | 'flythrough';
-export const CAMERA_MODES: CameraMode[] = ['orbit', 'fly', 'flythrough'];
+export type CameraMode = 'orbit' | 'fly' | 'flythrough' | 'walk';
+export const CAMERA_MODES: CameraMode[] = ['orbit', 'fly', 'flythrough', 'walk'];
 
 export function isCameraMode(v: string): v is CameraMode {
   return (CAMERA_MODES as string[]).includes(v);
@@ -11,9 +12,15 @@ export function isCameraMode(v: string): v is CameraMode {
 
 /** Free-fly tuning: meters per second, boost multiplier, mouse radians per pixel. */
 const FLY = { speed: 14, minSpeed: 2, maxSpeed: 200, boost: 5, look: 0.0022, response: 10, floor: 0.6 };
+/**
+ * Walking tuning: brisk human pace, run multiplier, eye height, body clearance and how fast
+ * the camera follows a 0.15 m curb. Ground is followed, not simulated with gravity: the city
+ * has no stairs or terrain at this scale, and jumping is not part of the experience.
+ */
+const WALK = { speed: 4.4, run: 2.1, eye: 1.7, clearance: 0.35, response: 14, look: 0.0022 };
 /** Orbit target distance in front of the camera when switching into orbit mode. */
 const ORBIT_TARGET = 60;
-/** Free-fly keeps this far (m) from walls and roofs. */
+/** Free-fly keeps this far (m) from walls and roofs; walking uses WALK.clearance. */
 const CLEARANCE = 0.8;
 
 /** A building's footprint box for free-fly collision: center, unit x axis, half extents, roof. */
@@ -32,20 +39,20 @@ export function obstaclesFrom(instances: { position: number[]; rotationY: number
  * Move `p` out of any building it is inside (grown by CLEARANCE), along the shallowest way
  * out: through the nearest wall, or up onto the roof. Returns true when it landed on a roof.
  */
-export function pushOut(p: THREE.Vector3, obstacles: Obstacle[]): boolean {
+export function pushOut(p: THREE.Vector3, obstacles: Obstacle[], clearance = CLEARANCE, allowRoof = true): boolean {
   let roof = false;
   for (const o of obstacles) {
     const dx = p.x - o.x, dz = p.z - o.z;
-    if (Math.abs(dx) + Math.abs(dz) > o.hx + o.hz + 2 * CLEARANCE) continue;
+    if (Math.abs(dx) + Math.abs(dz) > o.hx + o.hz + 2 * clearance) continue;
     // Local axes: x = (ux, uz), z = (-uz, ux).
     const lx = dx * o.ux + dz * o.uz;
     const lz = -dx * o.uz + dz * o.ux;
-    const px = o.hx + CLEARANCE - Math.abs(lx);
-    const pz = o.hz + CLEARANCE - Math.abs(lz);
-    const py = o.h + CLEARANCE - p.y;
+    const px = o.hx + clearance - Math.abs(lx);
+    const pz = o.hz + clearance - Math.abs(lz);
+    const py = o.h + clearance - p.y;
     if (px <= 0 || pz <= 0 || py <= 0) continue;
-    if (py <= px && py <= pz) {
-      p.y = o.h + CLEARANCE;
+    if (allowRoof && py <= px && py <= pz) {
+      p.y = o.h + clearance;
       roof = true;
     } else if (px <= pz) {
       const s = Math.sign(lx) || 1;
@@ -61,21 +68,28 @@ export function pushOut(p: THREE.Vector3, obstacles: Obstacle[]): boolean {
 }
 
 /**
- * The three camera modes (keys 1–3):
+ * The four camera modes (keys 1–4):
  *  orbit       OrbitControls, for development and fixed viewpoints.
  *  fly         WASD + mouse look (click to capture the pointer), Space/E up, C/Q down,
  *              Shift boost, wheel changes speed. Slides along walls and roofs, never
  *              entering a building.
  *  flythrough  the layout's cinematic loop, a pure function of the shared clock.
- * Switching keeps the current camera pose, so any mode can pick up where another left off.
+ *  walk        first-person walking at 1.7 m eye height: WASD, Shift run, mouse look,
+ *              follows the 0.15 m sidewalk/curb step and slides out of building footprints.
+ * Switching keeps the current camera pose, so any mode can pick up where another left off
+ * (walk projects the current x/z onto the ground).
  */
 export class CameraRig {
   mode: CameraMode = 'orbit';
-  /** Buildings the free-fly camera cannot enter (see obstaclesFrom). */
+  /** Buildings the free-fly and walking cameras cannot enter (see obstaclesFrom). */
   obstacles: Obstacle[] = [];
+  /** Sidewalk/road sampler for walking; absent: flat ground at 0. */
+  walkSurface: WalkSurface | null = null;
   private readonly keys = new Set<string>();
   private readonly velocity = new THREE.Vector3();
   private readonly euler = new THREE.Euler(0, 0, 0, 'YXZ');
+  private readonly walkForward = new THREE.Vector3();
+  private readonly walkRight = new THREE.Vector3();
   private speed = FLY.speed;
   /** Clock time the flythrough loop started at (0 when opened with ?camera=flythrough). */
   private flyStart = 0;
@@ -94,12 +108,13 @@ export class CameraRig {
     window.addEventListener('keyup', (e) => this.onKey(e, false));
     window.addEventListener('blur', () => this.keys.clear());
     dom.addEventListener('click', () => {
-      if (this.mode === 'fly' && document.pointerLockElement !== dom) dom.requestPointerLock?.();
+      if ((this.mode === 'fly' || this.mode === 'walk') && document.pointerLockElement !== dom) dom.requestPointerLock?.();
     });
     document.addEventListener('mousemove', (e) => {
-      if (this.mode !== 'fly' || document.pointerLockElement !== dom) return;
-      this.euler.y -= e.movementX * FLY.look;
-      this.euler.x = THREE.MathUtils.clamp(this.euler.x - e.movementY * FLY.look, -1.55, 1.55);
+      if ((this.mode !== 'fly' && this.mode !== 'walk') || document.pointerLockElement !== dom) return;
+      const look = this.mode === 'walk' ? WALK.look : FLY.look;
+      this.euler.y -= e.movementX * look;
+      this.euler.x = THREE.MathUtils.clamp(this.euler.x - e.movementY * look, -1.55, 1.55);
       this.camera.quaternion.setFromEuler(this.euler);
     });
     dom.addEventListener('wheel', (e) => {
@@ -113,6 +128,10 @@ export class CameraRig {
     return this.speed;
   }
 
+  get walkEyeHeight(): number {
+    return WALK.eye;
+  }
+
   /** Switch modes. `fromStart` runs the flythrough from its t = 0 instead of from now. */
   setMode(mode: CameraMode, fromStart = false): void {
     if (mode === 'flythrough' && !this.path) return;
@@ -120,13 +139,14 @@ export class CameraRig {
     this.mode = mode;
     this.controls.enabled = mode === 'orbit';
     this.velocity.set(0, 0, 0);
-    if (mode !== 'fly' && document.pointerLockElement === this.dom) document.exitPointerLock();
+    if (mode !== 'fly' && mode !== 'walk' && document.pointerLockElement === this.dom) document.exitPointerLock();
     if (mode === 'orbit' && prev !== 'orbit') {
       this.camera.getWorldDirection(this.tmp);
       this.controls.target.copy(this.camera.position).addScaledVector(this.tmp, ORBIT_TARGET);
       this.controls.update();
     }
-    if (mode === 'fly') this.euler.setFromQuaternion(this.camera.quaternion, 'YXZ');
+    if (mode === 'fly' || mode === 'walk') this.euler.setFromQuaternion(this.camera.quaternion, 'YXZ');
+    if (mode === 'walk') this.snapToWalk();
     if (mode === 'flythrough') this.flyStart = fromStart ? 0 : this.clock.time;
     this.onChange(mode);
   }
@@ -140,7 +160,44 @@ export class CameraRig {
       this.camera.lookAt(this.target);
     } else if (this.mode === 'fly') {
       this.move(Math.min(delta, 0.1));
+    } else if (this.mode === 'walk') {
+      this.walk(Math.min(delta, 0.1));
     }
+  }
+
+  /** Project the current x/z onto the walkable surface and clear any building footprint. */
+  private snapToWalk(): void {
+    const p = this.camera.position;
+    p.y = WALK.eye;
+    pushOut(p, this.obstacles, WALK.clearance, false);
+    p.y = (this.walkSurface?.heightAt(p.x, p.z) ?? 0) + WALK.eye;
+    this.velocity.set(0, 0, 0);
+  }
+
+  private walk(dt: number): void {
+    const k = this.keys;
+    const forward = (k.has('KeyW') ? 1 : 0) - (k.has('KeyS') ? 1 : 0);
+    const strafe = (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0);
+    this.walkForward.set(0, 0, -1).applyQuaternion(this.camera.quaternion).setY(0);
+    if (this.walkForward.lengthSq() < 1e-6) this.walkForward.set(0, 0, -1);
+    this.walkForward.normalize();
+    this.walkRight.set(1, 0, 0).applyQuaternion(this.camera.quaternion).setY(0).normalize();
+    this.tmp.copy(this.walkForward).multiplyScalar(forward).addScaledVector(this.walkRight, strafe);
+    if (this.tmp.lengthSq() > 1) this.tmp.normalize();
+    const speed = WALK.speed * (k.has('ShiftLeft') || k.has('ShiftRight') ? WALK.run : 1);
+    this.tmp.multiplyScalar(speed);
+    // Keep vertical motion out of the velocity; the ground-follow below owns y.
+    this.tmp.y = 0;
+    this.velocity.x += (this.tmp.x - this.velocity.x) * (1 - Math.exp(-WALK.response * dt));
+    this.velocity.z += (this.tmp.z - this.velocity.z) * (1 - Math.exp(-WALK.response * dt));
+    this.velocity.y = 0;
+    const p = this.camera.position;
+    p.x += this.velocity.x * dt;
+    p.z += this.velocity.z * dt;
+    pushOut(p, this.obstacles, WALK.clearance, false);
+    const surface = this.walkSurface?.heightAt(p.x, p.z) ?? 0;
+    const targetY = surface + WALK.eye;
+    p.y += (targetY - p.y) * (1 - Math.exp(-WALK.response * dt));
   }
 
   private move(dt: number): void {
@@ -166,11 +223,11 @@ export class CameraRig {
   private onKey(e: KeyboardEvent, down: boolean): void {
     const el = e.target as HTMLElement | null;
     if (el && (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA')) return;
-    if (down && !e.repeat && /^Digit[123]$/.test(e.code)) {
+    if (down && !e.repeat && /^Digit[1234]$/.test(e.code)) {
       this.setMode(CAMERA_MODES[Number(e.code.slice(5)) - 1]);
       return;
     }
     if (down) this.keys.add(e.code); else this.keys.delete(e.code);
-    if (this.mode === 'fly' && ['Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) e.preventDefault();
+    if ((this.mode === 'fly' || this.mode === 'walk') && ['Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) e.preventDefault();
   }
 }

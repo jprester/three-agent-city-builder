@@ -25,6 +25,12 @@
           "buildings/midrise_f": 0.8,
           "buildings/midrise_g": 0.8,
           "buildings/estate_*": 1.2,
+          "buildings/restower_*": 2,
+          "buildings/commercial_a": 0.5,
+          "buildings/commercial_b": 0.5,
+          "buildings/commercial_c": 0.45,
+          "buildings/commercial_d": 0.35,
+          "buildings/commercial_e": 0.2,
           "buildings/carpark_*": 0.6
         }
       },
@@ -37,8 +43,8 @@
           1.0
         ],
         "heightRange": [
-          180,
-          420
+          150,
+          270
         ],
         "gap": [
           6,
@@ -65,6 +71,10 @@
       "buildings/slab_j": 1,
       "buildings/slab_l": 1,
       "buildings/walkup_*": 1.5
+    },
+    "landmarks": {
+      "count": 3,
+      "spacing": 80
     }
   }
 }

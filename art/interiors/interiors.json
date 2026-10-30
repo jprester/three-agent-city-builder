@@ -1,0 +1,148 @@
+{
+  "$comment": "Room cards seen through lit windows. Rendered by tools/blender/render_interiors.py with art/generators/interiors/rooms.py, packed by tools/textures/pack_interiors.py into art/textures/interiors/. Room boxes and camera distance (meters) must match what the facade shader ray-casts; they are written to interiors.json for it.",
+  "generator": "interiors/rooms",
+  "render": {
+    "samples": 64,
+    "exposure": -0.5,
+    "diffuse_bounces": 1
+  },
+  "atlas_columns": 4,
+  "sets": {
+    "residential": {
+      "width": 3.2,
+      "height": 2.7,
+      "depth": 3.0,
+      "camera": 2.2,
+      "tile": [
+        320,
+        270
+      ],
+      "cards": [
+        {
+          "kind": "living",
+          "seed": 9100
+        },
+        {
+          "kind": "bedroom",
+          "seed": 9101
+        },
+        {
+          "kind": "kitchen",
+          "seed": 9102
+        },
+        {
+          "kind": "living",
+          "seed": 9103
+        },
+        {
+          "kind": "study",
+          "seed": 9104
+        },
+        {
+          "kind": "bedroom",
+          "seed": 9105
+        },
+        {
+          "kind": "storage",
+          "seed": 9106
+        },
+        {
+          "kind": "living",
+          "seed": 9107
+        },
+        {
+          "kind": "kitchen",
+          "seed": 9108
+        },
+        {
+          "kind": "bedroom",
+          "seed": 9109
+        },
+        {
+          "kind": "study",
+          "seed": 9110
+        },
+        {
+          "kind": "living",
+          "seed": 9111
+        },
+        {
+          "kind": "kitchen",
+          "seed": 9112
+        },
+        {
+          "kind": "bedroom",
+          "seed": 9113
+        },
+        {
+          "kind": "storage",
+          "seed": 9114
+        },
+        {
+          "kind": "study",
+          "seed": 9115
+        }
+      ]
+    },
+    "office": {
+      "width": 6.4,
+      "height": 3.3,
+      "depth": 7.0,
+      "camera": 3.0,
+      "tile": [
+        512,
+        264
+      ],
+      "cards": [
+        {
+          "kind": "open_plan",
+          "seed": 9200
+        },
+        {
+          "kind": "meeting",
+          "seed": 9201
+        },
+        {
+          "kind": "open_plan",
+          "seed": 9202
+        },
+        {
+          "kind": "vacant",
+          "seed": 9203
+        },
+        {
+          "kind": "open_plan",
+          "seed": 9204
+        },
+        {
+          "kind": "lounge",
+          "seed": 9205
+        },
+        {
+          "kind": "racks",
+          "seed": 9206
+        },
+        {
+          "kind": "open_plan",
+          "seed": 9207
+        },
+        {
+          "kind": "meeting",
+          "seed": 9208
+        },
+        {
+          "kind": "vacant",
+          "seed": 9209
+        },
+        {
+          "kind": "open_plan",
+          "seed": 9210
+        },
+        {
+          "kind": "lounge",
+          "seed": 9211
+        }
+      ]
+    }
+  }
+}

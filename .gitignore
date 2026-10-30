@@ -14,3 +14,6 @@ art/external/textures/ads-v2/
 .DS_Store
 *.swp
 *.swo
+
+# Full-resolution reference photos (GPS metadata, large); commit stripped 1600 px copies instead
+art/style/references/_raw/

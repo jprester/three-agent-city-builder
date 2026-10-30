@@ -85,10 +85,10 @@ export function createSky(fogColor: THREE.Color, time: { value: number }): THREE
         vec3 q = normalize(vDir) * vec3(5.0, 6.5, 5.0) + vec3(uTime * 0.0015, 0.0, 0.0);
         q += vec3(noise(q * 0.6), noise(q * 0.6 + 13.0), noise(q * 0.6 + 27.0)) * 1.2;
         float cloud = clouds(q);
-        float deck = smoothstep(0.36, 0.66, cloud) * smoothstep(0.0, 0.08, y);
+        float deck = smoothstep(0.32, 0.62, cloud) * smoothstep(0.0, 0.1, y);
         float edge = max(0.0, clouds(q + vec3(0.0, -0.18, 0.0)) - cloud);
-        col = mix(col, uZenith * 0.4, deck * 0.7);
-        col += (uHorizon * 1.5 + uGlow * 0.022) * (deck * 0.45 + edge * 3.0) * exp(-y * 2.2);
+        col = mix(col, mix(uZenith, uHorizon, 0.35) * 0.62, deck * 0.65);
+        col += (uHorizon * 1.5 + uGlow * 0.018) * (deck * 0.45 + edge * 3.0) * exp(-y * 2.2);
         if (vDir.y < 0.0) col = uHorizon;
         col += distantLights(vDir);
         gl_FragColor = vec4(col, 1.0);

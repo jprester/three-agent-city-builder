@@ -46,6 +46,7 @@ const DEFAULTS = {
   // blocks on a `pitch` grid with `street`-wide streets, `margin` clear of the city edge;
   // `split`: chance a block splits into two lots along each axis.
   // Build chance and building mix go from `near` (at the city edge) to `far` (outer rim).
+  landmarks: { count: 3, spacing: 80 },
   fringe: {
     depth: 900, pitch: 70, street: 12, margin: 22, chance: [1.0, 0.7], lotGap: 0.06, setback: 1.5, split: 0.75,
     near: { 'buildings/fringe_c': 1, 'buildings/fringe_d': 0.5, 'buildings/fringe_b': 1, 'buildings/fringe_e': 0.8, 'buildings/fringe_a': 0.5 },
@@ -97,7 +98,7 @@ const EDGE_PRIORITY = { hero: 0, arterial: 1, secondary: 2, edge: 3, alley: 4 };
 export function generate({ params, seed, assets = {}, art = [] }) {
   const P = { ...DEFAULTS, ...params };
   // Nested option groups merge with their defaults instead of replacing them.
-  for (const k of ['roads', 'sidewalks', 'lampSpacing', 'flythrough', 'signs', 'bridges', 'props', 'fringe']) P[k] = { ...DEFAULTS[k], ...(params[k] ?? {}) };
+  for (const k of ['roads', 'sidewalks', 'lampSpacing', 'flythrough', 'signs', 'bridges', 'props', 'fringe', 'landmarks']) P[k] = { ...DEFAULTS[k], ...(params[k] ?? {}) };
   const D = {};
   for (const k of Object.keys(DISTRICT_DEFAULTS)) D[k] = { ...DISTRICT_DEFAULTS[k], ...(params.districts?.[k] ?? {}) };
   const rng = mulberry32(seed);
@@ -204,7 +205,8 @@ export function generate({ params, seed, assets = {}, art = [] }) {
 
   // ---- building catalog per district
   // LOD variants (meta.lodOf) are swapped in at runtime by distance, never placed.
-  const buildingIds = Object.keys(assets).filter((id) => assets[id].meta?.footprint && !assets[id].meta.lodOf);
+  const buildingIds = Object.keys(assets).filter((id) => assets[id].meta?.footprint && !assets[id].meta.lodOf && !assets[id].meta.landmark);
+  const landmarkIds = Object.keys(assets).filter((id) => assets[id].meta?.footprint && !assets[id].meta.lodOf && assets[id].meta.landmark).sort();
   const resolve = (weights) => {
     const out = {};
     for (const [pattern, w] of Object.entries(weights ?? {})) {
@@ -246,12 +248,65 @@ export function generate({ params, seed, assets = {}, art = [] }) {
     });
   };
 
+  // ---- landmarks
+  // The ordinary tower palette is capped lower; a handful of fixed-height landmark towers
+  // get a unique crown/silhouette and a reserved tower-district block. They are excluded
+  // from the weighted catalogue above so they cannot be repeated as ordinary towers.
+  if (landmarkIds.length) {
+    const candidates = blocks
+      .map((block, bi) => {
+        if (block.district !== 'towers') return null;
+        const lot = G.inset(block.pts, (i) => P.sidewalks[tagClass(block.tags[i])]);
+        if (!lot) return null;
+        const c = G.centroid(lot);
+        return { block, bi, lot, c, dist: G.dist(c, P.towers.center) };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.dist - b.dist);
+
+    const used = new Set();
+    const centers = [];
+    for (const id of landmarkIds.slice(0, P.landmarks.count)) {
+      const meta = assets[id].meta;
+      const [fw, fd] = meta.footprint;
+      let found = null;
+      for (const cand of candidates) {
+        if (used.has(cand.bi)) continue;
+        if (centers.some((c) => G.dist(c, cand.c) < P.landmarks.spacing)) continue;
+        const lot = cand.lot;
+        let best = null;
+        for (let i = 0; i < lot.length; i++) {
+          const q0 = lot[i], q1 = lot[(i + 1) % lot.length];
+          const L = G.dist(q0, q1);
+          if (L < fw + 2) continue;
+          const t = G.norm(G.sub(q1, q0));
+          const nIn = G.perp(t);
+          const u = G.mul(t, -1);
+          const c = G.add(G.add(q0, G.mul(t, L / 2)), G.mul(nIn, fd / 2));
+          const box = G.obb(c, u, fw / 2, fd / 2);
+          if (!box.corners.every((p) => G.insideConvex(lot, p, 0.01))) continue;
+          if (!best || L > best.L) best = { L, box, rotationY: Math.atan2(-nIn[0], -nIn[1]), road: cand.block.tags[i] === 'edge' ? -1 : cand.block.tags[i] };
+        }
+        if (best) { found = { cand, ...best, id }; break; }
+      }
+      if (!found) continue;
+      used.add(found.cand.bi);
+      centers.push(found.cand.c);
+      found.cand.block.landmark = found;
+    }
+  }
+
   blocks.forEach((block, bi) => {
     const cfg = D[block.district];
-    const lot = G.inset(block.pts, (i) => P.sidewalks[tagClass(block.tags[i])]);
-    block.lot = lot;
+    const lot = block.lot ?? (block.lot = G.inset(block.pts, (i) => P.sidewalks[tagClass(block.tags[i])]));
     if (!lot) return;
     const placed = [];
+    if (block.landmark) {
+      const l = block.landmark;
+      const s = [1, 1, 1];
+      place(l.id, l.box, l.rotationY, s, block.district, bi, l.road, false);
+      placed.push(l.box);
+    }
     const edges = lot.map((_, i) => i).sort((i, j) =>
       EDGE_PRIORITY[tagClass(block.tags[i])] - EDGE_PRIORITY[tagClass(block.tags[j])]
       || G.dist(lot[j], lot[(j + 1) % lot.length]) - G.dist(lot[i], lot[(i + 1) % lot.length]));
@@ -342,6 +397,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
 
   // ---- flythrough and bridges come before signs: bridges are structure, signs avoid them.
   const flythrough = hero ? buildFlythrough(hero, roads, instances, P, W, Dp) : undefined;
+  if (flythrough) flythrough.points = liftClear(flythrough.points, instances, 5, 6);
   const bridges = buildBridges(P.bridges, instances, roads, [], lamps, hero, flythrough, rng);
   // ---- fringe: the low-rise far field around the city, clear of the flythrough and of the
   // port viewpoint. Own random stream, so it never moves anything inside the city.
@@ -350,6 +406,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
     ? buildFringe(P.fringe, W, Dp, assets, flythrough, [portOrigin], mulberry32((seed ^ 0x0f21a9e5) >>> 0))
     : [];
   const skyLanes = buildSkyLanes(P.skyLanes, [...instances, ...fringe], bridges);
+  for (const lane of skyLanes) lane.points = liftClear(lane.points, [...instances, ...fringe], 12, 14);
   const traffic = trafficLanes(roads.map((r) => ({ id: r.id, cls: r.cls, width: r.width, a: r.a.map(r3), b: r.b.map(r3) })), seed)
     .map((l) => ({ ...l, speed: r3(l.speed), phase: r3(l.phase), length: r3(l.length), offset: r3(l.offset) }));
   const footBoxes = bridges.filter((b) => b.kind === 'foot').map((b) => ({
@@ -543,7 +600,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
       }
       // Billboard band.
       let frontUsed = false;
-      if (rng() < Z.billboardChance) {
+      if (!meta.landmark && rng() < Z.billboardChance) {
         const lo = Math.max(Z.billboard[0], tiers[0][0] * sy + 1);
         frontUsed = true;
         const c = chooseArt({ kind: 'ad', aspect: [0.5, 2.2], share: 1, stroke: null, noShop: true }, { w: [6, faceOf(tiers[0]) - 3], h: [10, Math.min(26, Z.billboard[1] - lo)] });
@@ -552,7 +609,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
       // Tall campaign: starts just above the street zone and rises with the shaft, where
       // people on the street and in cars see it (human review: not high up the tower). On the
       // front when it is free, otherwise (or additionally) on a side face.
-      if (rng() < Z.shaftChance) {
+      if (!meta.landmark && rng() < Z.shaftChance) {
         // Varied heights: the base anywhere from just above the shops up to a quarter of the
         // tower; most campaigns end by mid-height, a few (shaftHighChance) reach higher.
         const tier = tiers[0];
@@ -574,7 +631,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
       }
       // Crown: the brand lettering stands on the roof above the parapet, set back 1 m from
       // the top tier's front edge, on posts (human review: attached to the rooftop).
-      if (rng() < Z.crownChance && meta.roof) {
+      if (meta.crownSigns !== false && rng() < Z.crownChance && meta.roof) {
         const topTier = tiers[tiers.length - 1];
         const f = sideOf(topTier, 0);
         const w = Math.min(2 * f.half - 4, 34);
@@ -950,8 +1007,12 @@ function instanceBox(i) {
  * points, the same curve three.js's CatmullRomCurve3 draws at runtime.
  */
 function sampleFlythrough(fly) {
-  if (!fly) return [];
-  const P = fly.points, n = P.length, out = [];
+  return fly ? sampleClosedCurve(fly.points).map((s) => s.p) : [];
+}
+
+/** Closed centripetal Catmull-Rom through P, about every 2 m: [{ p, k }] (k = segment start). */
+function sampleClosedCurve(P) {
+  const n = P.length, out = [];
   const d4 = (a, b) => Math.pow((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2, 0.25);
   for (let k = 0; k < n; k++) {
     const p0 = P[(k - 1 + n) % n], p1 = P[k], p2 = P[(k + 1) % n], p3 = P[(k + 2) % n];
@@ -968,10 +1029,52 @@ function sampleFlythrough(fly) {
     const steps = Math.max(8, Math.ceil(dt1 * dt1 / 2));   // dt1² is the chord length
     for (let j = 0; j < steps; j++) {
       const t = j / steps;
-      out.push(poly.map(([c0, c1, c2, c3]) => c0 + t * (c1 + t * (c2 + t * c3))));
+      out.push({ p: poly.map(([c0, c1, c2, c3]) => c0 + t * (c1 + t * (c2 + t * c3))), k });
     }
   }
   return out;
+}
+
+/**
+ * Lifts control points of a closed curve until the curve itself, not just its control
+ * points, stays `lift` meters over every roof within `margin` meters of it. Between control
+ * points a Catmull-Rom curve swings sideways (orbits, lanes bulging around towers), which a
+ * check of the points or chords misses. Only heights change; the ground plan stays. A lifted
+ * point raises its neighbors until no leg from it climbs steeper than `grade` (rise over run);
+ * legs that were steep by design (the crane-up out of the canyon) are left alone.
+ */
+function liftClear(points, instances, margin, lift, grade = 0.6, iterations = 16) {
+  const boxes = instances.map((i) => ({ box: instanceBox(i), h: i.h }));
+  const P = points.map((p) => [...p]);
+  for (let it = 0; it < iterations; it++) {
+    let moved = false;
+    const lifted = [];
+    for (const { p, k } of sampleClosedCurve(P)) {
+      let need = 0;
+      for (const { box, h } of boxes) {
+        if (h + lift <= p[1] || h + lift <= need) continue;
+        if (G.dist(box.c, [p[0], p[2]]) > Math.hypot(box.hu, box.hv) + margin) continue;
+        if (G.insideConvex(G.obb(box.c, box.u, box.hu + margin, box.hv + margin).corners, [p[0], p[2]])) need = h + lift;
+      }
+      if (need <= p[1]) continue;
+      // Raise both ends of the segment by the shortfall (plus a little, to converge).
+      const up = need - p[1] + 1;
+      for (const j of [k, (k + 1) % P.length]) { P[j][1] += up; lifted.push(j); }
+      moved = true;
+    }
+    if (!moved) break;
+    // Spread each lift into its neighbors (raising only), outward from the lifted points.
+    const n = P.length;
+    while (lifted.length) {
+      const j = lifted.pop();
+      for (const o of [-1, 1]) {
+        const b = P[(j + o + n) % n];
+        const min = P[j][1] - grade * Math.hypot(P[j][0] - b[0], P[j][2] - b[2]);
+        if (b[1] < min - 0.01) { b[1] = min; lifted.push((j + o + n) % n); }
+      }
+    }
+  }
+  return P.map((p) => p.map(r3));
 }
 
 /**

@@ -10,6 +10,7 @@ import { createRenderer, createScene } from './scene/environment';
 import { captureCityEnvironment, captureGlassEnvironment } from './scene/environment-map';
 import { createLampMap, createSignLightMap } from './scene/lampmap';
 import { CityHazeEffect } from './scene/haze';
+import { DynamicResolution } from './systems/dynamic-resolution';
 import { createPost } from './scene/post';
 import { PlanarReflection } from './scene/reflection';
 import { createStreets } from './scene/streets';
@@ -25,6 +26,7 @@ import type { FacadeLod } from './systems/buildings';
 import { buildInstances } from './systems/instancing';
 import { fetchLayout, generateLayout, type Layout } from './systems/layout';
 import { isQualityName, QUALITY_PRESETS } from './systems/quality';
+import { createWalkSurface } from './systems/walk';
 import { createHud } from './ui/hud';
 import { setStatus } from './ui/status';
 
@@ -57,7 +59,9 @@ const REFLECTION_LOD_BIAS = 0.25;
 async function main() {
   const params = new URLSearchParams(location.search);
   const layoutId = params.get('layout') ?? 'city';
-  const viewpoint = params.get('viewpoint') ?? 'aerial';
+  // ?camera=walk without a viewpoint starts at the hero storefront, not the aerial anchor.
+  const cameraParam = params.get('camera') ?? 'orbit';
+  const viewpoint = params.get('viewpoint') ?? (cameraParam === 'walk' ? 'canyon' : 'aerial');
   const problems: string[] = [];
 
   const qualityParam = params.get('quality') ?? 'high';
@@ -99,7 +103,7 @@ async function main() {
 
   // Shared inputs of the city's shaders: one clock, one seed, one street-light map.
   const lamps = layout ? createLampMap(layout) : null;
-  const facadeTextures = await loadFacadeTextures(Math.min(8, renderer.capabilities.getMaxAnisotropy()));
+  const facadeTextures = await loadFacadeTextures(renderer, Math.min(8, renderer.capabilities.getMaxAnisotropy()));
   const facadeUniforms = createFacadeUniforms(clock.uniform, layout?.seed ?? 0, facadeTextures);
   const groundUniforms = createGroundUniforms(facadeUniforms.uLampRect);
   groundUniforms.uTime = clock.uniform;
@@ -154,13 +158,13 @@ async function main() {
   unreflected.push(streets, ...(rain ? [rain] : []));
   const path = FlythroughPath.from(layout);
   if (!applyViewpoint(viewpoint, camera, controls, layout, path)) problems.push(`Unknown viewpoint "${viewpoint}".`);
-  // ?camera=orbit|fly|flythrough picks the starting mode (keys 1–3 switch). Shots stay in orbit.
-  const cameraParam = params.get('camera') ?? 'orbit';
-  if (!isCameraMode(cameraParam)) problems.push(`?camera= must be orbit, fly or flythrough, got "${cameraParam}".`);
+  // ?camera=orbit|fly|flythrough|walk picks the starting mode (keys 1–4 switch). Shots stay in orbit.
+  if (!isCameraMode(cameraParam)) problems.push(`?camera= must be orbit, fly, flythrough or walk, got "${cameraParam}".`);
   // Hidden on load for captures (fixed viewpoints, frozen time); shown on any mode change.
   const hud = createHud(!params.has('viewpoint') && frozenAt === null);
   const rig = new CameraRig(clock, camera, renderer.domElement, controls, path, (mode) => hud.show(mode, !!path));
   if (layout) rig.obstacles = obstaclesFrom([...layout.instances, ...(layout.fringe ?? [])]);
+  rig.walkSurface = createWalkSurface(layout);
   if (isCameraMode(cameraParam)) rig.setMode(cameraParam, true);
   setStatus(problems.join(' '));
 
@@ -172,21 +176,30 @@ async function main() {
   facadeUniforms.uGlassEnv.value = captureGlassEnvironment(renderer, scene, layout, [streets, ...(rain ? [rain] : [])]);
   facadeUniforms.uGlassOn.value = 1;
 
-  const haze = lamps ? new CityHazeEffect(camera, lamps.texture, signMap, lamps.rect, clock.uniform) : undefined;
+  const haze = lamps ? new CityHazeEffect(camera, lamps.texture, signMap, lamps.rect, clock.uniform, quality.hazeSteps) : undefined;
   const post = createPost(renderer, scene, camera, quality, haze);
   const size = renderer.getDrawingBufferSize(new THREE.Vector2());
   reflection.setSize(size.x, size.y);
   await post.ready;
   const debug = params.get('debug') === '1' ? await createDebugGui(renderer, scene, clock, { post, facade: facadeUniforms, ground: groundUniforms }) : null;
 
-  window.addEventListener('resize', () => {
+  const resize = () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
     post.composer.setSize(window.innerWidth, window.innerHeight);
     const size = renderer.getDrawingBufferSize(new THREE.Vector2());
     reflection.setSize(size.x, size.y);
-  });
+  };
+  window.addEventListener('resize', resize);
+  // Captures (fixed time) keep a fixed resolution so screenshots stay comparable.
+  const maxRatio = renderer.getPixelRatio();
+  const dynres = frozenAt === null && params.get('dynres') !== '0'
+    ? new DynamicResolution({ max: maxRatio, min: Math.min(maxRatio, quality.minPixelRatio) }, (ratio) => {
+      renderer.setPixelRatio(ratio);
+      resize();
+    })
+    : null;
 
   window.__PAUSE_RENDER = () => renderer.setAnimationLoop(null);
   let frames = 0;
@@ -198,6 +211,7 @@ async function main() {
     last = now;
     const real = performance.now();
     rig.update((real - lastReal) / 1000);
+    dynres?.update(real / 1000, real - lastReal);
     lastReal = real;
     vehicles?.update(now);
     renderer.info.reset();
