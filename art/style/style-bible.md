@@ -115,3 +115,16 @@ the gitignored `references/_raw/`.
 - `ref-tokyo-office-night.jpg`: Tokyo office towers at night (human, 2026-10-28): offices
   almost fully lit in cool white, a single lit crown edge, a few thin LED accent lines, a
   warm cloud base. Use for office-tower night lighting.
+- `ref-tokyo-glass-corner-night.jpg`: Tokyo street corner at night (human, 2026-10-30). A
+  glass mid-rise with a rounded corner and pale vertical fins, most floors lit cool white, beside
+  a dark residential tower with sparse warm windows. Use for glass commercial blocks and the
+  warm-homes/cool-offices contrast.
+- `ref-tokyo-glass-tower-night.jpg`: Tokyo office tower at night (human, 2026-10-30): dark
+  glass in stepped masses, whole floors lit in office white, one warm accent band. Use for office
+  lighting by floor.
+- `ref-tokyo-mixed-tower-night.jpg`: Tokyo mixed-use tower (human, 2026-10-30). A residential
+  shaft with balcony bands stands on a glass commercial base with dark vertical mullions and
+  one lit retail floor. Use for commercial podium bases.
+- `ref-tokyo-banded-towers-day.jpg`: Tokyo office towers by day (human, 2026-10-30): cream
+  horizontal bands, blue glass corners, lattice crown frames, a glass rotunda lobby. Use for
+  banded commercial skins and lattice crowns.
