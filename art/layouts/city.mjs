@@ -231,9 +231,12 @@ export function generate({ params, seed, assets = {}, art = [] }) {
 
   // ---- frontage packing
   const instances = [];
+  const parkBlocks = new Set();
+  const discarded = [];
   const place = (id, box, rotationY, s, district, blockIndex, road, interior) => {
     const meta = assets[id].meta;
-    instances.push({
+    // Park blocks still draw their buildings (same random draws as before) but keep none.
+    (parkBlocks.has(blockIndex) ? discarded : instances).push({
       asset: id,
       position: [r3(box.c[0]), 0, r3(box.c[1])],
       rotationY: r3(rotationY),
@@ -293,6 +296,22 @@ export function generate({ params, seed, assets = {}, art = [] }) {
       used.add(found.cand.bi);
       centers.push(found.cand.c);
       found.cand.block.landmark = found;
+    }
+  }
+
+  // ---- parks: a few old-core blocks left open and planted (the dark tree masses of the Hong
+  // Kong photos), away from the hero street and from each other. Own random stream.
+  const parkRng = mulberry32((seed ^ 0x51a7e7ee) >>> 0);
+  if (P.parks?.count) {
+    const cands = blocks.map((b, bi) => ({ b, bi, a: G.area(b.pts) }))
+      .filter(({ b, a }) => b.district === 'core' && !b.landmark && a >= P.parks.minArea && a <= P.parks.maxArea
+        && !b.tags.some((t) => t !== 'edge' && roads[t].cls === 'hero'));
+    while (parkBlocks.size < P.parks.count && cands.length) {
+      const { b, bi } = cands.splice(Math.floor(parkRng() * cands.length), 1)[0];
+      const c = G.centroid(b.pts);
+      if ([...parkBlocks].some((j) => G.dist(G.centroid(blocks[j].pts), c) < P.parks.spacing)) continue;
+      parkBlocks.add(bi);
+      b.park = true;
     }
   }
 
@@ -394,6 +413,8 @@ export function generate({ params, seed, assets = {}, art = [] }) {
   // ---- street props on the sidewalk band between curb and building lots. Own random stream,
   // so adding or tuning props never moves signs, bridges or anything else.
   const props = placeProps(P.props, blocks, roads, lamps, P.sidewalks, tagClass, assets, mulberry32((seed ^ 0x9a0b5eed) >>> 0));
+  const { trees, lamps: parkLamps } = plantParks(P.parks, blocks, parkBlocks, P.sidewalks, tagClass, assets, parkRng);
+  if (lamps) lamps.push(...parkLamps);
 
   // ---- flythrough and bridges come before signs: bridges are structure, signs avoid them.
   const flythrough = hero ? buildFlythrough(hero, roads, instances, P, W, Dp) : undefined;
@@ -706,6 +727,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
     hero: hero ? { road: hero.id, width: hero.width, a: hero.a.map(r3), b: hero.b.map(r3) } : null,
     lamps,
     props,
+    trees,
     signs,
     anchors,
     instances,
@@ -818,6 +840,47 @@ function buildFlythrough(hero, roads, instances, P, W, Dp) {
   key(at(-glide * 0.27), 24, at(90), s0 + 7);
   key(at(-glide * 0.07), s0 + 1, at(110), s0 + 7);
   return { points: pts, look, closed: true };
+}
+
+/**
+ * Trees for the park blocks: a jittered grid over each lot with an open plaza in the middle
+ * and random gaps, variants weighted by `trees`, plus a ring of path lamps around the plaza
+ * (they also light the ground through the lamp map). Returns { trees: props ({ asset,
+ * position, rotationY, scale, fp }), lamps: [x, z, angle] }.
+ */
+function plantParks(cfg, blocks, parkBlocks, sidewalks, tagClass, assets, rng) {
+  const out = [], parkLamps = [];
+  if (!cfg) return { trees: out, lamps: parkLamps };
+  const ids = Object.entries(cfg.trees ?? {}).filter(([id]) => assets[id]);
+  if (!ids.length) return { trees: out, lamps: parkLamps };
+  const total = ids.reduce((s, [, w]) => s + w, 0);
+  const pick = () => { let r = rng() * total; for (const [id, w] of ids) if ((r -= w) <= 0) return id; return ids[0][0]; };
+  for (const bi of parkBlocks) {
+    const block = blocks[bi];
+    const lot = G.inset(block.pts, (i) => sidewalks[tagClass(block.tags[i])]);
+    if (!lot) continue;
+    const c = G.centroid(lot);
+    for (let k = 0; k < cfg.plazaLamps; k++) {
+      const a = (k / cfg.plazaLamps) * Math.PI * 2;
+      const r = cfg.plaza + 1.2;
+      parkLamps.push([r3(c[0] + Math.cos(a) * r), r3(c[1] + Math.sin(a) * r), r3(Math.atan2(Math.cos(a), Math.sin(a)))]);
+    }
+    const xs = lot.map((p) => p[0]), zs = lot.map((p) => p[1]);
+    const step = cfg.treeSpacing;
+    for (let x = Math.min(...xs); x <= Math.max(...xs); x += step) {
+      for (let z = Math.min(...zs); z <= Math.max(...zs); z += step) {
+        const p = [x + (rng() - 0.5) * step * 0.7, z + (rng() - 0.5) * step * 0.7];
+        const id = pick();
+        const s = 0.8 + rng() * 0.5;
+        const rot = rng() * Math.PI * 2;
+        if (rng() < cfg.gaps || G.dist(p, c) < cfg.plaza) continue;
+        const r = (assets[id].meta.footprint?.[0] ?? 4) * 0.5 * s;
+        if (!G.insideConvex(G.inset(lot, () => r) ?? [], p, 0)) continue;
+        out.push({ asset: id, position: [r3(p[0]), 0, r3(p[1])], rotationY: r3(rot), scale: r3(s), fp: [r3(r), r3(r)] });
+      }
+    }
+  }
+  return { trees: out, lamps: parkLamps };
 }
 
 /**

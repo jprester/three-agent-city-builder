@@ -4,10 +4,13 @@
   "params": {
     "width_cells": 22,
     "depth_cells": 18,
-    "height": 340,
+    "height": 315,
     "tint": 0.45,
     "tiers": [
-      [1.0, 0]
+      [
+        1.0,
+        0
+      ]
     ],
     "crown": "lattice",
     "crown_color": "white",

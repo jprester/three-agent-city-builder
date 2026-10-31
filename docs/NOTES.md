@@ -1058,3 +1058,33 @@ Fresh shots, no code changes. Compared with the nine new photos in `art/style/re
   GPU memory), smaller sign atlases on `med`/`low`, and dropping the decoded CPU copies of loaded
   images. The ground's 13 reflection taps per pixel are also a real GPU cost when a lot of ground
   is visible.
+
+## Sky, ridges, parks and far-field glass (2026-10-30)
+- **Sky:** the cloud deck now glows warm brown-orange underneath with dark gaps, and two hazy ridges
+  stand behind the tower district (`landmarks`, `aerial`, `horizon`). This is the biggest change
+  to every wide shot, and it reads close to `ref-hk-residential-night.jpg`. Street haze is unchanged.
+- **Supertalls:** `tower_m` (lantern crown) is now the 486 m hero, clearly above the other two at 341
+  and 361 m, and they stand 150 m apart instead of in one cluster.
+- **Parks:** four planted blocks with a lamp-ringed plaza. From the air they read as dark gaps with warm
+  path light. Up close the trees are low-poly octagonal lobes: fine at night and from above, crude at
+  street level.
+- **Glass far-field:** distant glass blocks no longer read as white rectangles. A few office tops still
+  stand out, but as lit floors.
+- **Bug found and fixed on the way:** a NaN in the new ridge code blacked out every wide view on
+  both Metal and SwiftShader, through bloom. That kind of failure needs a check: worth adding a test
+  that fails on an all-black frame.
+- **Still weak:** the ridges are smooth noise silhouettes with no lights on them (Hong Kong hills
+  have lit roads and towers at their feet). The parks are one tree type per lobe pattern. The cloud
+  glow does not follow where the city actually is (it is uniform around the horizon).
+
+### Wide-view crawl, real cause (2026-10-31)
+- **Repro:** loading straight into a wide view (`aerial`) gave 650–1000 ms frames on some loads, and
+  the page stayed slow even after moving away. Loading at street level and then flying out was fine.
+  Today's sky and glass changes cost under 1 ms; `main` had the same problem.
+- **Cause:** the app's GPU process held 8–16 GB of graphics memory, about 2 MB per BatchedMesh
+  sub-draw (ANGLE/Metal), set by how many instances the first frames drew. Turning per-object
+  culling off made every view 18 GB and slow, which confirmed it.
+- **Fix:** instanced draws per geometry with CPU culling and LOD. 1.1 GB wired, 166–218 draw calls
+  for both passes, aerial 13.8 ms.
+- **Lesson:** check `footprint <gpu pid>` before blaming the machine. The earlier memory-pressure
+  diagnosis was only partly right.

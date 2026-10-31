@@ -52,7 +52,10 @@ runtime code. No hex literals in generators. Add a named color there first.
 | `sign_red`, `sign_amber` | neon accents |
 | `sign_cyan` | neon accent, used sparingly |
 | `haze` | fog and street-level haze (cool blue-grey since 2026-09-25, per the references) |
-| `sky` | night sky (deep blue) |
+| `sky` | night sky (deep blue) overhead |
+| `cloud_glow` | underside of the low cloud deck, lit warm by the city (human, 2026-10-30: per the Hong Kong night photos, replacing an all-cool sky) |
+| `ridge` | mountain ridges behind the tower district, silhouetted against the lit cloud |
+| `foliage` | park trees (dark green masses at night) |
 | `concrete`, `concrete_dark`, `tile_stained` | facades |
 | `metal_dark` | frames, rails, rooftop units |
 | `glass_dark` | unlit glass |

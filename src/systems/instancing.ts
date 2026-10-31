@@ -10,7 +10,7 @@ const LAMP = 'props/street_lamp';
  * Street furniture is not drawn beyond this distance (× the quality preset's LOD scale): a
  * kiosk is a few pixels there. Lamps stay: their heads are the street's light dots.
  */
-const PROP_CULL = 220;
+const PROP_CULL = 220;   // street furniture; lamps and park trees (seen from the air) are never culled
 
 export function instanceMatrix(i: LayoutInstance): THREE.Matrix4 {
   const s = typeof i.scale === 'number' ? new THREE.Vector3(i.scale, i.scale, i.scale) : new THREE.Vector3(...i.scale);
@@ -47,6 +47,7 @@ export async function buildInstances(layout: Layout, loader: AssetLoader, facade
     else missing.add(inst.asset);
   }
   for (const prop of layout.props ?? []) if (getAsset(prop.asset)) facade.push(prop);
+  for (const tree of layout.trees ?? []) if (getAsset(tree.asset)) facade.push(tree);
   // Street lamps from the layout's lamp list.
   if (layout.lamps?.length && getAsset(LAMP)) {
     for (const [x, z, angle] of layout.lamps) facade.push({ asset: LAMP, position: [x, 0, z], rotationY: angle, scale: 1 });
@@ -57,10 +58,10 @@ export async function buildInstances(layout: Layout, loader: AssetLoader, facade
     const plan = planVehicles(layout, vehicleDensity);
     const dyn = plan.assets.filter((id) => getAsset(id));
     const built = await buildFacadeBatch(facade, loader, facadeMaterial, dyn.length === plan.assets.length ? dyn : [],
-      (id) => (id.startsWith('props/') && id !== LAMP ? PROP_CULL : undefined));
+      (id) => (id.startsWith('props/') && id !== LAMP && !id.startsWith('props/tree') ? PROP_CULL : undefined));
     group.add(built.batch);
     lod = built.lod;
-    if (built.dynamicIds.length) vehicles = createVehicleMotion(built.batch, built.dynamicIds, plan);
+    if (built.dynamicIds.length) vehicles = createVehicleMotion(built.dynamicInstances, built.dynamicIds, plan);
   }
 
   await Promise.all(

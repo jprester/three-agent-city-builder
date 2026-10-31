@@ -72,9 +72,24 @@
       "buildings/slab_l": 1,
       "buildings/walkup_*": 1.5
     },
+    "parks": {
+      "count": 4,
+      "minArea": 2500,
+      "maxArea": 14000,
+      "spacing": 220,
+      "treeSpacing": 7.5,
+      "plaza": 9,
+      "plazaLamps": 6,
+      "gaps": 0.15,
+      "trees": {
+        "props/tree_a": 2,
+        "props/tree_b": 1,
+        "props/tree_c": 1.5
+      }
+    },
     "landmarks": {
       "count": 3,
-      "spacing": 80
+      "spacing": 150
     }
   }
 }

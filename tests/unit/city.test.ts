@@ -94,6 +94,16 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     expect(bad.map((i) => i.position)).toEqual([]);
   });
 
+  it('plants parks: trees off every road and clear of every building', async () => {
+    const L = await get();
+    const trees = L.trees ?? [];
+    expect(trees.length).toBeGreaterThan(50);
+    const roads = L.roads!.map(roadBox);
+    const buildings = L.instances.map(box);
+    const bad = trees.filter((t) => roads.some((r) => G.obbOverlap(box(t), r, 0.01)) || buildings.some((b) => G.obbOverlap(box(t), b, 0.01)));
+    expect(bad.map((t) => t.position)).toEqual([]);
+  });
+
   it('keeps every footprint inside a block and clear of its neighbors', async () => {
     const L = await get();
     const boxes = L.instances.map(box);

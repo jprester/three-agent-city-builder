@@ -95,6 +95,8 @@ export interface Layout {
   skyLanes?: { points: Vec3[]; closed: boolean; count: number; speed: number; direction: number }[];
   /** Street furniture (same shape as instances; always facade-shaded props). */
   props?: LayoutInstance[];
+  /** Park trees (blocks left open in the old core), drawn like props but never culled. */
+  trees?: LayoutInstance[];
   signs?: LayoutSign[];
   /** Enclosed bridges: centerline a→b on the ground plane, floor at y, `depth` tall. */
   bridges?: { kind: 'sky' | 'foot'; a: Vec2; b: Vec2; y: number; width: number; depth: number }[];
