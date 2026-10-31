@@ -168,7 +168,9 @@ async function main() {
   if (isCameraMode(cameraParam)) rig.setMode(cameraParam, true);
   setStatus(problems.join(' '));
 
-  // Capture before adding the reflective ground, whose target is not rendered yet.
+  // Capture before adding the reflective ground, whose target is not rendered yet. The
+  // captures see every building at full detail (the render loop culls per camera later).
+  facadeLod?.showAll();
   streets.visible = false;
   captureCityEnvironment(renderer, scene, layout);
   streets.visible = true;
@@ -216,7 +218,7 @@ async function main() {
     vehicles?.update(now);
     renderer.info.reset();
     // The reflection is half resolution and smeared: simplified buildings from 1/4 the distance.
-    facadeLod?.update(camera, REFLECTION_LOD_BIAS * quality.lodDistanceScale);
+    facadeLod?.update(camera, REFLECTION_LOD_BIAS * quality.lodDistanceScale, true);
     reflection.update(renderer, scene, camera, unreflected);
     const reflCalls = renderer.info.render.calls, reflTris = renderer.info.render.triangles;
     facadeLod?.update(camera, quality.lodDistanceScale);

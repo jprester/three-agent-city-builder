@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mulberry32, weightedChoice } from '../../art/layouts/lib/rng.mjs';
 import { trafficPosition } from '../../art/layouts/lib/traffic.mjs';
 import type { Layout } from './layout';
+import type { DynamicInstances } from './buildings';
 
 const CARS: Record<string, number> = { 'vehicles/car_a': 4, 'vehicles/car_b': 4, 'vehicles/taxi': 2, 'vehicles/van': 1 };
 const FLYERS: Record<string, number> = { 'vehicles/flyer_a': 2, 'vehicles/flyer_b': 1 };
@@ -28,11 +29,11 @@ export function planVehicles(layout: Layout, density: number) {
 }
 
 /**
- * Moves the planned vehicles (instances `ids` of the facade batch, in plan order) on the
+ * Moves the planned vehicles (instances `ids` of the facade instances, in plan order) on the
  * shared clock: cars along their lanes (faded out near junctions), flyers around their loops
  * with a slow bob. Pure function of time, so frozen-time renders are reproducible.
  */
-export function createVehicleMotion(batch: THREE.BatchedMesh, ids: number[], plan: ReturnType<typeof planVehicles>) {
+export function createVehicleMotion(batch: DynamicInstances, ids: number[], plan: ReturnType<typeof planVehicles>) {
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
   const pos = new THREE.Vector3(), scale = new THREE.Vector3(), tangent = new THREE.Vector3();
   return {

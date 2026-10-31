@@ -61,7 +61,7 @@ export async function buildInstances(layout: Layout, loader: AssetLoader, facade
       (id) => (id.startsWith('props/') && id !== LAMP && !id.startsWith('props/tree') ? PROP_CULL : undefined));
     group.add(built.batch);
     lod = built.lod;
-    if (built.dynamicIds.length) vehicles = createVehicleMotion(built.batch, built.dynamicIds, plan);
+    if (built.dynamicIds.length) vehicles = createVehicleMotion(built.dynamicInstances, built.dynamicIds, plan);
   }
 
   await Promise.all(
