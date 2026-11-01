@@ -1088,3 +1088,47 @@ Fresh shots, no code changes. Compared with the nine new photos in `art/style/re
   for both passes, aerial 13.8 ms.
 - **Lesson:** check `footprint <gpu pid>` before blaming the machine. The earlier memory-pressure
   diagnosis was only partly right.
+
+## City refinement — first pass (2026-11-01)
+
+Branch: `codex/city-visual-refinement`. Milestones: `docs/progress/city-refinement/`.
+Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
+
+- **Presentation:** the new camera preserves the full lantern, spire and lattice crowns. The
+  existing comparison cameras and building layout are unchanged. The three landmarks now
+  read as separate silhouettes in this view, though the foreground residential towers remain
+  visually busy and the cyan flying vehicle still catches too much attention at frozen t=12.
+- **Sky/horizon:** softer cloud transitions and lower warm gain keep more attention on the
+  buildings. Cloud illumination follows the three district anchors, with the port quieter.
+  Settlements sit at different foothill elevations and the nearer ridge occludes the far
+  layer. Round one still exposed a sharp mountain/fog seam; round two blends their bases into
+  the horizon air. The distant blue band and repeated fringe grid are still conspicuous in
+  `aerial` and `fly-75`; terrain/ground continuity and neighborhood layout need a dedicated pass.
+- **Rain:** shorter, thinner, varied streaks are much less distracting in skyline views, while
+  sodium/sign-lit rain remains readable in the canyon. Practical-light textures no longer
+  clamp their edge lighting onto rain outside the city. No particle-count or draw-call increase.
+- **Shops:** full-detail slabs have real 0.45 m recesses, with visible jambs and lintels in
+  `storefront`. UVs stay aligned with the procedural shops. Closed bays have different finishes,
+  small repairs and handles; entrance frames, interior brightness and canopy tube colour/on-off
+  state vary by tenant. This improves depth and rhythm, but the shop interiors still look empty,
+  the canopy slabs remain long/straight, sidewalks are too empty, and the cars remain boxes.
+  These are deliberate remaining work, not solved by this pass's shader variation.
+- **Asset QA:** rebuilt 38 slab/LOD/fringe assets using Blender 5.2.0, inspected all 114
+  front/back/top previews in contact sheets and inspected the street-level runtime captures.
+  Only the 12 base slab GLBs changed; the LOD/fringe outputs are identical. Recesses add
+  34–106 triangles per base asset. Roof silhouettes, footprint extents and existing clutter
+  remain intact. The workbench previews are dark and do not show runtime shop lighting, so
+  they serve geometry review; `storefront` is the useful material/depth check.
+- **Scene QA:** inspected all 17 viewpoint captures. Peak counts are 221 draw calls,
+  1,117,796 triangles and 24 shader programs, within 250 / 3M / 25. The new `skyline-hero`
+  uses 173 calls / 864,230 triangles / 24 programs. Counts include reflections. No hardware
+  FPS claim is made from software rendering.
+- **Verification:** typecheck, asset budgets, all 87 unit tests and production build pass.
+  The first full visual run had 10 health passes and eight timeouts at varied capture/startup
+  stages; all eight passed on retry (2.6 minutes total), including pixel-identical frozen-time
+  captures. All 17 viewpoints therefore pass render health. The build retains its pre-existing
+  large-JS-chunk warning. Baselines remain unapproved. The new `shots:health` command isolates actual rendering
+  checks from image approval, while full `shots` still requires approved comparison images.
+- **Next:** furnish one curated canyon block and improve close vehicles, then vary the fringe
+  and reduce texture memory by quality. Texture compression, hardware benchmarking and broad
+  facade/layout module extraction are not included in this first pass.

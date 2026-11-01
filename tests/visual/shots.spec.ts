@@ -17,7 +17,7 @@ const INFO_FILE = `${OUT_DIR}/info.json`;
 /**
  * Merges one viewpoint's stats into info.json. Written per test rather than in
  * afterAll because Playwright restarts the worker (losing module state) after a
- * failed test, and baseline diffs fail tests by design.
+ * failed render-health test.
  */
 function recordStats(name: string, stats: SceneStats) {
   mkdirSync(OUT_DIR, { recursive: true });
@@ -39,11 +39,13 @@ function budgetViolations(stats: SceneStats): string[] {
   return out;
 }
 
-// For every viewpoint: always save the current render and its renderer stats to
-// build/shots/ (for review), check the scene budget, then compare against the
-// approved baseline in tests/visual/baselines/.
+// Render health runs independently of approval. The dependent baselines project compares
+// these exact captures; missing baselines cannot hide a broken render or budget regression.
 for (const vp of VIEWPOINTS) {
   test(`${LAYOUT} @ ${vp.name}`, async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
     await page.goto(`/?layout=${LAYOUT}&viewpoint=${vp.name}&t=${FROZEN_TIME}`);
     await page.waitForFunction(() => window.__READY === true, undefined, { timeout: 90_000 });
     await page.evaluate(() => window.__PAUSE_RENDER?.());
@@ -70,9 +72,7 @@ for (const vp of VIEWPOINTS) {
     expect(stats, `${vp.name}: window.__STATS missing; the app failed before its ready frame`).toBeDefined();
     recordStats(vp.name, stats!);
     expect.soft(budgetViolations(stats!), `Scene budget exceeded at viewpoint "${vp.name}" (pipeline.config.json → scene)`).toEqual([]);
-
-    // Array form keeps the layout folder; a string name would be flattened to "district-a-canyon.png".
-    await expect(page).toHaveScreenshot([LAYOUT, `${vp.name}.png`]);
+    expect.soft(errors, `${vp.name}: browser errors`).toEqual([]);
   });
 }
 

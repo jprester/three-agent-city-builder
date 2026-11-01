@@ -769,14 +769,27 @@ if (fType == T_ATLAS) {
   vec3 goods = mix(vec3(1.0), mix(P_TUNGSTEN, P_RED, fHash(vec2(floor(x / 0.7), sid + s))), 0.35 * fBox(fUv.y, 1.2, 2.6, fFw.y));
   shopCol *= goods;
   float ribs = 0.6 + 0.4 * smoothstep(0.3, 0.7, abs(fract(fUv.y * 7.0) - 0.5) * 2.0);
-  vec3 shutter = mix(P_METAL * 2.2, fBase, 0.3) * ribs * mix(0.6, 1.0, fGrime);
+  ribs = mix(ribs, 0.8, smoothstep(0.035, 0.12, fFw.y));
+  float finish = fHash(vec2(sid, s + 4.8));
+  vec3 shutterPaint = finish < 0.3 ? P_METAL * 2.2 : finish < 0.65 ? P_CONCRETE : P_PAINT[int(finish * 4.0)];
+  vec3 shutter = mix(shutterPaint, fBase, 0.35) * ribs * mix(0.6, 1.0, fGrime);
+  // Repainted lower panels and a handle make closed shops individual without more signs.
+  float repair = fBox(fUv.y, 0.25, 0.85 + finish * 0.8, fFw.y) * step(0.6, finish);
+  shutter *= 1.0 - repair * 0.22;
+  float handle = fBox(x, 2.05, 2.4, fFw.x) * fBox(fUv.y, 0.7, 0.77, fFw.y);
+  shutter = mix(shutter, P_METAL, handle);
   fBase = mix(fBase, open > 0.5 ? P_GLASS : shutter, glassMask);
   vec3 shopRoom = room(vec2(x - 0.3, fUv.y - 0.15), vec2(CELL_PODIUM.x - 0.6, 3.1),
                        fVt, shopCol, fHash(vec2(sid, s + 8.2)));
-  float shopFrame = max(fBox(x, 1.55, 1.65, fFw.x), fBox(fUv.y, 2.55, 2.63, fFw.y));
+  // Some entrances sit left of the display, others right, with a few double doors.
+  float doorX = finish < 0.5 ? 1.55 : CELL_PODIUM.x - 1.55;
+  float transom = mix(2.35, 2.8, fHash(vec2(sid, s + 5.1)));
+  float shopFrame = max(fBox(x, doorX, doorX + 0.1, fFw.x), fBox(fUv.y, transom, transom + 0.08, fFw.y));
+  shopFrame = max(shopFrame, fBox(x, 2.35, 2.43, fFw.x) * step(0.82, finish));
   fBase = mix(fBase, P_METAL, shopFrame * glassMask);
   fEmit = glassMask * open * (shopRoom * (1.5 + stock) + shopCol * strip * 0.25)
         * (1.0 - shopFrame);
+  fEmit *= mix(0.6, 1.15, fHash(vec2(sid, s + 7.2)));
   fBase *= 1.0 - 0.4 * fBox(fUv.y, 3.35, 4.5, fFw.y);
   fRough = mix(fRough, open > 0.5 ? 0.2 : 0.6, glassMask);
   fMetal = (1.0 - open) * glassMask * 0.4;
@@ -798,7 +811,9 @@ if (fType == T_ATLAS) {
   float tubes = fBox(fract(fUv.y / 1.1), 0.46, 0.54, fFw.y / 1.1) * fBox(fract(fUv.x / 1.8), 0.08, 0.92, fFw.x / 1.8)
     * step(0.25, fHash(vec2(floor(fUv.x / 1.8), fSeed * 11.0)));
   fBase = P_CONCRETE_DARK;
-  fEmit = P_FLUORESCENT * (0.04 + 1.3 * tubes);
+  float tenant = fHash(vec2(floor(fUv.x / CELL_PODIUM.x), fSeed * 31.7 + 6.0));
+  vec3 tubeColor = tenant < 0.35 ? P_TUNGSTEN : P_FLUORESCENT;
+  fEmit = tubeColor * (0.015 + tubes * mix(0.3, 1.3, tenant) * step(0.18, tenant));
 } else if (fType == T_SCREEN) {
   // Video screen: abstract animated content (no real ads), LED pixel grid up close.
   vec2 sp = vRawUv;

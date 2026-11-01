@@ -11,6 +11,7 @@
   {"name": "fly-50", "anchor": "hero", "position": [0, 3, 0], "target": [50, 5, 0], "flythrough": 0.5},
   {"name": "fly-75", "anchor": "hero", "position": [0, 3, 0], "target": [50, 5, 0], "flythrough": 0.75},
   {"name": "skyline-wide", "anchor": "core", "position": [-460, 85, 95], "target": [180, 160, 0]},
+  {"name": "skyline-hero", "position": [-170, 170, 540], "target": [190, 185, -100]},
   {"name": "architecture", "position": [-329.358, 22, -297.663], "target": [-324.041, 25, -285.202]},
   {"name": "tower-detail", "position": [15.182, 125, -191.426], "target": [120.531, 170, -228.863]},
   {"name": "landmarks", "position": [100, 200, 450], "target": [200, 250, -100]},

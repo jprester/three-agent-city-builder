@@ -9,6 +9,7 @@ from lib.building import aviation_lights, cell, flat_roof, roof_clutter, side_fr
 from lib.architecture import balcony_rail, recessed_front, service_details
 from lib.mesh import MeshBuilder
 from lib.surface import facade_uv, surf
+from lib.storefront import build_shopfront
 
 
 def generate(ctx):
@@ -48,10 +49,14 @@ def generate(ctx):
     if step_floors:
         flat_roof(mb, ctx, W, D, main_top, tint, parapet=1.0)
         walls(mb, ctx, W, D - step_depth, main_top, top, ph, kinds, 0.0, step_depth / 2)
-    walls(mb, ctx, W, D, 0.0, ph, 0.0, [
+    shops = [
         ("podium", ctx.p("shop_fill", 1.0), tint), ("podium", 0.25, tint),
         ("trim", 0.0, tint), ("podium", 0.25, tint),
-    ])
+    ]
+    if not lod and ctx.p("shop_detail", True):
+        build_shopfront(mb, ctx, W, D, ph, shops)
+    else:
+        walls(mb, ctx, W, D, 0.0, ph, 0.0, shops)
 
     # Street canopy over the sidewalk: concrete slab, lit soffit.
     fw, xf = side_frame(0, W, D)

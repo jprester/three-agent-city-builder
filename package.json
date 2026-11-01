@@ -15,6 +15,7 @@
     "manifest": "node tools/manifest.mjs",
     "budgets": "node tools/check-budgets.mjs",
     "shots": "playwright test",
+    "shots:health": "playwright test --project=chromium",
     "shots:approve": "playwright test --update-snapshots=all",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

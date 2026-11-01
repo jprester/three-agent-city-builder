@@ -25,7 +25,10 @@ export async function checkBudgets() {
   const results = [];
   for (const { id, category } of listDefs()) {
     const file = assetOutPath(id);
-    if (!fs.existsSync(file)) continue;
+    if (!fs.existsSync(file)) {
+      results.push({ id, triangles: null, kb: null, problems: ['missing generated GLB; run npm run assets'] });
+      continue;
+    }
     const m = await measure(file);
     const b = budgets[category];
     const problems = [];
@@ -41,15 +44,15 @@ export async function checkBudgets() {
 
 export function printBudgets(results) {
   for (const r of results) {
-    const status = r.problems.length ? `OVER: ${r.problems.join('; ')}` : 'ok';
-    console.log(`  ${r.id.padEnd(32)} ${String(r.triangles).padStart(7)} tris ${r.kb.toFixed(1).padStart(8)} KB  ${status}`);
+    const status = r.problems.length ? `FAIL: ${r.problems.join('; ')}` : 'ok';
+    console.log(`  ${r.id.padEnd(32)} ${String(r.triangles ?? '-').padStart(7)} tris ${(r.kb?.toFixed(1) ?? '-').padStart(8)} KB  ${status}`);
   }
   return results.filter((r) => r.problems.length).length;
 }
 
 if (isMain(import.meta.url)) {
   const results = await checkBudgets();
-  if (!results.length) console.log('No built assets found. Run `npm run assets` first.');
+  if (!results.length) console.error('No asset definitions found; cannot validate asset budgets.');
   const failures = printBudgets(results);
-  process.exit(failures ? 1 : 0);
+  process.exit(failures || !results.length ? 1 : 0);
 }
