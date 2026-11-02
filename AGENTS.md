@@ -27,8 +27,10 @@ binary in `public/` is regenerated from them.
 - `npm run layouts` regenerates layouts and manifest only (no Blender).
 - `npm run dev` starts the app. URL params: `?layout=<id>`, `?viewpoint=<name>`,
   `?seed=<int>` (regenerates the layout in the browser with that seed).
-- `npm run shots` renders every viewpoint and diffs against baselines.
-- `npm run shots:approve` accepts current renders as baselines. HUMAN ONLY unless explicitly told.
+- `npm run shots` smoke test (~15 s, real GPU): loads 3 viewpoints, saves screenshots to
+  `build/shots/`, fails only on browser errors, a blank frame, scene budgets or frame time.
+  `npm run shots:all` (~1 min) covers every viewpoint; `SHOTS=canyon,glass` picks some;
+  `SWIFTSHADER=1` uses software WebGL on machines without a GPU. There are no pixel baselines.
 - `npm run check` typechecks and enforces budgets. Must pass before every commit.
 
 ## Never hand-edit (generated)
@@ -57,8 +59,8 @@ Change the generator, def, or layout def, then rebuild.
 1. Rebuild only what you touched: `npm run assets -- --only '<ids>'`.
 2. Look at every image in `build/previews/<id>/`. Judge against the style bible.
 3. Iterate until it matches the intent. Say what you checked.
-4. For changes visible in the scene, run `npm run shots` and look at `build/shots/`.
-   A baseline diff is expected when the change is intended; report it, do not approve it.
+4. For changes visible in the scene, run `npm run shots` (or `shots:all`) and look at the
+   relevant screenshots in `build/shots/`. Report the draw calls and frame time it prints.
 5. `npm run check` passes.
 
 ## Docs

@@ -1,35 +1,27 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const PORT = 5199;
+/** Real GPU by default (fast, and frame times mean something); SWIFTSHADER=1 for machines without one. */
+const GPU = process.env.SWIFTSHADER
+  ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist']
+  : [...(process.platform === 'darwin' ? ['--use-angle=metal'] : []), '--enable-gpu', '--ignore-gpu-blocklist'];
 
 export default defineConfig({
   testDir: 'tests/visual',
-  snapshotPathTemplate: '{testDir}/baselines/{arg}{ext}',
   timeout: 120_000,
-  // Never write missing baselines automatically; only `npm run shots:approve` creates them.
-  updateSnapshots: 'none',
-  expect: {
-    toHaveScreenshot: { maxDiffPixelRatio: 0.02, animations: 'disabled' },
-  },
-  use: {
-    baseURL: `http://localhost:${PORT}`,
-  },
+  // One heavy scene at a time: parallel loads skew frame times and pressure GPU memory.
+  workers: 1,
+  reporter: [['list']],
+  use: { baseURL: `http://localhost:${PORT}` },
   projects: [
     {
       name: 'chromium',
-      testMatch: 'shots.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 1280, height: 720 },
         deviceScaleFactor: 1,
-        // Software WebGL: slower, but identical output across machines.
-        launchOptions: { args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] },
+        launchOptions: { args: GPU },
       },
-    },
-    {
-      name: 'baselines',
-      testMatch: 'baselines.spec.ts',
-      dependencies: ['chromium'],
     },
   ],
   webServer: {

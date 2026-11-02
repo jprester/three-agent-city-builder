@@ -15,21 +15,20 @@ These rules apply on top of `AGENTS.md`.
 - **This plan is a starting point, not a spec** (human, 2026-09-25). Phases, techniques, file
   layout and the template itself may change when a different approach gives a better-looking
   city through the same script-driven workflow. Log each deviation in `docs/DECISIONS.md` with
-  its reason. The goal (Appendix A look, 60 fps, budgets), checkpoints, and "never approve
-  baselines" still hold.
+  its reason. The goal (Appendix A look, 60 fps, budgets) and checkpoints still hold.
+  Pixel baselines were removed (human, 2026-11-02): `npm run shots` is a smoke test.
 
 - Work phase by phase (section 8). Do not start a phase until the previous phase's acceptance criteria pass.
 - End every phase with the following sequence:
   1. Run `npm run check`.
   2. Run `npm test`.
-  3. Run `npm run shots`. Baseline diffs will fail the run; that is expected, so read `build/shots/` regardless of the result.
+  3. Run `npm run shots:all` and read `build/shots/`.
   4. Open every screenshot, and every Blender preview for assets you touched.
   5. Write a critique in `docs/NOTES.md` under the phase heading. Say what looks wrong, generic or unconvincing against the style bible, and what you will change. Be harsh; "looks fine" is not a critique.
   6. Fix what you found and re-shoot.
   7. Copy `build/shots/city/` to `docs/progress/phase-<n>/`.
   8. Commit.
 - Iterate on visuals at most 3 rounds per phase. After that, log what remains in `docs/NOTES.md` and move on. Phase 8 is for polish.
-- Never run `shots:approve`. Baselines are the human's call, made at checkpoints.
 - Do not stop to ask questions. When something is ambiguous, pick a sensible default, record it in `docs/DECISIONS.md` with a one-line reason, and continue. Put questions only a human can answer in `docs/QUESTIONS.md`. The only planned stops are the checkpoints below.
 
 ### Checkpoints
@@ -41,7 +40,7 @@ At a checkpoint, after completing the phase-end sequence:
 1. Write `docs/CHECKPOINT.md`, replacing any previous content. Cover what changed in this stretch, which shots to look at first and why, the known weaknesses in your own words, open questions from `docs/QUESTIONS.md`, and what you plan next.
 2. Commit, then stop the session and say that a checkpoint is waiting for review.
 
-The human reviews the shots, approves baselines with `npm run shots:approve`, and writes feedback in `docs/NOTES.md` under a `Human review — checkpoint <n>` heading. When work resumes, read that feedback first. It overrides your own critique, and addressing it comes before starting the next phase.
+The human reviews the shots and writes feedback in `docs/NOTES.md` under a `Human review — checkpoint <n>` heading. When work resumes, read that feedback first. It overrides your own critique, and addressing it comes before starting the next phase.
 - Make no runtime network requests. Do not use real brand names, logos or existing copyrighted text in signage.
 
 ## 2. Allowed dependency additions

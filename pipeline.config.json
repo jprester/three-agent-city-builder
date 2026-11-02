@@ -29,6 +29,7 @@
   "scene": {
     "maxDrawCalls": 250,
     "maxTriangles": 3000000,
-    "maxPrograms": 25
+    "maxPrograms": 25,
+    "maxFrameMs": 50
   }
 }

@@ -12,7 +12,7 @@ and all copy are drawn using bundled fonts. Images contain illustration only.
 - Run `npm run signs` to compose textures, pack atlases and regenerate layout references.
   `npm run assets` also runs the advertising builder. Python 3 with Pillow is required.
 - Inspect all variants in `build/previews/advertising/`, then run `npm test`,
-  `npm run check` and `npm run shots`. Missing/different baselines need human review.
+  `npm run check` and `npm run shots`, then look at the screenshots.
 - Commit sources, `art/textures/advertising/` and regenerated layouts together. Do not
   edit generated atlas pixels or catalogue indices directly.
 
