@@ -152,7 +152,7 @@ export function createCityAudio(layout: Layout | null) {
       right.set(-fwd.z, 0, fwd.x).normalize();
       const height = Math.max(0, eye.y);
       const street = Math.exp(-height / 60);          // 1 at street level, fading with height
-      rainBed.gain.setTargetAtTime(f.rain * (0.015 + 0.035 * street), now, 0.5);
+      rainBed.gain.setTargetAtTime(f.rain * (0.008 + 0.018 * street), now, 0.5);
       hum.gain.setTargetAtTime(0.12 + 0.1 * (1 - street), now, 1.0);
 
       // Tyre hiss: each nearby car contributes by distance, the louder ones pull the pan.
@@ -171,7 +171,7 @@ export function createCityAudio(layout: Layout | null) {
 
       // Droplets: ticks off awnings and puddles, more of them in heavy rain at street level.
       if (now > nextDrop) {
-        burst(now + Math.random() * 0.05, 0.02 + Math.random() * 0.04, 2500 + Math.random() * 3500, 4, 0.03 * f.rain * street, Math.random() * 2 - 1);
+        burst(now + Math.random() * 0.05, 0.02 + Math.random() * 0.04, 2500 + Math.random() * 3500, 4, 0.018 * f.rain * street, Math.random() * 2 - 1);
         nextDrop = now + (0.03 + Math.random() * 0.12) / Math.max(0.2, f.rain);
       }
 
