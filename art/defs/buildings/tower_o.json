@@ -28,6 +28,7 @@
     "rib_spacing": 8,
     "scalable": false,
     "landmark": true,
-    "crown_signs": false
+    "crown_signs": false,
+    "skin": "glass"
   }
 }

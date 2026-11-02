@@ -4,7 +4,7 @@ import palette from '../../art/style/palette.json';
 import interiors from '../../art/textures/interiors/interiors.json';
 import { GLASS_PROBE_Y } from '../scene/environment-map';
 import { SCREEN_COLS, SCREEN_COUNT, SCREEN_ROWS } from '../scene/screens';
-import { TOWER_BUNDLES, type FacadeTextures } from './textures';
+import type { FacadeTextures } from './textures';
 
 /**
  * The one material for every facade-shaded asset (buildings, and props built from the same
@@ -13,10 +13,8 @@ import { TOWER_BUNDLES, type FacadeTextures } from './textures';
  * (art/generators/lib/surface.py):
  *   COLOR_0     r: surface type, g: window opening pattern / type parameter, b: tint
  *   TEXCOORD_0  facade coordinates in meters (u along, v up; glTF-flipped v)
- * Three sources of detail:
- *   - "atlas" faces (tower shafts, office bodies) map photographic facades from the tower
- *     bundles at real scale (art/external/textures, tools/textures/import_highrise.py);
- *   - residential/office windows are interior-mapped rooms with frames, sills and recesses;
+ * Two sources of detail (all procedural apart from the wall images and room cards):
+ *   - residential/office/curtain/glass windows are interior-mapped rooms with frames, sills and recesses;
  *   - walls sample image materials (tile, concrete, panels, metal) with luminance relief.
  *
  * Extends MeshStandardMaterial via onBeforeCompile so lighting, fog and tone mapping apply.
@@ -32,9 +30,6 @@ export interface FacadeUniforms {
   /** Overall window emission multiplier (debug tuning). */
   uWindowGain: { value: number };
   /** Tower bundles, one array layer each (src/materials/textures.ts). */
-  uTowerDiff: { value: THREE.DataArrayTexture | null };
-  uTowerEmit: { value: THREE.DataArrayTexture | null };
-  uTowerNorm: { value: THREE.DataArrayTexture | null };
   uWalls: { value: THREE.Texture | null };
   /** Top-down colored sign glow (same rect as the lamp map). */
   uSignMap: { value: THREE.Texture | null };
@@ -58,13 +53,6 @@ const glslColor = (name: keyof typeof palette) => {
 const f = (v: number) => v.toFixed(6);
 const T = facade.types;
 const C = facade.cells;
-
-// Tower facade table: rect (u0, v0, u1, v1 in image space, y down) and
-// (floor height, bay width, wrap width, wrap height) in atlas UV units.
-const towerFacades = TOWER_BUNDLES.flatMap((b) => b.facades);
-const TF_COUNT = towerFacades.length;
-const TF_RECT = towerFacades.map((t) => `vec4(${t.rect.map(f).join(', ')})`).join(',\n  ');
-const TF_DIM = towerFacades.map((t) => `vec4(${f(t.floor)}, ${f(t.bay)}, ${f(t.wrap[0])}, ${f(t.wrap[1])})`).join(',\n  ');
 
 // Room cards (art/textures/interiors, npm run interiors): room box (W, H, D, camera distance)
 // and tile rects in texture UVs (u0, v0, u1, v1; the texture loads flipped, so v0 is the
@@ -138,10 +126,6 @@ const vec3 P_PAINT[4] = vec3[4](${glslColor('paint_mint')}, ${glslColor('paint_s
 const vec3 P_CAR[12] = vec3[12](${glslColor('car_white')}, ${glslColor('car_black')}, ${glslColor('car_grey')}, ${glslColor('car_silver')}, ${glslColor('car_navy')}, ${glslColor('car_red')}, ${glslColor('car_green')}, ${glslColor('car_beige')}, ${glslColor('car_yellow')}, ${glslColor('car_orange')}, ${glslColor('paint_mint')}, ${glslColor('paint_blue')});
 const int CAR_PICK[16] = int[16](0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 7, 11, 10);
 const vec3 P_CLAD[3] = vec3[3](${glslColor('clad_terracotta')}, ${glslColor('clad_cream')}, ${glslColor('clad_charcoal')});
-const vec4 TF_RECT[${TF_COUNT}] = vec4[${TF_COUNT}](
-  ${TF_RECT});
-const vec4 TF_DIM[${TF_COUNT}] = vec4[${TF_COUNT}](
-  ${TF_DIM});
 `;
 
 const VERTEX_PARS = /* glsl */ `
@@ -195,7 +179,6 @@ uniform float uTime;
 uniform sampler2D uLampMap;
 uniform vec4 uLampRect;
 uniform float uWindowGain;
-uniform highp sampler2DArray uTowerDiff, uTowerEmit, uTowerNorm;
 uniform sampler2D uWalls;
 uniform sampler2D uInteriors;
 uniform sampler2D uSignMap;
@@ -248,11 +231,6 @@ float windowCoverage(vec2 p, vec4 rect, vec2 footprint) {
 vec3 skyRefl(vec3 r) {
   float y = max(r.y, 0.0);
   return mix(P_HAZE * 1.6 + P_SODIUM * 0.03, P_SKY, smoothstep(0.0, 0.5, y));
-}
-
-void towerSample(int bundle, vec2 uv, vec2 dx, vec2 dy, out vec4 dr, out vec3 em, out vec3 nm) {
-  vec3 l = vec3(uv, float(bundle));
-  dr = textureGrad(uTowerDiff, l, dx, dy); em = textureGrad(uTowerEmit, l, dx, dy).rgb; nm = textureGrad(uTowerNorm, l, dx, dy).rgb;
 }
 
 // Wall material cell m (4×2 atlas) at facade meters uvm, one tile per 'size' meters,
@@ -681,50 +659,7 @@ float fMetal = (fMat == 2 || fMat == 6) ? 0.35 : 0.0;
 // Relief from the material's luminance.
 fNormalW = normalize(fNormalW - (fT * fGrad.x + fB * fGrad.y) * 2.5);
 
-if (fType == T_ATLAS) {
-  // Photographic tower facade: bundle and facade per building, offset by whole bays/floors.
-  int bundle = int(fract(fSeed * 3.17) * 3.0);
-  int fi = bundle * 7 + int(fract(fSeed * 11.3) * 7.0);
-  vec4 R = TF_RECT[fi];
-  vec4 Dm = TF_DIM[fi];
-  float perM = Dm.x / CELL_CURTAIN.y;
-  vec2 L = fUv * perM + vec2(floor(fract(fSeed * 5.1) * 9.0) * Dm.y, floor(fract(fSeed * 7.9) * 9.0) * Dm.x);
-  vec2 Lw = mod(L, Dm.zw);
-  vec2 auv = vec2(R.x + Lw.x, 1.0 - R.w + Lw.y);
-  vec4 dr; vec3 em, nm;
-  towerSample(bundle, auv, dFdx(L), dFdy(L), dr, em, nm);
-  fBase = dr.rgb * 0.5;
-  // Pane-level roughness varies gently, while opaque spandrels stay matte.
-  float pane = fHash(floor(fUv / CELL_CURTAIN) + fSeed * 13.0);
-  fRough = clamp(dr.a + (pane - 0.5) * 0.08, 0.12, 0.95);
-  fMetal = (1.0 - dr.a) * 0.4;
-  float floorId = floor(L.y / Dm.x);
-  // Not every floor is occupied: dark floors, then a slower per-bay variation so a whole
-  // facade does not pulse as one sheet. Both fade to their mean before they alias.
-  float floorLit = mix(0.35, 1.2, fHash(vec2(floorId, fSeed * 31.0))) * step(0.33, fHash(vec2(floorId, fSeed * 13.0 + 2.0)));
-  float bayId = floor(L.x / Dm.y);
-  float bayVar = mix(0.68, 1.18, fHash(vec2(bayId, fSeed * 23.0 + 7.0)));
-  float bayM = max(Dm.y / perM, 0.1);
-  bayVar = mix(bayVar, 0.95, smoothstep(0.25, 0.7, fFw.x / bayM));
-  // Tenant bands: offices light in runs of whole floors, with long dark voids. The
-  // variation fades to its mean before a floor is smaller than a pixel.
-  float floorM = max(Dm.x / perM, 0.1);
-  float groupSize = mix(4.0, 9.0, fract(fSeed * 9.7 + 0.31));
-  float groupId = floor(floorId / groupSize);
-  float groupOn = step(0.22, fHash(vec2(groupId, fSeed * 43.0 + 7.0)));
-  float group = mix(0.12, 1.0, groupOn);
-  floorLit *= mix(group, 0.78, smoothstep(0.35, 0.9, fFw.y / floorM));
-  fEmit = em * 2.1 * floorLit * bayVar;
-  // Spill: the emissive map blurred over ~a bay lights the frames and spandrels around windows.
-  vec4 drB; vec3 emB, nmB;
-  towerSample(bundle, auv, dFdx(L) + vec2(Dm.y * 0.8, 0.0), dFdy(L) + vec2(0.0, Dm.x * 0.8), drB, emB, nmB);
-  fWallLight += emB * floorLit * 0.6;
-  vec3 n = nm * 2.0 - 1.0;
-  fNormalW = normalize(fT * n.x + fB * n.y + normalize(vFNormal) * max(n.z, 0.2));
-  // Glass reflects the city, rippled by the pane normals (see glassReflection).
-  float glassAmt = 1.0 - smoothstep(0.3, 0.6, dr.a);
-  fEmit += glassAmt * glassReflection(fV, fNormalW, fVt.z, fRough, fEmit, 0.18, vFWorld, 0.0);
-} else if (fType == T_RES || fType == T_OFFICE || fType == T_CURTAIN || fType == T_CAGE) {
+if (fType == T_RES || fType == T_OFFICE || fType == T_CURTAIN || fType == T_CAGE) {
   vec3 wEmit, filteredEmit, avgEmit, wSpill, wAvgSpill; float wMask, wFrame, wFrac, wAround, filteredMask;
   windowLayer(fType == T_CAGE ? T_RES : fType, fUv, fFw, fType == T_CAGE ? OPEN_GRID : fFill, fSeed, fVt,
               wEmit, wMask, wFrame, filteredEmit, filteredMask, avgEmit, wFrac, wAround, wSpill, wAvgSpill);
@@ -980,9 +915,6 @@ export function createFacadeUniforms(time: { value: number }, seed: number, text
     uLampMap: { value: null },
     uLampRect: { value: new THREE.Vector4(0, 0, 1, 1) },
     uWindowGain: { value: 1 },
-    uTowerDiff: { value: t?.diffuse ?? null },
-    uTowerEmit: { value: t?.emissive ?? null },
-    uTowerNorm: { value: t?.normal ?? null },
     uWalls: { value: t?.walls ?? null },
     uSignMap: { value: null },
     uScreens: { value: null },
