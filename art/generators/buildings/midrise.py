@@ -50,7 +50,8 @@ def generate(ctx):
     side = ctx.p("side_pattern", "alternate" if podium_floors > 0 else "stair2")
     kinds = [(body, front, tint), (body, side, tint), (body, ctx.p("back_pattern", front), tint), (body, side, tint)]
     if body == "office" and podium_floors > 0 and not ctx.p("procedural", False):
-        # Office bodies above shops take the commercial glass skin.
+        # Office bodies above shops take the commercial glass skin: the photographic tower
+        # facades blur and shimmer at mid-rise viewing distances (towers keep them).
         walls(mb, ctx, bw, bd, ptop, top, ptop, [("glass", "grid", tint)] * 4, 0.0, cy)
     elif step_every:
         # Wedding-cake body: steps in by one cell on every side every `step_every` floors.

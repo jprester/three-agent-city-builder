@@ -1,7 +1,6 @@
-"""Setback tower: storefront and office base, a procedural glass shaft that steps in at each
-tier, and a crown that differs per variant. `skin` picks the shaft's surface: "curtain"
-(curtain wall, floors lit unevenly, unlit panes reflect the city) or "glass" (the commercial
-glass skin, most floors lit office white). Scalable: the layout stretches
+"""Setback tower: storefront and office base, a shaft of photographic facade ("atlas"
+surface: the runtime maps one of the tower texture bundles' facades at real scale) that
+steps in at each tier, and a crown that differs per variant. Scalable: the layout stretches
 towers to 150-400 m and the facade shader keeps floors at their real height.
 
 Crowns (param "crown"):
@@ -58,7 +57,7 @@ def generate(ctx):
         h = max(ch, round(frac * shaft / ch) * ch)
         # [z0, z1, setback of this tier's walls from the footprint edge] for sign placement.
         tier_meta.append([round(z, 3), round(z + h, 3), round(inset * cw, 3)])
-        walls(mb, ctx, w, d, z, z + h, z, [(ctx.p("skin", "curtain"), "grid", tint)] * 4)
+        walls(mb, ctx, w, d, z, z + h, z, [("atlas", 1.0, tint)] * 4)
         if ctx.p("exoskeleton", False):
             tower_exoskeleton(mb, ctx, w, d, z, z + h, tint)
         elif ctx.p("structural_ribs", False):
@@ -151,7 +150,7 @@ def _crown(mb, ctx, crown, w, d, z, tint):
         rise = ctx.p("slant", 12.0)
         ctx.meta["roof"] = z
         tm, ts = surf(ctx, "trim", 0.0, tint)
-        am, as_ = surf(ctx, ctx.p("skin", "curtain"), "grid", tint)
+        am, as_ = surf(ctx, "atlas", 1.0, tint)
         x0, x1, y0, y1 = -w / 2, w / 2, -d / 2, d / 2
         mb.quad([(x0, y0, z), (x1, y0, z), (x1, y1, z + rise), (x0, y1, z + rise)], tm, None, ts, plan_uv)
         mb.quad([(x1, y1, z), (x0, y1, z), (x0, y1, z + rise), (x1, y1, z + rise)], am, None, as_, plan_uv)
@@ -231,7 +230,7 @@ def _crown_lantern(mb, ctx, w, d, z, tint):
     walls(mb, ctx, w, d, z, z + 2.4, z, [("trim", 0.0, tint)] * 4)
     z += 2.4
     cw, cd = w * 0.92, d * 0.92
-    walls(mb, ctx, cw, cd, z, z + 11.0, z, [("glass", "grid", tint)] * 4)
+    walls(mb, ctx, cw, cd, z, z + 11.0, z, [("atlas", 1.0, tint)] * 4)
     # Vertical ribs around the crown, standing just proud of the glass.
     for side in range(4):
         fw, xf = side_frame(side, cw, cd)

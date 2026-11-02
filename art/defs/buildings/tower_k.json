@@ -18,7 +18,6 @@
     ],
     "crown": "stepped",
     "structural_ribs": true,
-    "rib_spacing": 7,
-    "skin": "glass"
+    "rib_spacing": 7
   }
 }

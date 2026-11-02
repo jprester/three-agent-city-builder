@@ -104,7 +104,7 @@ async function main() {
   // Shared inputs of the city's shaders: one clock, one seed, one street-light map.
   const scene = createScene(clock.uniform, layout);
   const lamps = layout ? createLampMap(layout) : null;
-  const facadeTextures = await loadFacadeTextures(Math.min(8, renderer.capabilities.getMaxAnisotropy()));
+  const facadeTextures = await loadFacadeTextures(renderer, Math.min(8, renderer.capabilities.getMaxAnisotropy()));
   const facadeUniforms = createFacadeUniforms(clock.uniform, layout?.seed ?? 0, facadeTextures);
   const groundUniforms = createGroundUniforms(facadeUniforms.uLampRect);
   groundUniforms.uTime = clock.uniform;

@@ -22,7 +22,6 @@
     ],
     "crown": "stepped",
     "accent": "stripes",
-    "accent_color": "blue",
-    "skin": "glass"
+    "accent_color": "blue"
   }
 }
