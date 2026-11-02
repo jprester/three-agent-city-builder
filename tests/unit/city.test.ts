@@ -168,8 +168,11 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     // Side-face tower ads are checked by the zone and tier tests instead.
     // Side-face and rooftop/crown signs are checked by their own tests.
     const bad = L.signs!.filter((s) => !s.roof && !s.side && s.zone !== 'crown').filter((s) => {
-      const b = L.instances[s.building] as LayoutInstance & { road?: number; interior?: boolean };
-      if (!b || b.interior || b.road === undefined || b.road < 0) return true;
+      // Indices past the city's instances are island-band buildings (stretched shells).
+      const island = s.building >= L.instances.length;
+      const b = (island ? L.fringe![s.building - L.instances.length] : L.instances[s.building]) as LayoutInstance & { road?: number; interior?: boolean; frontage?: string };
+      if (!b || b.interior || (!island && (b.road === undefined || b.road < 0)) || (island && b.frontage === 'coast')) return true;
+      const k = island ? (b.scale as number[]) : [1, 1, 1];
       const t = b.rotationY;
       const u: Vec2 = [Math.cos(t), -Math.sin(t)], v: Vec2 = [Math.sin(t), Math.cos(t)];
       const [hu, hv] = b.fp!;
@@ -179,7 +182,8 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
       // Blades start just off the wall and reach out by their width; panels hug the wall.
       // Blades hang on an arm clearing balconies/AC units (s.arm); panels sit on the wall or
       // stand on the canopy's front edge (up to its depth).
-      const meta = ASSETS[b.asset as keyof typeof ASSETS].meta as { depth?: number; canopy?: number };
+      const raw = ASSETS[b.asset as keyof typeof ASSETS].meta as { depth?: number; canopy?: number };
+      const meta = { depth: (raw.depth ?? 0) * k[2], canopy: (raw.canopy ?? 0) * k[2] };
       const gap = s.kind === 'blade' ? out - s.size[0] / 2 : out + (s.inset ?? 0);
       const maxGap = s.kind === 'blade' ? (s.arm ?? 0.3) + 0.05 : Math.max(0.5, (meta.canopy ?? 0) + 0.05, (meta.depth ?? 0) + 0.3);
       const minGap = s.kind === 'blade' ? Math.max(0.05, (meta.depth ?? 0) + 0.25) : 0.05;

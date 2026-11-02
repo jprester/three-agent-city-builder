@@ -1197,3 +1197,8 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 ### Office mid-rise glass
 
 - midrise_a's office body is now the commercial glass skin (crisp at street level, interiors behind lit panes) instead of the photo facade, which blurred and shimmered close up. Towers stay photographic by human call: a procedural tower trial (curtain/glass skins) read worse on the skyline and was reverted.
+
+### Island band life
+
+- Quiet band streets are lit now and the ring road and avenues carry shop signs over lit canopies; still much calmer than downtown, as intended. Blank side walls show along the ring where lots face cross streets.
+- Perf could not be confirmed on this change: the machine was in a slow state (every view ~32–40 ms, the previous commit equally slow back to back), so the number is environmental. Re-run `npm run perf` on an idle machine.

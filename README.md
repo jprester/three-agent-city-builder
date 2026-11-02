@@ -58,6 +58,10 @@ Frame time is capped by vsync at 16.7 ms, so it shows drops below 60 fps, not he
 headroom run `npm run perf`, which times each frame on the GPU with WebGL timer queries at a
 Retina laptop resolution (`PERF_DPR`, `PERF_QUALITY`, `PERF_VIEWS` override) and reports the
 GPU process's memory on macOS. It fails only if a median GPU frame exceeds 16.7 ms.
+Timer queries include time the GPU spends on other apps, so a busy or hot machine reads
+3–4× slow (e.g. ~37 ms instead of ~9 ms on street views). If numbers jump, close other GPU
+users (a browser tab running the app) and compare against the previous commit back to back
+(`git stash; npm run perf; git stash pop; npm run perf`) before blaming a change.
 There are no approved image baselines: the project is open-ended, so screenshots are for
 looking at, and only silent breakage and performance fail the run (decided 2026-11-02).
 

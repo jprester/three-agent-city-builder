@@ -57,7 +57,7 @@ const DEFAULTS = {
     margin: { west: 270, east: 300, north: 290, south: 95 }, minMargin: 70, corner: 160,
     wobble: [[2, 18], [3, 14], [5, 9], [9, 5]],
     strait: { north: 520, east: 750, west: 1100, south: 0 }, openSea: 6000, water: -1.6,
-    ring: 18, avenue: 12, street: 9, pitch: [70, 90], promenade: 12, lampEvery: 30,
+    ring: 18, avenue: 12, street: 9, pitch: [70, 90], promenade: 12, lampEvery: 30, quietLamps: 34,
     height: [1.35, 0.75],
     terrain: { plain: 1.4, start: 40, rise: 1100, height: 220 },
   },
@@ -92,6 +92,12 @@ const DEFAULTS = {
   signs: {
     hero: { blades: [2, 5], bladeChance: 1, panelChance: 0.7 },
     core: { blades: [1, 1], bladeChance: 0.16, panelChance: 0.22 },
+    // Island band, by what the building faces (buildIsland's `frontage`).
+    island: {
+      ring: { blades: [1, 2], bladeChance: 0.35, panelChance: 0.5 },
+      avenue: { blades: [1, 2], bladeChance: 0.3, panelChance: 0.45 },
+      street: { blades: [1, 1], bladeChance: 0.08, panelChance: 0.15 },
+    },
     // Signs per frontage building above: hero street dense, old core sparse, elsewhere none.
     // Tall signs climbing buildings at mid-height: flat panels on tower shafts, tall blades on
     // old slabs taller than `minHeight`.
@@ -500,11 +506,9 @@ export function generate({ params, seed, assets = {}, art = [] }) {
 
   // ---- signs: blades project from the front face over the street, panels sit flat on it
   const signs = [];
-  instances.forEach((inst, index) => {
-    if (inst.interior || inst.road < 0) return;
-    const onHero = hero && inst.road === hero.id;
-    const cfg = onHero ? P.signs.hero : inst.district === 'core' ? P.signs.core : null;
-    if (!cfg) return;
+  /** Street-level blades and panels on one building's front (`index` into its own list). */
+  const streetSigns = (inst, index, cfg, onHero, k = [1, 1, 1]) => {
+    // k: the building's scale, for stretched island shells (canopy depth, floor heights).
     const t = inst.rotationY;
     const u = [Math.cos(t), -Math.sin(t)], v = [Math.sin(t), Math.cos(t)];
     const [hu, hv] = inst.fp;
@@ -513,8 +517,9 @@ export function generate({ params, seed, assets = {}, art = [] }) {
     const share = P.signs.artShare.street;
     const fmeta = assets[inst.asset]?.meta ?? {};
     // Street-face clearance: balconies, bay windows and AC units stick out this far.
-    const depth = fmeta.depth ?? 0.3;
-    const canopy = fmeta.canopy ?? 0;
+    const depth = (fmeta.depth ?? 0.3) * k[2];
+    const canopy = (fmeta.canopy ?? 0) * k[2];
+    const lift = 5.4 * k[1];
     const used = [];
     if (rng() < cfg.bladeChance && hu > 2 && top > 9) {
       const n = cfg.blades[0] + Math.floor(rng() * (cfg.blades[1] - cfg.blades[0] + 1));
@@ -525,11 +530,11 @@ export function generate({ params, seed, assets = {}, art = [] }) {
         // Tall blades, or wide "arms" reaching out over the street (the Mong Kok read).
         const arm = rng() < (onHero ? 0.5 : 0.3);
         const c = arm
-          ? chooseArt({ kind: 'neon', aspect: [2, 99], share, stroke: null }, { w: [2.5, onHero ? 7.5 : 4.5], h: [0.6, Math.min(2.6, top - 5.4)] })
-          : chooseArt({ kind: 'neon', shopAds: true, aspect: [0, 1.05], share, stroke: null }, { w: [0.7, onHero ? 3.2 : 2.4], h: [2.2, Math.min(onHero ? 12 : 7, top - 5.4)] });
+          ? chooseArt({ kind: 'neon', aspect: [2, 99], share, stroke: null }, { w: [2.5, onHero ? 7.5 : 4.5], h: [0.6, Math.min(2.6, top - lift)] })
+          : chooseArt({ kind: 'neon', shopAds: true, aspect: [0, 1.05], share, stroke: null }, { w: [0.7, onHero ? 3.2 : 2.4], h: [2.2, Math.min(onHero ? 12 : 7, top - lift)] });
         if (!c) continue;
         const { w, h } = c;
-        const y = rand(5.4, top - h) + h / 2;
+        const y = rand(lift, top - h) + h / 2;
         const out = depth + 0.3 + w / 2;
         const sgn = {
           building: index, kind: 'blade', arm: r3(depth + 0.3), ...artFields(c),
@@ -550,8 +555,8 @@ export function generate({ params, seed, assets = {}, art = [] }) {
         const { w, h } = c;
         // Above the canopy: stands on the canopy's front edge (clear of balconies above);
         // below it: flat on the shop fascia under the canopy soffit.
-        const ph = 4.8;
-        const y = aboveCanopy ? (canopy > 0 ? ph - 0.1 : ph + 0.4) + h / 2 : 3.3 + h / 2;
+        const ph = 4.8 * k[1];
+        const y = aboveCanopy ? (canopy > 0 ? ph - 0.1 : ph + 0.4) + h / 2 : 3.3 * k[1] + h / 2;
         const off = rand(-hu + w / 2 + 0.3, hu - w / 2 - 0.3);
         const out = aboveCanopy ? (canopy > 0 ? canopy - 0.12 : depth + 0.15) : 0.12;
         const sgn = {
@@ -563,8 +568,13 @@ export function generate({ params, seed, assets = {}, art = [] }) {
         if (!hitsBridge(sgn.position, sgn.rotationY, sgn.size)) signs.push(sgn);
       }
     }
+  };
+  instances.forEach((inst, index) => {
+    if (inst.interior || inst.road < 0) return;
+    const onHero = hero && inst.road === hero.id;
+    const cfg = onHero ? P.signs.hero : inst.district === 'core' ? P.signs.core : null;
+    if (cfg) streetSigns(inst, index, cfg, onHero);
   });
-
   // ---- tall signs at mid-height (color climbing the city, not just the street)
   const tallCfg = P.signs.tall;
   instances.forEach((inst, index) => {
@@ -723,6 +733,13 @@ export function generate({ params, seed, assets = {}, art = [] }) {
   }
   signs.length = 0;
   for (const k of kept) signs.push(k.s);
+
+  // Island band (last, so it never shifts the city's random stream): shops along the ring road and avenues, a few on quiet streets.
+  fringe.forEach((inst, index) => {
+    const cfg = P.signs.island[inst.frontage];
+    if (cfg) streetSigns(inst, instances.length + index, cfg, false, inst.scale);
+  });
+
 
   // ---- anchors: named frames for viewpoints ({ origin, x }: x is the frame's forward axis on the ground)
   const coreCenter = centroidOf(blocks.filter((b) => b.district === 'core').map((b) => G.centroid(b.pts))) ?? [0, 0];
@@ -1041,9 +1058,13 @@ function buildIsland(cfg, fcfg, W, Dp, roads, cityBlocks, assets, fly, keepClear
           const far = Math.hypot(fp[0] + fcfg.flyClear, fp[1] + fcfg.flyClear);
           if (flyPts.some((p) => p[1] < h + fcfg.flyClear && Math.abs(p[0] - lc[0]) < far && Math.abs(p[2] - lc[1]) < far && G.insideConvex(grown, [p[0], p[2]]))) continue;
           placed.push(footprint);
+          // What the front faces: the ring, an avenue, a quiet street, or the waterfront.
+          const line = nIn[0] === 1 ? gx[i] : nIn[0] === -1 ? gx[i + 1] : nIn[1] === 1 ? gz[j] : gz[j + 1];
+          const frontPt = G.sub(lc, G.mul(nIn, (xSide ? lw : ld) / 2 + 2));
+          const frontage = sdf(frontPt) > -inset - 1 || line.kind === 'bound' ? 'coast' : line.kind;
           out.instances.push({
             asset, position: [r3(lc[0]), 0, r3(lc[1])], rotationY: r3(rotationY),
-            scale: [sx, sy, sz].map(r3), seed, district: 'fringe', h: r3(h), fp: fp.map(r3),
+            scale: [sx, sy, sz].map(r3), seed, district: 'fringe', h: r3(h), fp: fp.map(r3), frontage,
           });
         }
       }
@@ -1060,6 +1081,23 @@ function buildIsland(cfg, fcfg, W, Dp, roads, cityBlocks, assets, fly, keepClear
         if (paved(p)) out.lamps.push([r3(p[0]), r3(p[1]), r3(Math.atan2(-side * n[0], -side * n[1])), road.id]);
       }
     }
+  }
+  // Quiet streets: block edges facing a street (not the coast), sparser, one side.
+  for (const b of out.blocks) {
+    const c = G.centroid(b.pts);
+    b.pts.forEach((p, k) => {
+      if (b.tags[k] === 'coast') return;
+      const q = b.pts[(k + 1) % b.pts.length], L = G.dist(p, q);
+      const d = G.norm(G.sub(q, p));
+      let n = G.perp(d);
+      if (G.dot(n, G.sub(G.lerp(p, q, 0.5), c)) < 0) n = G.mul(n, -1);   // outward, toward the street
+      for (let s = cfg.quietLamps / 2; s < L - 4; s += cfg.quietLamps) {
+        const at = G.sub(G.add(p, G.mul(d, s)), G.mul(n, 0.6));
+        if (sdf(at) > -inset - 1) continue;
+        if (out.lamps.some(([x, z]) => Math.abs(x - at[0]) < 14 && Math.abs(z - at[1]) < 14)) continue;
+        out.lamps.push([r3(at[0]), r3(at[1]), r3(Math.atan2(n[0], n[1])), -1]);
+      }
+    });
   }
   let run = 0;
   for (let i = 0; i < coast.length; i++) {
