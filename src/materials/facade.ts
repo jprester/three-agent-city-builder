@@ -74,7 +74,7 @@ const roomBox = (s: { width: number; height: number; depth: number; camera: numb
   `vec4(${f(s.width)}, ${f(s.height)}, ${f(s.depth)}, ${f(s.camera)})`;
 const tileList = (t: number[][]) => t.map(([x0, y0, x1, y1]) =>
   `vec4(${f(x0 / IA_W)}, ${f(1 - y1 / IA_H)}, ${f(x1 / IA_W)}, ${f(1 - y0 / IA_H)})`).join(', ');
-const RES_SET = interiors.sets.residential, OFF_SET = interiors.sets.office;
+const RES_SET = interiors.sets.residential, OFF_SET = interiors.sets.office, SHOP_SET = interiors.sets.shops;
 
 const DEFINES = /* glsl */ `
 #define T_RES ${T.residential}
@@ -93,6 +93,9 @@ const DEFINES = /* glsl */ `
 #define T_TOWER_RES ${T.tower_res}
 #define T_GLASS ${T.glass}
 #define T_FOLIAGE ${T.foliage}
+const vec4 SHOP_BOX = ${roomBox(SHOP_SET)};
+const vec4 SHOP_TILES[${SHOP_SET.tiles.length}] = vec4[${SHOP_SET.tiles.length}](${tileList(SHOP_SET.tiles)});
+const float SHOP_PX_M = ${f((SHOP_SET.tiles[0][2] - SHOP_SET.tiles[0][0]) / SHOP_SET.width)};
 const vec4 RES_BOX = ${roomBox(RES_SET)};
 const vec4 OFF_BOX = ${roomBox(OFF_SET)};
 const int RES_CARDS = ${RES_SET.tiles.length};
@@ -759,7 +762,11 @@ if (fType == T_ATLAS) {
   float x = fUv.x - sid * CELL_PODIUM.x;
   float s = fSeed * 31.7;
   float present = step(fHash(vec2(sid, s)), fFill);
-  float open = step(fHash(vec2(sid, s + 1.3)), 0.5) * present;
+  int shopCard = min(int(fHash(vec2(sid, s + 8.2)) * float(${SHOP_SET.tiles.length})), ${SHOP_SET.tiles.length - 1});
+  int tenantKind = shopCard % 3;
+  // The scene is late at night: convenience stores stay open; workshops mostly close.
+  float openShare = tenantKind == 0 ? 0.9 : tenantKind == 1 ? 0.65 : 0.3;
+  float open = step(fHash(vec2(sid, s + 1.3)), openShare) * present;
   float hCol = fHash(vec2(sid, s + 2.1));
   vec3 shopCol = hCol < 0.5 ? P_FLUORESCENT : hCol < 0.85 ? P_TUNGSTEN : mix(P_FLUORESCENT, P_TV, 0.5);
   float pier = 1.0 - fBox(x, 0.3, CELL_PODIUM.x - 0.3, fFw.x);
@@ -779,8 +786,8 @@ if (fType == T_ATLAS) {
   float handle = fBox(x, 2.05, 2.4, fFw.x) * fBox(fUv.y, 0.7, 0.77, fFw.y);
   shutter = mix(shutter, P_METAL, handle);
   fBase = mix(fBase, open > 0.5 ? P_GLASS : shutter, glassMask);
-  vec3 shopRoom = room(vec2(x - 0.3, fUv.y - 0.15), vec2(CELL_PODIUM.x - 0.6, 3.1),
-                       fVt, shopCol, fHash(vec2(sid, s + 8.2)));
+  vec3 shopRoom = interior(SHOP_BOX, SHOP_TILES[shopCard], vec2(x - 0.3, fUv.y - 0.15),
+                           fVt, SHOP_PX_M, fFw) * mix(vec3(1.0), shopCol, 0.4);
   // Some entrances sit left of the display, others right, with a few double doors.
   float doorX = finish < 0.5 ? 1.55 : CELL_PODIUM.x - 1.55;
   float transom = mix(2.35, 2.8, fHash(vec2(sid, s + 5.1)));

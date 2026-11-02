@@ -143,6 +143,42 @@
           "seed": 9211
         }
       ]
+    },
+    "shops": {
+      "width": 4.2,
+      "height": 3.1,
+      "depth": 4.0,
+      "camera": 3.0,
+      "tile": [
+        504,
+        372
+      ],
+      "cards": [
+        {
+          "kind": "convenience",
+          "seed": 9300
+        },
+        {
+          "kind": "noodle",
+          "seed": 9301
+        },
+        {
+          "kind": "repair",
+          "seed": 9302
+        },
+        {
+          "kind": "convenience",
+          "seed": 9303
+        },
+        {
+          "kind": "noodle",
+          "seed": 9304
+        },
+        {
+          "kind": "repair",
+          "seed": 9305
+        }
+      ]
     }
   }
 }

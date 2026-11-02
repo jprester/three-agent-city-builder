@@ -1132,3 +1132,11 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 - **Next:** furnish one curated canyon block and improve close vehicles, then vary the fringe
   and reduce texture memory by quality. Texture compression, hardware benchmarking and broad
   facade/layout module extraction are not included in this first pass.
+
+## Street-life refinement — 2026-11-02
+
+### Shop interiors
+
+- Added six Blender-rendered cards: convenience shelves/checkout, noodle counter/stools/kitchen/menu panels, repair bench/tools/equipment. The runtime ray-casts the existing room box, with tenant-dependent late-night opening shares.
+- Inspected all 34 regenerated room cards, including the original residential and office sets, and the storefront/canyon captures. Furniture is distinguishable; the shelves give a better depth cue than the former empty box.
+- Remaining weakness: white side walls dominate at grazing angles, and the two noodle variants are very similar. These are deliberately small window assets, not fully furnished walkthrough spaces. A later art pass should add wall wear and asymmetric hanging stock rather than merely brighten the shops.
