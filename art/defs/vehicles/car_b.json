@@ -3,7 +3,6 @@
   "seed": 22,
   "params": {
     "tint": 0.8,
-    "length": 4.0,
-    "paint": "paint_blue"
+    "length": 4.0
   }
 }

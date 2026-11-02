@@ -30,7 +30,7 @@ export function planVehicles(layout: Layout, density: number) {
 
 /**
  * Moves the planned vehicles (instances `ids` of the facade instances, in plan order) on the
- * shared clock: cars along their lanes (faded out near junctions), flyers around their loops
+ * shared clock: cars around their street loops, flyers around their loops
  * with a slow bob. Pure function of time, so frozen-time renders are reproducible.
  */
 export function createVehicleMotion(batch: DynamicInstances, ids: number[], plan: ReturnType<typeof planVehicles>) {
@@ -44,8 +44,7 @@ export function createVehicleMotion(batch: DynamicInstances, ids: number[], plan
           const p = trafficPosition(g.lane, i, time);
           pos.set(p.x, 0, p.z);
           q.setFromAxisAngle(up, p.angle);
-          scale.setScalar(Math.max(p.visibility, 1e-3));
-          batch.setMatrixAt(ids[k++], m.compose(pos, q, scale));
+          batch.setMatrixAt(ids[k++], m.compose(pos, q, scale.setScalar(1)));
         }
       }
       for (const s of plan.sky) {

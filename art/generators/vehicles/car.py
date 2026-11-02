@@ -4,6 +4,8 @@ from math import cos, sin, tau
 from lib.mesh import MeshBuilder
 from lib.surface import fixture, plan_uv, surf
 
+PAINTS = ("paint_mint", "paint_salmon", "paint_cream", "paint_blue")   # P_PAINT order
+
 
 def generate(ctx):
     L, W = ctx.p("length", 4.4), ctx.p("width", 1.8)
@@ -11,7 +13,8 @@ def generate(ctx):
     tint = ctx.p("tint", 0.5)
     mb = MeshBuilder(ctx.name)
     bm, bs = surf(ctx, "metal", 0.25, tint)
-    bs = (bs[0], ctx.color(ctx.p("paint", "paint_cream")))
+    # The shader paints by tint (P_PAINT in src/materials/facade.ts); the preview matches it.
+    bs = (bs[0], ctx.color(PAINTS[min(int(tint * 4), 3)]))
     gm, gs = surf(ctx, "metal", 0.5, tint)
     rm, rs = surf(ctx, "metal", 0.75, tint)
     mm, ms = surf(ctx, "metal", 0.0, tint)

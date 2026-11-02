@@ -50,10 +50,11 @@ export function parkedVehicles(blocks, roads, instances, props, lamps, assets, c
       if (!road || road.cls !== 'arterial') continue;
       const a = block.pts[e], b = block.pts[(e + 1) % block.pts.length];
       const dir = G.norm(G.sub(b, a)), inward = G.perp(dir);
-      const id = cfg.assets[out.length % cfg.assets.length], meta = assets[id]?.meta;
-      if (!meta) continue;
-      const [w, l] = meta.footprint;
       for (let s = cfg.junctionClear; s < G.dist(a, b) - cfg.junctionClear && out.length < cfg.count; s += cfg.spacing) {
+        // Alternate the models per vehicle, not per street edge.
+        const id = cfg.assets[out.length % cfg.assets.length], meta = assets[id]?.meta;
+        if (!meta) continue;
+        const [w, l] = meta.footprint;
         const c = G.add(G.add(a, G.mul(dir, s)), G.mul(inward, w / 2 + cfg.curbGap));
         const rotationY = Math.atan2(dir[0], dir[1]);
         const box = G.obb(c, [Math.cos(rotationY), -Math.sin(rotationY)], w / 2 + cfg.clearance, l / 2 + cfg.clearance);

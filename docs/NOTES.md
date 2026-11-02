@@ -1161,3 +1161,9 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 - Rebuilt the room atlas and all four road-vehicle variants through their generators, inspected every room card and vehicle preview, and inspected all 18 final scene captures. Milestone images and stats are in `docs/progress/street-life/`; `shops.jpg`, `storefront.png`, `delivery.png`, and `aerial.png` are the most useful entry points.
 - Typecheck, asset budgets, production build and all 94 unit tests pass. All 18 viewpoints pass browser-error, nonblank-frame and scene-budget checks. Maximum counts are 222 draw calls, 1,486,212 triangles and 24 programs against limits of 250 / 3M / 25. The existing production bundle-size warning remains.
 - Final full `npm run shots`: all 19 health tests pass (18 viewpoints plus pixel-identical frozen-time reloads). The 18 baseline comparisons fail because approved images are absent; no baseline was created or approved. The final run completed in 5.9 minutes without retries.
+
+### Review fixes (traffic loops)
+
+- Cars shrank to nothing at every T-junction: 152 of 200 lane ends were inside the city. Now 737 cars on 6 loops keep full size through junctions and turn smoothly (chord-based heading through rounded corners). Checked in a temporary view over a T-junction at three frozen times.
+- Remaining weakness: one loop is 16.5 km and all its cars share one speed, so traffic moves in lockstep; crossing streams can briefly overlap in a junction.
+- Parked deliveries now alternate van / car per vehicle, not per street edge.

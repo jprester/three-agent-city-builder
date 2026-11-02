@@ -89,7 +89,10 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
 
   it('flies vehicles clear of buildings and skybridges, and has traffic lanes', async () => {
     const L = await get();
-    expect(L.traffic!.length).toBeGreaterThan(20);
+    // Loops drive every non-alley street of 9 m or more.
+    const driven = new Set(L.traffic!.flatMap((l) => l.roads));
+    expect(L.roads!.filter((r) => r.width >= 9 && r.cls !== 'alley').every((r) => driven.has(r.id))).toBe(true);
+    expect(L.traffic!.reduce((s, l) => s + l.count, 0)).toBeGreaterThan(200);
     expect(L.skyLanes!.length).toBe(3);
     const boxes = L.instances.map((i) => ({ b: G.obb([i.position[0], i.position[2]], [Math.cos(i.rotationY), -Math.sin(i.rotationY)], i.fp![0] + 8, i.fp![1] + 8), h: i.h! }));
     const hits: string[] = [];
