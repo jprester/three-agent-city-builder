@@ -51,9 +51,10 @@ def generate(ctx):
             # Laundry poles / clutter hint: a thin bar at head height.
             if rng.random() < 0.4 and not ctx.p("lod", 0):
                 dmb.box(-fw / 2 + 0.3, fw / 2 - 0.3, -vd - 0.4, -vd - 0.35, z + 2.2, z + 2.26, mm, xf, (), ms, uvf)
-    # End posts carrying the verandas.
-    for u in (-fw / 2, fw / 2 - 0.3):
-        dmb.box(u, u + 0.3, -vd, -vd + 0.3, ph, top, tm, xf, ("back", "bottom"), ts, uvf)
+    # End posts carrying the verandas, standing 3 cm proud of the veranda fronts and ends
+    # (flush, their faces would share planes with the verandas' and z-fight).
+    for u in (-fw / 2 - 0.03, fw / 2 - 0.27):
+        dmb.box(u, u + 0.3, -vd - 0.03, -vd + 0.3, ph, top, tm, xf, ("back", "bottom"), ts, uvf)
 
     flat_roof(mb, ctx, W, D, top, tint, parapet=1.1)
     roof_top = roof_clutter(dmb, ctx, W, D, top, tint, ctx.p("clutter", 1.3))

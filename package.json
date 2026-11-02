@@ -19,7 +19,8 @@
     "perf": "playwright test --project=perf",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "check": "npm run typecheck && npm run budgets",
+    "check": "npm run typecheck && npm run budgets && npm run coplanar",
+    "coplanar": "node tools/check-coplanar.mjs",
     "signs": "python3 tools/textures/import_ads.py && npm run layouts",
     "signs:typeset": "python3 tools/textures/build_advertising.py",
     "interiors": "node tools/build-interiors.mjs"

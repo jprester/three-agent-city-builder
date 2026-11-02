@@ -33,6 +33,9 @@ def walls(mb, ctx, W, D, z0, z1, vbase, kinds, cx=0.0, cy=0.0):
         mb.quad([(-fw / 2, 0, z0), (fw / 2, 0, z0), (fw / 2, 0, z1), (-fw / 2, 0, z1)], m, xf, s, facade_uv(fw, vbase))
 
 
+PARAPET_INSET = 0.05
+
+
 def flat_roof(mb, ctx, W, D, z, tint, cx=0.0, cy=0.0, parapet=1.0, thick=0.25):
     """Roof slab plus a parapet wall around it."""
     m, s = surf(ctx, "roof", 0.0, tint)
@@ -42,6 +45,11 @@ def flat_roof(mb, ctx, W, D, z, tint, cx=0.0, cy=0.0, parapet=1.0, thick=0.25):
         return
     tm, ts = surf(ctx, "trim", 0.0, tint)
     t = thick
+    # The parapet stands just inside the roof edge: flush with it, its outer faces share a
+    # plane with any wall that continues upward from that edge (a set-back body, a tower
+    # tier) and z-fight. 5 cm is invisible and resolves in the depth buffer to ~500 m.
+    e = PARAPET_INSET
+    x0, x1, y0, y1 = x0 + e, x1 - e, y0 + e, y1 - e
     for bx in ((x0, x1, y0, y0 + t), (x0, x1, y1 - t, y1), (x0, x0 + t, y0 + t, y1 - t), (x1 - t, x1, y0 + t, y1 - t)):
         mb.box(bx[0], bx[1], bx[2], bx[3], z, z + parapet, tm, None, ("bottom",), ts, plan_uv)
 

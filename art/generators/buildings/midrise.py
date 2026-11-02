@@ -40,9 +40,12 @@ def generate(ctx):
         ptop = 0.0
         setback = 0.0
 
-    # Body, set back from the front and the sides so the podium roof shows.
-    bw, bd = W - 2 * setback, D - setback
-    cy = setback / 2
+    # Body, set back from the front and the sides so the podium roof shows. At the back it
+    # stops just inside the podium roof's parapet: flush with the podium's back edge, the
+    # parapet's outer face and the body wall's base would share a plane and z-fight.
+    back = 0.35 if podium_floors > 0 else 0.0
+    bw, bd = W - 2 * setback, D - setback - back
+    cy = (setback - back) / 2
     top = ptop + floors * bh
     step_every = ctx.p("step_every", 0)
     # Opening patterns (lib.surface.window_code); industrial blocks default to sparse ones.

@@ -73,7 +73,9 @@ def _roof(mb, ctx, pts, z, tint, parapet):
         return
     tm, ts = surf(ctx, "trim", 0.0, tint)
     for L, xf, u0 in _edges(pts):
-        mb.box(-L / 2, L / 2, 0.0, 0.25, z, z + parapet, tm, xf, ("bottom",), ts, _uv(L, u0, z))
+        # 5 cm inside the edge, like lib.building.flat_roof: flush, it would z-fight with a
+        # wall rising from that edge (the crown or upper block).
+        mb.box(-L / 2, L / 2, 0.05, 0.3, z, z + parapet, tm, xf, ("bottom",), ts, _uv(L, u0, z))
 
 
 def generate(ctx):

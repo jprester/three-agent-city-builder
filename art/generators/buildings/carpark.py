@@ -35,9 +35,13 @@ def generate(ctx):
             # Recessed dark interior, deck floor, lit slot ceiling.
             # Recessed back wall: the lit deck interior (columns, cars, ceiling tubes), shaded
             # by the facade shader's "deck" type; v counts from the ground-floor top.
-            mb.quad([(-fw / 2, inset, z + band), (fw / 2, inset, z + band), (fw / 2, inset, z1), (-fw / 2, inset, z1)], dm, xf, ds, uvf)
-            mb.quad([(-fw / 2, 0, z + band), (fw / 2, 0, z + band), (fw / 2, inset, z + band), (-fw / 2, inset, z + band)], tm, xf, ts, uvf)
-            mb.quad([(-fw / 2, inset, z1), (fw / 2, inset, z1), (fw / 2, 0, z1), (-fw / 2, 0, z1)], sm, xf, ss, uvf)
+            # Floor and ceiling strips are mitred at the corners (each side's strip narrows to
+            # the back wall), so neighbouring sides meet on the diagonal instead of overlapping
+            # in a coplanar square that z-fights; the back wall stops at the neighbours'.
+            bx = fw / 2 - inset
+            mb.quad([(-bx, inset, z + band), (bx, inset, z + band), (bx, inset, z1), (-bx, inset, z1)], dm, xf, ds, uvf)
+            mb.quad([(-fw / 2, 0, z + band), (fw / 2, 0, z + band), (bx, inset, z + band), (-bx, inset, z + band)], tm, xf, ts, uvf)
+            mb.quad([(-bx, inset, z1), (bx, inset, z1), (fw / 2, 0, z1), (-fw / 2, 0, z1)], sm, xf, ss, uvf)
     flat_roof(mb, ctx, W, D, top, tint, parapet=1.2)
     # Roof deck lamp posts.
     fm, fs = fixture(ctx, "sodium")

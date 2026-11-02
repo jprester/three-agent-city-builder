@@ -1208,3 +1208,8 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 - Queues form at junctions and brake lights glow red on the wet road behind waiting cars (`canyon` t=30). About a quarter of cars wait at a light at any moment; mean speed ~3 m/s.
 - No visible traffic-light heads yet: cars stop at invisible signals. Turning streams within one phase (left turn vs oncoming) can still cross in a junction.
 - Perf not confirmed: the machine's GPU was busy with the user's Chrome (GPU helper ~23 % CPU, WindowServer ~43 %), reading ~35 ms for every commit; CPU per frame unchanged at ~1 ms.
+
+### Z-fighting sweep
+
+- The flicker along the base of the mid-rise glass bodies (and earlier on the photo facade) was the podium parapet's outer face sharing a plane with the body wall at the back. The same flush-parapet pattern was in most generators; also walk-up veranda posts, car-park deck corners and landmark caps. Not reproducible in stills (it depends on the camera's sub-pixel position), so the fix is verified by the geometry scan rather than screenshots.
+- Left: ~44 assets with small overlaps (parapet boxes overlapping each other's tops at corners, LED-strip ends, soffit slivers), all under 25 m² and mostly on roofs.

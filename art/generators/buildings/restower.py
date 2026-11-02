@@ -166,7 +166,9 @@ def generate(ctx):
     for side in range(4):
         for line, a0, a1, kind in _runs(nx, ny, empty, side):
             w, wxf = _frame(side, line, a0, a1, nx, ny, cw)
-            mb.box(-w / 2, w / 2, 0.0, 0.25, top, top + par, tm, wxf, ("bottom",), ts, facade_uv(w, base))
+            # 5 cm inside the edge (see lib.building.flat_roof): the plant room rises from
+            # some of these edges and would z-fight with a flush parapet.
+            mb.box(-w / 2, w / 2, 0.05, 0.3, top, top + par, tm, wxf, ("bottom",), ts, facade_uv(w, base))
 
     # Crown: a plant room on the core, optionally ringed by a lit band, with a water tank and
     # masts on top; aviation lights on the corners of the shaft.

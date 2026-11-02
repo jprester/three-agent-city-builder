@@ -34,7 +34,8 @@ binary in `public/` is regenerated from them.
 - `npm run perf` (~30 s) measures real GPU and CPU time per frame and GPU memory at 1440×900 @2x,
   high quality, for 5 viewpoints; writes `build/perf/report.json`. `PERF_VIEWS`, `PERF_DPR`,
   `PERF_QUALITY` override. Run it after changes that add geometry, passes or shader work.
-- `npm run check` typechecks and enforces budgets. Must pass before every commit.
+- `npm run check` typechecks, enforces budgets and runs `npm run coplanar` (z-fighting scan of
+  every GLB: coplanar overlapping faces flicker as the camera moves). Must pass before every commit.
 
 ## Never hand-edit (generated)
 `public/assets/**`, `public/layouts/**`, `src/assets/manifest.gen.ts`, `build/**`.

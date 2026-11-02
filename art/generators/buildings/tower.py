@@ -218,7 +218,9 @@ def _cap(mb, ctx, w, d, z, tint, thick=0.45):
     looking up through an open crown (free-fly, the lattice cage) sees through it. Landmark
     crowns use this closed slab instead, both at the shaft top and above the cage."""
     m, s = surf(ctx, "roof", 0.0, tint)
-    mb.box(-w / 2, w / 2, -d / 2, d / 2, z - thick, z, m, None, (), s, plan_uv)
+    # 5 cm inside the walls it sits on: flush, its sides would z-fight with the wall tops.
+    e = 0.05
+    mb.box(-w / 2 + e, w / 2 - e, -d / 2 + e, d / 2 - e, z - thick, z, m, None, (), s, plan_uv)
 
 
 def _crown_lantern(mb, ctx, w, d, z, tint):
