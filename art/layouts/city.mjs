@@ -565,7 +565,11 @@ export function generate({ params, seed, assets = {}, art = [] }) {
           rotationY: r3(t),
           size: [r3(w), r3(h), 0.2],
           seed: Math.floor(rng() * 2 ** 31),};
-        if (!hitsBridge(sgn.position, sgn.rotationY, sgn.size)) signs.push(sgn);
+        // A blade's arm can reach over the canopy edge where the panel stands (stretched shells).
+        const box = (g) => G.obb([g.position[0], g.position[2]], [Math.cos(g.rotationY), -Math.sin(g.rotationY)], g.size[0] / 2, g.size[2] / 2);
+        const clash = signs.some((o) => o.building === index && Math.abs(o.position[1] - sgn.position[1]) < (o.size[1] + sgn.size[1]) / 2
+          && G.obbOverlap(box(o), box(sgn), 0.01));
+        if (!clash && !hitsBridge(sgn.position, sgn.rotationY, sgn.size)) signs.push(sgn);
       }
     }
   };
