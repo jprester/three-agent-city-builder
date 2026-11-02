@@ -132,9 +132,10 @@ def plan_uv(pts, n):
     return [(x, z) for x, y, z in pts]
 
 
-def fixture(ctx, color, strip=False, lamp=False):
+def fixture(ctx, color, strip=False, lamp=False, signal=False):
     """(material, surface) for a light fixture of a named color (facade.json fixture_colors).
     strip=True marks long LED strips (tint 1), which the shader lights softly; lamp=True marks
-    vehicle lamp panels (tint 0.3), bright enough to bloom; point fixtures (street lamps,
-    aviation lights) burn hottest."""
-    return surf(ctx, "fixture", ctx.facade["fixture_colors"][color], 1.0 if strip else 0.3 if lamp else 0.0)
+    vehicle lamp panels (tint 0.3), bright enough to bloom; signal=True marks traffic-signal
+    lenses (tint 0.75), lit only in their phase (src/materials/facade.ts); point fixtures
+    (street lamps, aviation lights) burn hottest."""
+    return surf(ctx, "fixture", ctx.facade["fixture_colors"][color], 1.0 if strip else 0.3 if lamp else 0.75 if signal else 0.0)

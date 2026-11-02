@@ -118,7 +118,7 @@ function loopPoints(nodes, edges, loop, fillet, arrivals) {
     if (inc.length >= 3) {
       const cross = Math.max(...inc.filter((j) => j !== i).map((j) => edges[j].width)) / 2 + 1.5;
       const ref = edges[inc[0]].dir;
-      stops.push({ idx: pts.length, cross, node: e.to, group: Math.abs(dot(e.dir, ref)) >= Math.SQRT1_2 ? 0 : 1 });
+      stops.push({ idx: pts.length, cross, node: e.to, group: Math.abs(dot(e.dir, ref)) >= Math.SQRT1_2 ? 0 : 1, width: e.width });
     }
     if (dot(e.dir, f.dir) < -0.99) {
       // Dead end: a half circle around the end of the road.
@@ -165,8 +165,8 @@ export function trafficLanes(roads, seed, density = 1, { turn = 0.6, fillet = 7 
     const arc = [0];
     for (let k = 1; k <= points.length; k++) arc.push(arc[k - 1] + len(sub(points[k % points.length], points[k - 1])));
     const length = arc[points.length];
-    // [arc position of the stop line, junction (node) id, signal phase group], by position.
-    const stops = marks.map((m) => [((arc[m.idx] - m.back) % length + length) % length, m.node, m.group]).sort((a, b) => a[0] - b[0]);
+    // [arc position of the stop line, junction (node) id, signal phase group, road width], by position.
+    const stops = marks.map((m) => [((arc[m.idx] - m.back) % length + length) % length, m.node, m.group, m.width]).sort((a, b) => a[0] - b[0]);
     const headway = loop.reduce((s, i) => s + edges[i].length * (HEADWAY[edges[i].cls] ?? 40), 0)
       / loop.reduce((s, i) => s + edges[i].length, 0);
     return {
@@ -208,10 +208,15 @@ export function trafficPose(lane, s) {
 /** Signal cycle (seconds): phase 0 green, amber, phase 1 green, amber. */
 export const SIGNAL = { period: 36, green: 15, amber: 3 };
 
+/** Junction `node`'s cycle offset as a fraction of the period (the signal heads use it too). */
+export function signalOffset(node) {
+  return Math.abs(Math.sin(node * 12.9898 + 4.1) * 43758.5453) % 1;
+}
+
 /** Signal for junction `node`, phase `group`, at `time`: 'green' | 'amber' | 'red'. */
 export function signalAt(node, group, time) {
   const { period, green, amber } = SIGNAL;
-  const offset = (Math.abs(Math.sin(node * 12.9898 + 4.1) * 43758.5453) % 1) * period;
+  const offset = signalOffset(node) * period;
   const t = (((time + offset) % period) + period) % period - group * (green + amber);
   return t >= 0 && t < green ? 'green' : t >= green && t < green + amber ? 'amber' : 'red';
 }

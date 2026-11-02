@@ -5,6 +5,7 @@ import interiors from '../../art/textures/interiors/interiors.json';
 import { GLASS_PROBE_Y } from '../scene/environment-map';
 import { SCREEN_COLS, SCREEN_COUNT, SCREEN_ROWS } from '../scene/screens';
 import { TOWER_BUNDLES, type FacadeTextures } from './textures';
+import { SIGNAL } from '../../art/layouts/lib/traffic.mjs';
 
 /**
  * The one material for every facade-shaded asset (buildings, and props built from the same
@@ -152,6 +153,7 @@ flat varying vec3 vSurf;
 flat varying float vInstSeed;
 flat varying float vInstPaint;
 flat varying float vInstBrake;
+flat varying vec2 vInstSignal;
 varying vec3 vFWorld;
 varying vec3 vFNormal;
 varying vec2 vRawUv;
@@ -183,6 +185,9 @@ vFNormal = normalize(mat3(fInst) * normal);
 vInstPaint = abs(fScale.y - 1.0) < 1e-5 ? vInstSeed : clamp((fScale.y - 1.0) * 64.0, 0.0, 0.999);
 // Braking cars are 0.4 % wider (src/systems/vehicles.ts): their tail lamps burn brighter.
 vInstBrake = abs(fScale.x - 1.004) < 0.001 ? 1.0 : 0.0;
+// Traffic signals carry their junction's cycle offset (x scale 1.01..1.03) and phase (z
+// scale 1.01 = phase 1); see layout signals in src/systems/instancing.ts.
+vInstSignal = vec2(clamp((fScale.x - 1.01) / 0.02, 0.0, 1.0), step(1.005, fScale.z));
 `;
 
 const VERTEX_WORLD = /* glsl */ `
@@ -211,6 +216,7 @@ flat varying vec3 vSurf;
 flat varying float vInstSeed;
 flat varying float vInstPaint;
 flat varying float vInstBrake;
+flat varying vec2 vInstSignal;
 varying vec3 vFWorld;
 varying vec3 vFNormal;
 varying vec2 vRawUv;
@@ -910,7 +916,7 @@ if (fType == T_ATLAS) {
   float blink = fFill > 0.875 ? step(0.5, fract(uTime * 0.9 + fSeed * 3.0)) : 1.0;
   fBase = fc * 0.2;
   // Accent strips glow softly; small point fixtures (lamps, aviation lights) burn hot.
-  bool strip = fTint > 0.5;   // lib/surface.py fixture(strip=True)
+  bool strip = fTint > 0.9;   // lib/surface.py fixture(strip=True)
   // Accent strips are white-dominant and soft; saturated cyan stripes on every tower read as
   // decoration rather than architecture. Point fixtures stay hot.
   if (strip) fc = mix(fc, vec3(1.0), 0.35);
@@ -918,6 +924,17 @@ if (fType == T_ATLAS) {
   bool lamp = fTint > 0.15 && fTint < 0.5;
   float brake = lamp && fFill > 0.875 ? 1.0 + 1.6 * vInstBrake : 1.0;
   fEmit = fc * (strip ? 0.65 : lamp ? 2.4 : 4.0) * blink * brake;
+  if (fTint > 0.6 && fTint <= 0.9) {
+    // Traffic-signal lens (fixture(signal=True)): the same cycle as signalAt() in
+    // art/layouts/lib/traffic.mjs. Lens by color: green (cyan), amber (sodium), red.
+    float sp = ${SIGNAL.period.toFixed(1)}, sg = ${SIGNAL.green.toFixed(1)}, sa = ${SIGNAL.amber.toFixed(1)};
+    float st = mod(uTime + vInstSignal.x * sp, sp) - vInstSignal.y * (sg + sa);
+    float green = step(0.0, st) * step(st, sg - 1e-3), amber = step(sg, st) * step(st, sg + sa - 1e-3);
+    float on = fFill < 0.125 ? amber : fFill < 0.625 ? green : 1.0 - green - amber;
+    vec3 lensCol = fFill < 0.125 ? vec3(1.0, 0.55, 0.08) : fFill < 0.625 ? vec3(0.15, 1.0, 0.55) : vec3(1.0, 0.08, 0.05);
+    fBase = lensCol * 0.05;
+    fEmit = lensCol * mix(0.04, 5.0, on);
+  }
   fNormalW = normalize(vFNormal);
 }
 

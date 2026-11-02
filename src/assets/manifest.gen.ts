@@ -109,6 +109,7 @@ export const ASSETS = {
   "props/guardrail": { url: "assets/props/guardrail.glb", category: "props", meta: {"footprint":[6,0.12],"height":1.05,"shader":"facade","family":"prop"} },
   "props/kiosk_a": { url: "assets/props/kiosk_a.glb", category: "props", meta: {"footprint":[3.7,1.5],"height":3.2,"shader":"facade","family":"prop"} },
   "props/kiosk_b": { url: "assets/props/kiosk_b.glb", category: "props", meta: {"footprint":[3.3,1.4],"height":3,"shader":"facade","family":"prop"} },
+  "props/signal": { url: "assets/props/signal.glb", category: "props", meta: {"height":3.6499999999999995,"footprint":[0.36,0.42000000000000004],"shader":"facade","family":"signal"} },
   "props/street_lamp": { url: "assets/props/street_lamp.glb", category: "props", meta: {"height":8,"shader":"facade","family":"lamp"} },
   "props/tree_a": { url: "assets/props/tree_a.glb", category: "props", meta: {"footprint":[4.8,4.8],"height":7,"shader":"facade"} },
   "props/tree_b": { url: "assets/props/tree_b.glb", category: "props", meta: {"footprint":[4.4,4.4],"height":10,"shader":"facade"} },

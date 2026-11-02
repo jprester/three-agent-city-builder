@@ -6,6 +6,7 @@ import type { Layout, LayoutInstance } from './layout';
 
 const Y = new THREE.Vector3(0, 1, 0);
 const LAMP = 'props/street_lamp';
+const SIGNAL_HEAD = 'props/signal';
 /**
  * Street furniture is not drawn beyond this distance (× the quality preset's LOD scale): a
  * kiosk is a few pixels there. Lamps stay: their heads are the street's light dots.
@@ -53,13 +54,20 @@ export async function buildInstances(layout: Layout, loader: AssetLoader, facade
   if (layout.lamps?.length && getAsset(LAMP)) {
     for (const [x, z, angle] of layout.lamps) facade.push({ asset: LAMP, position: [x, 0, z], rotationY: angle, scale: 1 });
   }
+  if (layout.signals?.length && getAsset(SIGNAL_HEAD)) {
+    // The facade shader reads the cycle offset from x scale 1.01..1.03 and the phase from
+    // z scale (1.01 = phase 1) to light the right lens on the shared clock.
+    for (const [x, z, angle, offset, group] of layout.signals) {
+      facade.push({ asset: SIGNAL_HEAD, position: [x, 0, z], rotationY: angle, scale: [1.01 + 0.02 * offset, 1, group ? 1.01 : 1] });
+    }
+  }
   let lod: FacadeLod | null = null;
   let vehicles: VehicleMotion | null = null;
   if (facade.length) {
     const plan = planVehicles(layout, vehicleDensity);
     const dyn = plan.assets.filter((id) => getAsset(id));
     const built = await buildFacadeBatch(facade, loader, facadeMaterial, dyn.length === plan.assets.length ? dyn : [],
-      (id) => (id.startsWith('props/') && id !== LAMP && !id.startsWith('props/tree') ? PROP_CULL : undefined));
+      (id) => (id.startsWith('props/') && id !== LAMP && id !== SIGNAL_HEAD && !id.startsWith('props/tree') ? PROP_CULL : undefined));
     group.add(built.batch);
     lod = built.lod;
     if (built.dynamicIds.length) vehicles = createVehicleMotion(built.dynamicInstances, built.dynamicIds, plan);

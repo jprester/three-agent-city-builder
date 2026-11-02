@@ -17,7 +17,7 @@ import * as G from './lib/geom.mjs';
 import { parkedVehicles } from './lib/outskirts.mjs';
 import { coastDistance, coastline, islandShape } from './lib/island.mjs';
 import { mulberry32, weightedChoice } from './lib/rng.mjs';
-import { trafficLanes } from './lib/traffic.mjs';
+import { signalOffset, trafficLanes, trafficPose } from './lib/traffic.mjs';
 
 const DISTRICT_DEFAULTS = {
   // blockArea: target block size (m²); minWidth: narrowest allowed block; secondaryFactor:
@@ -455,7 +455,19 @@ export function generate({ params, seed, assets = {}, art = [] }) {
   const skyLanes = buildSkyLanes(P.skyLanes, [...instances, ...fringe], bridges);
   for (const lane of skyLanes) lane.points = liftClear(lane.points, [...instances, ...fringe], 12, 14);
   const traffic = trafficLanes(roads.map((r) => ({ id: r.id, cls: r.cls, width: r.width, a: r.a.map(r3), b: r.b.map(r3) })), seed)
-    .map((l) => ({ ...l, points: l.points.map((p) => p.map(r3)), stops: l.stops.map(([s, n, g]) => [r3(s), n, g]), speed: r3(l.speed), phase: r3(l.phase), length: r3(l.length) }));
+    .map((l) => ({ ...l, points: l.points.map((p) => p.map(r3)), stops: l.stops.map(([s, n, g, w]) => [r3(s), n, g, w]), speed: r3(l.speed), phase: r3(l.phase), length: r3(l.length) }));
+  // Signal heads: one per signalled approach, on the right-hand curb at the stop line, facing
+  // the approaching cars: [x, z, rotationY, junction cycle offset (0..1), phase].
+  const signals = [];
+  for (const lane of traffic) {
+    for (const [s, node, group, width] of lane.stops) {
+      const p = trafficPose(lane, s);
+      const curb = width / 2 - width * 0.22 + 0.7;   // lane centre → just onto the sidewalk
+      const at = [p.x - Math.cos(p.angle) * curb, p.z + Math.sin(p.angle) * curb];
+      if ([...lamps, ...signals].some((o) => Math.hypot(o[0] - at[0], o[1] - at[1]) < 1.2)) continue;
+      signals.push([r3(at[0]), r3(at[1]), r3(p.angle + Math.PI), r3(signalOffset(node)), group]);
+    }
+  }
   const footBoxes = bridges.filter((b) => b.kind === 'foot').map((b) => ({
     box: G.obb(G.lerp(b.a, b.b, 0.5), G.norm(G.sub(b.b, b.a)), G.dist(b.a, b.b) / 2 + 0.5, b.width / 2 + 0.6),
     y0: b.y - 0.6, y1: b.y + b.depth + 0.6,
@@ -778,6 +790,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
     flythrough,
     bridges,
     traffic,
+    signals,
     skyLanes,
   };
 }
