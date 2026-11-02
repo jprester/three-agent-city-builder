@@ -6,7 +6,7 @@ import type { Layout } from './layout';
 /**
  * Procedural city sound, synthesized at runtime with the Web Audio API (no files):
  *  - rain: a filtered hiss bed plus scattered droplet ticks, following the rain waves;
- *  - city hum: low filtered rumble, more of it from higher up;
+ *  - city: a low hum and a mid-band traffic roar (audible on small speakers), more from higher up;
  *  - tyre hiss: the nearest simulated cars swish past on the wet road, panned toward them;
  *  - thunder: a rumble a few seconds after each lightning flash (src/scene/lightning.ts),
  *    louder and sharper the shorter the delay;
@@ -26,7 +26,7 @@ export interface AudioFrame {
 
 export function createCityAudio(layout: Layout | null) {
   let ctx: AudioContext | null = null;
-  let master: GainNode, rainBed: GainNode, hum: GainNode, hiss: GainNode, hissPan: StereoPannerNode;
+  let master: GainNode, rainBed: GainNode, hum: GainNode, roar: GainNode, hiss: GainNode, hissPan: StereoPannerNode;
   let noise: AudioBuffer;
   let on = false;
   let lastFlash = 0, nextDrop = 0, nextChirp = 0, strikes = 0;
@@ -62,11 +62,15 @@ export function createCityAudio(layout: Layout | null) {
     // Rain bed: broadband hiss, rolled off at both ends.
     rainBed = ctx.createGain();
     rainBed.gain.value = 0;
-    chain(bed(), filter('highpass', 900), filter('lowpass', 7500), rainBed, master);
+    chain(bed(), filter('highpass', 600), filter('lowpass', 4500), rainBed, master);
     // City hum: very low rumble.
     hum = ctx.createGain();
     hum.gain.value = 0;
     chain(bed(), filter('lowpass', 160), filter('highpass', 30), hum, master);
+    // Distant traffic roar: a mid band small speakers can play (the hum alone is below them).
+    roar = ctx.createGain();
+    roar.gain.value = 0;
+    chain(bed(), filter('bandpass', 420, 0.6), filter('lowpass', 900), roar, master);
     // Tyre hiss on wet asphalt: a mid band, panned toward the passing cars.
     hiss = ctx.createGain();
     hiss.gain.value = 0;
@@ -93,19 +97,19 @@ export function createCityAudio(layout: Layout | null) {
     const dur = 3.5 + 3 * (1 - near);
     const s = noiseSource();
     const g = ctx!.createGain();
-    const lp = filter('lowpass', 140 + 260 * near, 0.6);
+    const lp = filter('lowpass', 500 + 900 * near, 0.6);
     const curve = new Float32Array(64);
     for (let i = 0; i < curve.length; i++) {
       const t = i / (curve.length - 1);
       const swell = 0.6 + 0.4 * Math.sin(t * 9 + Math.random() * 2) * Math.random();
-      curve[i] = (0.25 + 0.55 * near) * Math.min(1, t * 12) * Math.exp(-t * 3.2) * swell;
+      curve[i] = (0.5 + 0.5 * near) * Math.min(1, t * 12) * Math.exp(-t * 3.2) * swell;
     }
     g.gain.setValueAtTime(0, at);
     g.gain.setValueCurveAtTime(curve, at, dur);
     chain(s, lp, g, master);
     s.start(at, Math.random() * 3);
     s.stop(at + dur + 0.1);
-    if (near > 0.6) burst(at, 0.35, 900, 0.4, 0.25 * near);
+    if (near > 0.6) burst(at, 0.35, 900, 0.4, 0.4 * near);
   }
 
   /** "Piyo": a short rising sine chirp. */
@@ -148,23 +152,26 @@ export function createCityAudio(layout: Layout | null) {
       right.set(-fwd.z, 0, fwd.x).normalize();
       const height = Math.max(0, eye.y);
       const street = Math.exp(-height / 60);          // 1 at street level, fading with height
-      rainBed.gain.setTargetAtTime(f.rain * (0.05 + 0.13 * street), now, 0.5);
-      hum.gain.setTargetAtTime(0.1 + 0.12 * (1 - street), now, 1.0);
+      rainBed.gain.setTargetAtTime(f.rain * (0.015 + 0.035 * street), now, 0.5);
+      hum.gain.setTargetAtTime(0.12 + 0.1 * (1 - street), now, 1.0);
 
       // Tyre hiss: each nearby car contributes by distance, the louder ones pull the pan.
       let level = 0, pan = 0;
       for (const c of f.cars) {
         if (c.z === 0 && c.w === 0) continue;
         const d = Math.hypot(c.x - eye.x, c.y - eye.z, height);
-        const w = Math.exp(-(d * d) / (2 * 14 * 14));
+        // Close passes only (σ ≈ 9 m): each car is a swoosh, a busy street not a constant hiss.
+        const w = Math.exp(-(d * d) / (2 * 9 * 9));
         level += w; pan += w * panOf(c.x, c.y);
       }
-      hiss.gain.setTargetAtTime(Math.min(1, level) * 0.22, now, 0.12);
+      hiss.gain.setTargetAtTime(Math.min(1, level) * 0.45, now, 0.12);
+      // The roar: the city's traffic in general, more of it with cars around and from the air.
+      roar.gain.setTargetAtTime(0.08 + 0.05 * (1 - street) + 0.03 * Math.min(1, level), now, 0.8);
       hissPan.pan.setTargetAtTime(level > 0.01 ? pan / level : 0, now, 0.12);
 
       // Droplets: ticks off awnings and puddles, more of them in heavy rain at street level.
       if (now > nextDrop) {
-        burst(now + Math.random() * 0.05, 0.02 + Math.random() * 0.04, 2500 + Math.random() * 4500, 4, 0.05 * f.rain * street, Math.random() * 2 - 1);
+        burst(now + Math.random() * 0.05, 0.02 + Math.random() * 0.04, 2500 + Math.random() * 3500, 4, 0.03 * f.rain * street, Math.random() * 2 - 1);
         nextDrop = now + (0.03 + Math.random() * 0.12) / Math.max(0.2, f.rain);
       }
 
@@ -176,9 +183,9 @@ export function createCityAudio(layout: Layout | null) {
       }
       lastFlash = flash;
 
-      // Crossing chirps: the nearest signal within 30 m, while its crossing (the other phase) is green.
+      // Crossing chirps: the nearest signal within 45 m, while its crossing (the other phase) is green.
       if (now > nextChirp && height < 25) {
-        let best: (typeof signals)[number] | null = null, bd = 30;
+        let best: (typeof signals)[number] | null = null, bd = 45;
         for (const s of signals) {
           const d = Math.hypot(s[0] - eye.x, s[1] - eye.z);
           if (d < bd) { bd = d; best = s; }
@@ -188,7 +195,7 @@ export function createCityAudio(layout: Layout | null) {
           const carsGo = best[4] === 0 ? t : t - (SIGNAL.green + SIGNAL.amber);
           const crossing = !(carsGo >= 0 && carsGo < SIGNAL.green + SIGNAL.amber);
           if (crossing) {
-            const g = 0.07 * (1 - bd / 30), p = panOf(best[0], best[1]);
+            const g = 0.18 * (1 - bd / 45), p = panOf(best[0], best[1]);
             chirp(now, g, p);
             chirp(now + 0.16, g * 0.8, p);
           }
