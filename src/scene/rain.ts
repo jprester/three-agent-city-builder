@@ -69,7 +69,7 @@ export function createRain(opts: RainOptions): THREE.Mesh {
         vec3 base = cameraPosition + rel;
         vec3 dir = normalize(vel);
         vec3 side = normalize(cross(dir, normalize(cameraPosition - base)));
-        float len = mix(0.18, 0.8, aSeed.y * aSeed.y) * mix(1.0, k, 0.6);
+        float len = mix(0.12, 0.5, aSeed.y * aSeed.y) * mix(1.0, k, 0.6);
         float width = mix(0.003, 0.007, aSeed.z);
         // At least one pixel wide; the widened streak dims, by less than the width factor (a
         // square root), so distant rain still reads as faint lines rather than nothing.
@@ -100,9 +100,9 @@ export function createRain(opts: RainOptions): THREE.Mesh {
         vec3 sign = texture2D(uSignMap, uv).rgb * inside * exp(-max(vWorld.y - 8.0, 0.0) / 14.0);
         // From higher up, the city's broad glow below (coarse lamp map) lights the rain too.
         float city = textureLod(uLampMap, uv, 6.0).r * inside * exp(-max(vWorld.y, 0.0) / 450.0);
-        vec3 light = ${v3(c('haze'))} * 0.9 + ${v3(c('sodium'))} * (lamp * 2.6 + city * 3.0) + sign * 2.0;
+        vec3 light = ${v3(c('haze'))} * 0.8 + ${v3(c('sodium'))} * (lamp * 2.0 + city * 3.0) + sign * 1.6;
         float streak = (1.0 - abs(vUv.x)) * smoothstep(0.0, 0.3, vUv.y) * (1.0 - smoothstep(0.7, 1.0, vUv.y));
-        gl_FragColor = vec4(light * streak * vFade * vBrightness * 0.85, 1.0);
+        gl_FragColor = vec4(light * streak * vFade * vBrightness * 0.5, 1.0);
       }`,
   });
   const mesh = new THREE.Mesh(geometry, material);
