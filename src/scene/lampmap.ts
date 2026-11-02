@@ -19,9 +19,15 @@ export interface LampMap {
  * layout, drawn once on a canvas. The ground reads it for light pools, facades for the
  * glow on their lower floors, instead of hundreds of real lights.
  */
-export function createLampMap(layout: Layout): LampMap {
+/** World rectangle the maps cover: the island (or the city) plus a margin. */
+function extent(layout: Layout) {
   const [w, d] = layout.size;
-  const sizeX = w + 2 * MARGIN, sizeZ = d + 2 * MARGIN;
+  const [x0, z0, x1, z1] = layout.island?.bounds ?? [-w / 2, -d / 2, w / 2, d / 2];
+  return { minX: x0 - MARGIN, minZ: z0 - MARGIN, sizeX: x1 - x0 + 2 * MARGIN, sizeZ: z1 - z0 + 2 * MARGIN };
+}
+
+export function createLampMap(layout: Layout): LampMap {
+  const { minX, minZ, sizeX, sizeZ } = extent(layout);
   const scale = Math.min(1 / METERS_PER_TEXEL, MAX_SIZE / Math.max(sizeX, sizeZ));
   const canvas = document.createElement('canvas');
   canvas.width = Math.ceil(sizeX * scale);
@@ -30,7 +36,6 @@ export function createLampMap(layout: Layout): LampMap {
   g.fillStyle = '#000';
   g.fillRect(0, 0, canvas.width, canvas.height);
   g.globalCompositeOperation = 'lighter';
-  const minX = -w / 2 - MARGIN, minZ = -d / 2 - MARGIN;
   for (const [x, z, angle] of layout.lamps ?? []) {
     // The head hangs ~1.8 m out over the road from the pole.
     const cx = (x + Math.sin(angle) * 1.8 - minX) * scale;
@@ -58,8 +63,7 @@ export function createLampMap(layout: Layout): LampMap {
  * wet ground as colored pools.
  */
 export function createSignLightMap(layout: Layout, lights: { x: number; z: number; size: number; color: THREE.Color; strength: number }[]): THREE.CanvasTexture {
-  const [w, d] = layout.size;
-  const sizeX = w + 2 * MARGIN, sizeZ = d + 2 * MARGIN;
+  const { minX, minZ, sizeX, sizeZ } = extent(layout);
   const scale = Math.min(1 / METERS_PER_TEXEL, MAX_SIZE / Math.max(sizeX, sizeZ));
   const canvas = document.createElement('canvas');
   canvas.width = Math.ceil(sizeX * scale);
@@ -68,7 +72,6 @@ export function createSignLightMap(layout: Layout, lights: { x: number; z: numbe
   g.fillStyle = '#000';
   g.fillRect(0, 0, canvas.width, canvas.height);
   g.globalCompositeOperation = 'lighter';
-  const minX = -w / 2 - MARGIN, minZ = -d / 2 - MARGIN;
   for (const l of lights) {
     const c = l.color.clone().convertLinearToSRGB();
     const rgb = `${Math.round(c.r * 255)},${Math.round(c.g * 255)},${Math.round(c.b * 255)}`;

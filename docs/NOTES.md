@@ -1178,3 +1178,9 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 - Ten road models now: sedan, hatch, wagon, coupe, SUV, kei, yellow and black taxis, van, box truck. The box truck's cargo box and the kei's tall box read clearly; the coupe is the weakest (its fastback is short at street distance).
 - Paint varies per car (white, black, grey, silver, navy, red, green, beige, blue, mint). Under sodium light the pale colours converge on cream and navy reads near black; reds and greens survive. Checked `canyon` at t=15 and t=60 and `storefront` on the real GPU.
 - Door handles on the box truck land on the cargo box (handles follow the B-pillar seam).
+
+### Island
+
+- From the air (`aerial`, `fly-75`) the city now ends at a rounded coast with a lit waterfront, dark water, and a warm band of mainland lights under dark foothills across the strait. `harbor` (from the sea) is the best new shot: skyline over long vertical reflections.
+- The island band reads as dense mid-rise on a regular grid; it is plainer than downtown (fringe shells only, no signs or props), so it should stay a frame, not a destination.
+- Weak: the mainland is only painted light, flattened by fog past ~2 km; its shoreline is stepped from straight above (100 m ground cells, only seen from the debug top view). The promenade is bare apart from lamps: no railings, piers or boats yet. The `horizon` view (port anchor) now looks along the southern ring road rather than at a port.

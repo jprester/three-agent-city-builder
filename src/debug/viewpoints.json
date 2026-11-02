@@ -16,5 +16,7 @@
   {"name": "architecture", "position": [-329.358, 22, -297.663], "target": [-324.041, 25, -285.202]},
   {"name": "tower-detail", "position": [15.182, 125, -191.426], "target": [120.531, 170, -228.863]},
   {"name": "landmarks", "position": [100, 200, 450], "target": [200, 250, -100]},
-  {"name": "glass", "position": [-57, 4, -127], "target": [-72, 30, -150]}
+  {"name": "glass", "position": [-57, 4, -127], "target": [-72, 30, -150]},
+  {"name": "harbor", "position": [-150, 25, 900], "target": [50, 60, 0]},
+  {"name": "waterfront", "position": [250, 1.85, 476], "target": [40, 30, 420]}
 ]

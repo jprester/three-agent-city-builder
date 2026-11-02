@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import * as G from '../../art/layouts/lib/geom.mjs';
+import { coastDistance } from '../../art/layouts/lib/island.mjs';
 import def from '../../art/layouts/defs/city.json';
 import { ASSETS } from '../../src/assets/manifest.gen';
 import { FlythroughPath } from '../../src/systems/flythrough';
@@ -76,15 +77,18 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     });
   });
 
-  it('keeps fringe buildings off approach roads and varies neighborhood orientation', async () => {
-    const L = await get();
-    expect(L.approaches!.length).toBeGreaterThan(0);
-    const roads = L.approaches!.map((r) => G.obb(G.lerp(r.a,r.b,0.5), G.norm(G.sub(r.b,r.a)), G.dist(r.a,r.b)/2,r.width/2));
-    expect(new Set(L.fringe!.map((p) => Math.round(p.rotationY * 20))).size).toBeGreaterThan(8);
+  it('keeps island buildings on the island, off its roads, with avenues out to the waterfront', async () => {
+    const L = await get(), isle = L.island!;
+    const roads = L.roads!.map(roadBox);
+    expect(L.fringe!.length).toBeGreaterThan(400);
     for (const f of L.fringe!) {
       const b = box(f);
-      expect(roads.some((r) => G.dist(r.c,b.c)<150 && G.obbOverlap(r,b,0))).toBe(false);
+      expect(b.corners.every(([x, z]) => coastDistance(x, z, isle) < -isle.promenade)).toBe(true);
+      expect(roads.some((r) => G.dist(r.c, b.c) < 400 && G.obbOverlap(r, b, 0))).toBe(false);
     }
+    // Some streets run right out to the promenade.
+    const ends = L.roads!.flatMap((r) => [r.a, r.b]).filter(([x, z]) => coastDistance(x, z, isle) > -isle.promenade - 3);
+    expect(ends.length).toBeGreaterThan(8);
   });
 
   it('flies vehicles clear of buildings and skybridges, and has traffic lanes', async () => {
@@ -309,7 +313,7 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     expect(curve.points.every((p) => p.y > 1)).toBe(true);
   });
 
-  it('rings the city with a low-rise fringe: outside it, not overlapping, clear of the port view', async () => {
+  it('rings the city with island mid-rise: outside it, not overlapping, clear of the port view', async () => {
     const L = await get();
     const F = L.fringe!;
     expect(F.length).toBeGreaterThan(500);

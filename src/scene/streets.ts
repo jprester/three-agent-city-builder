@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { terrainHeight, terrainSurfaceHeight } from '../../art/layouts/lib/outskirts.mjs';
+import { coastDistance, coastline, seabedHeight } from '../../art/layouts/lib/island.mjs';
 import palette from '../../art/style/palette.json';
 import { createGroundMaterial, type GroundUniforms } from '../materials/ground';
 import type { Layout, Vec2 } from '../systems/layout';
@@ -9,7 +9,7 @@ const color = (name: keyof typeof palette) => new THREE.Color(palette[name]);
 
 /** Ground plane edge length (m). Larger than twice the camera far plane so its edge is never on screen. */
 const GROUND_SIZE = 12000;
-/** Ground mesh cells per side; the 100 m cells match terrainSurfaceHeight's triangles. */
+/** Ground mesh cells per side (100 m): the seabed and the mainland far away. */
 const GROUND_CELLS = 120;
 const CURB_HEIGHT = SIDEWALK_HEIGHT;
 /** Markings float this far above the asphalt to avoid z-fighting. */
@@ -23,51 +23,25 @@ export function createStreets(layout: Layout | null, uniforms: GroundUniforms): 
   const group = new THREE.Group();
   group.name = 'streets';
 
-  const basin = layout?.size ?? [0, 0];
-  const terrain = layout?.terrain;
-  uniforms.uTerrainStart.value = terrain?.start ?? 970;
-  const elevation = (x: number, z: number) => terrain ? terrainHeight(x, z, basin, terrain) : 0;
+  const island = layout?.island;
   const groundGeometry = new THREE.PlaneGeometry(GROUND_SIZE, GROUND_SIZE, GROUND_CELLS, GROUND_CELLS).rotateX(-Math.PI / 2);
-  const positions = groundGeometry.getAttribute('position');
-  for (let i = 0; i < positions.count; i++) positions.setY(i, elevation(positions.getX(i), positions.getZ(i)));
-  groundGeometry.computeVertexNormals();
-  const ground = new THREE.Mesh(
-    groundGeometry,
-    createGroundMaterial(color('road_wet'), 0.35, uniforms, 1, 1, true),
-  );
+  if (island) {
+    // Seabed under the island and strait, the mainland's coastal plain and foothills beyond.
+    const positions = groundGeometry.getAttribute('position');
+    for (let i = 0; i < positions.count; i++) positions.setY(i, seabedHeight(positions.getX(i), positions.getZ(i), island));
+    groundGeometry.computeVertexNormals();
+  }
+  const groundMaterial = createGroundMaterial(color('road_wet'), 0.35, uniforms, 1, 1, true);
+  const ground = new THREE.Mesh(groundGeometry, groundMaterial);
   ground.name = 'ground';
   group.add(ground);
-  if (layout?.approaches?.length) {
-    const pos: number[] = [], nrm: number[] = [], uv: number[] = [];
-    // Short pieces on the ground mesh's own triangles (not the smooth height function), so the
-    // roads lie on the hills instead of floating or sinking; a small lift avoids z-fighting.
-    const surface = (x: number, z: number) => terrain
-      ? terrainSurfaceHeight(x, z, basin, terrain, GROUND_SIZE / GROUND_CELLS) + 0.12 : 0.02;
-    for (const road of layout.approaches) {
-      const dx = road.b[0] - road.a[0], dz = road.b[1] - road.a[1], len = Math.hypot(dx, dz);
-      const nx = -dz / len * road.width / 2, nz = dx / len * road.width / 2;
-      const steps = Math.ceil(len / 5);
-      for (let k = 0; k < steps; k++) {
-        const p0 = [road.a[0] + dx * k / steps, road.a[1] + dz * k / steps];
-        const p1 = [road.a[0] + dx * (k + 1) / steps, road.a[1] + dz * (k + 1) / steps];
-        const corners = [[p0[0]-nx,p0[1]-nz],[p1[0]-nx,p1[1]-nz],[p1[0]+nx,p1[1]+nz],[p0[0]+nx,p0[1]+nz]];
-        for (const c of [0,2,1,0,3,2]) {
-          const [x,z] = corners[c]; pos.push(x, surface(x,z), z); nrm.push(0,1,0); uv.push(x,z);
-        }
-      }
-    }
-    const approaches = new THREE.Mesh(toGeometry(pos,nrm,uv), createGroundMaterial(color('concrete_dark'), 0.8, uniforms, 0.8, 0.35));
-    approaches.name = 'approach-roads';
-    group.add(approaches);
-  }
+  // Shared materials: each distinct ground variant is another shader program.
+  const sidewalkMaterial = createGroundMaterial(color('sidewalk'), 0.8, uniforms, 0.8, 0.35);
+  if (island) group.add(...islandMeshes(island, uniforms, groundMaterial, sidewalkMaterial));
   if (!layout) return group;
-  // The sprawl of lights begins outside the city's footprint.
-  const [W, D] = layout.size ?? [0, 0];
-  uniforms.uCity.value.set(-W / 2, -D / 2, W / 2, D / 2);
-
   const sidewalks = new THREE.Mesh(
     sidewalkGeometry(layout.blocks.map((b) => b.points)),
-    createGroundMaterial(color('sidewalk'), 0.8, uniforms, 0.8, 0.35),
+    sidewalkMaterial,
   );
   sidewalks.name = 'sidewalks';
   group.add(sidewalks);
@@ -81,6 +55,58 @@ export function createStreets(layout: Layout | null, uniforms: GroundUniforms): 
     group.add(paint);
   }
   return group;
+}
+
+type Island = NonNullable<Layout['island']>;
+
+/**
+ * The island: flat land at 0 inside the coast (a fan over the star-shaped coastline; the ground
+ * material, whose mainland lights stay off below 0.3 m), a raised promenade along the
+ * waterfront and the quay wall down into the water (paving), and the water itself, a dark
+ * mirror out to the horizon at the island's water level.
+ */
+function islandMeshes(island: Island, uniforms: GroundUniforms, land: THREE.Material, paving: THREE.Material): THREE.Mesh[] {
+  const coast = coastline(island) as Vec2[];
+  const sdf = (x: number, z: number) => coastDistance(x, z, island);
+  const normal = ([x, z]: Vec2): Vec2 => {
+    const gx = sdf(x + 1, z) - sdf(x - 1, z), gz = sdf(x, z + 1) - sdf(x, z - 1), l = Math.hypot(gx, gz);
+    return [gx / l, gz / l];
+  };
+  const inner = coast.map((p) => { const n = normal(p); return [p[0] - n[0] * island.promenade, p[1] - n[1] * island.promenade] as Vec2; });
+  const landMaterial = land;
+  const landPos: number[] = [], walk: number[] = [], quay: number[] = [];
+  const quad = (out: number[], a: number[], b: number[], c: number[], d: number[]) => out.push(...a, ...b, ...c, ...a, ...c, ...d);
+  const top = CURB_HEIGHT, foot = island.water - 0.4;
+  for (let i = 0; i < coast.length; i++) {
+    const j = (i + 1) % coast.length;
+    const [p, q, pi, qi] = [coast[i], coast[j], inner[i], inner[j]];
+    // CCW in (x, z) faces -y, so each upward face is emitted reversed.
+    landPos.push(0, 0, 0, qi[0], 0, qi[1], pi[0], 0, pi[1]);
+    quad(walk, [pi[0], top, pi[1]], [qi[0], top, qi[1]], [q[0], top, q[1]], [p[0], top, p[1]]);
+    quad(walk, [pi[0], 0, pi[1]], [pi[0], top, pi[1]], [qi[0], top, qi[1]], [qi[0], 0, qi[1]]);   // inner curb
+    quad(quay, [p[0], foot, p[1]], [p[0], top, p[1]], [q[0], top, q[1]], [q[0], foot, q[1]]);
+  }
+  const mesh = (pos: number[], material: THREE.Material, name: string) => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute(pos.flatMap((_, k) => (k % 3 === 0 ? [pos[k], pos[k + 2]] : [])), 2));
+    g.computeVertexNormals();
+    g.computeBoundingSphere();
+    const m = new THREE.Mesh(g, material);
+    m.name = name;
+    return m;
+  };
+  const water = new THREE.Mesh(
+    new THREE.PlaneGeometry(GROUND_SIZE, GROUND_SIZE).rotateX(-Math.PI / 2).translate(0, island.water, 0),
+    createGroundMaterial(color('water'), 0.1, uniforms, 0.15, 1.3, false, true),
+  );
+  water.name = 'water';
+  return [
+    mesh(landPos, landMaterial, 'island'),
+    mesh(walk, paving, 'promenade'),
+    mesh(quay, paving, 'quay'),
+    water,
+  ];
 }
 
 function sidewalkGeometry(polygons: Vec2[][]): THREE.BufferGeometry {

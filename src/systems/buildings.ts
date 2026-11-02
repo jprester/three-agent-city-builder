@@ -29,6 +29,9 @@ export interface DynamicInstances {
   setMatrixAt(id: number, matrix: THREE.Matrix4): void;
 }
 
+/** Moving vehicles are drawn out to this many times their bounding radius. */
+const VEHICLE_RANGE = 250;
+
 /** Geometry id meaning "not drawn" in an LOD ladder. */
 const HIDDEN = -1;
 
@@ -118,6 +121,7 @@ export async function buildFacadeBatch(
   const frustum = new THREE.Frustum();
   const projView = new THREE.Matrix4();
   const sphere = new THREE.Sphere();
+  const moved = new THREE.Vector3();
   const counts = new Int32Array(meshes.length);
   /** Draw each mesh's first counts[g] instances; upload only that range. */
   const commit = () => {
@@ -163,9 +167,11 @@ export async function buildFacadeBatch(
         if (gid === HIDDEN || !visible(t.center, t.radius)) continue;
         push(gid, t.matrix);
       }
+      // Vehicles drop out once they would be a few pixels: a 4.6 m car past ~600 m (× bias).
       for (const v of moving) {
-        sphere.center.setFromMatrixPosition(v.matrix);
-        if (visible(sphere.center.clone(), v.radius)) push(v.gid, v.matrix);
+        moved.setFromMatrixPosition(v.matrix);
+        if (moved.distanceToSquared(eye) > (v.radius * VEHICLE_RANGE) ** 2 * b2) continue;
+        if (visible(moved, v.radius)) push(v.gid, v.matrix);
       }
       commit();
     },

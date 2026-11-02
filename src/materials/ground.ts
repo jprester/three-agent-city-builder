@@ -12,9 +12,6 @@ export interface GroundUniforms {
   uSignMap: { value: THREE.Texture | null };
   /** Shared clock (rain ripples). */
   uTime: { value: number };
-  /** City rectangle (minX, minZ, maxX, maxZ): the sprawl of lights starts outside it. */
-  uCity: { value: THREE.Vector4 };
-  uTerrainStart: { value: number };
 }
 
 const sodium = new THREE.Color(palette.sodium);
@@ -28,9 +25,10 @@ const v3 = (c: THREE.Color) => `vec3(${c.r.toFixed(4)}, ${c.g.toFixed(4)}, ${c.b
  *  - a wet-street reflection: the planar reflection, distorted by a noise normal and
  *    smeared vertically into long streaks, strongest in puddles and at grazing angles.
  * `pool` and `wet` scale both effects per surface. `sprawl` (the ground plane only) adds the
- * lights of the surrounding metropolis outside the city rectangle (see SPRAWL below).
+ * lights of the mainland metropolis across the water (see SPRAWL below). `water` makes the
+ * surface one clean mirror broken by slow swell, with long vertical streaks of light.
  */
-export function createGroundMaterial(color: THREE.Color, roughness: number, uniforms: GroundUniforms, pool = 1, wet = 1, sprawl = false): THREE.MeshStandardMaterial {
+export function createGroundMaterial(color: THREE.Color, roughness: number, uniforms: GroundUniforms, pool = 1, wet = 1, sprawl = false, water = false): THREE.MeshStandardMaterial {
   const material = new THREE.MeshStandardMaterial({ color, roughness, metalness: 0 });
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
@@ -46,8 +44,6 @@ uniform mat4 uReflMatrix;
 uniform float uWet;
 uniform sampler2D uSignMap;
 uniform float uTime;
-uniform vec4 uCity;
-uniform float uTerrainStart;
 varying vec3 vGWorld;
 float gHash(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 float gNoise(vec2 p) {
@@ -58,6 +54,7 @@ float gNoise(vec2 p) {
 float gPuddle = smoothstep(0.55, 0.66, gNoise(vGWorld.xz * 0.12) * 0.65 + gNoise(vGWorld.xz * 0.5) * 0.35);
 // Far away the puddle pattern is sub-pixel: fade to its mean coverage instead of mottling.
 gPuddle = mix(gPuddle, 0.25, smoothstep(0.03, 0.15, length(fwidth(vGWorld.xz * 0.12))));
+${water ? 'gPuddle = 1.0;' : ''}
 // Wet asphalt is darker, puddles darkest.
 diffuseColor.rgb *= mix(0.8, 0.45, gPuddle);
 ${sprawl ? `diffuseColor.rgb = mix(diffuseColor.rgb, ${v3(new THREE.Color(palette.ridge))}, smoothstep(2.0, 35.0, vGWorld.y));` : ''}`)
@@ -84,6 +81,10 @@ gRing *= 1.0 - smoothstep(0.02, 0.08, length(fwidth(vGWorld.xz)));   // gone bef
 gRuv += gRing * 0.012;
 gRuv += gN * vec2(mix(0.003, 0.0012, gPuddle), mix(0.012, 0.003, gPuddle));
 float gSpan = mix(0.08, 0.018, gPuddle);
+${water ? `// Swell: slow waves stretched across the view wobble the mirror sideways, more upward.
+vec2 gSwell = vec2(gNoise(vGWorld.xz * vec2(0.3, 0.09) + vec2(uTime * 0.22, 0.0)), gNoise(vGWorld.xz * vec2(0.09, 0.3) + vec2(0.0, uTime * 0.18))) - 0.5;
+gRuv += gSwell * vec2(0.008, 0.03) * (1.0 - 0.7 * smoothstep(0.5, 6.0, length(fwidth(vGWorld.xz))));
+gSpan = 0.06;` : ''}
 vec3 gRefl = vec3(0.0);
 float gW = 0.0;
 for (int i = -6; i <= 6; i++) {
@@ -100,7 +101,7 @@ float gGrain = mix(0.45 + 0.9 * gNoise(vGWorld.xz * 7.0) * gNoise(vGWorld.xz * 2
 totalEmissiveRadiance += gRefl * gGrain * mix(0.16, 1.0, gPuddle) * (0.25 + 0.75 * gFresnel) * uWet * ${wet.toFixed(2)} * (1.0 - smoothstep(0.5, 8.0, vGWorld.y));
 ${sprawl ? SPRAWL : ''}`);
   };
-  material.customProgramCacheKey = () => `ground-${pool}-${wet}-${sprawl}`;
+  material.customProgramCacheKey = () => `ground-${pool}-${wet}-${sprawl}-${water}`;
   return material;
 }
 
@@ -113,14 +114,12 @@ export function createGroundUniforms(lampRect: { value: THREE.Vector4 }): Ground
     uWet: { value: 1 },
     uSignMap: { value: null },
     uTime: { value: 0 },
-    uTerrainStart: { value: 970 },
-    uCity: { value: new THREE.Vector4(0, 0, 0, 0) },
   };
 }
 
 /**
- * The metropolis around the city, as light on the ground only (no buildings, so the city
- * keeps its compact shape): past a sparse fringe, 520 m patches of street grid, each with its own
+ * The mainland metropolis across the water, as light on the ground only (no buildings): on the
+ * coastal plain above the water line, 520 m patches of street grid, each with its own
  * angle, block size and density, lit by a warm glow along the streets, lamp dots every 28 m
  * and scattered window dots inside the blocks. Points keep a minimum size so they sparkle,
  * and fade to their average before they could alias; fog carries the sprawl into the
@@ -129,11 +128,9 @@ export function createGroundUniforms(lampRect: { value: THREE.Vector4 }): Ground
 const SPRAWL = /* glsl */ `
 {
   vec2 sp = vGWorld.xz;
-  vec2 sq = max(max(uCity.xy - sp, sp - uCity.zw), 0.0);
-  float sOut = length(sq);
-  // Right at the city edge the ground stays dark; then a sparse fringe (yards, parks) that
-  // fills in to full density over ~200 m, so there is no moat around the city.
-  float sBand = smoothstep(10.0, 45.0, sOut) * mix(0.3, 1.0, smoothstep(60.0, 260.0, sOut));
+  float sOut = length(sp);
+  // Mainland only: the plain stands above the water, the seabed below it.
+  float sBand = smoothstep(0.3, 1.2, vGWorld.y);
   if (sBand > 0.0) {
     // Pixel footprint on the ground: long axis (for fading to the average) and short axis
     // (minimum point size), so points stay round at grazing angles instead of smearing.
@@ -186,6 +183,6 @@ const SPRAWL = /* glsl */ `
     vec3 sprawlLight = ${v3(sodium)} * (glow * 0.2 + lamp * 2.2) + wCol * win * 2.6;
     // Painted lights on flat ground only hold up from a distance: fade in away from the camera.
     float sNear = smoothstep(60.0, 220.0, distance(cameraPosition, vGWorld));
-    totalEmissiveRadiance += sprawlLight * dens * sBand * sNear * 0.75 * mix(1.0, 0.06, smoothstep(uTerrainStart * 0.6, uTerrainStart + 250.0, sOut)) * (1.0 - smoothstep(2.0, 45.0, vGWorld.y));
+    totalEmissiveRadiance += sprawlLight * dens * sBand * sNear * 2.2 * (1.0 - smoothstep(2.0, 45.0, vGWorld.y));
   }
 }`;

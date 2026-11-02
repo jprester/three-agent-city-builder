@@ -14,7 +14,8 @@
 //    core then gets back buildings in leftover interior space.
 // Browser-safe: no Node APIs (it also runs in the browser for ?seed=).
 import * as G from './lib/geom.mjs';
-import { approachRoads, parkedVehicles } from './lib/outskirts.mjs';
+import { parkedVehicles } from './lib/outskirts.mjs';
+import { coastDistance, coastline, islandShape } from './lib/island.mjs';
 import { mulberry32, weightedChoice } from './lib/rng.mjs';
 import { trafficLanes } from './lib/traffic.mjs';
 
@@ -43,16 +44,28 @@ const DEFAULTS = {
   // beyond the outermost tower; orbitHeight: climb while circling the towers; orbitSweep:
   // arc in turns; wide: height of the wide shot; approach: glide length back into the canyon.
   flythrough: { street: 4, orbitGap: 45, orbitHeight: [120, 280], orbitSweep: 0.8, wide: 280, approach: 440 },
-  // Far-field ring of low-rise blocks around the city (buildFringe): `depth` meters deep,
-  // blocks on a `pitch` grid with `street`-wide streets, `margin` clear of the city edge;
-  // `split`: chance a block splits into two lots along each axis.
-  // Build chance and building mix go from `near` (at the city edge) to `far` (outer rim).
   parking: { count: 10, assets: ['vehicles/van', 'vehicles/box_truck', 'vehicles/kei', 'vehicles/car_b'], junctionClear: 18, spacing: 45, curbGap: 0.5, clearance: 0.4 },
-  terrain: { start: 800, rise: 1300, height: 230 },
+  // The island (buildIsland): the coast lies `margin` beyond each city edge (north = -z), never
+  // closer than `minMargin`, rounded by `corner` and waved by `wobble` [harmonic, meters].
+  // Water stands at `water`; `strait` is the water width to the mainland per side (0: open
+  // sea). Between the city and the coast: a `ring` road, `avenue`s continuing the city's
+  // streets to the waterfront, `street`s filling gaps over `pitch[1]`, a `promenade` and quay.
+  // `height`: building height factor at the city edge and at the waterfront. `terrain`: the
+  // mainland's coastal plain height, and where (past the far shore) the foothills `start`,
+  // over what distance they `rise`, and how high.
+  island: {
+    margin: { west: 270, east: 300, north: 290, south: 95 }, minMargin: 70, corner: 160,
+    wobble: [[2, 18], [3, 14], [5, 9], [9, 5]],
+    strait: { north: 520, east: 750, west: 1100, south: 0 }, openSea: 6000, water: -1.6,
+    ring: 18, avenue: 12, street: 9, pitch: [70, 90], promenade: 12, lampEvery: 30,
+    height: [1.35, 0.75],
+    terrain: { plain: 1.4, start: 1100, rise: 1300, height: 200 },
+  },
   landmarks: { count: 3, spacing: 80 },
+  // Buildings on the island blocks outside the city, on lots about `lot` meters wide;
+  // `lotGap` leaves yards; the mix goes from `near` (city) to `far` (waterfront).
   fringe: {
-    warp: 38, neighborhood: 330, angle: 0.32,
-    depth: 900, pitch: 70, street: 12, margin: 22, chance: [1.0, 0.7], lotGap: 0.06, setback: 1.5, split: 0.75,
+    lotGap: 0.05, setback: 1.5, lot: 30,
     near: { 'buildings/fringe_c': 1, 'buildings/fringe_d': 0.5, 'buildings/fringe_b': 1, 'buildings/fringe_e': 0.8, 'buildings/fringe_a': 0.5 },
     far: { 'buildings/fringe_a': 1.5, 'buildings/fringe_b': 1, 'buildings/fringe_e': 0.6, 'buildings/fringe_c': 0.3 },
     flyClear: 15, anchorClear: 150,
@@ -102,7 +115,7 @@ const EDGE_PRIORITY = { hero: 0, arterial: 1, secondary: 2, edge: 3, alley: 4 };
 export function generate({ params, seed, assets = {}, art = [] }) {
   const P = { ...DEFAULTS, ...params };
   // Nested option groups merge with their defaults instead of replacing them.
-  for (const k of ['roads', 'sidewalks', 'lampSpacing', 'flythrough', 'signs', 'bridges', 'props', 'fringe', 'landmarks', 'parking', 'terrain']) P[k] = { ...DEFAULTS[k], ...(params[k] ?? {}) };
+  for (const k of ['roads', 'sidewalks', 'lampSpacing', 'flythrough', 'signs', 'bridges', 'props', 'fringe', 'landmarks', 'parking', 'island']) P[k] = { ...DEFAULTS[k], ...(params[k] ?? {}) };
   const D = {};
   for (const k of Object.keys(DISTRICT_DEFAULTS)) D[k] = { ...DISTRICT_DEFAULTS[k], ...(params.districts?.[k] ?? {}) };
   const rng = mulberry32(seed);
@@ -427,11 +440,12 @@ export function generate({ params, seed, assets = {}, art = [] }) {
   // ---- fringe: the low-rise far field around the city, clear of the flythrough and of the
   // port viewpoint. Own random stream, so it never moves anything inside the city.
   const portOrigin = [0, Dp / 2 + 60];
-  const approaches = approachRoads(roads, [W, Dp], P.fringe.depth);
   const parked = parkedVehicles(blocks, roads, instances, props, lamps, assets, P.parking);
-  const fringe = assets['buildings/fringe_a']
-    ? buildFringe(P.fringe, W, Dp, assets, approaches, flythrough, [portOrigin], mulberry32((seed ^ 0x0f21a9e5) >>> 0))
-    : [];
+  const isle = buildIsland(P.island, P.fringe, W, Dp, roads, blocks, assets, flythrough, [portOrigin], P.lampSpacing,
+    mulberry32((seed ^ 0x0f21a9e5) >>> 0));
+  const fringe = isle.instances;
+  roads.push(...isle.roads);
+  lamps.push(...isle.lamps);
   const skyLanes = buildSkyLanes(P.skyLanes, [...instances, ...fringe], bridges);
   for (const lane of skyLanes) lane.points = liftClear(lane.points, [...instances, ...fringe], 12, 14);
   const traffic = trafficLanes(roads.map((r) => ({ id: r.id, cls: r.cls, width: r.width, a: r.a.map(r3), b: r.b.map(r3) })), seed)
@@ -729,7 +743,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
     size: [W, Dp],
     districts: { towers: P.towers, portZ: P.portZ },
     roads: roads.map((r) => ({ id: r.id, cls: r.cls, width: r.width, a: r.a.map(r3), b: r.b.map(r3) })),
-    blocks: blocks.map((b) => ({ district: b.district, points: b.pts.map((p) => p.map(r3)), edges: b.tags.map((t) => (t === 'edge' ? -1 : t)) })),
+    blocks: [...blocks, ...isle.blocks].map((b) => ({ district: b.district, points: b.pts.map((p) => p.map(r3)), edges: b.tags.map((t) => (typeof t === 'number' ? t : -1)) })),
     hero: hero ? { road: hero.id, width: hero.width, a: hero.a.map(r3), b: hero.b.map(r3) } : null,
     lamps,
     props,
@@ -739,8 +753,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
     instances,
     fringe,
     parked,
-    approaches,
-    terrain: { ...P.terrain, start: Math.max(P.terrain.start, P.fringe.depth + P.fringe.pitch) },
+    island: isle.island,
     flythrough,
     bridges,
     traffic,
@@ -893,80 +906,175 @@ function plantParks(cfg, blocks, parkBlocks, sidewalks, tagClass, assets, rng) {
 }
 
 /**
- * Low-rise far field around the city: a grid of blocks from `margin` beyond the city edge out
- * to `depth`, each split into one to four lots with a building facing its street. Nearer the
- * city the blocks are denser and the buildings taller (the `near` mix), toward the rim sparser
- * and lower (`far`). Buildings are family shells (fringe defs) scaled to their lot. Skipped
- * wherever the flythrough would pass within `flyClear` of one (so the glide home keeps a clear
- * boulevard) and within `anchorClear` of outside viewpoint anchors.
- * Returns instances like the city's: { asset, position, rotationY, scale, seed, district, h, fp }.
+ * The island around the city: coast and far shore (lib/island.mjs), then the band between the
+ * city edge and the waterfront, laid out as real streets so buildings and asphalt agree:
+ * a ring road hugging the city, avenues continuing the city's streets out to the promenade,
+ * filler streets so no block is longer than `pitch[1]`, and blocks (raised sidewalks) clipped
+ * to the coast with buildings facing their streets (fringe defs, taller near the city). The
+ * ring and avenues are drivable roads; lamps line them and the waterfront promenade.
+ * Returns { island, roads, blocks, instances, lamps }.
  */
-function buildFringe(cfg, W, Dp, assets, approaches, fly, keepClear, rng) {
+function buildIsland(cfg, fcfg, W, Dp, roads, cityBlocks, assets, fly, keepClear, lampSpacing, rng) {
+  const shape = islandShape([W, Dp], cfg, rng);
+  const island = { coast: shape.coast, shore: shape.shore, water: cfg.water, promenade: cfg.promenade, terrain: cfg.terrain };
+  const sdf = (p) => coastDistance(p[0], p[1], island);
+  const grad = (p) => G.norm([sdf([p[0] + 1, p[1]]) - sdf([p[0] - 1, p[1]]), sdf([p[0], p[1] + 1]) - sdf([p[0], p[1] - 1])]);
+  const coast = coastline(island);
+  const xsAll = coast.map((p) => p[0]), zsAll = coast.map((p) => p[1]);
+  const bounds = [Math.min(...xsAll), Math.min(...zsAll), Math.max(...xsAll), Math.max(...zsAll)];
+  const inset = cfg.promenade + 1;
+  const rectDist = (p) => Math.hypot(Math.max(Math.abs(p[0]) - W / 2, 0), Math.max(Math.abs(p[1]) - Dp / 2, 0));
+
+  // ---- street lines: the ring, continuations of city streets ending on the edge, fillers.
+  const e = cfg.ring / 2 + 0.5, rx = W / 2 + e, rz = Dp / 2 + e;
+  const xs = [{ v: -rx, w: cfg.ring, kind: 'ring' }, { v: rx, w: cfg.ring, kind: 'ring' }];
+  const zs = [{ v: -rz, w: cfg.ring, kind: 'ring' }, { v: rz, w: cfg.ring, kind: 'ring' }];
+  for (const r of roads) {
+    if (r.cls === 'alley') continue;
+    for (const p of [r.a, r.b]) {
+      if (Math.abs(Math.abs(p[1]) - Dp / 2) < 1) xs.push({ v: p[0], w: cfg.avenue, kind: 'avenue', side: Math.sign(p[1]) });
+      if (Math.abs(Math.abs(p[0]) - W / 2) < 1) zs.push({ v: p[1], w: cfg.avenue, kind: 'avenue', side: Math.sign(p[0]) });
+    }
+  }
+  const settle = (lines, lo, hi) => {
+    const rank = { ring: 0, avenue: 1 };
+    const kept = [];
+    for (const l of [...lines].sort((a, b) => rank[a.kind] - rank[b.kind])) {
+      if (!kept.some((k) => Math.abs(k.v - l.v) < 40)) kept.push(l);
+    }
+    kept.sort((a, b) => a.v - b.v);
+    const out = [];
+    const stops = [{ v: lo, w: 0, kind: 'bound' }, ...kept, { v: hi, w: 0, kind: 'bound' }];
+    for (let i = 0; i < stops.length - 1; i++) {
+      if (i > 0) out.push(stops[i]);
+      const gap = stops[i + 1].v - stops[i].v;
+      const n = gap > cfg.pitch[1] ? Math.round(gap / ((cfg.pitch[0] + cfg.pitch[1]) / 2)) : 1;
+      for (let k = 1; k < n; k++) out.push({ v: stops[i].v + (gap * k) / n, w: cfg.street, kind: 'street' });
+    }
+    return [{ v: lo, w: 0, kind: 'bound' }, ...out, { v: hi, w: 0, kind: 'bound' }];
+  };
+  const gx = settle(xs, bounds[0] - 1, bounds[2] + 1), gz = settle(zs, bounds[1] - 1, bounds[3] + 1);
+
+  // ---- drivable roads: the ring (four sides) and each avenue out to the promenade.
+  const out = { roads: [], blocks: [], instances: [], lamps: [] };
+  let id = roads.length;
+  const corners = [[-rx, -rz], [rx, -rz], [rx, rz], [-rx, rz]];
+  for (let i = 0; i < 4; i++) out.roads.push({ id: id++, cls: 'secondary', width: cfg.ring, a: corners[i], b: corners[(i + 1) % 4] });
+  const reach = (from, dir) => {
+    // Bisect along dir for the promenade's inner edge.
+    let lo = 0, hi = 2000;
+    for (let i = 0; i < 30; i++) { const m = (lo + hi) / 2; if (sdf(G.add(from, G.mul(dir, m))) < -inset) lo = m; else hi = m; }
+    return G.add(from, G.mul(dir, lo));
+  };
+  for (const l of gx.filter((l) => l.kind === 'avenue')) {
+    const a = [l.v, l.side * rz];
+    out.roads.push({ id: id++, cls: 'secondary', width: cfg.avenue, a, b: reach(a, [0, l.side]) });
+  }
+  for (const l of gz.filter((l) => l.kind === 'avenue')) {
+    const a = [l.side * rx, l.v];
+    out.roads.push({ id: id++, cls: 'secondary', width: cfg.avenue, a, b: reach(a, [l.side, 0]) });
+  }
+  for (const r of out.roads) { r.a = r.a.map(r3); r.b = r.b.map(r3); }
+
+  // ---- blocks: grid cells between the lines, outside the ring, clipped to the promenade.
   const flyPts = sampleFlythrough(fly);
-  const neighborhood = G.valueNoise(Math.floor(rng() * 2 ** 31));
   const placed = [];
-  const roadBoxes = approaches.map((r) => G.obb(G.lerp(r.a, r.b, 0.5), G.norm(G.sub(r.b, r.a)), G.dist(r.a, r.b) / 2, r.width / 2 + 5));
-  const rectDist = (p) => Math.hypot(Math.max(-W / 2 - p[0], p[0] - W / 2, 0), Math.max(-Dp / 2 - p[1], p[1] - Dp / 2, 0));
-  const blk = cfg.pitch - cfg.street;
-  const out = [];
-  const x0 = -W / 2 - cfg.depth, z0 = -Dp / 2 - cfg.depth;
-  for (let gx = x0; gx < W / 2 + cfg.depth; gx += cfg.pitch) {
-    for (let gz = z0; gz < Dp / 2 + cfg.depth; gz += cfg.pitch) {
-      const c = [gx + cfg.pitch / 2, gz + cfg.pitch / 2];
-      const d = rectDist(c);
-      // The whole block must clear the city edge by the margin.
-      if (d - blk * 0.71 < cfg.margin || d > cfg.depth) continue;
-      const t = d / cfg.depth;
-      const patch = neighborhood(c[0] / cfg.neighborhood, c[1] / cfg.neighborhood);
-      const chance = (cfg.chance[0] + (cfg.chance[1] - cfg.chance[0]) * t) * (1 - t * t * (0.45 + 0.45 * patch));
-      if (rng() > chance) continue;
-      const angle = (patch - 0.5) * cfg.angle * 2;
-      const nx = rng() < cfg.split ? 2 : 1, nz = rng() < cfg.split ? 2 : 1;
-      const lw = blk / nx, ld = blk / nz;
-      for (let i = 0; i < nx; i++) {
-        for (let j = 0; j < nz; j++) {
+  for (let i = 0; i < gx.length - 1; i++) {
+    for (let j = 0; j < gz.length - 1; j++) {
+      const x0 = gx[i].v + gx[i].w / 2, x1 = gx[i + 1].v - gx[i + 1].w / 2;
+      const z0 = gz[j].v + gz[j].w / 2, z1 = gz[j + 1].v - gz[j + 1].w / 2;
+      const c = [(x0 + x1) / 2, (z0 + z1) / 2];
+      if (Math.abs(c[0]) < rx && Math.abs(c[1]) < rz) continue;   // the city and its ring
+      if (x1 - x0 < 15 || z1 - z0 < 15) continue;
+      let poly = { pts: [[x0, z0], [x1, z0], [x1, z1], [x0, z1]], tags: ['band', 'band', 'band', 'band'] };
+      // Clip by the promenade line at the corner reaching furthest out, until all are inside.
+      for (let k = 0; k < 4 && poly.pts.length >= 3; k++) {
+        const worst = poly.pts.reduce((a, b) => (sdf(b) > sdf(a) ? b : a));
+        if (sdf(worst) <= -inset + 0.5) break;
+        const n = grad(worst);
+        poly = G.clip(poly, G.sub(worst, G.mul(n, sdf(worst) + inset)), G.mul(n, -1), 0, 'coast');
+      }
+      if (poly.pts.length < 3 || G.area(poly.pts) < 400 || G.axes(poly.pts).min < 14) continue;
+      const block = { pts: poly.pts, tags: poly.tags, district: 'island' };
+      out.blocks.push(block);
+
+      // Lots about `lot` meters wide, each building facing the street of an edge its lot
+      // touches; lots touching none are courtyards.
+      const t = Math.min(1, rectDist(c) / Math.max(1, rectDist(c) - sdf(c)));
+      const nx = Math.max(1, Math.round((x1 - x0) / fcfg.lot)), nz = Math.max(1, Math.round((z1 - z0) / fcfg.lot));
+      const lw = (x1 - x0) / nx, ld = (z1 - z0) / nz;
+      for (let a = 0; a < nx; a++) {
+        for (let b = 0; b < nz; b++) {
           // Fixed number of draws per lot, so skipping one never shifts the next.
           const gapR = rng(), nearR = rng(), sxr = rng(), szr = rng(), syr = rng(), sideR = rng();
-          const id = weightedChoice(rng, nearR > t ? cfg.near : cfg.far);
+          const asset = weightedChoice(rng, nearR > t ? fcfg.near : fcfg.far);
           const seed = Math.floor(rng() * 2 ** 31);
-          if (gapR < cfg.lotGap) continue;   // yards, car parks
-          const meta = assets[id]?.meta;
+          if (gapR < fcfg.lotGap) continue;   // yards, car parks
+          const meta = assets[asset]?.meta;
           if (!meta) continue;
-          const local = [lw * (i + 0.5) - blk / 2, ld * (j + 0.5) - blk / 2];
-          const lc = [c[0] + local[0] * Math.cos(angle) + local[1] * Math.sin(angle) + (patch - 0.5) * cfg.warp,
-            c[1] - local[0] * Math.sin(angle) + local[1] * Math.cos(angle) + (neighborhood(c[0] / cfg.neighborhood + 7, c[1] / cfg.neighborhood) - 0.5) * cfg.warp];
-          // Face a street the lot touches: an x-side (street along z) or a z-side.
-          const xSide = nz === 1 && nx === 2 ? true : nx === 1 && nz === 2 ? false : sideR < 0.5;
-          const flip = sideR % 0.5 < 0.25 ? 1 : -1;
-          const nIn = xSide ? [nx === 2 ? (i === 0 ? 1 : -1) : flip, 0] : [0, nz === 2 ? (j === 0 ? 1 : -1) : flip];
+          const lc = [x0 + lw * (a + 0.5), z0 + ld * (b + 0.5)];
+          const faces = [a === 0 && [1, 0], a === nx - 1 && [-1, 0], b === 0 && [0, 1], b === nz - 1 && [0, -1]].filter(Boolean);
+          if (!faces.length) continue;
+          const nIn = faces[Math.floor(sideR * faces.length)];
+          const xSide = nIn[0] !== 0;
           const along = xSide ? ld : lw, deep = xSide ? lw : ld;
           const [fw, fd] = meta.footprint;
           const clampS = (v) => Math.min(2.6, Math.max(0.55, v));
-          const sx = clampS(((along - 2 * cfg.setback) / fw) * (0.8 + 0.2 * sxr));
-          const sz = clampS(((deep - 2 * cfg.setback) / fd) * (0.75 + 0.25 * szr));
-          const sy = (0.85 + 0.35 * syr) * (1 - 0.65 * t) * (0.85 + 0.3 * patch);
-          const fp = [(fw * sx) / 2, (fd * sz) / 2];
+          let sx = clampS(((along - 2 * fcfg.setback) / fw) * (0.88 + 0.12 * sxr));
+          let sz = clampS(((deep - 2 * fcfg.setback) / fd) * (0.8 + 0.2 * szr));
+          const sy = (0.85 + 0.35 * syr) * (cfg.height[0] + (cfg.height[1] - cfg.height[0]) * t);
+          const rotationY = Math.atan2(-nIn[0], -nIn[1]);
+          const axis = [Math.cos(rotationY), -Math.sin(rotationY)];
+          // Shrink to fit where the coast clipped the block; give up if it still does not.
+          let fp = null;
+          for (let tries = 0; tries < 3; tries++, sx *= 0.8, sz *= 0.8) {
+            const f = [(fw * sx) / 2, (fd * sz) / 2];
+            if (G.obb(lc, axis, f[0] + fcfg.setback, f[1] + fcfg.setback).corners.every((p) => G.insideConvex(block.pts, p))) { fp = f; break; }
+          }
+          if (!fp || sx < 0.55 * 0.8 ** 2) continue;
           const h = meta.height * sy;
-          if (keepClear.some((a) => G.dist(a, lc) < cfg.anchorClear)) continue;
-          // Clear of the flythrough: no path point within flyClear of the footprint below h + flyClear.
-          const rotationY = Math.atan2(-nIn[0], -nIn[1]) + angle;
-          const footprint = G.obb(lc, [Math.cos(rotationY), -Math.sin(rotationY)], fp[0] + 1.5, fp[1] + 1.5);
-          if (footprint.corners.some((p) => rectDist(p) < cfg.margin)) continue;
-          if (placed.some((b) => G.dist(b.c, lc) < 150 && G.obbOverlap(b, footprint, 0))) continue;
-          if (roadBoxes.some((b) => G.dist(b.c, lc) < 150 && G.obbOverlap(b, footprint, 0))) continue;
-          const grown = G.obb(lc, [Math.cos(rotationY), -Math.sin(rotationY)], fp[0] + cfg.flyClear, fp[1] + cfg.flyClear).corners;
-          const reach = Math.hypot(fp[0] + cfg.flyClear, fp[1] + cfg.flyClear);
-          if (flyPts.some((p) => p[1] < h + cfg.flyClear && Math.abs(p[0] - lc[0]) < reach && Math.abs(p[2] - lc[1]) < reach && G.insideConvex(grown, [p[0], p[2]]))) continue;
+          if (keepClear.some((p) => G.dist(p, lc) < fcfg.anchorClear)) continue;
+          // Neighbors on the same block stand 2 × setback apart; pad less than that.
+          const footprint = G.obb(lc, axis, fp[0] + 0.5, fp[1] + 0.5);
+          if (placed.some((o) => G.dist(o.c, lc) < 150 && G.obbOverlap(o, footprint, 0))) continue;
+          const grown = G.obb(lc, axis, fp[0] + fcfg.flyClear, fp[1] + fcfg.flyClear).corners;
+          const far = Math.hypot(fp[0] + fcfg.flyClear, fp[1] + fcfg.flyClear);
+          if (flyPts.some((p) => p[1] < h + fcfg.flyClear && Math.abs(p[0] - lc[0]) < far && Math.abs(p[2] - lc[1]) < far && G.insideConvex(grown, [p[0], p[2]]))) continue;
           placed.push(footprint);
-          out.push({
-            asset: id, position: [r3(lc[0]), 0, r3(lc[1])], rotationY: r3(rotationY),
+          out.instances.push({
+            asset, position: [r3(lc[0]), 0, r3(lc[1])], rotationY: r3(rotationY),
             scale: [sx, sy, sz].map(r3), seed, district: 'fringe', h: r3(h), fp: fp.map(r3),
           });
         }
       }
     }
   }
-  return out;
+
+  // ---- lamps along the ring and avenues (where there is pavement), and the waterfront.
+  const paved = (p) => [...cityBlocks, ...out.blocks].some((b) => G.insideConvex(b.pts, p));
+  for (const road of out.roads) {
+    const L = G.dist(road.a, road.b), d = G.norm(G.sub(road.b, road.a)), n = G.perp(d);
+    for (let s = 12; s < L - 12; s += lampSpacing.secondary) {
+      for (const side of [-1, 1]) {
+        const p = G.add(G.add(road.a, G.mul(d, s)), G.mul(n, side * (road.width / 2 + 0.6)));
+        if (paved(p)) out.lamps.push([r3(p[0]), r3(p[1]), r3(Math.atan2(-side * n[0], -side * n[1])), road.id]);
+      }
+    }
+  }
+  let run = 0;
+  for (let i = 0; i < coast.length; i++) {
+    const p = coast[i], q = coast[(i + 1) % coast.length];
+    run += G.dist(p, q);
+    if (run < cfg.lampEvery) continue;
+    run = 0;
+    const n = grad(p), at = G.sub(p, G.mul(n, sdf(p) + 1.2));
+    out.lamps.push([r3(at[0]), r3(at[1]), r3(Math.atan2(-n[0], -n[1])), -1]);
+  }
+
+  island.coast = island.coast.map(r3);
+  island.shore = island.shore.map(r3);
+  island.bounds = bounds.map(r3);
+  return { island, ...out };
 }
 
 /**
