@@ -15,8 +15,8 @@ npx playwright install chromium
 npm run assets        # first run pins your Blender version in pipeline.config.json
 npm run dev           # http://localhost:5173
 npm test              # unit tests (vitest)
-npm run shots:health  # render every viewpoint, check errors/budgets and frozen-time repeatability
-npm run shots:approve # create initial screenshot baselines once the scene looks right
+npm run shots        # ~15 s smoke test on the real GPU: 3 viewpoints, errors/blank/budgets/frame time
+npm run shots:all    # the same for all 18 viewpoints (~1 min)
 ```
 
 ## Advertising
@@ -43,11 +43,19 @@ landmark crowns; the original `skyline` and `skyline-wide` comparison cameras re
 
 ## Visual checks
 
-`npm run shots:health` captures every viewpoint and checks for blank frames, browser errors,
-scene-budget violations and frozen-time reproducibility. It works before image baselines
-have been approved. `npm run shots` runs those checks, then compares the same captures with
-the approved images. Missing baselines fail only the comparison project. Approval remains
-a human review step (`npm run shots:approve`); normal runs never create baselines.
+`npm run shots` is a smoke test, not a pixel comparison. It loads `canyon`, `aerial` and
+`skyline-hero` on the real GPU, saves screenshots to `build/shots/city/`, and fails only on
+browser errors, a blank frame, the scene budget in `pipeline.config.json` (draw calls,
+triangles, shader programs) or an average frame time over `scene.maxFrameMs`. It prints and
+records (`build/shots/city/info.json`) draw calls, triangles and frame time per viewpoint.
+
+- `npm run shots:all` covers every viewpoint in `src/debug/viewpoints.json` (~1 min).
+- `SHOTS=canyon,glass npm run shots` picks viewpoints by name.
+- `SWIFTSHADER=1 npm run shots` uses software WebGL on machines without a GPU (slow).
+
+Frame time is capped by vsync at 16.7 ms, so it shows drops below 60 fps, not headroom.
+There are no approved image baselines: the project is open-ended, so screenshots are for
+looking at, and only silent breakage and performance fail the run (decided 2026-11-02).
 
 ## Controls
 
@@ -102,7 +110,7 @@ art/defs/*.json ──► tools/build-assets.mjs ──► Blender headless (too
                          ├─► tools/manifest.mjs → src/assets/manifest.gen.ts
                          └─► tools/check-budgets.mjs
 src/ ── loads layouts, instances assets with InstancedMesh
-tests/visual/ ── Playwright screenshots per viewpoint vs approved baselines
+tests/visual/ ── Playwright smoke test: screenshots, errors, budgets, frame time
 ```
 
 Builds are cached per asset by hashing the def, the generator and its local
