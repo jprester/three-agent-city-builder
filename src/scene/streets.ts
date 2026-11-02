@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { terrainHeight } from '../../art/layouts/lib/outskirts.mjs';
 import palette from '../../art/style/palette.json';
 import { createGroundMaterial, type GroundUniforms } from '../materials/ground';
 import type { Layout, Vec2 } from '../systems/layout';
@@ -20,12 +21,36 @@ export function createStreets(layout: Layout | null, uniforms: GroundUniforms): 
   const group = new THREE.Group();
   group.name = 'streets';
 
+  const basin = layout?.size ?? [0, 0];
+  const terrain = layout?.terrain;
+  uniforms.uTerrainStart.value = terrain?.start ?? 970;
+  const elevation = (x: number, z: number) => terrain ? terrainHeight(x, z, basin, terrain) : 0;
+  const groundGeometry = new THREE.PlaneGeometry(GROUND_SIZE, GROUND_SIZE, 120, 120).rotateX(-Math.PI / 2);
+  const positions = groundGeometry.getAttribute('position');
+  for (let i = 0; i < positions.count; i++) positions.setY(i, elevation(positions.getX(i), positions.getZ(i)));
+  groundGeometry.computeVertexNormals();
   const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(GROUND_SIZE, GROUND_SIZE).rotateX(-Math.PI / 2),
+    groundGeometry,
     createGroundMaterial(color('road_wet'), 0.35, uniforms, 1, 1, true),
   );
   ground.name = 'ground';
   group.add(ground);
+  if (layout?.approaches?.length) {
+    const pos: number[] = [], nrm: number[] = [], uv: number[] = [];
+    // Small segments follow the foothills. Raised just above the terrain to avoid z-fighting.
+    for (const road of layout.approaches) {
+      const dx = road.b[0] - road.a[0], dz = road.b[1] - road.a[1], len = Math.hypot(dx, dz);
+      const nx = -dz / len * road.width / 2, nz = dx / len * road.width / 2;
+      const corners = [[road.a[0]-nx,road.a[1]-nz],[road.b[0]-nx,road.b[1]-nz],
+        [road.b[0]+nx,road.b[1]+nz],[road.a[0]+nx,road.a[1]+nz]];
+      for (const k of [0,2,1,0,3,2]) {
+        const [x,z] = corners[k]; pos.push(x, elevation(x,z) + 0.02 + Math.min(0.6, elevation(x,z) * 0.04), z); nrm.push(0,1,0); uv.push(x,z);
+      }
+    }
+    const approaches = new THREE.Mesh(toGeometry(pos,nrm,uv), createGroundMaterial(color('concrete_dark'), 0.8, uniforms, 0.8, 0.35));
+    approaches.name = 'approach-roads';
+    group.add(approaches);
+  }
   if (!layout) return group;
   // The sprawl of lights begins outside the city's footprint.
   const [W, D] = layout.size ?? [0, 0];

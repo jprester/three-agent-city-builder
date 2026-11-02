@@ -216,7 +216,8 @@ export class CameraRig {
     want.multiplyScalar(this.speed * (k.has('ShiftLeft') || k.has('ShiftRight') ? FLY.boost : 1));
     this.velocity.lerp(want, 1 - Math.exp(-FLY.response * dt));
     this.camera.position.addScaledVector(this.velocity, dt);
-    this.camera.position.y = Math.max(this.camera.position.y, FLY.floor);
+    const surface = this.walkSurface?.heightAt(this.camera.position.x, this.camera.position.z) ?? 0;
+    this.camera.position.y = Math.max(this.camera.position.y, surface + FLY.floor);
     if (pushOut(this.camera.position, this.obstacles)) this.velocity.y = Math.max(this.velocity.y, 0);
   }
 

@@ -58,3 +58,13 @@ plan, and `docs/progress/` for milestone shots.
 - Current: 15 shot viewpoints, 78 tests, 40 calls / 1.084M triangles / 24 programs. The
   frozen-time reproducibility test passes. Visual baselines still do not exist; no
   baseline was approved. Details and the remaining critique are in `docs/NOTES.md`.
+
+## Current refinement state — 2026-11-02
+
+This supersedes the historical counts and close-detail limitations above.
+
+- Six furnished shop cards supply convenience stores, noodle counters and repair workshops, with deterministic tenant-specific late-night opening patterns. They share the existing interior atlas and facade shader.
+- Road vehicles have sloped glazing, tires/hubs, body panels and distinct paint/glass/rubber finishes. Ten parked delivery/service vehicles occupy clear industrial verges; `delivery` is the eighteenth fixed viewpoint.
+- The 1,132 core buildings retain their placement. The 900 m fringe now contains 1,812 buildings in warped/rotated neighborhoods, with density and height tapering outward. Curved arterial approaches continue toward quiet foothills, and interactive cameras follow terrain elevation.
+- Validation: 94 unit tests, typecheck, asset budgets and production build pass. All 18 scene viewpoints pass render health and the 250-call / 3M-triangle / 25-program budgets; maxima are 222 / 1,486,212 / 24. Hardware FPS has not been remeasured. Approved visual baselines are still absent.
+- See `docs/progress/street-life/` and the dated critique in `docs/NOTES.md`. The strongest follow-ups are localized facade weathering, less angular vehicle body detail, and more varied fringe building families. The current changes deliberately retain the hybrid procedural-geometry/room-atlas approach.

@@ -14,6 +14,7 @@ export interface GroundUniforms {
   uTime: { value: number };
   /** City rectangle (minX, minZ, maxX, maxZ): the sprawl of lights starts outside it. */
   uCity: { value: THREE.Vector4 };
+  uTerrainStart: { value: number };
 }
 
 const sodium = new THREE.Color(palette.sodium);
@@ -46,6 +47,7 @@ uniform float uWet;
 uniform sampler2D uSignMap;
 uniform float uTime;
 uniform vec4 uCity;
+uniform float uTerrainStart;
 varying vec3 vGWorld;
 float gHash(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 float gNoise(vec2 p) {
@@ -57,7 +59,8 @@ float gPuddle = smoothstep(0.55, 0.66, gNoise(vGWorld.xz * 0.12) * 0.65 + gNoise
 // Far away the puddle pattern is sub-pixel: fade to its mean coverage instead of mottling.
 gPuddle = mix(gPuddle, 0.25, smoothstep(0.03, 0.15, length(fwidth(vGWorld.xz * 0.12))));
 // Wet asphalt is darker, puddles darkest.
-diffuseColor.rgb *= mix(0.8, 0.45, gPuddle);`)
+diffuseColor.rgb *= mix(0.8, 0.45, gPuddle);
+${sprawl ? `diffuseColor.rgb = mix(diffuseColor.rgb, ${v3(new THREE.Color(palette.ridge))}, smoothstep(2.0, 35.0, vGWorld.y));` : ''}`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
 roughnessFactor = mix(roughnessFactor, 0.08, gPuddle);`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
@@ -94,7 +97,7 @@ vec3 gView = normalize(cameraPosition - vGWorld);
 float gFresnel = 0.04 + 0.96 * pow(1.0 - clamp(gView.y, 0.0, 1.0), 5.0);
 // Asphalt grain breaks up the dull wet film; puddles stay clean.
 float gGrain = mix(0.45 + 0.9 * gNoise(vGWorld.xz * 7.0) * gNoise(vGWorld.xz * 2.1 + 3.0), 1.0, gPuddle);
-totalEmissiveRadiance += gRefl * gGrain * mix(0.16, 1.0, gPuddle) * (0.25 + 0.75 * gFresnel) * uWet * ${wet.toFixed(2)};
+totalEmissiveRadiance += gRefl * gGrain * mix(0.16, 1.0, gPuddle) * (0.25 + 0.75 * gFresnel) * uWet * ${wet.toFixed(2)} * (1.0 - smoothstep(0.5, 8.0, vGWorld.y));
 ${sprawl ? SPRAWL : ''}`);
   };
   material.customProgramCacheKey = () => `ground-${pool}-${wet}-${sprawl}`;
@@ -110,6 +113,7 @@ export function createGroundUniforms(lampRect: { value: THREE.Vector4 }): Ground
     uWet: { value: 1 },
     uSignMap: { value: null },
     uTime: { value: 0 },
+    uTerrainStart: { value: 970 },
     uCity: { value: new THREE.Vector4(0, 0, 0, 0) },
   };
 }
@@ -182,6 +186,6 @@ const SPRAWL = /* glsl */ `
     vec3 sprawlLight = ${v3(sodium)} * (glow * 0.2 + lamp * 2.2) + wCol * win * 2.6;
     // Painted lights on flat ground only hold up from a distance: fade in away from the camera.
     float sNear = smoothstep(60.0, 220.0, distance(cameraPosition, vGWorld));
-    totalEmissiveRadiance += sprawlLight * dens * sBand * sNear * 0.75;
+    totalEmissiveRadiance += sprawlLight * dens * sBand * sNear * 0.75 * mix(1.0, 0.06, smoothstep(uTerrainStart * 0.6, uTerrainStart + 250.0, sOut)) * (1.0 - smoothstep(2.0, 45.0, vGWorld.y));
   }
 }`;

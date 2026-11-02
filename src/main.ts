@@ -163,7 +163,7 @@ async function main() {
   // Hidden on load for captures (fixed viewpoints, frozen time); shown on any mode change.
   const hud = createHud(!params.has('viewpoint') && frozenAt === null);
   const rig = new CameraRig(clock, camera, renderer.domElement, controls, path, (mode) => hud.show(mode, !!path));
-  if (layout) rig.obstacles = obstaclesFrom([...layout.instances, ...(layout.fringe ?? [])]);
+  if (layout) rig.obstacles = obstaclesFrom([...layout.instances, ...(layout.fringe ?? []), ...(layout.parked ?? [])]);
   rig.walkSurface = createWalkSurface(layout);
   if (isCameraMode(cameraParam)) rig.setMode(cameraParam, true);
   setStatus(problems.join(' '));

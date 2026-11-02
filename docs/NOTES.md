@@ -1147,3 +1147,17 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 - The previous floating boxes now have readable tires, wheel openings, body/glass separation and sloped cabins. The taxi and van paint indices were corrected to match their preview palette; the van's side glazing was restricted to the cab.
 - Remaining weakness: the van body is still angular and its glazing has no modeled cabin behind it. Paint has restrained lower-panel dirt, but close-up mirror housings, wheel-arch lips and cargo-door hardware would be the next useful geometry, rather than a full-body photographic texture.
 - Each car/van is 362 triangles and about 11 KB; the taxi is 372 triangles. No export settings or asset budgets were relaxed.
+
+### Layout and surroundings
+
+- Ten static deliveries now occupy clear industrial verges. Their footprints avoid roads, buildings, lamps and furniture on all three tested seeds; the camera treats them as obstacles. `delivery` is a new close comparison view.
+- Fringe neighborhoods share gently varying rotations and offsets, with lower/sparser buildings toward the edge. Arterial endpoints continue into curved approach roads, and buildings leave those corridors clear. The default layout keeps its 1,132 core buildings and places 1,812 fringe buildings.
+- The first terrain captures were unacceptable: the ground-light shader covered the hills in orange sparkle. The second pass suppressed lights on slopes; the third also faded the flat distant light carpet and reduced terrain tessellation. The result gives the city a quieter transition into layered hills.
+- Remaining weaknesses: the fringe still uses five simple shell families; some parallel rows remain visible, and the distant road/light pattern is scenic rather than a complete connected street simulation. The new hills and the sky's existing distant ridges have different detail scales. Further detail should target a specific outskirts viewpoint rather than add geometry everywhere.
+- Walking and free-flight now respect terrain elevation. The cinematic path stays clear of the ground, including 4,000 sampled positions. No claim of hardware FPS is made from software-rendered captures.
+
+### Verification
+
+- Rebuilt the room atlas and all four road-vehicle variants through their generators, inspected every room card and vehicle preview, and inspected all 18 final scene captures. Milestone images and stats are in `docs/progress/street-life/`; `shops.jpg`, `storefront.png`, `delivery.png`, and `aerial.png` are the most useful entry points.
+- Typecheck, asset budgets, production build and all 94 unit tests pass. All 18 viewpoints pass browser-error, nonblank-frame and scene-budget checks. Maximum counts are 222 draw calls, 1,486,212 triangles and 24 programs against limits of 250 / 3M / 25. The existing production bundle-size warning remains.
+- Final full `npm run shots`: all 19 health tests pass (18 viewpoints plus pixel-identical frozen-time reloads). The 18 baseline comparisons fail because approved images are absent; no baseline was created or approved. The final run completed in 5.9 minutes without retries.
