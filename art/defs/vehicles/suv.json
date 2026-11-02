@@ -1,0 +1,8 @@
+{
+  "generator": "vehicles/car",
+  "seed": 27,
+  "params": {
+    "shape": "suv",
+    "width": 1.9
+  }
+}

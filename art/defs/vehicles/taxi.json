@@ -5,6 +5,6 @@
     "shape": "taxi",
     "roof_sign": true,
     "black_bumpers": true,
-    "tint": 0.6
+    "paint": "car_yellow"
   }
 }

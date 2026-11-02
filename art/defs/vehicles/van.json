@@ -4,7 +4,6 @@
   "params": {
     "shape": "van",
     "width": 1.9,
-    "black_bumpers": true,
-    "tint": 0.35
+    "black_bumpers": true
   }
 }

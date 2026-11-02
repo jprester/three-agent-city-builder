@@ -10,7 +10,9 @@ from math import cos, pi, sin, sqrt, tau
 from lib.mesh import MeshBuilder
 from lib.surface import fixture, plan_uv, surf
 
-PAINTS = ("paint_mint", "paint_salmon", "paint_cream", "paint_blue")   # P_PAINT order
+# P_CAR order in src/materials/facade.ts. `paint: "random"` lets the shader pick one per car.
+CAR_PAINTS = ("car_white", "car_black", "car_grey", "car_silver", "car_navy", "car_red", "car_green",
+              "car_beige", "car_yellow", "car_orange", "paint_mint", "paint_blue")
 
 # Keyframes (s from the nose in meters, beltline z, roof z or None for a crowned panel,
 # half-width share, sill z, side glass in the following segment). Lengths are the shapes'
@@ -42,6 +44,41 @@ SHAPES = {
         (0.38, 1.00, None, 1.00, 0.32, False), (1.02, 1.04, 1.94, 1.00, 0.32, True),
         (1.86, 1.05, 1.96, 1.00, 0.32, False), (4.62, 1.05, 1.96, 1.00, 0.32, False),
         (4.70, 1.02, 1.90, 0.97, 0.36, False)]),
+    # Estate: the sedan's nose with the roof carried to a steep tailgate, three side windows.
+    "wagon": dict(length=4.7, axles=(0.95, 3.70), keys=[
+        (0.00, 0.70, None, 0.91, 0.38, False), (0.12, 0.80, None, 0.98, 0.30, False),
+        (0.55, 0.86, None, 1.00, 0.28, False), (1.30, 0.92, None, 1.00, 0.28, False),
+        (2.02, 0.94, 1.43, 1.00, 0.28, True), (2.70, 0.95, 1.45, 1.00, 0.28, False),
+        (2.82, 0.95, 1.45, 1.00, 0.28, True), (3.52, 0.96, 1.44, 1.00, 0.28, False),
+        (3.62, 0.96, 1.44, 1.00, 0.28, True), (4.42, 0.97, 1.40, 1.00, 0.28, False),
+        (4.62, 0.97, None, 0.99, 0.32, False), (4.70, 0.86, None, 0.94, 0.38, False)]),
+    # Low two-door coupe: long bonnet, short cabin, fastback rear glass.
+    "coupe": dict(length=4.5, axles=(1.00, 3.55), wheel_r=0.32, keys=[
+        (0.00, 0.64, None, 0.90, 0.34, False), (0.12, 0.74, None, 0.98, 0.27, False),
+        (0.60, 0.80, None, 1.00, 0.25, False), (1.45, 0.86, None, 1.00, 0.25, False),
+        (2.15, 0.88, 1.27, 0.98, 0.25, True), (2.95, 0.90, 1.26, 0.98, 0.25, False),
+        (3.85, 0.93, None, 1.00, 0.27, False), (4.40, 0.93, None, 0.99, 0.30, False),
+        (4.50, 0.82, None, 0.93, 0.36, False)]),
+    # Tall SUV on bigger wheels, upright tailgate.
+    "suv": dict(length=4.7, axles=(0.95, 3.70), wheel_r=0.36, keys=[
+        (0.00, 0.86, None, 0.93, 0.44, False), (0.12, 0.96, None, 0.99, 0.36, False),
+        (0.60, 1.02, None, 1.00, 0.34, False), (1.30, 1.06, None, 1.00, 0.34, False),
+        (1.95, 1.08, 1.72, 1.00, 0.34, True), (2.70, 1.09, 1.74, 1.00, 0.34, False),
+        (2.82, 1.09, 1.74, 1.00, 0.34, True), (3.62, 1.10, 1.74, 1.00, 0.34, False),
+        (3.74, 1.10, 1.74, 1.00, 0.34, True), (4.42, 1.11, 1.72, 1.00, 0.34, False),
+        (4.58, 1.10, None, 0.99, 0.38, False), (4.70, 1.00, None, 0.95, 0.44, False)]),
+    # Kei car: 3.4 m tall box on small wheels, near-vertical glass hatch.
+    "kei": dict(length=3.4, axles=(0.55, 2.90), wheel_r=0.27, keys=[
+        (0.00, 0.70, None, 0.94, 0.34, False), (0.10, 0.78, None, 0.99, 0.28, False),
+        (0.45, 0.86, None, 1.00, 0.28, False), (1.15, 0.92, 1.66, 1.00, 0.28, True),
+        (1.95, 0.93, 1.68, 1.00, 0.28, False), (2.05, 0.93, 1.68, 1.00, 0.28, True),
+        (3.28, 0.94, 1.66, 1.00, 0.28, False), (3.40, 0.92, 1.60, 0.97, 0.32, False)]),
+    # Light box truck: a glazed cab and a taller blind cargo box behind it.
+    "box_truck": dict(length=5.8, axles=(1.05, 4.40), wheel_r=0.36, keys=[
+        (0.00, 0.90, None, 0.95, 0.44, False), (0.10, 1.00, None, 0.99, 0.38, False),
+        (0.40, 1.08, None, 1.00, 0.38, False), (1.00, 1.12, 2.02, 1.00, 0.38, True),
+        (1.70, 1.12, 2.04, 1.00, 0.38, False), (1.78, 1.12, 2.04, 1.00, 0.38, False),
+        (1.80, 1.12, 2.75, 1.00, 0.42, False), (5.80, 1.12, 2.75, 1.00, 0.42, False)]),
 }
 
 
@@ -90,13 +127,19 @@ def generate(ctx):
     keys = [(s * k_len, *rest) for s, *rest in shape["keys"]]
     tint = ctx.p("tint", 0.5)
     mb = MeshBuilder(ctx.name)
-    paint = surf(ctx, "metal", 0.25, tint)
-    # The shader paints by tint (P_PAINT in src/materials/facade.ts); the preview matches it.
-    paint = (paint[0], (paint[1][0], ctx.color(PAINTS[min(int(tint * 4), 3)])))
+    # Paint: fill 0.2 = random per car in the shader, 0.3 = the fixed P_CAR entry at tint.
+    name = ctx.p("paint", "random")
+    if name == "random":
+        paint = surf(ctx, "metal", 0.2, tint)
+        paint = (paint[0], (paint[1][0], ctx.color("car_silver")))
+    else:
+        i = CAR_PAINTS.index(name)
+        paint = surf(ctx, "metal", 0.3, (i + 0.5) / len(CAR_PAINTS))
+        paint = (paint[0], (paint[1][0], ctx.color(name)))
     glass = surf(ctx, "metal", 0.5, tint)
     rubber = surf(ctx, "metal", 0.75, tint)
     chrome = surf(ctx, "metal", 0.0, tint)
-    wheel_r, wheel_w = ctx.p("wheel_radius", 0.31), ctx.p("wheel_width", 0.2)
+    wheel_r, wheel_w = ctx.p("wheel_radius", shape.get("wheel_r", 0.31)), ctx.p("wheel_width", 0.2)
     arch_r = wheel_r + ctx.p("arch_clearance", 0.06)
     axles = [s * k_len for s in ctx.p("axles", list(shape["axles"]))]
 
@@ -145,7 +188,7 @@ def generate(ctx):
         _outward(mb, [(x, y, z) for x, z in ring], (0.0, y - out, (ring[6][1] + ring[0][1]) / 2), paint[0], paint[1])
 
     _wheels(ctx, mb, W, axles, L, wheel_r, wheel_w, rubber, chrome)
-    _details(ctx, mb, keys, rings, L, W, paint, glass, rubber, chrome)
+    _details(ctx, mb, keys, rings, L, W, paint, glass, rubber, chrome, ctx.p("rear_window", bool(keys[-1][2])))
 
     sign_h = 0.0
     if ctx.p("roof_sign", False):
@@ -181,7 +224,7 @@ def _wheels(ctx, mb, W, axles, L, r, w, rubber, chrome):
             _outward(mb, [(x1 - side * 0.03, *b) for b in rim], (c[0] - side, y, r), chrome[0], chrome[1])
 
 
-def _details(ctx, mb, keys, rings, L, W, paint, glass, rubber, chrome):
+def _details(ctx, mb, keys, rings, L, W, paint, glass, rubber, chrome, rear_window):
     hm, hs = fixture(ctx, "white", strip=True)
     tm, ts = fixture(ctx, "red", strip=True)
     yf, yr = -L / 2, L / 2
@@ -202,8 +245,8 @@ def _details(ctx, mb, keys, rings, L, W, paint, glass, rubber, chrome):
     for y0, y1 in ((yf - 0.035, yf + 0.18), (yr - 0.18, yr + 0.035)):
         mb.box(-(W / 2 - 0.09), W / 2 - 0.09, y0, y1, 0.3, 0.42, bumper[0], surf=bumper[1], uvf=plan_uv)
         mb.box(-(W / 2 - 0.1), W / 2 - 0.1, y0 + 0.02, y1 - 0.02, 0.24, 0.3, rubber[0], surf=rubber[1], uvf=plan_uv)
-    # Van rear window in the tail.
-    if keys[-1][2]:
+    # Rear window in a flat tail (van, kei hatch).
+    if rear_window:
         _flat_y(mb, -(hwr - 0.22), hwr - 0.22, keys[-1][1] + 0.12, keys[-1][2] - 0.2, yr + eps, 1, glass[0], glass[1])
     # Mirrors at the windscreen base, door seams and handles on the flat side band.
     ws = next(k for k in keys if k[2]) if any(k[2] for k in keys) else keys[2]

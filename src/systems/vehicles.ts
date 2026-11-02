@@ -4,7 +4,10 @@ import { trafficPosition } from '../../art/layouts/lib/traffic.mjs';
 import type { Layout } from './layout';
 import type { DynamicInstances } from './buildings';
 
-const CARS: Record<string, number> = { 'vehicles/car_a': 4, 'vehicles/car_b': 4, 'vehicles/taxi': 2, 'vehicles/van': 1 };
+const CARS: Record<string, number> = {
+  'vehicles/car_a': 4, 'vehicles/car_b': 3, 'vehicles/car_c': 2, 'vehicles/car_d': 1, 'vehicles/suv': 2,
+  'vehicles/kei': 3, 'vehicles/taxi': 1.5, 'vehicles/taxi_b': 1.5, 'vehicles/van': 1, 'vehicles/box_truck': 1,
+};
 const FLYERS: Record<string, number> = { 'vehicles/flyer_a': 2, 'vehicles/flyer_b': 1 };
 
 type Lane = NonNullable<Layout['traffic']>[number];
@@ -14,7 +17,9 @@ export function planVehicles(layout: Layout, density: number) {
   const rng = mulberry32((layout.seed ^ 0x7e41c1e5) >>> 0);
   const ground = (layout.traffic ?? []).map((lane) => {
     const scaled: Lane = { ...lane, count: Math.max(1, Math.round(lane.count * density)) };
-    return { lane: scaled, assets: Array.from({ length: scaled.count }, () => weightedChoice(rng, CARS) as string) };
+    const assets = Array.from({ length: scaled.count }, () => weightedChoice(rng, CARS) as string);
+    // Paint pick per car, read by the facade shader from a height scale of 1 + paint / 64.
+    return { lane: scaled, assets, paints: assets.map(() => 0.001 + 0.998 * rng()) };
   });
   const sky = (layout.skyLanes ?? []).map((lane) => {
     const curve = new THREE.CatmullRomCurve3(lane.points.map((p) => new THREE.Vector3(...p)), lane.closed);
@@ -44,7 +49,7 @@ export function createVehicleMotion(batch: DynamicInstances, ids: number[], plan
           const p = trafficPosition(g.lane, i, time);
           pos.set(p.x, 0, p.z);
           q.setFromAxisAngle(up, p.angle);
-          batch.setMatrixAt(ids[k++], m.compose(pos, q, scale.setScalar(1)));
+          batch.setMatrixAt(ids[k++], m.compose(pos, q, scale.set(1, 1 + g.paints[i] / 64, 1)));
         }
       }
       for (const s of plan.sky) {

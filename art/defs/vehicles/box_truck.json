@@ -1,0 +1,10 @@
+{
+  "generator": "vehicles/car",
+  "seed": 30,
+  "params": {
+    "shape": "box_truck",
+    "width": 1.98,
+    "black_bumpers": true,
+    "rear_window": false
+  }
+}

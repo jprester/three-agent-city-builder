@@ -133,6 +133,10 @@ const vec3 P_SKY = ${glslColor('sky')};
 const vec3 P_CYAN = ${glslColor('sign_cyan')};
 const vec3 P_AMBER = ${glslColor('sign_amber')};
 const vec3 P_PAINT[4] = vec3[4](${glslColor('paint_mint')}, ${glslColor('paint_salmon')}, ${glslColor('paint_cream')}, ${glslColor('paint_blue')});
+// Car paints in CAR_PAINTS order (art/generators/vehicles/car.py); CAR_PICK weights the
+// random choice toward the white / black / grey / silver of a real street.
+const vec3 P_CAR[12] = vec3[12](${glslColor('car_white')}, ${glslColor('car_black')}, ${glslColor('car_grey')}, ${glslColor('car_silver')}, ${glslColor('car_navy')}, ${glslColor('car_red')}, ${glslColor('car_green')}, ${glslColor('car_beige')}, ${glslColor('car_yellow')}, ${glslColor('car_orange')}, ${glslColor('paint_mint')}, ${glslColor('paint_blue')});
+const int CAR_PICK[16] = int[16](0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 7, 11, 10);
 const vec3 P_CLAD[3] = vec3[3](${glslColor('clad_terracotta')}, ${glslColor('clad_cream')}, ${glslColor('clad_charcoal')});
 const vec4 TF_RECT[${TF_COUNT}] = vec4[${TF_COUNT}](
   ${TF_RECT});
@@ -146,6 +150,7 @@ varying vec2 vFacadeUv;
 // Discrete face data and random seeds must not acquire interpolation rounding noise.
 flat varying vec3 vSurf;
 flat varying float vInstSeed;
+flat varying float vInstPaint;
 varying vec3 vFWorld;
 varying vec3 vFNormal;
 varying vec2 vRawUv;
@@ -172,6 +177,9 @@ vSurf = color.rgb;
 vRawUv = vec2(uv.x, 1.0 - uv.y);
 vInstSeed = fract(sin(dot(fInst[3].xz, vec2(12.9898, 78.233)) + uSeed * 0.0137) * 43758.5453);
 vFNormal = normalize(mat3(fInst) * normal);
+// Moving cars carry their paint pick in a slight height scale (src/systems/vehicles.ts),
+// since their position seed changes as they drive; static instances use the seed.
+vInstPaint = abs(fScale.y - 1.0) < 1e-5 ? vInstSeed : clamp((fScale.y - 1.0) * 64.0, 0.0, 0.999);
 `;
 
 const VERTEX_WORLD = /* glsl */ `
@@ -198,6 +206,7 @@ varying vec2 vFacadeUv;
 // Discrete face data and random seeds must not acquire interpolation rounding noise.
 flat varying vec3 vSurf;
 flat varying float vInstSeed;
+flat varying float vInstPaint;
 varying vec3 vFWorld;
 varying vec3 vFNormal;
 varying vec2 vRawUv;
@@ -815,8 +824,10 @@ if (fType == T_ATLAS) {
   fMetal = 0.5;
   // Vehicle subtypes use the otherwise unused metal fill channel; existing metal stays 0.
   if (fFill > 0.15 && fFill < 0.35) {
+    // Fill 0.2: a random paint per car; 0.3: the fixed paint P_CAR[tint * 12] (taxis).
     float roadDirt = mix(0.65, 0.9, smoothstep(0.2, 0.7, fUv.y));
-    fBase = P_PAINT[min(int(fTint * 4.0), 3)] * roadDirt * mix(0.9, 1.0, fNoise(fUv * 6.0));
+    int pick = fFill < 0.25 ? CAR_PICK[min(int(vInstPaint * 16.0), 15)] : min(int(fTint * 12.0), 11);
+    fBase = P_CAR[pick] * roadDirt * mix(0.9, 1.0, fNoise(fUv * 6.0));
     fRough = 0.32; fMetal = 0.25;
   } else if (fFill > 0.35 && fFill < 0.65) {
     fBase = P_GLASS; fRough = 0.12; fMetal = 0.65;

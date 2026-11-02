@@ -1172,3 +1172,9 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 
 - Sedan, hatchback, upright Tokyo-style taxi and one-box van now read as distinct types at street level: raked windscreens, crowned bonnet and roof, pillars, wheel arches with dark liners and sills, door seams, handles, mirrors, bumpers, plates and wide lamp clusters. Checked all previews plus `canyon` and `delivery` on the real GPU.
 - Still faceted (flat shading over 13-point sections), and glass reads near black with little reflection; wheels are 10-sided.
+
+### More car models and paint
+
+- Ten road models now: sedan, hatch, wagon, coupe, SUV, kei, yellow and black taxis, van, box truck. The box truck's cargo box and the kei's tall box read clearly; the coupe is the weakest (its fastback is short at street distance).
+- Paint varies per car (white, black, grey, silver, navy, red, green, beige, blue, mint). Under sodium light the pale colours converge on cream and navy reads near black; reds and greens survive. Checked `canyon` at t=15 and t=60 and `storefront` on the real GPU.
+- Door handles on the box truck land on the cargo box (handles follow the B-pillar seam).

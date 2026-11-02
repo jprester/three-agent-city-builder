@@ -2,7 +2,6 @@
   "generator": "vehicles/car",
   "seed": 22,
   "params": {
-    "shape": "hatch",
-    "tint": 0.8
+    "shape": "hatch"
   }
 }

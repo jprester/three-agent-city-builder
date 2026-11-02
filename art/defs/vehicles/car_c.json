@@ -1,0 +1,7 @@
+{
+  "generator": "vehicles/car",
+  "seed": 25,
+  "params": {
+    "shape": "wagon"
+  }
+}

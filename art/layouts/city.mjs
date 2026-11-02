@@ -47,7 +47,7 @@ const DEFAULTS = {
   // blocks on a `pitch` grid with `street`-wide streets, `margin` clear of the city edge;
   // `split`: chance a block splits into two lots along each axis.
   // Build chance and building mix go from `near` (at the city edge) to `far` (outer rim).
-  parking: { count: 10, assets: ['vehicles/van', 'vehicles/car_b'], junctionClear: 18, spacing: 45, curbGap: 0.5, clearance: 0.4 },
+  parking: { count: 10, assets: ['vehicles/van', 'vehicles/box_truck', 'vehicles/kei', 'vehicles/car_b'], junctionClear: 18, spacing: 45, curbGap: 0.5, clearance: 0.4 },
   terrain: { start: 800, rise: 1300, height: 230 },
   landmarks: { count: 3, spacing: 80 },
   fringe: {

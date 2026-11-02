@@ -1,0 +1,8 @@
+{
+  "generator": "vehicles/car",
+  "seed": 28,
+  "params": {
+    "shape": "kei",
+    "width": 1.48
+  }
+}

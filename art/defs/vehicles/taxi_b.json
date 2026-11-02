@@ -1,0 +1,10 @@
+{
+  "generator": "vehicles/car",
+  "seed": 29,
+  "params": {
+    "shape": "taxi",
+    "roof_sign": true,
+    "black_bumpers": true,
+    "paint": "car_black"
+  }
+}
