@@ -26,6 +26,7 @@ import type { FacadeLod } from './systems/buildings';
 import { buildInstances } from './systems/instancing';
 import type { VehicleMotion } from './systems/vehicles';
 import { nightAt } from './scene/night';
+import { createCityAudio } from './systems/audio';
 import { fetchLayout, generateLayout, type Layout } from './systems/layout';
 import { isQualityName, QUALITY_PRESETS } from './systems/quality';
 import { createWalkSurface } from './systems/walk';
@@ -205,6 +206,18 @@ async function main() {
     })
     : null;
 
+  // Procedural sound (src/systems/audio.ts): starts muted, the button or M turns it on (browsers
+  // need a gesture). Hidden in automated runs so screenshots stay clean.
+  const audio = createCityAudio(layout);
+  if (!navigator.webdriver) {
+    const button = document.createElement('button');
+    button.id = 'sound';
+    button.textContent = 'Sound: off';
+    const toggle = () => { const on = audio.toggle(); button.textContent = on ? 'Sound: on' : 'Sound: off'; button.classList.toggle('on', on); };
+    button.addEventListener('click', (e) => { e.stopPropagation(); toggle(); button.blur(); });
+    window.addEventListener('keydown', (e) => { if (e.code === 'KeyM' && !e.repeat) toggle(); });
+    document.body.appendChild(button);
+  }
   window.__PAUSE_RENDER = () => renderer.setAnimationLoop(null);
   let frames = 0;
   let last = clock.time;
@@ -227,6 +240,7 @@ async function main() {
     groundUniforms.uRain.value = n.rain;
     if (rain) (rain.material as THREE.ShaderMaterial).uniforms.uAmount.value = n.rain;
     (scene.fog as THREE.FogExp2).density = FOG_DENSITY * n.fog;
+    audio.update({ time: now, camera, rain: n.rain, cars: groundUniforms.uCars.value });
     renderer.info.reset();
     // The reflection is half resolution and smeared: simplified buildings from 1/4 the distance.
     facadeLod?.update(camera, REFLECTION_LOD_BIAS * quality.lodDistanceScale, true);
