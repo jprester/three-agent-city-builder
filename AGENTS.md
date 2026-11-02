@@ -31,6 +31,9 @@ binary in `public/` is regenerated from them.
   `build/shots/`, fails only on browser errors, a blank frame, scene budgets or frame time.
   `npm run shots:all` (~1 min) covers every viewpoint; `SHOTS=canyon,glass` picks some;
   `SWIFTSHADER=1` uses software WebGL on machines without a GPU. There are no pixel baselines.
+- `npm run perf` (~30 s) measures real GPU and CPU time per frame and GPU memory at 1440×900 @2x,
+  high quality, for 5 viewpoints; writes `build/perf/report.json`. `PERF_VIEWS`, `PERF_DPR`,
+  `PERF_QUALITY` override. Run it after changes that add geometry, passes or shader work.
 - `npm run check` typechecks and enforces budgets. Must pass before every commit.
 
 ## Never hand-edit (generated)

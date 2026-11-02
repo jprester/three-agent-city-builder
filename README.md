@@ -16,7 +16,8 @@ npm run assets        # first run pins your Blender version in pipeline.config.j
 npm run dev           # http://localhost:5173
 npm test              # unit tests (vitest)
 npm run shots        # ~15 s smoke test on the real GPU: 3 viewpoints, errors/blank/budgets/frame time
-npm run shots:all    # the same for all 18 viewpoints (~1 min)
+npm run shots:all    # the same for every viewpoint (~1 min)
+npm run perf         # GPU/CPU ms per frame and GPU memory at 1440x900@2x (~30 s)
 ```
 
 ## Advertising
@@ -53,7 +54,10 @@ records (`build/shots/city/info.json`) draw calls, triangles and frame time per 
 - `SHOTS=canyon,glass npm run shots` picks viewpoints by name.
 - `SWIFTSHADER=1 npm run shots` uses software WebGL on machines without a GPU (slow).
 
-Frame time is capped by vsync at 16.7 ms, so it shows drops below 60 fps, not headroom.
+Frame time is capped by vsync at 16.7 ms, so it shows drops below 60 fps, not headroom; for
+headroom run `npm run perf`, which times each frame on the GPU with WebGL timer queries at a
+Retina laptop resolution (`PERF_DPR`, `PERF_QUALITY`, `PERF_VIEWS` override) and reports the
+GPU process's memory on macOS. It fails only if a median GPU frame exceeds 16.7 ms.
 There are no approved image baselines: the project is open-ended, so screenshots are for
 looking at, and only silent breakage and performance fail the run (decided 2026-11-02).
 

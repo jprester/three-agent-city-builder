@@ -1188,3 +1188,8 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 ### Car lights
 
 - Head and tail lights now bloom; red streaks trail behind cars on the wet road and oncoming headlights throw white streaks toward the viewer (`canyon` at t=40 shows both). Headlight pools ahead of cars are subtle at street-camera distances; only the nearest 24 cars light the road, so distant traffic has lamp glow but no pools.
+
+### Performance baseline (2026-11-02, M5, 1440×900 @2x, high = 1.5× pixel ratio)
+
+- GPU median / p95 per frame: canyon 9.3 / 15.7 ms, storefront 8.6 / 14.3, aerial 10.5 / 19–22, harbor 7.8 / 13.4, fly-75 9.8 / 17.3. CPU ~1–2 ms. JS heap ~70 MB, GPU process ~1.17 GB.
+- So ~40–55 % GPU headroom at 60 fps; aerial's p95 spikes are the closest to the budget. Room for pedestrians or signs on the island band, but each should be checked with `npm run perf`.

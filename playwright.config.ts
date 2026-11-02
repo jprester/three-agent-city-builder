@@ -7,7 +7,7 @@ const GPU = process.env.SWIFTSHADER
   : [...(process.platform === 'darwin' ? ['--use-angle=metal'] : []), '--enable-gpu', '--ignore-gpu-blocklist'];
 
 export default defineConfig({
-  testDir: 'tests/visual',
+  testDir: 'tests',
   timeout: 120_000,
   // One heavy scene at a time: parallel loads skew frame times and pressure GPU memory.
   workers: 1,
@@ -16,12 +16,19 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      testMatch: '**/visual/*.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 1280, height: 720 },
         deviceScaleFactor: 1,
         launchOptions: { args: GPU },
       },
+    },
+    {
+      // `npm run perf`: real-GPU timings at laptop resolution (tests/perf/perf.spec.ts).
+      name: 'perf',
+      testMatch: '**/perf/*.spec.ts',
+      use: { ...devices['Desktop Chrome'], launchOptions: { args: [...GPU, '--enable-precise-memory-info'] } },
     },
   ],
   webServer: {
