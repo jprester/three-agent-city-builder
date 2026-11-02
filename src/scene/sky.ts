@@ -34,6 +34,9 @@ export function createSky(fogColor: THREE.Color, time: { value: number }, layout
       uRidge: { value: c('ridge') },
       uDistricts: { value: districts },
       uCloudGain: { value: 0.32 },
+      // Lightning (src/scene/lightning.ts), set every frame by the scene's update.
+      uFlash: { value: 0 },
+      uFlashDir: { value: new THREE.Vector2(1, 0) },
     },
     vertexShader: /* glsl */ `
       varying vec3 vDir;
@@ -47,6 +50,8 @@ export function createSky(fogColor: THREE.Color, time: { value: number }, layout
       uniform float uTime;
       uniform vec4 uDistricts[3];
       uniform float uCloudGain;
+      uniform float uFlash;
+      uniform vec2 uFlashDir;
       varying vec3 vDir;
       float hash(vec3 p) { p = fract(p * 0.1031); p += dot(p, p.yzx + 33.33); return fract((p.x + p.y) * p.z); }
       float noise(vec3 p) {
@@ -141,6 +146,14 @@ export function createSky(fogColor: THREE.Color, time: { value: number }, layout
         // horizon; the gaps between them stay dark.
         float under = deck * (0.3 + 0.7 * exp(-y * 4.0)) + edge * 1.5 * exp(-y * 3.0);
         col += uCloudGlow * under * uCloudGain * (0.35 + 0.65 * cityGlow(d));
+        // Lightning lights the cloud deck from inside, strongest toward the strike. (d.xz is
+        // guarded: straight up it is zero, and a NaN would spread through the bloom.)
+        if (uFlash > 0.0) {
+          float toward = pow(max(dot(d.xz / max(length(d.xz), 1e-3), uFlashDir), 0.0), 6.0);
+          // Inside the deck: a lit patch toward the strike that fades with height, a faint wash elsewhere.
+          float lit = uFlash * (0.08 + 0.92 * toward * exp(-y * 1.5));
+          col += vec3(0.72, 0.78, 1.0) * lit * (deck * 1.1 + edge * 3.0 + 0.12 * exp(-y * 2.5)) * 0.42;
+        }
         if (d.y < 0.0) col = uHorizon;
         // Ridges: silhouettes against the lit cloud, the far one hazier, both lifted toward the
         // haze at their foot (the city's light in the air in front of them).

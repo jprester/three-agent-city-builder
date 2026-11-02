@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import palette from '../../art/style/palette.json';
 import { installHeightFog } from './fog';
 import { createSky } from './sky';
+import { lightningAt } from './lightning';
 import type { Layout } from '../systems/layout';
 
 const color = (name: keyof typeof palette) => new THREE.Color(palette[name]);
@@ -30,11 +31,22 @@ export function createScene(time: { value: number }, layout: Layout | null = nul
   const haze = color('haze');
   scene.background = color('sky');
   scene.fog = new THREE.FogExp2(haze, FOG_DENSITY);
-  scene.add(createSky(haze, time, layout));
-  scene.add(new THREE.HemisphereLight(color('tv_blue').lerp(color('fluorescent'), 0.45), color('sodium').multiplyScalar(0.035), 0.11));
+  const sky = createSky(haze, time, layout);
+  scene.add(sky);
+  const hemi = new THREE.HemisphereLight(color('tv_blue').lerp(color('fluorescent'), 0.45), color('sodium').multiplyScalar(0.035), 0.11);
+  scene.add(hemi);
   // Broad night-sky illumination reveals ribs, rails and roof planes; no shadow maps.
   const skyLight = new THREE.DirectionalLight(color('tv_blue').lerp(color('fluorescent'), 0.4), 0.26);
   skyLight.position.set(-180, 260, -90);
   scene.add(skyLight);
+  // Per frame: lightning flashes the clouds and briefly lifts the sky light over the city.
+  const uniforms = (sky.material as THREE.ShaderMaterial).uniforms;
+  scene.userData.update = (t: number) => {
+    const { flash, dir } = lightningAt(t);
+    uniforms.uFlash.value = flash;
+    uniforms.uFlashDir.value.set(dir[0], dir[1]);
+    hemi.intensity = 0.11 + 0.5 * flash;
+    skyLight.intensity = 0.26 + 1.6 * flash;
+  };
   return scene;
 }
