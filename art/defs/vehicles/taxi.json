@@ -3,6 +3,7 @@
   "seed": 23,
   "params": {
     "roof_sign": true,
-    "tint": 0.3
+    "tint": 0.6,
+    "paint": "paint_cream"
   }
 }

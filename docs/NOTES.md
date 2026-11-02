@@ -1140,3 +1140,10 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 - Added six Blender-rendered cards: convenience shelves/checkout, noodle counter/stools/kitchen/menu panels, repair bench/tools/equipment. The runtime ray-casts the existing room box, with tenant-dependent late-night opening shares.
 - Inspected all 34 regenerated room cards, including the original residential and office sets, and the storefront/canyon captures. Furniture is distinguishable; the shelves give a better depth cue than the former empty box.
 - Remaining weakness: white side walls dominate at grazing angles, and the two noodle variants are very similar. These are deliberately small window assets, not fully furnished walkthrough spaces. A later art pass should add wall wear and asymmetric hanging stock rather than merely brighten the shops.
+
+### Vehicle assets
+
+- Inspected all three Blender previews for each of the six vehicle assets (four rebuilt road variants; flying hulls unchanged), then moving cars in canyon/storefront and the new close delivery capture.
+- The previous floating boxes now have readable tires, wheel openings, body/glass separation and sloped cabins. The taxi and van paint indices were corrected to match their preview palette; the van's side glazing was restricted to the cab.
+- Remaining weakness: the van body is still angular and its glazing has no modeled cabin behind it. Paint has restrained lower-panel dirt, but close-up mirror housings, wheel-arch lips and cargo-door hardware would be the next useful geometry, rather than a full-body photographic texture.
+- Each car/van is 362 triangles and about 11 KB; the taxi is 372 triangles. No export settings or asset budgets were relaxed.

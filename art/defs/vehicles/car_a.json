@@ -2,6 +2,7 @@
   "generator": "vehicles/car",
   "seed": 21,
   "params": {
-    "tint": 0.2
+    "tint": 0.2,
+    "paint": "paint_mint"
   }
 }

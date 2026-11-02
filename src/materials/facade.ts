@@ -813,6 +813,16 @@ if (fType == T_ATLAS) {
   fBase = P_METAL * mix(0.7, 1.6, fNoise(fUv * 2.0 + fSeed * 9.0));
   fRough = 0.55;
   fMetal = 0.5;
+  // Vehicle subtypes use the otherwise unused metal fill channel; existing metal stays 0.
+  if (fFill > 0.15 && fFill < 0.35) {
+    float roadDirt = mix(0.65, 0.9, smoothstep(0.2, 0.7, fUv.y));
+    fBase = P_PAINT[min(int(fTint * 4.0), 3)] * roadDirt * mix(0.9, 1.0, fNoise(fUv * 6.0));
+    fRough = 0.32; fMetal = 0.25;
+  } else if (fFill > 0.35 && fFill < 0.65) {
+    fBase = P_GLASS; fRough = 0.12; fMetal = 0.65;
+  } else if (fFill > 0.65) {
+    fBase = P_METAL * 0.25; fRough = 0.95; fMetal = 0.0;
+  }
   fNormalW = normalize(vFNormal);
 } else if (fType == T_SOFFIT) {
   float tubes = fBox(fract(fUv.y / 1.1), 0.46, 0.54, fFw.y / 1.1) * fBox(fract(fUv.x / 1.8), 0.08, 0.92, fFw.x / 1.8)
