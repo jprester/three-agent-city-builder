@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mulberry32, weightedChoice } from '../../art/layouts/lib/rng.mjs';
-import { createTrafficSim } from '../../art/layouts/lib/traffic.mjs';
+import { createTrafficSim, trafficPose } from '../../art/layouts/lib/traffic.mjs';
 import type { Layout } from './layout';
 import type { DynamicInstances } from './buildings';
 
@@ -9,6 +9,7 @@ const CARS: Record<string, number> = {
   'vehicles/kei': 3, 'vehicles/taxi': 1.5, 'vehicles/taxi_b': 1.5, 'vehicles/van': 1, 'vehicles/box_truck': 1,
 };
 const FLYERS: Record<string, number> = { 'vehicles/flyer_a': 2, 'vehicles/flyer_b': 1 };
+const WALKERS: Record<string, number> = { 'props/walker_a': 1, 'props/walker_b': 1 };
 
 type Lane = NonNullable<Layout['traffic']>[number];
 
@@ -29,8 +30,23 @@ export function planVehicles(layout: Layout, density: number) {
       phases: Array.from({ length: lane.count }, (_, i) => (i + 0.35 * rng()) / lane.count),
     };
   });
-  const assets = [...ground.flatMap((g) => g.assets), ...sky.flatMap((s) => s.assets)];
-  return { ground, sky, assets };
+  // Pedestrians: own random stream, so they never change the traffic or flyers.
+  const wrng = mulberry32((layout.seed ^ 0x3a1c5f09) >>> 0);
+  const walk = (layout.walkways ?? []).map((way) => {
+    const count = Math.max(0, Math.round(way.count * density));
+    const loop = { points: way.points };
+    const length = way.points.reduce((s, p, k) => { const q = way.points[(k + 1) % way.points.length]; return s + Math.hypot(q[0] - p[0], q[1] - p[1]); }, 0);
+    return {
+      loop, length,
+      assets: Array.from({ length: count }, () => weightedChoice(wrng, WALKERS) as string),
+      phases: Array.from({ length: count }, (_, i) => (i + 0.6 * wrng()) / Math.max(count, 1)),
+      speeds: Array.from({ length: count }, () => 1.1 + 0.4 * wrng()),
+      dirs: Array.from({ length: count }, () => (wrng() < 0.5 ? 1 : -1)),
+      paints: Array.from({ length: count }, () => 0.001 + 0.998 * wrng()),
+    };
+  });
+  const assets = [...ground.flatMap((g) => g.assets), ...sky.flatMap((s) => s.assets), ...walk.flatMap((w) => w.assets)];
+  return { ground, sky, walk, assets };
 }
 
 /**
@@ -72,6 +88,15 @@ export function createVehicleMotion(batch: DynamicInstances, ids: number[], plan
           pos.y += Math.sin(time * 0.6 + i * 2.1) * 1.2;
           q.setFromAxisAngle(up, Math.atan2(tangent.x, tangent.z));
           batch.setMatrixAt(ids[k++], m.compose(pos, q, scale.setScalar(1)));
+        }
+      }
+      // Pedestrians walk their sidewalk loops at their own pace and direction, with a step bob.
+      for (const w of plan.walk) {
+        for (let i = 0; i < w.assets.length; i++) {
+          const p = trafficPose(w.loop, w.phases[i] * w.length + w.dirs[i] * w.speeds[i] * time);
+          pos.set(p.x, 0.15 + 0.035 * Math.abs(Math.sin(time * w.speeds[i] * 2.8 + i * 1.7)), p.z);
+          q.setFromAxisAngle(up, p.angle + (w.dirs[i] < 0 ? Math.PI : 0));
+          batch.setMatrixAt(ids[k++], m.compose(pos, q, scale.set(1, 1 + w.paints[i] / 64, 1)));
         }
       }
     },

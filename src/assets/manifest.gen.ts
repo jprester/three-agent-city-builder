@@ -115,6 +115,8 @@ export const ASSETS = {
   "props/tree_b": { url: "assets/props/tree_b.glb", category: "props", meta: {"footprint":[4.4,4.4],"height":10,"shader":"facade"} },
   "props/tree_c": { url: "assets/props/tree_c.glb", category: "props", meta: {"footprint":[6,6],"height":5.5,"shader":"facade"} },
   "props/vent": { url: "assets/props/vent.glb", category: "props", meta: {"footprint":[1,1],"height":2.48,"shader":"facade","family":"prop"} },
+  "props/walker_a": { url: "assets/props/walker_a.glb", category: "props", meta: {"height":2.12,"footprint":[1.1,1.1],"shader":"facade","family":"walker"} },
+  "props/walker_b": { url: "assets/props/walker_b.glb", category: "props", meta: {"height":2.12,"footprint":[1.1,1.1],"shader":"facade","family":"walker"} },
   "vehicles/box_truck": { url: "assets/vehicles/box_truck.glb", category: "vehicles", meta: {"footprint":[1.98,5.8999999999999995],"height":2.75,"shader":"facade","family":"vehicle"} },
   "vehicles/car_a": { url: "assets/vehicles/car_a.glb", category: "vehicles", meta: {"footprint":[1.8,4.699999999999999],"height":1.44,"shader":"facade","family":"vehicle"} },
   "vehicles/car_b": { url: "assets/vehicles/car_b.glb", category: "vehicles", meta: {"footprint":[1.8,4.1],"height":1.46,"shader":"facade","family":"vehicle"} },

@@ -1,0 +1,5 @@
+{
+  "generator": "props/walker",
+  "seed": 42,
+  "params": { "umbrella": "clear" }
+}

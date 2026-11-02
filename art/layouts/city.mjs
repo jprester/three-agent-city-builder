@@ -62,6 +62,9 @@ const DEFAULTS = {
     terrain: { plain: 1.4, start: 40, rise: 1100, height: 220 },
   },
   landmarks: { count: 3, spacing: 80 },
+  // Pedestrians: a loop down the middle of each downtown block's sidewalk (`inset` × the
+  // edge's sidewalk width from the curb), one walker per `spacing` meters by district.
+  walkers: { inset: 0.5, spacing: { core: 12, towers: 20 } },
   // Buildings on the island blocks outside the city, on lots about `lot` meters wide;
   // `lotGap` leaves yards; the mix goes from `near` (city) to `far` (waterfront).
   fringe: {
@@ -121,7 +124,7 @@ const EDGE_PRIORITY = { hero: 0, arterial: 1, secondary: 2, edge: 3, alley: 4 };
 export function generate({ params, seed, assets = {}, art = [] }) {
   const P = { ...DEFAULTS, ...params };
   // Nested option groups merge with their defaults instead of replacing them.
-  for (const k of ['roads', 'sidewalks', 'lampSpacing', 'flythrough', 'signs', 'bridges', 'props', 'fringe', 'landmarks', 'parking', 'island']) P[k] = { ...DEFAULTS[k], ...(params[k] ?? {}) };
+  for (const k of ['roads', 'sidewalks', 'lampSpacing', 'flythrough', 'signs', 'bridges', 'props', 'fringe', 'landmarks', 'parking', 'island', 'walkers']) P[k] = { ...DEFAULTS[k], ...(params[k] ?? {}) };
   const D = {};
   for (const k of Object.keys(DISTRICT_DEFAULTS)) D[k] = { ...DISTRICT_DEFAULTS[k], ...(params.districts?.[k] ?? {}) };
   const rng = mulberry32(seed);
@@ -456,6 +459,17 @@ export function generate({ params, seed, assets = {}, art = [] }) {
   for (const lane of skyLanes) lane.points = liftClear(lane.points, [...instances, ...fringe], 12, 14);
   const traffic = trafficLanes(roads.map((r) => ({ id: r.id, cls: r.cls, width: r.width, a: r.a.map(r3), b: r.b.map(r3) })), seed)
     .map((l) => ({ ...l, points: l.points.map((p) => p.map(r3)), stops: l.stops.map(([s, n, g, w]) => [r3(s), n, g, w]), speed: r3(l.speed), phase: r3(l.phase), length: r3(l.length) }));
+  // Sidewalk loops for pedestrians (the runtime walks them; src/systems/vehicles.ts).
+  const walkways = [];
+  for (const b of blocks) {
+    const spacing = P.walkers.spacing[b.district];
+    if (!spacing) continue;
+    const pts = G.inset(b.pts, (i) => (P.sidewalks[tagClass(b.tags[i])] ?? P.sidewalks.edge) * P.walkers.inset);
+    if (!pts) continue;
+    const L = pts.reduce((s, p, k) => s + G.dist(p, pts[(k + 1) % pts.length]), 0);
+    const count = Math.floor(L / spacing);
+    if (count > 0) walkways.push({ points: pts.map((p) => p.map(r3)), count });
+  }
   // Signal heads: one per signalled approach, on the right-hand curb at the stop line, facing
   // the approaching cars: [x, z, rotationY, junction cycle offset (0..1), phase].
   const signals = [];
@@ -791,6 +805,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
     bridges,
     traffic,
     signals,
+    walkways,
     skyLanes,
   };
 }

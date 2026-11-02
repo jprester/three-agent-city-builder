@@ -100,6 +100,8 @@ export interface Layout {
   /** Closed ground-traffic loops through the street network (art/layouts/lib/traffic.mjs). */
   /** stops: [arc position of a stop line, junction id, signal phase, road width] (lib/traffic.mjs). */
   traffic?: { roads: number[]; points: Vec2[]; length: number; stops: [number, number, number, number][]; count: number; speed: number; phase: number }[];
+  /** Pedestrian loops along downtown sidewalks: closed polyline and walker count. */
+  walkways?: { points: Vec2[]; count: number }[];
   /** Traffic-signal heads: [x, z, rotationY, junction cycle offset 0..1, phase 0|1]. */
   signals?: [number, number, number, number, number][];
   /** Closed flying-vehicle loops. */

@@ -1213,3 +1213,9 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 
 - The flicker along the base of the mid-rise glass bodies (and earlier on the photo facade) was the podium parapet's outer face sharing a plane with the body wall at the back. The same flush-parapet pattern was in most generators; also walk-up veranda posts, car-park deck corners and landmark caps. Not reproducible in stills (it depends on the camera's sub-pixel position), so the fix is verified by the geometry scan rather than screenshots.
 - Left: ~44 assets with small overlaps (parapet boxes overlapping each other's tops at corners, LED-strip ends, soffit slivers), all under 25 m² and mostly on roofs.
+
+### Traffic signals and pedestrians
+
+- Signal heads read clearly at junctions and switch red/amber/green in step with the queues; amber blooms nearly white.
+- Walkers under black and clear umbrellas fill the downtown sidewalks; blocky up close (box bodies, no walk cycle beyond a bob) but right at the distances the cameras see them. They pass through bins, kiosks and each other.
+- Perf (idle machine, 1440×900 @2x high): canyon 9.8 ms GPU (was 9.3), storefront 11.3 ms (was 8.6); CPU ~1.5 ms.
