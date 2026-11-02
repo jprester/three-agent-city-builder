@@ -24,6 +24,7 @@ import { Clock, parseFrozenTime } from './systems/clock';
 import { FlythroughPath } from './systems/flythrough';
 import type { FacadeLod } from './systems/buildings';
 import { buildInstances } from './systems/instancing';
+import type { VehicleMotion } from './systems/vehicles';
 import { fetchLayout, generateLayout, type Layout } from './systems/layout';
 import { isQualityName, QUALITY_PRESETS } from './systems/quality';
 import { createWalkSurface } from './systems/walk';
@@ -85,7 +86,7 @@ async function main() {
   const unreflected: THREE.Object3D[] = [];
   let layout: Layout | null = null;
   let facadeLod: FacadeLod | null = null;
-  let vehicles: { update(time: number): void } | null = null;
+  let vehicles: VehicleMotion | null = null;
   const url = layoutUrl(layoutId);
   const seedParam = params.get('seed');
   const seed = seedParam === null ? null : Number.parseInt(seedParam, 10);
@@ -216,6 +217,7 @@ async function main() {
     dynres?.update(real / 1000, real - lastReal);
     lastReal = real;
     vehicles?.update(now);
+    vehicles?.nearest(camera.position, groundUniforms.uCars.value);
     renderer.info.reset();
     // The reflection is half resolution and smeared: simplified buildings from 1/4 the distance.
     facadeLod?.update(camera, REFLECTION_LOD_BIAS * quality.lodDistanceScale, true);

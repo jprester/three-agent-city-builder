@@ -1184,3 +1184,7 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 - From the air (`aerial`, `fly-75`) the city now ends at a rounded coast with a lit waterfront, dark water, and a warm band of mainland lights under dark foothills across the strait. `harbor` (from the sea) is the best new shot: skyline over long vertical reflections.
 - The island band reads as dense mid-rise on a regular grid; it is plainer than downtown (fringe shells only, no signs or props), so it should stay a frame, not a destination.
 - Weak: the mainland is only painted light, flattened by fog past ~2 km; its shoreline is stepped from straight above (100 m ground cells, only seen from the debug top view). The promenade is bare apart from lamps: no railings, piers or boats yet. The `horizon` view (port anchor) now looks along the southern ring road rather than at a port.
+
+### Car lights
+
+- Head and tail lights now bloom; red streaks trail behind cars on the wet road and oncoming headlights throw white streaks toward the viewer (`canyon` at t=40 shows both). Headlight pools ahead of cars are subtle at street-camera distances; only the nearest 24 cars light the road, so distant traffic has lamp glow but no pools.

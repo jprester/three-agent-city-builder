@@ -910,7 +910,9 @@ if (fType == T_ATLAS) {
   // Accent strips are white-dominant and soft; saturated cyan stripes on every tower read as
   // decoration rather than architecture. Point fixtures stay hot.
   if (strip) fc = mix(fc, vec3(1.0), 0.35);
-  fEmit = fc * (strip ? 0.65 : 4.0) * blink;
+  // Vehicle lamp panels (fixture(lamp=True), tint 0.3): between the two, enough to bloom.
+  bool lamp = fTint > 0.15 && fTint < 0.5;
+  fEmit = fc * (strip ? 0.65 : lamp ? 2.4 : 4.0) * blink;
   fNormalW = normalize(vFNormal);
 }
 

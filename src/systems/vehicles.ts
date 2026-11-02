@@ -41,12 +41,18 @@ export function planVehicles(layout: Layout, density: number) {
 export function createVehicleMotion(batch: DynamicInstances, ids: number[], plan: ReturnType<typeof planVehicles>) {
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
   const pos = new THREE.Vector3(), scale = new THREE.Vector3(), tangent = new THREE.Vector3();
+  const cars = plan.ground.reduce((s, g) => s + g.assets.length, 0);
+  /** Ground cars this frame: x, z, heading sin, heading cos. */
+  const placed = new Float32Array(cars * 4);
+  const best = new Float32Array(64), bestIdx = new Int32Array(64);
   return {
     update(time: number) {
-      let k = 0;
+      let k = 0, c = 0;
       for (const g of plan.ground) {
         for (let i = 0; i < g.assets.length; i++) {
           const p = trafficPosition(g.lane, i, time);
+          placed[4 * c] = p.x; placed[4 * c + 1] = p.z;
+          placed[4 * c + 2] = Math.sin(p.angle); placed[4 * c + 3] = Math.cos(p.angle); c++;
           pos.set(p.x, 0, p.z);
           q.setFromAxisAngle(up, p.angle);
           batch.setMatrixAt(ids[k++], m.compose(pos, q, scale.set(1, 1 + g.paints[i] / 64, 1)));
@@ -64,5 +70,24 @@ export function createVehicleMotion(batch: DynamicInstances, ids: number[], plan
         }
       }
     },
+    /** Writes the `out.length` ground cars nearest to `eye` (as of the last update) into `out`. */
+    nearest(eye: THREE.Vector3, out: THREE.Vector4[]) {
+      const n = Math.min(out.length, 64);
+      let filled = 0;
+      for (let c = 0; c < cars; c++) {
+        const dx = placed[4 * c] - eye.x, dz = placed[4 * c + 1] - eye.z, d2 = dx * dx + dz * dz;
+        if (filled === n && d2 >= best[n - 1]) continue;
+        // Insertion into the sorted short list.
+        let j = filled < n ? filled++ : n - 1;
+        while (j > 0 && best[j - 1] > d2) { best[j] = best[j - 1]; bestIdx[j] = bestIdx[j - 1]; j--; }
+        best[j] = d2; bestIdx[j] = c;
+      }
+      for (let j = 0; j < out.length; j++) {
+        if (j < filled) out[j].fromArray(placed, 4 * bestIdx[j]);
+        else out[j].set(0, 0, 0, 0);
+      }
+    },
   };
 }
+
+export type VehicleMotion = ReturnType<typeof createVehicleMotion>;

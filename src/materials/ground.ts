@@ -12,9 +12,15 @@ export interface GroundUniforms {
   uSignMap: { value: THREE.Texture | null };
   /** Shared clock (rain ripples). */
   uTime: { value: number };
+  /** Nearest road vehicles to the camera: x, z, heading sin, heading cos (zero = none). */
+  uCars: { value: THREE.Vector4[] };
 }
 
+/** Vehicles whose headlights light the road (nearest to the camera; see src/systems/vehicles.ts). */
+export const CAR_LIGHTS = 24;
+
 const sodium = new THREE.Color(palette.sodium);
+const signRed = new THREE.Color(palette.sign_red);
 const tungsten = new THREE.Color(palette.tungsten);
 const fluorescent = new THREE.Color(palette.fluorescent);
 const v3 = (c: THREE.Color) => `vec3(${c.r.toFixed(4)}, ${c.g.toFixed(4)}, ${c.b.toFixed(4)})`;
@@ -44,6 +50,7 @@ uniform mat4 uReflMatrix;
 uniform float uWet;
 uniform sampler2D uSignMap;
 uniform float uTime;
+uniform vec4 uCars[${CAR_LIGHTS}];
 varying vec3 vGWorld;
 float gHash(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 float gNoise(vec2 p) {
@@ -99,6 +106,34 @@ float gFresnel = 0.04 + 0.96 * pow(1.0 - clamp(gView.y, 0.0, 1.0), 5.0);
 // Asphalt grain breaks up the dull wet film; puddles stay clean.
 float gGrain = mix(0.45 + 0.9 * gNoise(vGWorld.xz * 7.0) * gNoise(vGWorld.xz * 2.1 + 3.0), 1.0, gPuddle);
 totalEmissiveRadiance += gRefl * gGrain * mix(0.16, 1.0, gPuddle) * (0.25 + 0.75 * gFresnel) * uWet * ${wet.toFixed(2)} * (1.0 - smoothstep(0.5, 8.0, vGWorld.y));
+${water ? '' : `// Car lights: a widening headlight cone ahead of each nearby car, a small red glow behind,
+// and on the wet road the glare streak a lamp facing the viewer leaves toward them.
+float gHead = 0.0, gTail = 0.0, gHeadGlare = 0.0, gTailGlare = 0.0;
+for (int i = 0; i < ${CAR_LIGHTS}; i++) {
+  vec4 c = uCars[i];
+  vec2 d = vGWorld.xz - c.xy;
+  if (dot(c.zw, c.zw) < 0.5 || dot(d, d) > 900.0) continue;
+  float al = dot(d, c.zw), si = dot(d, vec2(-c.w, c.z));
+  float w = 0.7 + max(al, 0.0) * 0.3;
+  gHead += exp(-si * si / (w * w)) * smoothstep(2.0, 4.5, al) * pow(max(1.0 - al / 30.0, 0.0), 2.0) * 6.0 / (1.0 + max(al, 0.0) * 0.25);
+  gTail += exp(-si * si / 1.4) * smoothstep(-1.8, -2.6, al) * max(1.0 - (-al - 2.3) / 5.0, 0.0);
+  vec2 toCam = cameraPosition.xz - c.xy;
+  float camDist = length(toCam);
+  vec2 u = toCam / max(camDist, 1e-3);
+  float facing = dot(c.zw, u);
+  // From the lamp end facing the viewer, along the line to them.
+  vec2 lampEnd = c.xy + c.zw * sign(facing) * 2.3;
+  vec2 q = vGWorld.xz - lampEnd;
+  float along = dot(q, u), lat = dot(q, vec2(-u.y, u.x));
+  float streak = exp(-lat * lat / 0.35) * smoothstep(0.0, 1.0, along) * exp(-along / 14.0) * step(along, camDist - 2.3);
+  gHeadGlare += streak * max(facing, 0.0) * max(facing, 0.0);
+  gTailGlare += streak * max(-facing, 0.0) * max(-facing, 0.0);
+}
+gHead *= 1.0 - smoothstep(0.3, 2.0, vGWorld.y);
+gTail *= 1.0 - smoothstep(0.3, 2.0, vGWorld.y);
+totalEmissiveRadiance += diffuseColor.rgb * (vec3(1.0, 0.95, 0.85) * gHead * 7.0 + ${v3(signRed)} * gTail * 4.0) * ${pool.toFixed(2)};
+float gGlare = mix(0.25, 1.0, gPuddle) * (0.3 + 0.7 * gFresnel) * ${wet.toFixed(2)} * (1.0 - smoothstep(0.3, 2.0, vGWorld.y));
+totalEmissiveRadiance += (vec3(1.0, 0.95, 0.85) * gHeadGlare * 0.9 + ${v3(signRed)} * gTailGlare * 0.7) * gGlare;`}
 ${sprawl ? SPRAWL : ''}`);
   };
   material.customProgramCacheKey = () => `ground-${pool}-${wet}-${sprawl}-${water}`;
@@ -114,6 +149,7 @@ export function createGroundUniforms(lampRect: { value: THREE.Vector4 }): Ground
     uWet: { value: 1 },
     uSignMap: { value: null },
     uTime: { value: 0 },
+    uCars: { value: Array.from({ length: CAR_LIGHTS }, () => new THREE.Vector4()) },
   };
 }
 

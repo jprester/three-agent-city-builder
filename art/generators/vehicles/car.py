@@ -225,8 +225,8 @@ def _wheels(ctx, mb, W, axles, L, r, w, rubber, chrome):
 
 
 def _details(ctx, mb, keys, rings, L, W, paint, glass, rubber, chrome, rear_window):
-    hm, hs = fixture(ctx, "white", strip=True)
-    tm, ts = fixture(ctx, "red", strip=True)
+    hm, hs = fixture(ctx, "white", lamp=True)
+    tm, ts = fixture(ctx, "red", lamp=True)
     yf, yr = -L / 2, L / 2
     hwf, hwr = W / 2 * keys[0][3], W / 2 * keys[-1][3]
     zf, zr_ = keys[0][1], keys[-1][1]

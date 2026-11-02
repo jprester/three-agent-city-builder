@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { AssetLoader, getAsset } from '../assets/registry';
 import { buildFacadeBatch, type FacadeLod } from './buildings';
-import { createVehicleMotion, planVehicles } from './vehicles';
+import { createVehicleMotion, planVehicles, type VehicleMotion } from './vehicles';
 import type { Layout, LayoutInstance } from './layout';
 
 const Y = new THREE.Vector3(0, 1, 0);
@@ -54,7 +54,7 @@ export async function buildInstances(layout: Layout, loader: AssetLoader, facade
     for (const [x, z, angle] of layout.lamps) facade.push({ asset: LAMP, position: [x, 0, z], rotationY: angle, scale: 1 });
   }
   let lod: FacadeLod | null = null;
-  let vehicles: { update(time: number): void } | null = null;
+  let vehicles: VehicleMotion | null = null;
   if (facade.length) {
     const plan = planVehicles(layout, vehicleDensity);
     const dyn = plan.assets.filter((id) => getAsset(id));
