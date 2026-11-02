@@ -2,7 +2,9 @@
   "generator": "vehicles/car",
   "seed": 23,
   "params": {
+    "shape": "taxi",
     "roof_sign": true,
+    "black_bumpers": true,
     "tint": 0.6
   }
 }

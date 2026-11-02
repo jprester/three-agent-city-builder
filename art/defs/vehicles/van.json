@@ -2,14 +2,9 @@
   "generator": "vehicles/car",
   "seed": 24,
   "params": {
-    "length": 5.0,
+    "shape": "van",
     "width": 1.9,
-    "roof_height": 2.1,
-    "cabin": [
-      -2.3,
-      1.7
-    ],
-    "tint": 0.35,
-    "cargo": true
+    "black_bumpers": true,
+    "tint": 0.35
   }
 }

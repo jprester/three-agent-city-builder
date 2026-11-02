@@ -2,6 +2,7 @@
   "generator": "vehicles/car",
   "seed": 21,
   "params": {
+    "shape": "sedan",
     "tint": 0.2
   }
 }

@@ -1167,3 +1167,8 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 - Cars shrank to nothing at every T-junction: 152 of 200 lane ends were inside the city. Now 737 cars on 6 loops keep full size through junctions and turn smoothly (chord-based heading through rounded corners). Checked in a temporary view over a T-junction at three frozen times.
 - Remaining weakness: one loop is 16.5 km and all its cars share one speed, so traffic moves in lockstep; crossing streams can briefly overlap in a junction.
 - Parked deliveries now alternate van / car per vehicle, not per street edge.
+
+### Road vehicles, lofted bodies
+
+- Sedan, hatchback, upright Tokyo-style taxi and one-box van now read as distinct types at street level: raked windscreens, crowned bonnet and roof, pillars, wheel arches with dark liners and sills, door seams, handles, mirrors, bumpers, plates and wide lamp clusters. Checked all previews plus `canyon` and `delivery` on the real GPU.
+- Still faceted (flat shading over 13-point sections), and glass reads near black with little reflection; wheels are 10-sided.
