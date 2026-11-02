@@ -51,7 +51,7 @@ const DEFAULTS = {
   // sea). Between the city and the coast: a `ring` road, `avenue`s continuing the city's
   // streets to the waterfront, `street`s filling gaps over `pitch[1]`, a `promenade` and quay.
   // `height`: building height factor at the city edge and at the waterfront. `terrain`: the
-  // mainland's coastal plain height, and where (past the far shore) the foothills `start`,
+  // height of the mainland's narrow shore, and where (past the far shore) the hills `start`,
   // over what distance they `rise`, and how high.
   island: {
     margin: { west: 270, east: 300, north: 290, south: 95 }, minMargin: 70, corner: 160,
@@ -59,7 +59,7 @@ const DEFAULTS = {
     strait: { north: 520, east: 750, west: 1100, south: 0 }, openSea: 6000, water: -1.6,
     ring: 18, avenue: 12, street: 9, pitch: [70, 90], promenade: 12, lampEvery: 30,
     height: [1.35, 0.75],
-    terrain: { plain: 1.4, start: 1100, rise: 1300, height: 200 },
+    terrain: { plain: 1.4, start: 40, rise: 1100, height: 220 },
   },
   landmarks: { count: 3, spacing: 80 },
   // Buildings on the island blocks outside the city, on lots about `lot` meters wide;

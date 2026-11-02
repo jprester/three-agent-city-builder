@@ -118,10 +118,10 @@ export function createGroundUniforms(lampRect: { value: THREE.Vector4 }): Ground
 }
 
 /**
- * The mainland metropolis across the water, as light on the ground only (no buildings): on the
- * coastal plain above the water line, 520 m patches of street grid, each with its own
- * angle, block size and density, lit by a warm glow along the streets, lamp dots every 28 m
- * and scattered window dots inside the blocks. Points keep a minimum size so they sparkle,
+ * Towns on the mainland hills across the water, as light on the ground only (no buildings):
+ * scattered clusters on the lower slopes, laid out on 520 m patches of street grid (each with
+ * its own angle, block size and density) as lamp dots every 28 m along the streets and window
+ * dots inside the blocks; no lit street bands, which read as a flat road map. Points keep a minimum size so they sparkle,
  * and fade to their average before they could alias; fog carries the sprawl into the
  * horizon lights of the sky.
  */
@@ -129,8 +129,10 @@ const SPRAWL = /* glsl */ `
 {
   vec2 sp = vGWorld.xz;
   float sOut = length(sp);
-  // Mainland only: the plain stands above the water, the seabed below it.
-  float sBand = smoothstep(0.3, 1.2, vGWorld.y);
+  // Mainland slopes only (the seabed stays under the water), thinning out up the hills, and
+  // only in scattered clusters: hillside towns, not a continuous street grid.
+  float sBand = smoothstep(0.3, 3.0, vGWorld.y) * (1.0 - smoothstep(20.0, 80.0, vGWorld.y))
+    * smoothstep(0.42, 0.68, gNoise(sp / 380.0 + 2.0));
   if (sBand > 0.0) {
     // Pixel footprint on the ground: long axis (for fading to the average) and short axis
     // (minimum point size), so points stay round at grazing angles instead of smearing.
@@ -150,16 +152,7 @@ const SPRAWL = /* glsl */ `
     float halfW = 3.5;                                   // street half width
     // Density: busier and quieter districts, never empty, thinning slowly outward.
     float dens = mix(0.35, 1.0, smoothstep(0.15, 0.65, gNoise(sp / 900.0 + 4.0))) * (0.7 + 0.3 * h3) * exp(-sOut / 6000.0);
-    // Street glow: a soft warm band along every street (lamps on wet asphalt), the grid that
-    // reads from above. Averaged once a pixel spans the band.
     float dS = min(dEdge.x, dEdge.y);
-    // Each block-length stretch of street has its own brightness: dim lanes, some arterials.
-    float segX = gHash(vec2(floor(gp.x / B + 0.5), cellI.y) + patchId * 5.3);
-    float segZ = gHash(vec2(cellI.x, floor(gp.y / B + 0.5)) + patchId * 7.1 + 3.0);
-    segX = segX > 0.85 ? 2.0 : 0.15 + 0.6 * segX;
-    segZ = segZ > 0.85 ? 2.0 : 0.15 + 0.6 * segZ;
-    float glow = max(exp(-dEdge.x * dEdge.x / 18.0) * segX, exp(-dEdge.y * dEdge.y / 18.0) * segZ);
-    glow = mix(glow, 2.0 * 7.5 / B * 0.6, smoothstep(3.0, 10.0, fw));
     // Point lights stay at least ~a pixel wide and keep most of their brightness (they read
     // as sparkle), then fade to their mean once neighbours are closer than a few pixels.
     // Lamps: every 28 m along both street directions.
@@ -168,7 +161,7 @@ const SPRAWL = /* glsl */ `
     float dl = min(length(vec2(dEdge.x, ly)), length(vec2(dEdge.y, lx)));
     float lr = max(0.9, fwMin * 0.5);
     float lamp = smoothstep(lr, lr * 0.3, dl) * (0.9 / lr);
-    lamp = mix(lamp, 0.02, smoothstep(6.0, 14.0, fw));
+    lamp = mix(lamp, 0.01, smoothstep(6.0, 14.0, fw));
     // Windows: a 9 m sub-grid inside the blocks, 40 % lit, warm or white.
     vec2 wg = gp / 9.0;
     vec2 wi = floor(wg);
@@ -178,11 +171,12 @@ const SPRAWL = /* glsl */ `
     float wr = max(0.8, fwMin * 0.6);
     float wd = length((wg - wi) * 9.0 - wo);
     float win = smoothstep(wr, wr * 0.25, wd) * wLit * (0.8 / wr) * (0.6 + 0.8 * gHash(wi + 3.7));
-    win = mix(win, 0.07, smoothstep(2.5, 5.0, fw));
+    win = mix(win, 0.03, smoothstep(2.5, 5.0, fw));
     vec3 wCol = mix(${v3(tungsten)}, ${v3(fluorescent)}, step(0.7, gHash(wi + 11.0)));
-    vec3 sprawlLight = ${v3(sodium)} * (glow * 0.2 + lamp * 2.2) + wCol * win * 2.6;
+    // Points only: lit street bands drew a flat road map on the plain.
+    vec3 sprawlLight = ${v3(sodium)} * lamp * 2.2 + wCol * win * 2.6;
     // Painted lights on flat ground only hold up from a distance: fade in away from the camera.
     float sNear = smoothstep(60.0, 220.0, distance(cameraPosition, vGWorld));
-    totalEmissiveRadiance += sprawlLight * dens * sBand * sNear * 2.2 * (1.0 - smoothstep(2.0, 45.0, vGWorld.y));
+    totalEmissiveRadiance += sprawlLight * dens * sBand * sNear * 1.2;
   }
 }`;

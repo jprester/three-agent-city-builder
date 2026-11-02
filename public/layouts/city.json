@@ -94990,9 +94990,9 @@
     "promenade": 12,
     "terrain": {
       "plain": 1.4,
-      "start": 1100,
-      "rise": 1300,
-      "height": 200
+      "start": 40,
+      "rise": 1100,
+      "height": 220
     },
     "bounds": [
       -815.074,
