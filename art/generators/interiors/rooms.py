@@ -301,11 +301,64 @@ def _office(ctx, mb, W, D, H):
         y += pitch
 
 
+def _shop(ctx, mb, W, D, H):
+    """Street-level tenants: stocked shelves, a food counter, or a repair bench."""
+    kind = ctx.p("kind", "convenience")
+    white, wood = _mat(ctx, "interior_white"), _mat(ctx, "interior_wood")
+    dark, steel = _mat(ctx, "metal_dark"), _mat(ctx, "interior_desk", 0.35)
+    bits = [_mat(ctx, c) for c in ("paint_cream", "paint_salmon", "paint_blue", "paint_mint")]
+    _shell(mb, W, D, H, white, _mat(ctx, "interior_carpet"), white)
+    shelf_h = ctx.p("shop_shelf_height", 2.3)
+    stock_count = ctx.p("shop_stock_count", 14)
+    if kind == "convenience":
+        # Back-wall shelving, an aisle gondola and checkout leave a visible path inside.
+        for z in (0.35, 0.85, 1.35, 1.85, shelf_h):
+            mb.box(0.15, W - 0.15, D - 0.55, D, z, z + 0.05, steel)
+            if z < shelf_h:
+                _clutter(ctx, mb, 0.2, W - 0.2, D - 0.5, D - 0.05, z + 0.05, stock_count, bits)
+        for z in (0.25, 0.7, 1.15):
+            mb.box(0.35, 1.35, 1.3, D - 1, z, z + 0.06, steel)
+            _clutter(ctx, mb, 0.4, 1.3, 1.35, D - 1.05, z + 0.06, stock_count // 2, bits)
+        mb.box(W - 1.3, W - 0.15, 0.6, 1.25, 0, 0.95, wood)
+        mb.box(W - 0.8, W - 0.4, 0.9, 1.1, 0.95, 1.25, dark)
+    elif kind == "noodle":
+        mb.box(0.2, W - 0.3, 1.7, 2.35, 0, 1.0, wood)
+        mb.box(0.15, W - 0.25, 1.65, 2.4, 1.0, 1.08, steel)
+        for x in (0.5, 1.4, 2.3):
+            _chair(mb, x, 0.85, dark)
+            mb.box(x, x + 0.3, 1.85, 2.15, 1.08, 1.16, white)
+        # Kitchen backsplash, extractor hood, pots and menu panels.
+        mb.box(0.3, W - 0.3, D - 0.7, D, 0, 0.95, steel)
+        mb.box(0.35, W - 0.35, D - 0.8, D, 2.2, 2.5, steel)
+        _clutter(ctx, mb, 0.4, W - 0.4, D - 0.65, D - 0.05, 0.95, 7, [steel, dark], 0.4)
+        for x in (0.25, 1.5, 2.75):
+            mb.box(x, x + 0.8, D - 0.03, D, 1.45, 2.05, wood)
+            for z in (1.55, 1.7, 1.85):
+                mb.box(x + 0.1, x + 0.65, D - 0.04, D - 0.03, z, z + 0.035, white)
+    else:  # repair: uneven towers of equipment and a lit workbench
+        mb.box(0.2, W - 0.2, D - 1.1, D - 0.3, 0.75, 0.85, wood)
+        for x in (0.3, W - 0.5):
+            mb.box(x, x + 0.15, D - 1.05, D - 0.35, 0, 0.75, dark)
+        _clutter(ctx, mb, 0.3, W - 0.3, D - 1.0, D - 0.35, 0.85, 10, [dark, steel], 0.55)
+        for x in (0.3, 1.1, 2.0, 2.9):
+            mb.box(x, x + 0.09, D - 0.08, D, 1.5, 2.05, steel)
+            mb.box(x - 0.06, x + 0.15, D - 0.1, D, 1.9, 2.0, dark)
+        for z in (0.0, 0.5, 1.0):
+            _clutter(ctx, mb, 0.1, 1.25, 0.4, 1.8, z, 5, [wood, dark], 0.5)
+        _chair(mb, W * 0.55, D - 1.8, dark)
+    tube = _mat(ctx, "interior_white", 0.5, "fluorescent", ctx.p("shop_tube_strength", 7.0))
+    for y in (1.0, D - 1.0):
+        mb.box(W * 0.2, W * 0.8, y, y + 0.08, H - 0.07, H - 0.02, tube)
+        _light("AREA", (W / 2, y, H - 0.1), ctx.p("shop_light_energy", 95.0), W * 0.6, 0.25)
+
+
 def generate(ctx):
     """Build one room; returns nothing, the renderer frames it with the card camera."""
     W, D, H = ctx.p("width", 3.2), ctx.p("depth", 3.6), ctx.p("height", 2.7)
     mb = MeshBuilder(ctx.name)
-    if ctx.p("kind", "living") in OFFICE:
+    if ctx.p("kind", "living") in ("convenience", "noodle", "repair"):
+        _shop(ctx, mb, W, D, H)
+    elif ctx.p("kind", "living") in OFFICE:
         _office(ctx, mb, W, D, H)
     else:
         _residential(ctx, mb, W, D, H)

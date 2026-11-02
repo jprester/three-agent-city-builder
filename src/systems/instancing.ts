@@ -46,6 +46,7 @@ export async function buildInstances(layout: Layout, loader: AssetLoader, facade
     if (getAsset(inst.asset)) facade.push(inst);
     else missing.add(inst.asset);
   }
+  for (const vehicle of layout.parked ?? []) if (getAsset(vehicle.asset)) facade.push(vehicle);
   for (const prop of layout.props ?? []) if (getAsset(prop.asset)) facade.push(prop);
   for (const tree of layout.trees ?? []) if (getAsset(tree.asset)) facade.push(tree);
   // Street lamps from the layout's lamp list.

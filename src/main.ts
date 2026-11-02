@@ -76,7 +76,6 @@ async function main() {
   const clock = new Clock(frozenAt);
 
   const renderer = createRenderer(quality.pixelRatio);
-  const scene = createScene(clock.uniform);
   const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.3, 4000);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = !params.has('viewpoint');
@@ -102,6 +101,7 @@ async function main() {
   }
 
   // Shared inputs of the city's shaders: one clock, one seed, one street-light map.
+  const scene = createScene(clock.uniform, layout);
   const lamps = layout ? createLampMap(layout) : null;
   const facadeTextures = await loadFacadeTextures(renderer, Math.min(8, renderer.capabilities.getMaxAnisotropy()));
   const facadeUniforms = createFacadeUniforms(clock.uniform, layout?.seed ?? 0, facadeTextures);
@@ -163,7 +163,7 @@ async function main() {
   // Hidden on load for captures (fixed viewpoints, frozen time); shown on any mode change.
   const hud = createHud(!params.has('viewpoint') && frozenAt === null);
   const rig = new CameraRig(clock, camera, renderer.domElement, controls, path, (mode) => hud.show(mode, !!path));
-  if (layout) rig.obstacles = obstaclesFrom([...layout.instances, ...(layout.fringe ?? [])]);
+  if (layout) rig.obstacles = obstaclesFrom([...layout.instances, ...(layout.fringe ?? []), ...(layout.parked ?? [])]);
   rig.walkSurface = createWalkSurface(layout);
   if (isCameraMode(cameraParam)) rig.setMode(cameraParam, true);
   setStatus(problems.join(' '));

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import palette from '../../art/style/palette.json';
+import type { Layout } from '../systems/layout';
 
 const c = (name: keyof typeof palette) => new THREE.Color(palette[name]);
 
@@ -10,7 +11,13 @@ const c = (name: keyof typeof palette) => new THREE.Color(palette[name]);
  * dark gaps, and two mountain ridges (`ridge`, a near dark one and a hazier far one) stand
  * behind the tower district, as in the Hong Kong night references.
  */
-export function createSky(fogColor: THREE.Color, time: { value: number }): THREE.Mesh {
+export function createSky(fogColor: THREE.Color, time: { value: number }, layout: Layout | null = null): THREE.Mesh {
+  // Broad light domes over actual districts. The fourth component is their relative power;
+  // a quiet port should not illuminate the cloud deck as strongly as the old core.
+  const districts = ['core', 'towers', 'port'].map((name, i) => {
+    const origin = layout?.anchors?.[name]?.origin ?? [0, 0, 0];
+    return new THREE.Vector4(origin[0], 650, origin[2], [1, 0.85, 0.3][i]);
+  });
   const material = new THREE.ShaderMaterial({
     side: THREE.BackSide,
     depthWrite: false,
@@ -25,6 +32,8 @@ export function createSky(fogColor: THREE.Color, time: { value: number }): THREE
       uRed: { value: c('sign_red') },
       uCloudGlow: { value: c('cloud_glow') },
       uRidge: { value: c('ridge') },
+      uDistricts: { value: districts },
+      uCloudGain: { value: 0.32 },
     },
     vertexShader: /* glsl */ `
       varying vec3 vDir;
@@ -36,6 +45,8 @@ export function createSky(fogColor: THREE.Color, time: { value: number }): THREE
     fragmentShader: /* glsl */ `
       uniform vec3 uZenith, uHorizon, uGlow, uTungsten, uFluor, uRed, uCloudGlow, uRidge;
       uniform float uTime;
+      uniform vec4 uDistricts[3];
+      uniform float uCloudGain;
       varying vec3 vDir;
       float hash(vec3 p) { p = fract(p * 0.1031); p += dot(p, p.yzx + 33.33); return fract((p.x + p.y) * p.z); }
       float noise(vec3 p) {
@@ -52,34 +63,39 @@ export function createSky(fogColor: THREE.Color, time: { value: number }): THREE
       // warm and white lights with gaps between them, a faint glow over the dense ones and a
       // few slow red aviation blinks. At infinity (no parallax); the wet ground reflects them.
       float hash2(vec2 p) { return hash(vec3(p, 17.0)); }
-      vec3 distantLights(vec3 d) {
+      vec3 distantLights(vec3 d, float base, float layer) {
         float e = asin(clamp(d.y, -1.0, 1.0));
-        if (e < -0.001 || e > 0.03) return vec3(0.0);
+        if (e < 0.0 || e > 0.09) return vec3(0.0);
         float az = atan(d.z, d.x);
         // Settlement density around the horizon (0 = open country) and its skyline height.
-        float town = smoothstep(0.45, 0.75, noise(vec3(az * 2.2, 3.0, 0.0)) * 0.7 + noise(vec3(az * 9.0, 7.0, 0.0)) * 0.45);
-        float top = 0.001 + 0.012 * town * pow(noise(vec3(az * 40.0, 11.0, 0.0)), 2.0);
+        float town = smoothstep(0.55, 0.8, noise(vec3(az * 2.2, 3.0 + layer * 7.0, 0.0)) * 0.7
+          + noise(vec3(az * 9.0, 7.0 + layer * 11.0, 0.0)) * 0.45);
+        // Follow uneven foothills instead of putting every settlement on a straight horizon.
+        float foot = base + 0.005 * noise(vec3(az * 17.0, 31.0 + layer, 0.0));
+        float localE = e - foot;
+        float top = 0.002 + 0.018 * town * pow(noise(vec3(az * 40.0, 11.0 + layer, 0.0)), 2.0);
+        float band = smoothstep(0.0, 0.002, localE) * (1.0 - smoothstep(top, top + 0.002, localE));
         vec3 lights = vec3(0.0);
         // Two grids of different pitch so rows never line up.
         for (int k = 0; k < 2; k++) {
-          vec2 g = vec2(az, e) * (k == 0 ? vec2(260.0, 900.0) : vec2(370.0, 1300.0));
+          vec2 g = vec2(az + layer * 3.7, localE) * (k == 0 ? vec2(260.0, 900.0) : vec2(370.0, 1300.0));
           vec2 cell = floor(g), f = fract(g) - 0.5;
           float h = hash2(cell + float(k) * 91.0);
-          float lit = step(h, town * 0.32) * step(e, top);
+          float lit = step(h, town * 0.26) * band;
           vec2 jit = vec2(hash2(cell + 5.3), hash2(cell + 9.1)) - 0.5;
           float r = length((f - jit * 0.6) * vec2(1.0, 0.45));
           float w = fwidth(r) + 0.02;
-          float spot = smoothstep(0.16 + w, 0.16 - w, r) * lit;
+          float spot = (1.0 - smoothstep(0.16 - w, 0.16 + w, r)) * lit;
           float tint = hash2(cell + 2.7);
           vec3 c = tint < 0.55 ? uGlow : (tint < 0.85 ? uTungsten : uFluor);
           lights += c * spot * (0.2 + 0.6 * hash2(cell + 4.4) * hash2(cell + 8.8));
           // Rare red aviation lights on the taller distant buildings, blinking slowly.
-          float av = step(0.992, h) * step(0.004, top) * step(e, top + 0.0012);
-          lights += uRed * av * smoothstep(0.2, 0.0, r) * step(0.5, fract(uTime * 0.5 + h * 7.0)) * 1.5;
+          float av = step(0.997, h) * town * band;
+          lights += uRed * av * (1.0 - smoothstep(0.0, 0.2, r)) * step(0.5, fract(uTime * 0.5 + h * 7.0));
         }
         // Light dome over dense settlements, fading upward.
-        vec3 glow = uGlow * 0.035 * town * exp(-max(e, 0.0) * 160.0);
-        return lights + glow;
+        vec3 glow = uGlow * 0.012 * town * exp(-abs(localE) * 160.0);
+        return (lights + glow) * 0.65;
       }
       // Mountain ridges at infinity behind the tower district (azimuth around RIDGE_AZ, world
       // -Z/+X quadrant), fading out at the ends of their sector. Returns (near, far) heights
@@ -92,47 +108,64 @@ export function createSky(fogColor: THREE.Color, time: { value: number }): THREE
       }
       vec2 ridges(float az) {
         float da = abs(mod(az - RIDGE_AZ + 3.14159265, 6.2831853) - 3.14159265);
-        float sector = smoothstep(RIDGE_HALF, RIDGE_HALF * 0.55, da);
+        float sector = 1.0 - smoothstep(RIDGE_HALF * 0.55, RIDGE_HALF, da);
         float nearH = (0.005 + 0.065 * pow(ridgeNoise(az, 3.1, 1.0), 1.6)) * sector;
         float farH = (0.014 + 0.1 * pow(ridgeNoise(az, 1.7, 21.0), 1.4)) * sector;
         return vec2(nearH, farH);
       }
 
+      float cityGlow(vec3 d) {
+        float glow = 0.0;
+        for (int i = 0; i < 3; i++) {
+          vec3 delta = uDistricts[i].xyz - cameraPosition;
+          float facing = max(dot(d, delta / max(length(delta), 0.001)), 0.0);
+          glow += pow(facing, 3.0) * uDistricts[i].w / (1.0 + dot(delta, delta) / 1800000.0);
+        }
+        return clamp(glow, 0.0, 1.0);
+      }
+
       void main() {
-        float y = max(vDir.y, 0.0);
+        vec3 d = normalize(vDir);
+        float y = max(d.y, 0.0);
         // Horizon equals the fog color, so fogged distance meets the sky without a line.
         vec3 col = mix(uHorizon, uZenith, smoothstep(0.0, 0.4, pow(y, 0.65)));
         // Angular 3D noise avoids the stretched horizon bands of a projected flat deck.
-        vec3 q = normalize(vDir) * vec3(5.0, 6.5, 5.0) + vec3(uTime * 0.0015, 0.0, 0.0);
+        vec3 q = d * vec3(5.0, 6.5, 5.0) + vec3(uTime * 0.0015, 0.0, 0.0);
         q += vec3(noise(q * 0.6), noise(q * 0.6 + 13.0), noise(q * 0.6 + 27.0)) * 1.2;
         float cloud = clouds(q);
-        float deck = smoothstep(0.32, 0.62, cloud) * smoothstep(0.0, 0.1, y);
+        float deck = smoothstep(0.25, 0.7, cloud) * smoothstep(0.0, 0.1, y);
         float edge = max(0.0, clouds(q + vec3(0.0, -0.18, 0.0)) - cloud);
-        col = mix(col, mix(uZenith, uHorizon, 0.35) * 0.62, deck * 0.65);
-        col += (uHorizon * 1.5 + uGlow * 0.018) * (deck * 0.45 + edge * 3.0) * exp(-y * 2.2);
+        col = mix(col, mix(uZenith, uHorizon, 0.35) * 0.75, deck * 0.4);
+        col += (uHorizon * 1.5 + uGlow * 0.018) * (deck * 0.3 + edge * 1.5) * exp(-y * 2.2);
         // City light from below: cloud bases glow warm, most where they hang low over the
         // horizon; the gaps between them stay dark.
         float under = deck * (0.3 + 0.7 * exp(-y * 4.0)) + edge * 1.5 * exp(-y * 3.0);
-        col += uCloudGlow * under * 0.55;
-        if (vDir.y < 0.0) col = uHorizon;
+        col += uCloudGlow * under * uCloudGain * (0.35 + 0.65 * cityGlow(d));
+        if (d.y < 0.0) col = uHorizon;
         // Ridges: silhouettes against the lit cloud, the far one hazier, both lifted toward the
         // haze at their foot (the city's light in the air in front of them).
-        float e = asin(clamp(vDir.y, -1.0, 1.0));
+        float e = asin(clamp(d.y, -1.0, 1.0));
         float aa = fwidth(e) * 1.5 + 1e-5;
         // Only near the horizon (ridges stay below ~0.12 rad): atan(z, x) is undefined straight
         // up and its NaN would spread through the bloom over the whole frame.
-        vec2 rh = e < 0.13 ? ridges(atan(vDir.z, vDir.x)) : vec2(0.0);
-        float farM = smoothstep(rh.y + aa, rh.y - aa, e) * step(0.0, e);
-        float nearM = smoothstep(rh.x + aa, rh.x - aa, e) * step(0.0, e);
+        vec2 rh = abs(e) < 0.13 ? ridges(atan(d.z, d.x)) : vec2(0.0);
+        float farM = (1.0 - smoothstep(rh.y - aa, rh.y + aa, e)) * step(0.0, e);
+        float nearM = (1.0 - smoothstep(rh.x - aa, rh.x + aa, e)) * step(0.0, e);
         vec3 foot = mix(uHorizon, uCloudGlow * 0.35, 0.35);
         // max(e, 0): below the horizon exp(-e * k) overflows to infinity, and infinity * 0 in the
         // masked mix below is NaN.
         float ep = max(e, 0.0);
         vec3 farCol = mix(uRidge, foot, 0.55 + 0.35 * exp(-ep * 60.0));
         vec3 nearCol = mix(uRidge, foot, 0.2 + 0.5 * exp(-ep * 90.0));
+        // Match the air below the horizon continuously: a hard step at elevation zero
+        // otherwise exposes the sky dome as a blue shelf under the mountains.
+        float aboveFog = smoothstep(0.0, 0.018, ep);
+        farCol = mix(uHorizon, farCol, aboveFog);
+        nearCol = mix(uHorizon, nearCol, aboveFog);
         col = mix(col, farCol, farM);
+        col += distantLights(d, 0.004 + rh.y * 0.32, 0.0);
         col = mix(col, nearCol, nearM);
-        col += distantLights(vDir);
+        col += distantLights(d, 0.002 + rh.x * 0.22, 1.0);
         gl_FragColor = vec4(col, 1.0);
         #include <colorspace_fragment>
       }`,

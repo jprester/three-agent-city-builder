@@ -85,12 +85,15 @@ export interface Layout {
   instances: LayoutInstance[];
   /** Low-rise far field around the city (district 'fringe'); drawn with the buildings. */
   fringe?: LayoutInstance[];
+  parked?: LayoutInstance[];
+  approaches?: { a: Vec2; b: Vec2; width: number }[];
+  terrain?: { start: number; rise: number; height: number };
   roads?: LayoutRoad[];
   hero?: { road: number; width: number; a: Vec2; b: Vec2 } | null;
   /** [x, z, arm angle, road id] */
   lamps?: [number, number, number, number][];
-  /** Ground traffic lanes (art/layouts/lib/traffic.mjs trafficPosition reads them). */
-  traffic?: { road: number; cls: string; a: Vec2; b: Vec2; length: number; direction: number; offset: number; count: number; speed: number; phase: number }[];
+  /** Closed ground-traffic loops through the street network (art/layouts/lib/traffic.mjs). */
+  traffic?: { roads: number[]; points: Vec2[]; length: number; count: number; speed: number; phase: number }[];
   /** Closed flying-vehicle loops. */
   skyLanes?: { points: Vec3[]; closed: boolean; count: number; speed: number; direction: number }[];
   /** Street furniture (same shape as instances; always facade-shaded props). */

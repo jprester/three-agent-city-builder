@@ -1,0 +1,209 @@
+{
+  "layout": "city",
+  "t": 12,
+  "budget": {
+    "maxDrawCalls": 250,
+    "maxTriangles": 3000000,
+    "maxPrograms": 25
+  },
+  "viewpoints": {
+    "delivery": {
+      "calls": 182,
+      "triangles": 739428,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 123,
+      "reflection": {
+        "calls": 65,
+        "triangles": 282092
+      }
+    },
+    "canyon": {
+      "calls": 217,
+      "triangles": 1273962,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 124,
+      "reflection": {
+        "calls": 81,
+        "triangles": 519086
+      }
+    },
+    "storefront": {
+      "calls": 222,
+      "triangles": 1398726,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 124,
+      "reflection": {
+        "calls": 84,
+        "triangles": 577416
+      }
+    },
+    "facade": {
+      "calls": 213,
+      "triangles": 1290154,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 124,
+      "reflection": {
+        "calls": 75,
+        "triangles": 513258
+      }
+    },
+    "skyline": {
+      "calls": 199,
+      "triangles": 917596,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 124,
+      "reflection": {
+        "calls": 69,
+        "triangles": 345054
+      }
+    },
+    "rooftops": {
+      "calls": 203,
+      "triangles": 861086,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 124,
+      "reflection": {
+        "calls": 68,
+        "triangles": 325788
+      }
+    },
+    "aerial": {
+      "calls": 167,
+      "triangles": 1447910,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 108,
+      "reflection": {
+        "calls": 70,
+        "triangles": 685784
+      }
+    },
+    "horizon": {
+      "calls": 193,
+      "triangles": 1091076,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 124,
+      "reflection": {
+        "calls": 71,
+        "triangles": 483444
+      }
+    },
+    "fly-0": {
+      "calls": 220,
+      "triangles": 1309036,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 124,
+      "reflection": {
+        "calls": 84,
+        "triangles": 549914
+      }
+    },
+    "fly-25": {
+      "calls": 220,
+      "triangles": 895828,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 124,
+      "reflection": {
+        "calls": 85,
+        "triangles": 346730
+      }
+    },
+    "fly-50": {
+      "calls": 181,
+      "triangles": 1231024,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 120,
+      "reflection": {
+        "calls": 70,
+        "triangles": 561228
+      }
+    },
+    "fly-75": {
+      "calls": 167,
+      "triangles": 1486212,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 108,
+      "reflection": {
+        "calls": 70,
+        "triangles": 705102
+      }
+    },
+    "skyline-wide": {
+      "calls": 192,
+      "triangles": 1237272,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 124,
+      "reflection": {
+        "calls": 69,
+        "triangles": 513122
+      }
+    },
+    "skyline-hero": {
+      "calls": 174,
+      "triangles": 1129510,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 116,
+      "reflection": {
+        "calls": 69,
+        "triangles": 515274
+      }
+    },
+    "architecture": {
+      "calls": 210,
+      "triangles": 1170468,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 124,
+      "reflection": {
+        "calls": 72,
+        "triangles": 456186
+      }
+    },
+    "tower-detail": {
+      "calls": 70,
+      "triangles": 219046,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 87,
+      "reflection": {
+        "calls": 11,
+        "triangles": 42560
+      }
+    },
+    "landmarks": {
+      "calls": 159,
+      "triangles": 756156,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 109,
+      "reflection": {
+        "calls": 65,
+        "triangles": 319388
+      }
+    },
+    "glass": {
+      "calls": 86,
+      "triangles": 276550,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 97,
+      "reflection": {
+        "calls": 7,
+        "triangles": 32658
+      }
+    }
+  }
+}

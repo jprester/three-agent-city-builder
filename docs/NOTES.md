@@ -1088,3 +1088,82 @@ Fresh shots, no code changes. Compared with the nine new photos in `art/style/re
   for both passes, aerial 13.8 ms.
 - **Lesson:** check `footprint <gpu pid>` before blaming the machine. The earlier memory-pressure
   diagnosis was only partly right.
+
+## City refinement — first pass (2026-11-01)
+
+Branch: `codex/city-visual-refinement`. Milestones: `docs/progress/city-refinement/`.
+Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
+
+- **Presentation:** the new camera preserves the full lantern, spire and lattice crowns. The
+  existing comparison cameras and building layout are unchanged. The three landmarks now
+  read as separate silhouettes in this view, though the foreground residential towers remain
+  visually busy and the cyan flying vehicle still catches too much attention at frozen t=12.
+- **Sky/horizon:** softer cloud transitions and lower warm gain keep more attention on the
+  buildings. Cloud illumination follows the three district anchors, with the port quieter.
+  Settlements sit at different foothill elevations and the nearer ridge occludes the far
+  layer. Round one still exposed a sharp mountain/fog seam; round two blends their bases into
+  the horizon air. The distant blue band and repeated fringe grid are still conspicuous in
+  `aerial` and `fly-75`; terrain/ground continuity and neighborhood layout need a dedicated pass.
+- **Rain:** shorter, thinner, varied streaks are much less distracting in skyline views, while
+  sodium/sign-lit rain remains readable in the canyon. Practical-light textures no longer
+  clamp their edge lighting onto rain outside the city. No particle-count or draw-call increase.
+- **Shops:** full-detail slabs have real 0.45 m recesses, with visible jambs and lintels in
+  `storefront`. UVs stay aligned with the procedural shops. Closed bays have different finishes,
+  small repairs and handles; entrance frames, interior brightness and canopy tube colour/on-off
+  state vary by tenant. This improves depth and rhythm, but the shop interiors still look empty,
+  the canopy slabs remain long/straight, sidewalks are too empty, and the cars remain boxes.
+  These are deliberate remaining work, not solved by this pass's shader variation.
+- **Asset QA:** rebuilt 38 slab/LOD/fringe assets using Blender 5.2.0, inspected all 114
+  front/back/top previews in contact sheets and inspected the street-level runtime captures.
+  Only the 12 base slab GLBs changed; the LOD/fringe outputs are identical. Recesses add
+  34–106 triangles per base asset. Roof silhouettes, footprint extents and existing clutter
+  remain intact. The workbench previews are dark and do not show runtime shop lighting, so
+  they serve geometry review; `storefront` is the useful material/depth check.
+- **Scene QA:** inspected all 17 viewpoint captures. Peak counts are 221 draw calls,
+  1,117,796 triangles and 24 shader programs, within 250 / 3M / 25. The new `skyline-hero`
+  uses 173 calls / 864,230 triangles / 24 programs. Counts include reflections. No hardware
+  FPS claim is made from software rendering.
+- **Verification:** typecheck, asset budgets, all 87 unit tests and production build pass.
+  The first full visual run had 10 health passes and eight timeouts at varied capture/startup
+  stages; all eight passed on retry (2.6 minutes total), including pixel-identical frozen-time
+  captures. All 17 viewpoints therefore pass render health. The build retains its pre-existing
+  large-JS-chunk warning. Baselines remain unapproved. The new `shots:health` command isolates actual rendering
+  checks from image approval, while full `shots` still requires approved comparison images.
+- **Next:** furnish one curated canyon block and improve close vehicles, then vary the fringe
+  and reduce texture memory by quality. Texture compression, hardware benchmarking and broad
+  facade/layout module extraction are not included in this first pass.
+
+## Street-life refinement — 2026-11-02
+
+### Shop interiors
+
+- Added six Blender-rendered cards: convenience shelves/checkout, noodle counter/stools/kitchen/menu panels, repair bench/tools/equipment. The runtime ray-casts the existing room box, with tenant-dependent late-night opening shares.
+- Inspected all 34 regenerated room cards, including the original residential and office sets, and the storefront/canyon captures. Furniture is distinguishable; the shelves give a better depth cue than the former empty box.
+- Remaining weakness: white side walls dominate at grazing angles, and the two noodle variants are very similar. These are deliberately small window assets, not fully furnished walkthrough spaces. A later art pass should add wall wear and asymmetric hanging stock rather than merely brighten the shops.
+
+### Vehicle assets
+
+- Inspected all three Blender previews for each of the six vehicle assets (four rebuilt road variants; flying hulls unchanged), then moving cars in canyon/storefront and the new close delivery capture.
+- The previous floating boxes now have readable tires, wheel openings, body/glass separation and sloped cabins. The taxi and van paint indices were corrected to match their preview palette; the van's side glazing was restricted to the cab.
+- Remaining weakness: the van body is still angular and its glazing has no modeled cabin behind it. Paint has restrained lower-panel dirt, but close-up mirror housings, wheel-arch lips and cargo-door hardware would be the next useful geometry, rather than a full-body photographic texture.
+- Each car/van is 362 triangles and about 11 KB; the taxi is 372 triangles. No export settings or asset budgets were relaxed.
+
+### Layout and surroundings
+
+- Ten static deliveries now occupy clear industrial verges. Their footprints avoid roads, buildings, lamps and furniture on all three tested seeds; the camera treats them as obstacles. `delivery` is a new close comparison view.
+- Fringe neighborhoods share gently varying rotations and offsets, with lower/sparser buildings toward the edge. Arterial endpoints continue into curved approach roads, and buildings leave those corridors clear. The default layout keeps its 1,132 core buildings and places 1,812 fringe buildings.
+- The first terrain captures were unacceptable: the ground-light shader covered the hills in orange sparkle. The second pass suppressed lights on slopes; the third also faded the flat distant light carpet and reduced terrain tessellation. The result gives the city a quieter transition into layered hills.
+- Remaining weaknesses: the fringe still uses five simple shell families; some parallel rows remain visible, and the distant road/light pattern is scenic rather than a complete connected street simulation. The new hills and the sky's existing distant ridges have different detail scales. Further detail should target a specific outskirts viewpoint rather than add geometry everywhere.
+- Walking and free-flight now respect terrain elevation. The cinematic path stays clear of the ground, including 4,000 sampled positions. No claim of hardware FPS is made from software-rendered captures.
+
+### Verification
+
+- Rebuilt the room atlas and all four road-vehicle variants through their generators, inspected every room card and vehicle preview, and inspected all 18 final scene captures. Milestone images and stats are in `docs/progress/street-life/`; `shops.jpg`, `storefront.png`, `delivery.png`, and `aerial.png` are the most useful entry points.
+- Typecheck, asset budgets, production build and all 94 unit tests pass. All 18 viewpoints pass browser-error, nonblank-frame and scene-budget checks. Maximum counts are 222 draw calls, 1,486,212 triangles and 24 programs against limits of 250 / 3M / 25. The existing production bundle-size warning remains.
+- Final full `npm run shots`: all 19 health tests pass (18 viewpoints plus pixel-identical frozen-time reloads). The 18 baseline comparisons fail because approved images are absent; no baseline was created or approved. The final run completed in 5.9 minutes without retries.
+
+### Review fixes (traffic loops)
+
+- Cars shrank to nothing at every T-junction: 152 of 200 lane ends were inside the city. Now 737 cars on 6 loops keep full size through junctions and turn smoothly (chord-based heading through rounded corners). Checked in a temporary view over a T-junction at three frozen times.
+- Remaining weakness: one loop is 16.5 km and all its cars share one speed, so traffic moves in lockstep; crossing streams can briefly overlap in a junction.
+- Parked deliveries now alternate van / car per vehicle, not per street edge.

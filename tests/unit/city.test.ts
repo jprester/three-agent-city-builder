@@ -63,9 +63,36 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     expect(bad.slice(0, 10)).toEqual([]);
   });
 
+  it('parks deliveries off traffic lanes and clear of buildings, props and lamps', async () => {
+    const L = await get(), parked = L.parked ?? [];
+    expect(parked.length).toBeGreaterThan(0);
+    const occupied = [...L.instances, ...L.props!].map(box);
+    parked.forEach((p, i) => {
+      const b = box(p);
+      expect(L.roads!.some((r) => G.obbOverlap(roadBox(r), b, 0))).toBe(false);
+      expect(occupied.some((o) => G.dist(o.c, b.c) < 150 && G.obbOverlap(o, b, 0))).toBe(false);
+      expect(parked.slice(i + 1).some((q) => G.obbOverlap(box(q), b, 0))).toBe(false);
+      expect(L.lamps!.some(([x,z]) => G.insideConvex(b.corners, [x,z]))).toBe(false);
+    });
+  });
+
+  it('keeps fringe buildings off approach roads and varies neighborhood orientation', async () => {
+    const L = await get();
+    expect(L.approaches!.length).toBeGreaterThan(0);
+    const roads = L.approaches!.map((r) => G.obb(G.lerp(r.a,r.b,0.5), G.norm(G.sub(r.b,r.a)), G.dist(r.a,r.b)/2,r.width/2));
+    expect(new Set(L.fringe!.map((p) => Math.round(p.rotationY * 20))).size).toBeGreaterThan(8);
+    for (const f of L.fringe!) {
+      const b = box(f);
+      expect(roads.some((r) => G.dist(r.c,b.c)<150 && G.obbOverlap(r,b,0))).toBe(false);
+    }
+  });
+
   it('flies vehicles clear of buildings and skybridges, and has traffic lanes', async () => {
     const L = await get();
-    expect(L.traffic!.length).toBeGreaterThan(20);
+    // Loops drive every non-alley street of 9 m or more.
+    const driven = new Set(L.traffic!.flatMap((l) => l.roads));
+    expect(L.roads!.filter((r) => r.width >= 9 && r.cls !== 'alley').every((r) => driven.has(r.id))).toBe(true);
+    expect(L.traffic!.reduce((s, l) => s + l.count, 0)).toBeGreaterThan(200);
     expect(L.skyLanes!.length).toBe(3);
     const boxes = L.instances.map((i) => ({ b: G.obb([i.position[0], i.position[2]], [Math.cos(i.rotationY), -Math.sin(i.rotationY)], i.fp![0] + 8, i.fp![1] + 8), h: i.h! }));
     const hits: string[] = [];

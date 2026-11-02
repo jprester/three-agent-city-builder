@@ -15,6 +15,7 @@ npx playwright install chromium
 npm run assets        # first run pins your Blender version in pipeline.config.json
 npm run dev           # http://localhost:5173
 npm test              # unit tests (vitest)
+npm run shots:health  # render every viewpoint, check errors/budgets and frozen-time repeatability
 npm run shots:approve # create initial screenshot baselines once the scene looks right
 ```
 
@@ -35,6 +36,18 @@ See [the advertising guide](docs/ADVERTISING.md) for copy, artwork, fonts and em
 | `?t=<seconds>` | Freeze the shared clock at this time. |
 | `?quality=low\|med\|high` | Quality preset (default `high`). |
 | `?debug=1` | Show the debug GUI. |
+| `?dynres=0` | Disable automatic resolution changes during interactive viewing. |
+
+For the skyline presentation shot, open `?viewpoint=skyline-hero`. It frames all three
+landmark crowns; the original `skyline` and `skyline-wide` comparison cameras remain available.
+
+## Visual checks
+
+`npm run shots:health` captures every viewpoint and checks for blank frames, browser errors,
+scene-budget violations and frozen-time reproducibility. It works before image baselines
+have been approved. `npm run shots` runs those checks, then compares the same captures with
+the approved images. Missing baselines fail only the comparison project. Approval remains
+a human review step (`npm run shots:approve`); normal runs never create baselines.
 
 ## Controls
 
@@ -51,12 +64,10 @@ cannot enter buildings.
 
 ## Quality presets
 
-`?quality=low|med|high` (default `high`). Measured at 1280×720, frozen at `t=12`:
+`?quality=low|med|high` (default `high`):
 
 | | low | med | high |
 |---|---|---|---|
-| Draw calls | 24 | 36 | 40 |
-| Triangles (aerial) | 0.49M | 0.99M | 1.03M |
 | Pixel ratio cap | 1 | 1.25 | 1.5 |
 | LOD distances | ×0.5 | ×0.75 | ×1 |
 | Ground reflection | signs + sky, ¼ res | everything, ¼ res | everything, ½ res |
@@ -65,8 +76,12 @@ cannot enter buildings.
 
 Buildings are drawn at up to three levels of detail: full detail, a simplified model beyond
 160 m, and a plain shell beyond 380 m (windows are shaded, so the shell still shows them).
-Street furniture is not drawn beyond 220 m. Every preset runs at a steady 60 fps on an
-Apple M5 (the vsync limit) at this resolution.
+Street furniture is not drawn beyond 220 m. Facades use one instanced draw per visible
+asset/LOD, with CPU culling per instance. This replaced BatchedMesh after its sub-draws
+caused excessive GPU memory use on ANGLE/Metal. The old 40-call measurements no longer apply.
+Current per-view counts are written to `build/shots/city/info.json` by the visual checks.
+Hardware frame-rate measurements must record the viewport, quality and dynamic-resolution
+setting; software-rendered screenshots cannot verify the 1440p/60 fps target.
 
 Blender is found via `BLENDER_BIN`, then `blender.path` in `pipeline.config.json`,
 then `/Applications/Blender.app/Contents/MacOS/Blender`, then `blender` on PATH.

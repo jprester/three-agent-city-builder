@@ -17,6 +17,7 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      testMatch: 'shots.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 1280, height: 720 },
@@ -24,6 +25,11 @@ export default defineConfig({
         // Software WebGL: slower, but identical output across machines.
         launchOptions: { args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] },
       },
+    },
+    {
+      name: 'baselines',
+      testMatch: 'baselines.spec.ts',
+      dependencies: ['chromium'],
     },
   ],
   webServer: {

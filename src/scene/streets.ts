@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { terrainHeight, terrainSurfaceHeight } from '../../art/layouts/lib/outskirts.mjs';
 import palette from '../../art/style/palette.json';
 import { createGroundMaterial, type GroundUniforms } from '../materials/ground';
 import type { Layout, Vec2 } from '../systems/layout';
@@ -8,6 +9,8 @@ const color = (name: keyof typeof palette) => new THREE.Color(palette[name]);
 
 /** Ground plane edge length (m). Larger than twice the camera far plane so its edge is never on screen. */
 const GROUND_SIZE = 12000;
+/** Ground mesh cells per side; the 100 m cells match terrainSurfaceHeight's triangles. */
+const GROUND_CELLS = 120;
 const CURB_HEIGHT = SIDEWALK_HEIGHT;
 /** Markings float this far above the asphalt to avoid z-fighting. */
 const PAINT_LIFT = 0.02;
@@ -20,12 +23,43 @@ export function createStreets(layout: Layout | null, uniforms: GroundUniforms): 
   const group = new THREE.Group();
   group.name = 'streets';
 
+  const basin = layout?.size ?? [0, 0];
+  const terrain = layout?.terrain;
+  uniforms.uTerrainStart.value = terrain?.start ?? 970;
+  const elevation = (x: number, z: number) => terrain ? terrainHeight(x, z, basin, terrain) : 0;
+  const groundGeometry = new THREE.PlaneGeometry(GROUND_SIZE, GROUND_SIZE, GROUND_CELLS, GROUND_CELLS).rotateX(-Math.PI / 2);
+  const positions = groundGeometry.getAttribute('position');
+  for (let i = 0; i < positions.count; i++) positions.setY(i, elevation(positions.getX(i), positions.getZ(i)));
+  groundGeometry.computeVertexNormals();
   const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(GROUND_SIZE, GROUND_SIZE).rotateX(-Math.PI / 2),
+    groundGeometry,
     createGroundMaterial(color('road_wet'), 0.35, uniforms, 1, 1, true),
   );
   ground.name = 'ground';
   group.add(ground);
+  if (layout?.approaches?.length) {
+    const pos: number[] = [], nrm: number[] = [], uv: number[] = [];
+    // Short pieces on the ground mesh's own triangles (not the smooth height function), so the
+    // roads lie on the hills instead of floating or sinking; a small lift avoids z-fighting.
+    const surface = (x: number, z: number) => terrain
+      ? terrainSurfaceHeight(x, z, basin, terrain, GROUND_SIZE / GROUND_CELLS) + 0.12 : 0.02;
+    for (const road of layout.approaches) {
+      const dx = road.b[0] - road.a[0], dz = road.b[1] - road.a[1], len = Math.hypot(dx, dz);
+      const nx = -dz / len * road.width / 2, nz = dx / len * road.width / 2;
+      const steps = Math.ceil(len / 5);
+      for (let k = 0; k < steps; k++) {
+        const p0 = [road.a[0] + dx * k / steps, road.a[1] + dz * k / steps];
+        const p1 = [road.a[0] + dx * (k + 1) / steps, road.a[1] + dz * (k + 1) / steps];
+        const corners = [[p0[0]-nx,p0[1]-nz],[p1[0]-nx,p1[1]-nz],[p1[0]+nx,p1[1]+nz],[p0[0]+nx,p0[1]+nz]];
+        for (const c of [0,2,1,0,3,2]) {
+          const [x,z] = corners[c]; pos.push(x, surface(x,z), z); nrm.push(0,1,0); uv.push(x,z);
+        }
+      }
+    }
+    const approaches = new THREE.Mesh(toGeometry(pos,nrm,uv), createGroundMaterial(color('concrete_dark'), 0.8, uniforms, 0.8, 0.35));
+    approaches.name = 'approach-roads';
+    group.add(approaches);
+  }
   if (!layout) return group;
   // The sprawl of lights begins outside the city's footprint.
   const [W, D] = layout.size ?? [0, 0];

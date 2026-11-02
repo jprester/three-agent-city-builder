@@ -51,6 +51,7 @@ export function createRain(opts: RainOptions): THREE.Mesh {
       varying vec2 vUv;
       varying vec3 vWorld;
       varying float vFade;
+      varying float vBrightness;
       void main() {
         float speed = uSpeed * (0.8 + 0.4 * aSeed.x);
         vec3 vel = vec3(uWind.x, -speed, uWind.y);
@@ -59,8 +60,10 @@ export function createRain(opts: RainOptions): THREE.Mesh {
         vec3 base = cameraPosition + rel;
         vec3 dir = normalize(vel);
         vec3 side = normalize(cross(dir, normalize(cameraPosition - base)));
-        float len = 0.65 + 0.45 * aSeed.y;
-        vec3 world = base + dir * position.y * len + side * position.x * 0.008;
+        float len = mix(0.18, 0.8, aSeed.y * aSeed.y);
+        float width = mix(0.003, 0.007, aSeed.z);
+        vBrightness = mix(0.3, 1.0, aSeed.z * aSeed.z);
+        vec3 world = base + dir * position.y * len + side * position.x * width;
         vWorld = world;
         vUv = position.xy;
         // Fade at the volume's edges and right in front of the lens.
@@ -74,14 +77,16 @@ export function createRain(opts: RainOptions): THREE.Mesh {
       varying vec2 vUv;
       varying vec3 vWorld;
       varying float vFade;
+      varying float vBrightness;
       void main() {
         if (vWorld.y < 0.0) discard;
         vec2 uv = (vWorld.xz - uLampRect.xy) * uLampRect.zw;
-        float lamp = texture2D(uLampMap, uv).r * exp(-max(vWorld.y - 4.0, 0.0) / 12.0);
-        vec3 sign = texture2D(uSignMap, uv).rgb * exp(-max(vWorld.y - 8.0, 0.0) / 14.0);
-        vec3 light = ${v3(c('haze'))} * 1.9 + ${v3(c('sodium'))} * lamp * 1.5 + sign * 1.1;
+        float inside = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
+        float lamp = texture2D(uLampMap, uv).r * inside * exp(-max(vWorld.y - 4.0, 0.0) / 12.0);
+        vec3 sign = texture2D(uSignMap, uv).rgb * inside * exp(-max(vWorld.y - 8.0, 0.0) / 14.0);
+        vec3 light = ${v3(c('haze'))} * 0.75 + ${v3(c('sodium'))} * lamp * 1.9 + sign * 1.5;
         float streak = (1.0 - abs(vUv.x)) * smoothstep(0.0, 0.3, vUv.y) * (1.0 - smoothstep(0.7, 1.0, vUv.y));
-        gl_FragColor = vec4(light * streak * vFade * 0.5, 1.0);
+        gl_FragColor = vec4(light * streak * vFade * vBrightness * 0.5, 1.0);
       }`,
   });
   const mesh = new THREE.Mesh(geometry, material);

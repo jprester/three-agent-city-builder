@@ -1,3 +1,4 @@
+import { terrainSurfaceHeight } from '../../art/layouts/lib/outskirts.mjs';
 import { insideConvex } from '../../art/layouts/lib/geom.mjs';
 import type { Layout } from './layout';
 
@@ -20,7 +21,7 @@ export function createWalkSurface(layout: Layout | null, sidewalkHeight = SIDEWA
       for (const block of blocks) {
         if (insideConvex(block.points, [x, z], 0)) return sidewalkHeight;
       }
-      return 0;
+      return layout?.terrain ? terrainSurfaceHeight(x, z, layout.size, layout.terrain) : 0;
     },
   };
 }

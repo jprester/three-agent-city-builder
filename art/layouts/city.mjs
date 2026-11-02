@@ -14,6 +14,7 @@
 //    core then gets back buildings in leftover interior space.
 // Browser-safe: no Node APIs (it also runs in the browser for ?seed=).
 import * as G from './lib/geom.mjs';
+import { approachRoads, parkedVehicles } from './lib/outskirts.mjs';
 import { mulberry32, weightedChoice } from './lib/rng.mjs';
 import { trafficLanes } from './lib/traffic.mjs';
 
@@ -46,8 +47,11 @@ const DEFAULTS = {
   // blocks on a `pitch` grid with `street`-wide streets, `margin` clear of the city edge;
   // `split`: chance a block splits into two lots along each axis.
   // Build chance and building mix go from `near` (at the city edge) to `far` (outer rim).
+  parking: { count: 10, assets: ['vehicles/van', 'vehicles/car_b'], junctionClear: 18, spacing: 45, curbGap: 0.5, clearance: 0.4 },
+  terrain: { start: 800, rise: 1300, height: 230 },
   landmarks: { count: 3, spacing: 80 },
   fringe: {
+    warp: 38, neighborhood: 330, angle: 0.32,
     depth: 900, pitch: 70, street: 12, margin: 22, chance: [1.0, 0.7], lotGap: 0.06, setback: 1.5, split: 0.75,
     near: { 'buildings/fringe_c': 1, 'buildings/fringe_d': 0.5, 'buildings/fringe_b': 1, 'buildings/fringe_e': 0.8, 'buildings/fringe_a': 0.5 },
     far: { 'buildings/fringe_a': 1.5, 'buildings/fringe_b': 1, 'buildings/fringe_e': 0.6, 'buildings/fringe_c': 0.3 },
@@ -98,7 +102,7 @@ const EDGE_PRIORITY = { hero: 0, arterial: 1, secondary: 2, edge: 3, alley: 4 };
 export function generate({ params, seed, assets = {}, art = [] }) {
   const P = { ...DEFAULTS, ...params };
   // Nested option groups merge with their defaults instead of replacing them.
-  for (const k of ['roads', 'sidewalks', 'lampSpacing', 'flythrough', 'signs', 'bridges', 'props', 'fringe', 'landmarks']) P[k] = { ...DEFAULTS[k], ...(params[k] ?? {}) };
+  for (const k of ['roads', 'sidewalks', 'lampSpacing', 'flythrough', 'signs', 'bridges', 'props', 'fringe', 'landmarks', 'parking', 'terrain']) P[k] = { ...DEFAULTS[k], ...(params[k] ?? {}) };
   const D = {};
   for (const k of Object.keys(DISTRICT_DEFAULTS)) D[k] = { ...DISTRICT_DEFAULTS[k], ...(params.districts?.[k] ?? {}) };
   const rng = mulberry32(seed);
@@ -423,13 +427,15 @@ export function generate({ params, seed, assets = {}, art = [] }) {
   // ---- fringe: the low-rise far field around the city, clear of the flythrough and of the
   // port viewpoint. Own random stream, so it never moves anything inside the city.
   const portOrigin = [0, Dp / 2 + 60];
+  const approaches = approachRoads(roads, [W, Dp], P.fringe.depth);
+  const parked = parkedVehicles(blocks, roads, instances, props, lamps, assets, P.parking);
   const fringe = assets['buildings/fringe_a']
-    ? buildFringe(P.fringe, W, Dp, assets, flythrough, [portOrigin], mulberry32((seed ^ 0x0f21a9e5) >>> 0))
+    ? buildFringe(P.fringe, W, Dp, assets, approaches, flythrough, [portOrigin], mulberry32((seed ^ 0x0f21a9e5) >>> 0))
     : [];
   const skyLanes = buildSkyLanes(P.skyLanes, [...instances, ...fringe], bridges);
   for (const lane of skyLanes) lane.points = liftClear(lane.points, [...instances, ...fringe], 12, 14);
   const traffic = trafficLanes(roads.map((r) => ({ id: r.id, cls: r.cls, width: r.width, a: r.a.map(r3), b: r.b.map(r3) })), seed)
-    .map((l) => ({ ...l, speed: r3(l.speed), phase: r3(l.phase), length: r3(l.length), offset: r3(l.offset) }));
+    .map((l) => ({ ...l, points: l.points.map((p) => p.map(r3)), speed: r3(l.speed), phase: r3(l.phase), length: r3(l.length) }));
   const footBoxes = bridges.filter((b) => b.kind === 'foot').map((b) => ({
     box: G.obb(G.lerp(b.a, b.b, 0.5), G.norm(G.sub(b.b, b.a)), G.dist(b.a, b.b) / 2 + 0.5, b.width / 2 + 0.6),
     y0: b.y - 0.6, y1: b.y + b.depth + 0.6,
@@ -714,7 +720,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
     towers: { origin: [P.towers.center[0], 0, P.towers.center[1]], x: G.norm(G.sub(P.towers.center, coreCenter)).map(r3) },
     port: { origin: [portOrigin[0], 0, portOrigin[1]], x: G.norm(G.sub(P.towers.center, portOrigin)).map(r3) },
   };
-
+  if (parked.length) anchors.delivery = { origin: parked[0].position, x: [Math.sin(parked[0].rotationY), Math.cos(parked[0].rotationY)] };
 
   return {
     version: 2,
@@ -732,6 +738,9 @@ export function generate({ params, seed, assets = {}, art = [] }) {
     anchors,
     instances,
     fringe,
+    parked,
+    approaches,
+    terrain: { ...P.terrain, start: Math.max(P.terrain.start, P.fringe.depth + P.fringe.pitch) },
     flythrough,
     bridges,
     traffic,
@@ -892,8 +901,11 @@ function plantParks(cfg, blocks, parkBlocks, sidewalks, tagClass, assets, rng) {
  * boulevard) and within `anchorClear` of outside viewpoint anchors.
  * Returns instances like the city's: { asset, position, rotationY, scale, seed, district, h, fp }.
  */
-function buildFringe(cfg, W, Dp, assets, fly, keepClear, rng) {
+function buildFringe(cfg, W, Dp, assets, approaches, fly, keepClear, rng) {
   const flyPts = sampleFlythrough(fly);
+  const neighborhood = G.valueNoise(Math.floor(rng() * 2 ** 31));
+  const placed = [];
+  const roadBoxes = approaches.map((r) => G.obb(G.lerp(r.a, r.b, 0.5), G.norm(G.sub(r.b, r.a)), G.dist(r.a, r.b) / 2, r.width / 2 + 5));
   const rectDist = (p) => Math.hypot(Math.max(-W / 2 - p[0], p[0] - W / 2, 0), Math.max(-Dp / 2 - p[1], p[1] - Dp / 2, 0));
   const blk = cfg.pitch - cfg.street;
   const out = [];
@@ -905,7 +917,10 @@ function buildFringe(cfg, W, Dp, assets, fly, keepClear, rng) {
       // The whole block must clear the city edge by the margin.
       if (d - blk * 0.71 < cfg.margin || d > cfg.depth) continue;
       const t = d / cfg.depth;
-      if (rng() > cfg.chance[0] + (cfg.chance[1] - cfg.chance[0]) * t) continue;
+      const patch = neighborhood(c[0] / cfg.neighborhood, c[1] / cfg.neighborhood);
+      const chance = (cfg.chance[0] + (cfg.chance[1] - cfg.chance[0]) * t) * (1 - t * t * (0.45 + 0.45 * patch));
+      if (rng() > chance) continue;
+      const angle = (patch - 0.5) * cfg.angle * 2;
       const nx = rng() < cfg.split ? 2 : 1, nz = rng() < cfg.split ? 2 : 1;
       const lw = blk / nx, ld = blk / nz;
       for (let i = 0; i < nx; i++) {
@@ -917,7 +932,9 @@ function buildFringe(cfg, W, Dp, assets, fly, keepClear, rng) {
           if (gapR < cfg.lotGap) continue;   // yards, car parks
           const meta = assets[id]?.meta;
           if (!meta) continue;
-          const lc = [gx + cfg.street / 2 + lw * (i + 0.5), gz + cfg.street / 2 + ld * (j + 0.5)];
+          const local = [lw * (i + 0.5) - blk / 2, ld * (j + 0.5) - blk / 2];
+          const lc = [c[0] + local[0] * Math.cos(angle) + local[1] * Math.sin(angle) + (patch - 0.5) * cfg.warp,
+            c[1] - local[0] * Math.sin(angle) + local[1] * Math.cos(angle) + (neighborhood(c[0] / cfg.neighborhood + 7, c[1] / cfg.neighborhood) - 0.5) * cfg.warp];
           // Face a street the lot touches: an x-side (street along z) or a z-side.
           const xSide = nz === 1 && nx === 2 ? true : nx === 1 && nz === 2 ? false : sideR < 0.5;
           const flip = sideR % 0.5 < 0.25 ? 1 : -1;
@@ -927,15 +944,20 @@ function buildFringe(cfg, W, Dp, assets, fly, keepClear, rng) {
           const clampS = (v) => Math.min(2.6, Math.max(0.55, v));
           const sx = clampS(((along - 2 * cfg.setback) / fw) * (0.8 + 0.2 * sxr));
           const sz = clampS(((deep - 2 * cfg.setback) / fd) * (0.75 + 0.25 * szr));
-          const sy = (0.85 + 0.35 * syr) * (1 - 0.45 * t);
+          const sy = (0.85 + 0.35 * syr) * (1 - 0.65 * t) * (0.85 + 0.3 * patch);
           const fp = [(fw * sx) / 2, (fd * sz) / 2];
           const h = meta.height * sy;
           if (keepClear.some((a) => G.dist(a, lc) < cfg.anchorClear)) continue;
           // Clear of the flythrough: no path point within flyClear of the footprint below h + flyClear.
-          const rotationY = Math.atan2(-nIn[0], -nIn[1]);
+          const rotationY = Math.atan2(-nIn[0], -nIn[1]) + angle;
+          const footprint = G.obb(lc, [Math.cos(rotationY), -Math.sin(rotationY)], fp[0] + 1.5, fp[1] + 1.5);
+          if (footprint.corners.some((p) => rectDist(p) < cfg.margin)) continue;
+          if (placed.some((b) => G.dist(b.c, lc) < 150 && G.obbOverlap(b, footprint, 0))) continue;
+          if (roadBoxes.some((b) => G.dist(b.c, lc) < 150 && G.obbOverlap(b, footprint, 0))) continue;
           const grown = G.obb(lc, [Math.cos(rotationY), -Math.sin(rotationY)], fp[0] + cfg.flyClear, fp[1] + cfg.flyClear).corners;
-          const reach = Math.max(fp[0], fp[1]) + cfg.flyClear;
+          const reach = Math.hypot(fp[0] + cfg.flyClear, fp[1] + cfg.flyClear);
           if (flyPts.some((p) => p[1] < h + cfg.flyClear && Math.abs(p[0] - lc[0]) < reach && Math.abs(p[2] - lc[1]) < reach && G.insideConvex(grown, [p[0], p[2]]))) continue;
+          placed.push(footprint);
           out.push({
             asset: id, position: [r3(lc[0]), 0, r3(lc[1])], rotationY: r3(rotationY),
             scale: [sx, sy, sz].map(r3), seed, district: 'fringe', h: r3(h), fp: fp.map(r3),

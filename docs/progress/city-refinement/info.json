@@ -1,0 +1,198 @@
+{
+  "layout": "city",
+  "t": 12,
+  "budget": {
+    "maxDrawCalls": 250,
+    "maxTriangles": 3000000,
+    "maxPrograms": 25
+  },
+  "viewpoints": {
+    "canyon": {
+      "calls": 216,
+      "triangles": 1026444,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 123,
+      "reflection": {
+        "calls": 81,
+        "triangles": 410028
+      }
+    },
+    "storefront": {
+      "calls": 221,
+      "triangles": 1103942,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 123,
+      "reflection": {
+        "calls": 84,
+        "triangles": 444618
+      }
+    },
+    "facade": {
+      "calls": 212,
+      "triangles": 993570,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 123,
+      "reflection": {
+        "calls": 75,
+        "triangles": 379494
+      }
+    },
+    "skyline": {
+      "calls": 198,
+      "triangles": 763166,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 123,
+      "reflection": {
+        "calls": 69,
+        "triangles": 282408
+      }
+    },
+    "rooftops": {
+      "calls": 202,
+      "triangles": 722832,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 123,
+      "reflection": {
+        "calls": 68,
+        "triangles": 271416
+      }
+    },
+    "aerial": {
+      "calls": 166,
+      "triangles": 1086534,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 107,
+      "reflection": {
+        "calls": 70,
+        "triangles": 520292
+      }
+    },
+    "horizon": {
+      "calls": 192,
+      "triangles": 845882,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 123,
+      "reflection": {
+        "calls": 71,
+        "triangles": 375548
+      }
+    },
+    "fly-0": {
+      "calls": 219,
+      "triangles": 1046350,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 123,
+      "reflection": {
+        "calls": 84,
+        "triangles": 433312
+      }
+    },
+    "fly-25": {
+      "calls": 219,
+      "triangles": 755516,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 123,
+      "reflection": {
+        "calls": 85,
+        "triangles": 291310
+      }
+    },
+    "fly-50": {
+      "calls": 180,
+      "triangles": 915410,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 119,
+      "reflection": {
+        "calls": 70,
+        "triangles": 418176
+      }
+    },
+    "fly-75": {
+      "calls": 166,
+      "triangles": 1117796,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 107,
+      "reflection": {
+        "calls": 70,
+        "triangles": 535340
+      }
+    },
+    "skyline-wide": {
+      "calls": 191,
+      "triangles": 968526,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 123,
+      "reflection": {
+        "calls": 69,
+        "triangles": 393470
+      }
+    },
+    "skyline-hero": {
+      "calls": 173,
+      "triangles": 864230,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 115,
+      "reflection": {
+        "calls": 69,
+        "triangles": 397400
+      }
+    },
+    "architecture": {
+      "calls": 209,
+      "triangles": 923752,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 123,
+      "reflection": {
+        "calls": 72,
+        "triangles": 347490
+      }
+    },
+    "tower-detail": {
+      "calls": 69,
+      "triangles": 214970,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 86,
+      "reflection": {
+        "calls": 11,
+        "triangles": 52784
+      }
+    },
+    "landmarks": {
+      "calls": 158,
+      "triangles": 628714,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 108,
+      "reflection": {
+        "calls": 65,
+        "triangles": 270206
+      }
+    },
+    "glass": {
+      "calls": 85,
+      "triangles": 247158,
+      "programs": 24,
+      "textures": 43,
+      "geometries": 96,
+      "reflection": {
+        "calls": 7,
+        "triangles": 32658
+      }
+    }
+  }
+}
