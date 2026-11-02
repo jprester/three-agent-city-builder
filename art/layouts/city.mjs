@@ -455,7 +455,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
   const skyLanes = buildSkyLanes(P.skyLanes, [...instances, ...fringe], bridges);
   for (const lane of skyLanes) lane.points = liftClear(lane.points, [...instances, ...fringe], 12, 14);
   const traffic = trafficLanes(roads.map((r) => ({ id: r.id, cls: r.cls, width: r.width, a: r.a.map(r3), b: r.b.map(r3) })), seed)
-    .map((l) => ({ ...l, points: l.points.map((p) => p.map(r3)), speed: r3(l.speed), phase: r3(l.phase), length: r3(l.length) }));
+    .map((l) => ({ ...l, points: l.points.map((p) => p.map(r3)), stops: l.stops.map(([s, n, g]) => [r3(s), n, g]), speed: r3(l.speed), phase: r3(l.phase), length: r3(l.length) }));
   const footBoxes = bridges.filter((b) => b.kind === 'foot').map((b) => ({
     box: G.obb(G.lerp(b.a, b.b, 0.5), G.norm(G.sub(b.b, b.a)), G.dist(b.a, b.b) / 2 + 0.5, b.width / 2 + 0.6),
     y0: b.y - 0.6, y1: b.y + b.depth + 0.6,

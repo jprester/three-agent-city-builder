@@ -151,6 +151,7 @@ varying vec2 vFacadeUv;
 flat varying vec3 vSurf;
 flat varying float vInstSeed;
 flat varying float vInstPaint;
+flat varying float vInstBrake;
 varying vec3 vFWorld;
 varying vec3 vFNormal;
 varying vec2 vRawUv;
@@ -180,6 +181,8 @@ vFNormal = normalize(mat3(fInst) * normal);
 // Moving cars carry their paint pick in a slight height scale (src/systems/vehicles.ts),
 // since their position seed changes as they drive; static instances use the seed.
 vInstPaint = abs(fScale.y - 1.0) < 1e-5 ? vInstSeed : clamp((fScale.y - 1.0) * 64.0, 0.0, 0.999);
+// Braking cars are 0.4 % wider (src/systems/vehicles.ts): their tail lamps burn brighter.
+vInstBrake = abs(fScale.x - 1.004) < 0.001 ? 1.0 : 0.0;
 `;
 
 const VERTEX_WORLD = /* glsl */ `
@@ -207,6 +210,7 @@ varying vec2 vFacadeUv;
 flat varying vec3 vSurf;
 flat varying float vInstSeed;
 flat varying float vInstPaint;
+flat varying float vInstBrake;
 varying vec3 vFWorld;
 varying vec3 vFNormal;
 varying vec2 vRawUv;
@@ -912,7 +916,8 @@ if (fType == T_ATLAS) {
   if (strip) fc = mix(fc, vec3(1.0), 0.35);
   // Vehicle lamp panels (fixture(lamp=True), tint 0.3): between the two, enough to bloom.
   bool lamp = fTint > 0.15 && fTint < 0.5;
-  fEmit = fc * (strip ? 0.65 : lamp ? 2.4 : 4.0) * blink;
+  float brake = lamp && fFill > 0.875 ? 1.0 + 1.6 * vInstBrake : 1.0;
+  fEmit = fc * (strip ? 0.65 : lamp ? 2.4 : 4.0) * blink * brake;
   fNormalW = normalize(vFNormal);
 }
 

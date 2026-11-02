@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mulberry32, weightedChoice } from '../../art/layouts/lib/rng.mjs';
-import { trafficPosition } from '../../art/layouts/lib/traffic.mjs';
+import { createTrafficSim } from '../../art/layouts/lib/traffic.mjs';
 import type { Layout } from './layout';
 import type { DynamicInstances } from './buildings';
 
@@ -35,8 +35,9 @@ export function planVehicles(layout: Layout, density: number) {
 
 /**
  * Moves the planned vehicles (instances `ids` of the facade instances, in plan order) on the
- * shared clock: cars around their street loops, flyers around their loops
- * with a slow bob. Pure function of time, so frozen-time renders are reproducible.
+ * shared clock: cars around their street loops (a deterministic simulation with signals and
+ * queues, lib/traffic.mjs), flyers around their loops with a slow bob. Frozen-time renders
+ * stay reproducible: the simulation state at a time depends only on that time.
  */
 export function createVehicleMotion(batch: DynamicInstances, ids: number[], plan: ReturnType<typeof planVehicles>) {
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
@@ -45,19 +46,23 @@ export function createVehicleMotion(batch: DynamicInstances, ids: number[], plan
   /** Ground cars this frame: x, z, heading sin, heading cos. */
   const placed = new Float32Array(cars * 4);
   const best = new Float32Array(64), bestIdx = new Int32Array(64);
+  const sim = createTrafficSim(plan.ground.map((g) => g.lane));
   return {
     update(time: number) {
       let k = 0, c = 0;
-      for (const g of plan.ground) {
+      const w = sim.at(time);
+      plan.ground.forEach((g, lane) => {
         for (let i = 0; i < g.assets.length; i++) {
-          const p = trafficPosition(g.lane, i, time);
+          const p = sim.pose(lane, i, w);
+          // Braking: heading length 2 for the ground shader, 0.4 % wider for the lamp shader.
+          const hl = p.brake ? 2 : 1;
           placed[4 * c] = p.x; placed[4 * c + 1] = p.z;
-          placed[4 * c + 2] = Math.sin(p.angle); placed[4 * c + 3] = Math.cos(p.angle); c++;
+          placed[4 * c + 2] = Math.sin(p.angle) * hl; placed[4 * c + 3] = Math.cos(p.angle) * hl; c++;
           pos.set(p.x, 0, p.z);
           q.setFromAxisAngle(up, p.angle);
-          batch.setMatrixAt(ids[k++], m.compose(pos, q, scale.set(1, 1 + g.paints[i] / 64, 1)));
+          batch.setMatrixAt(ids[k++], m.compose(pos, q, scale.set(p.brake ? 1.004 : 1, 1 + g.paints[i] / 64, 1)));
         }
-      }
+      });
       for (const s of plan.sky) {
         const dir = s.lane.direction;
         for (let i = 0; i < s.assets.length; i++) {

@@ -12,7 +12,7 @@ export interface GroundUniforms {
   uSignMap: { value: THREE.Texture | null };
   /** Shared clock (rain ripples). */
   uTime: { value: number };
-  /** Nearest road vehicles to the camera: x, z, heading sin, heading cos (zero = none). */
+  /** Nearest road vehicles to the camera: x, z, heading sin, cos (length 2 = braking; zero = none). */
   uCars: { value: THREE.Vector4[] };
 }
 
@@ -113,21 +113,24 @@ for (int i = 0; i < ${CAR_LIGHTS}; i++) {
   vec4 c = uCars[i];
   vec2 d = vGWorld.xz - c.xy;
   if (dot(c.zw, c.zw) < 0.5 || dot(d, d) > 900.0) continue;
-  float al = dot(d, c.zw), si = dot(d, vec2(-c.w, c.z));
+  // Heading length 2 marks a braking car (src/systems/vehicles.ts).
+  float hl = length(c.zw), brk = step(1.5, hl);
+  vec2 hd = c.zw / hl;
+  float al = dot(d, hd), si = dot(d, vec2(-hd.y, hd.x));
   float w = 0.7 + max(al, 0.0) * 0.3;
   gHead += exp(-si * si / (w * w)) * smoothstep(2.0, 4.5, al) * pow(max(1.0 - al / 30.0, 0.0), 2.0) * 6.0 / (1.0 + max(al, 0.0) * 0.25);
-  gTail += exp(-si * si / 1.4) * smoothstep(-1.8, -2.6, al) * max(1.0 - (-al - 2.3) / 5.0, 0.0);
+  gTail += exp(-si * si / 1.4) * smoothstep(-1.8, -2.6, al) * max(1.0 - (-al - 2.3) / 5.0, 0.0) * (1.0 + 2.0 * brk);
   vec2 toCam = cameraPosition.xz - c.xy;
   float camDist = length(toCam);
   vec2 u = toCam / max(camDist, 1e-3);
-  float facing = dot(c.zw, u);
+  float facing = dot(hd, u);
   // From the lamp end facing the viewer, along the line to them.
-  vec2 lampEnd = c.xy + c.zw * sign(facing) * 2.3;
+  vec2 lampEnd = c.xy + hd * sign(facing) * 2.3;
   vec2 q = vGWorld.xz - lampEnd;
   float along = dot(q, u), lat = dot(q, vec2(-u.y, u.x));
   float streak = exp(-lat * lat / 0.35) * smoothstep(0.0, 1.0, along) * exp(-along / 14.0) * step(along, camDist - 2.3);
   gHeadGlare += streak * max(facing, 0.0) * max(facing, 0.0);
-  gTailGlare += streak * max(-facing, 0.0) * max(-facing, 0.0);
+  gTailGlare += streak * max(-facing, 0.0) * max(-facing, 0.0) * (1.0 + 1.5 * brk);
 }
 gHead *= 1.0 - smoothstep(0.3, 2.0, vGWorld.y);
 gTail *= 1.0 - smoothstep(0.3, 2.0, vGWorld.y);

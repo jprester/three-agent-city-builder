@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { trafficLanes, trafficPosition } from '../../art/layouts/lib/traffic.mjs';
+import { createTrafficSim, signalAt, trafficLanes } from '../../art/layouts/lib/traffic.mjs';
 
 // An arterial with side streets ending at its curb (a crossing and a T), a top street the
 // side streets meet, and an alley that carries no traffic.
@@ -19,12 +19,22 @@ const segDist = (p: number[], a: number[], b: number[]) => {
 };
 
 describe('traffic loops', () => {
-  it('reproduces loops and frozen-time positions from a seed', () => {
+  it('reproduces loops, and the same frozen-time state from a fresh simulation', () => {
     expect(trafficLanes(roads, 42)).toEqual(trafficLanes(roads, 42));
-    const lane = trafficLanes(roads, 42)[0];
-    const p = trafficPosition(lane, 0, 12), q = trafficPosition(lane, 0, 12 + lane.length / lane.speed);
-    expect(q.x).toBeCloseTo(p.x, 6);
-    expect(q.z).toBeCloseTo(p.z, 6);
+    const lanes = trafficLanes(roads, 42);
+    const a = createTrafficSim(lanes), b = createTrafficSim(lanes);
+    const wa = a.at(12), wb = b.at(12);
+    for (let k = 0; k < lanes.length; k++) for (let i = 0; i < lanes[k].count; i++) expect(a.pose(k, i, wa)).toEqual(b.pose(k, i, wb));
+  });
+
+  it('puts stop lines before the signalled junctions, with two signal phases', () => {
+    const lanes = trafficLanes(roads, 42);
+    const stops = lanes.flatMap((l) => l.stops);
+    // The arterial crossing and T-junctions are signalled; plain corners are not.
+    expect(stops.length).toBeGreaterThan(6);
+    expect(new Set(stops.map((st) => st[2]))).toEqual(new Set([0, 1]));
+    // The two phases are never green at once.
+    for (let t = 0; t < 36; t += 0.5) expect(signalAt(3, 0, t) === 'green' && signalAt(3, 1, t) === 'green').toBe(false);
   });
 
   it('drives every lane of every street once, alleys never', () => {
@@ -38,22 +48,39 @@ describe('traffic loops', () => {
     expect(total).toBeLessThan(2 * streets * 1.15);
   });
 
-  it('moves cars continuously on the road, with safe headway and no vanishing', () => {
-    for (const lane of trafficLanes(roads, 42)) {
-      expect(lane.length / lane.count).toBeGreaterThan(8);
-      let prev = trafficPosition(lane, 0, 0);
-      for (let t = 0.1; t < lane.length / lane.speed; t += 0.1) {
-        const p = trafficPosition(lane, 0, t);
-        // No teleports: one step never moves more than the distance driven.
-        expect(Math.hypot(p.x - prev.x, p.z - prev.z)).toBeLessThan(lane.speed * 0.1 + 1e-6);
-        // Heading turns gradually, even through corners and U-turns.
-        const turn = Math.abs(((p.angle - prev.angle + 3 * Math.PI) % (2 * Math.PI)) - Math.PI);
-        expect(turn).toBeLessThan(0.6);
-        // On the paved surface: inside some street's half width (U-turns stay within the end).
-        const traffic = roads.filter((r) => r.cls !== 'alley');
-        expect(Math.min(...traffic.map((r) => segDist([p.x, p.z], r.a, r.b) - r.width / 2))).toBeLessThan(0.5);
-        prev = p;
-      }
+  it('moves cars continuously on the road, keeps them apart and stops them at red lights', () => {
+    const lanes = trafficLanes(roads, 42);
+    const sim = createTrafficSim(lanes);
+    const traffic = roads.filter((r) => r.cls !== 'alley');
+    const prev = lanes.map((l, k) => Array.from({ length: l.count }, (_, i) => sim.pose(k, i, sim.at(0))));
+    const front = (k: number, i: number) => sim.lanes[k].s[i] + 2.4;
+    let redRuns = 0;
+    for (let t = 1 / 30; t < 90; t += 1 / 30) {
+      const before = lanes.map((_, k) => Array.from(sim.lanes[k].s, (_, i) => front(k, i)));
+      const w = sim.at(t);
+      lanes.forEach((lane, k) => {
+        const c = sim.lanes[k];
+        for (let i = 0; i < lane.count; i++) {
+          const p = sim.pose(k, i, w), q = prev[k][i];
+          // No teleports, gentle turns, on the paved surface.
+          expect(Math.hypot(p.x - q.x, p.z - q.z)).toBeLessThan(20 / 30);
+          expect(Math.abs(((p.angle - q.angle + 3 * Math.PI) % (2 * Math.PI)) - Math.PI)).toBeLessThan(0.6);
+          expect(Math.min(...traffic.map((r) => segDist([p.x, p.z], r.a, r.b) - r.width / 2))).toBeLessThan(0.5);
+          // Never closer than a car length to the car ahead.
+          if (lane.count > 1) {
+            const j = (i + 1) % lane.count;
+            expect(c.s[j] + (j === 0 ? lane.length : 0) - c.s[i]).toBeGreaterThan(4.8);
+          }
+          // Crossing a stop line on red, more than a second after the light turned: a red run.
+          const L = lane.length, f0 = ((before[k][i] % L) + L) % L, f1 = f0 + (front(k, i) - before[k][i]);
+          for (const [st, node, group] of lane.stops) {
+            const sAt = st < f0 ? st + L : st;
+            if (sAt > f0 && sAt <= f1 && signalAt(node, group, t) === 'red' && signalAt(node, group, t - 1) === 'red') redRuns++;
+          }
+          prev[k][i] = p;
+        }
+      });
     }
+    expect(redRuns).toBe(0);
   });
 });

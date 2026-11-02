@@ -48,7 +48,7 @@ function streetGraph(roads) {
     for (let k = 0; k < ts.length - 1; k++) {
       const u = nodeAt(at(ts[k])), v = nodeAt(at(ts[k + 1]));
       if (u === v) continue;
-      for (const [from, to] of [[u, v], [v, u]]) edges.push({ from, to, road: r.id, cls: r.cls, offset: r.width * 0.22 });
+      for (const [from, to] of [[u, v], [v, u]]) edges.push({ from, to, road: r.id, cls: r.cls, width: r.width, offset: r.width * 0.22 });
     }
   });
   for (const e of edges) {
@@ -102,12 +102,24 @@ function bend(p0, c, p2, steps) {
   return out;
 }
 
-/** Lane polyline of a loop of edges: offset to the right, rounded corners, U-turn arcs. */
-function loopPoints(nodes, edges, loop, fillet) {
-  const pts = [];
+/**
+ * Lane polyline of a loop of edges: offset to the right, rounded corners, U-turn arcs. Also
+ * the stop lines before signalled junctions (3+ approaches): { idx, back, node, group }, the
+ * point where the junction's curve starts and how far before it to stop, so a stopped car
+ * waits clear of the crossing road. `group` is the signal phase: approaches along the
+ * junction's first arriving edge (or opposite it) share phase 0, the rest phase 1.
+ */
+function loopPoints(nodes, edges, loop, fillet, arrivals) {
+  const pts = [], stops = [];
   loop.forEach((i, k) => {
     const e = edges[i], f = edges[loop[(k + 1) % loop.length]];
     const n = nodes[e.to], ne = side(e.dir), nf = side(f.dir);
+    const inc = arrivals[e.to];
+    if (inc.length >= 3) {
+      const cross = Math.max(...inc.filter((j) => j !== i).map((j) => edges[j].width)) / 2 + 1.5;
+      const ref = edges[inc[0]].dir;
+      stops.push({ idx: pts.length, cross, node: e.to, group: Math.abs(dot(e.dir, ref)) >= Math.SQRT1_2 ? 0 : 1 });
+    }
     if (dot(e.dir, f.dir) < -0.99) {
       // Dead end: a half circle around the end of the road.
       for (let s = 0; s < 9; s++) {
@@ -121,21 +133,26 @@ function loopPoints(nodes, edges, loop, fillet) {
     if (Math.abs(den) < 0.05) { pts.push(mul(add(p, q), 0.5)); return; }
     const corner = add(p, mul(e.dir, cross(sub(q, p), f.dir) / den));
     const cut = Math.min(fillet, 0.4 * e.length, 0.4 * f.length);
+    if (stops.length && stops.at(-1).idx === pts.length) stops.at(-1).back = Math.max(0, stops.at(-1).cross - cut);
     pts.push(...bend(sub(corner, mul(e.dir, cut)), corner, add(corner, mul(f.dir, cut)), 6));
     pts.push(add(corner, mul(f.dir, cut)));
   });
-  return pts;
+  // Straight-through junctions push their one midpoint: stop the crossing's half width before it.
+  for (const st of stops) if (st.back === undefined) st.back = st.cross;
+  return { pts, stops };
 }
 
 /**
  * Closed driving loops through the street network (roads at least 9 m wide, alleys excluded).
- * Each loop: { roads, points (closed lane polyline), length, count, speed, phase }.
+ * Each loop: { roads, points (closed lane polyline), length, stops, count, speed, phase }.
  * Browser-safe; used by the layout (art/layouts/city.mjs) and its tests.
  */
 export function trafficLanes(roads, seed, density = 1, { turn = 0.6, fillet = 7 } = {}) {
   const rng = mulberry32(seed ^ 0x74726166);
   const { nodes, edges } = streetGraph(roads.filter((r) => r.width >= 9 && r.cls !== 'alley'));
   const next = junctionPairing(nodes, edges, rng, turn);
+  const arrivals = nodes.map(() => []);
+  edges.forEach((e, i) => arrivals[e.to].push(i));
   const seen = new Set(), loops = [];
   edges.forEach((_, start) => {
     if (seen.has(start)) return;
@@ -144,13 +161,17 @@ export function trafficLanes(roads, seed, density = 1, { turn = 0.6, fillet = 7 
     loops.push(loop);
   });
   return loops.map((loop) => {
-    const points = loopPoints(nodes, edges, loop, fillet);
-    const length = points.reduce((s, p, k) => s + len(sub(points[(k + 1) % points.length], p)), 0);
+    const { pts: points, stops: marks } = loopPoints(nodes, edges, loop, fillet, arrivals);
+    const arc = [0];
+    for (let k = 1; k <= points.length; k++) arc.push(arc[k - 1] + len(sub(points[k % points.length], points[k - 1])));
+    const length = arc[points.length];
+    // [arc position of the stop line, junction (node) id, signal phase group], by position.
+    const stops = marks.map((m) => [((arc[m.idx] - m.back) % length + length) % length, m.node, m.group]).sort((a, b) => a[0] - b[0]);
     const headway = loop.reduce((s, i) => s + edges[i].length * (HEADWAY[edges[i].cls] ?? 40), 0)
       / loop.reduce((s, i) => s + edges[i].length, 0);
     return {
       roads: [...new Set(loop.map((i) => edges[i].road))],
-      points, length,
+      points, length, stops,
       count: Math.max(1, Math.floor(length / (headway / density))),
       speed: 5 + rng() * 4, phase: rng(),
     };
@@ -176,12 +197,100 @@ function pointAt(lane, s) {
   return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
 }
 
-/** Position and heading of car `index` on its loop at `time`; a pure function of time. */
-export function trafficPosition(lane, index, time) {
-  const total = arcLengths(lane).at(-1);
-  const s = (lane.phase + index / lane.count) * total + time * lane.speed;
+/** Position and heading at arc position `s` along a loop (any real s; wraps). */
+export function trafficPose(lane, s) {
   const [x, z] = pointAt(lane, s);
   // Heading from a short chord, so corners and U-turns turn the car smoothly.
   const a = pointAt(lane, s - 1.5), b = pointAt(lane, s + 1.5);
   return { x, z, angle: Math.atan2(b[0] - a[0], b[1] - a[1]) };
+}
+
+/** Signal cycle (seconds): phase 0 green, amber, phase 1 green, amber. */
+export const SIGNAL = { period: 36, green: 15, amber: 3 };
+
+/** Signal for junction `node`, phase `group`, at `time`: 'green' | 'amber' | 'red'. */
+export function signalAt(node, group, time) {
+  const { period, green, amber } = SIGNAL;
+  const offset = (Math.abs(Math.sin(node * 12.9898 + 4.1) * 43758.5453) % 1) * period;
+  const t = (((time + offset) % period) + period) % period - group * (green + amber);
+  return t >= 0 && t < green ? 'green' : t >= green && t < green + amber ? 'amber' : 'red';
+}
+
+const CAR = 4.8;                         // bumper to bumper (m)
+const IDM = { a: 1.4, b: 2.6, s0: 2.2, T: 1.1 };
+const DT = 1 / 30;
+/** Simulation warm-up: every state starts this long before the time it is asked for. */
+const WARM = 120;
+
+/**
+ * Cars on their loops, following the car ahead (intelligent driver model) and stopping for
+ * red and amber lights. Deterministic: the state at time t comes from starting evenly spaced
+ * at t - WARM and stepping a fixed 1/30 s, so a frozen time always renders the same; a
+ * running clock just keeps stepping. `at(time)` advances (or restarts, if time went back or
+ * jumped far) and interpolates between steps.
+ */
+export function createTrafficSim(lanes) {
+  const cars = lanes.map((lane) => ({
+    lane, n: lane.count,
+    s: new Float64Array(lane.count), prev: new Float64Array(lane.count),
+    v: new Float32Array(lane.count), acc: new Float32Array(lane.count),
+  }));
+  let now = -Infinity;
+  const reset = (t0) => {
+    for (const c of cars) {
+      for (let i = 0; i < c.n; i++) {
+        c.s[i] = c.prev[i] = (c.lane.phase + i / c.n) * c.lane.length;
+        c.v[i] = c.lane.speed; c.acc[i] = 0;
+      }
+    }
+    now = t0;
+  };
+  const idm = (v, v0, gap, dv) => {
+    const star = IDM.s0 + Math.max(0, v * IDM.T + (v * dv) / (2 * Math.sqrt(IDM.a * IDM.b)));
+    return IDM.a * (1 - (v / v0) ** 4 - (star / Math.max(gap, 0.1)) ** 2);
+  };
+  const step = (t) => {
+    for (const c of cars) {
+      const { lane, n, s, v, acc } = c, L = lane.length, stops = lane.stops ?? [];
+      for (let i = 0; i < n; i++) {
+        const j = (i + 1) % n;
+        const lead = n > 1 ? s[j] + (j === 0 ? L : 0) : s[i] + L;
+        let a = idm(v[i], lane.speed, lead - s[i] - CAR, v[i] - (n > 1 ? v[j] : 0));
+        if (stops.length) {
+          // Next stop line ahead of the front bumper.
+          const p = (((s[i] + CAR / 2) % L) + L) % L;
+          let lo = 0, hi = stops.length;
+          while (lo < hi) { const m = (lo + hi) >> 1; if (stops[m][0] <= p + 0.3) lo = m + 1; else hi = m; }
+          const st = stops[lo % stops.length];
+          const d = ((st[0] - p) % L + L) % L;
+          if (d < 70) {
+            const light = signalAt(st[1], st[2], t);
+            // Amber: stop only if there is room to stop comfortably.
+            if (light === 'red' || (light === 'amber' && d > (v[i] * v[i]) / (2 * IDM.b) + 1)) a = Math.min(a, idm(v[i], lane.speed, d, v[i]));
+          }
+        }
+        acc[i] = Math.max(a, -8);
+      }
+      for (let i = 0; i < n; i++) {
+        c.prev[i] = s[i];
+        v[i] = Math.max(0, v[i] + acc[i] * DT);
+        s[i] += v[i] * DT;
+      }
+    }
+  };
+  return {
+    lanes: cars,
+    /** Advance to `time`; returns the interpolation weight of the latest step. */
+    at(time) {
+      if (time < now - DT || time - now > 300) reset(time - WARM);
+      while (now < time) { step(now); now += DT; }
+      return 1 - (now - time) / DT;
+    },
+    /** Pose of car i on lane k (after `at`), and whether it is braking. */
+    pose(k, i, w) {
+      const c = cars[k];
+      const s = c.prev[i] + (c.s[i] - c.prev[i]) * w;
+      return { ...trafficPose(c.lane, s), brake: c.acc[i] < -0.6 || c.v[i] < 0.3 };
+    },
+  };
 }

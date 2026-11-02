@@ -1202,3 +1202,9 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 
 - Quiet band streets are lit now and the ring road and avenues carry shop signs over lit canopies; still much calmer than downtown, as intended. Blank side walls show along the ring where lots face cross streets.
 - Perf could not be confirmed on this change: the machine was in a slow state (every view ~32–40 ms, the previous commit equally slow back to back), so the number is environmental. Re-run `npm run perf` on an idle machine.
+
+### Junction signals
+
+- Queues form at junctions and brake lights glow red on the wet road behind waiting cars (`canyon` t=30). About a quarter of cars wait at a light at any moment; mean speed ~3 m/s.
+- No visible traffic-light heads yet: cars stop at invisible signals. Turning streams within one phase (left turn vs oncoming) can still cross in a junction.
+- Perf not confirmed: the machine's GPU was busy with the user's Chrome (GPU helper ~23 % CPU, WindowServer ~43 %), reading ~35 ms for every commit; CPU per frame unchanged at ~1 ms.

@@ -98,7 +98,8 @@ export interface Layout {
   /** [x, z, arm angle, road id] */
   lamps?: [number, number, number, number][];
   /** Closed ground-traffic loops through the street network (art/layouts/lib/traffic.mjs). */
-  traffic?: { roads: number[]; points: Vec2[]; length: number; count: number; speed: number; phase: number }[];
+  /** stops: [arc position of a stop line, junction id, signal phase] (lib/traffic.mjs). */
+  traffic?: { roads: number[]; points: Vec2[]; length: number; stops: [number, number, number][]; count: number; speed: number; phase: number }[];
   /** Closed flying-vehicle loops. */
   skyLanes?: { points: Vec3[]; closed: boolean; count: number; speed: number; direction: number }[];
   /** Street furniture (same shape as instances; always facade-shaded props). */
