@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { AssetLoader, getAsset } from '../assets/registry';
-import { buildFacadeBatch, type FacadeLod } from './buildings';
+import { buildFacadeBatch, buildMergedStatic, type FacadeLod } from './buildings';
 import { createVehicleMotion, planVehicles, type VehicleMotion } from './vehicles';
 import type { Layout, LayoutInstance } from './layout';
 
@@ -48,8 +48,10 @@ export async function buildInstances(layout: Layout, loader: AssetLoader, facade
     else missing.add(inst.asset);
   }
   for (const vehicle of layout.parked ?? []) if (getAsset(vehicle.asset)) facade.push(vehicle);
-  for (const prop of layout.props ?? []) if (getAsset(prop.asset)) facade.push(prop);
-  for (const tree of layout.trees ?? []) if (getAsset(tree.asset)) facade.push(tree);
+  // Street props and park trees: merged into one static draw (see buildMergedStatic).
+  const merged: LayoutInstance[] = [];
+  for (const prop of layout.props ?? []) if (getAsset(prop.asset)) merged.push(prop);
+  for (const tree of layout.trees ?? []) if (getAsset(tree.asset)) merged.push(tree);
   // Street lamps from the layout's lamp list.
   if (layout.lamps?.length && getAsset(LAMP)) {
     for (const [x, z, angle] of layout.lamps) facade.push({ asset: LAMP, position: [x, 0, z], rotationY: angle, scale: 1 });
@@ -72,6 +74,8 @@ export async function buildInstances(layout: Layout, loader: AssetLoader, facade
     lod = built.lod;
     if (built.dynamicIds.length) vehicles = createVehicleMotion(built.dynamicInstances, built.dynamicIds, plan);
   }
+  const mergedProps = await buildMergedStatic(merged, loader, facadeMaterial);
+  if (mergedProps) group.add(mergedProps);
 
   await Promise.all(
     [...byAsset].map(async ([id, list]) => {

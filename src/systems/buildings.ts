@@ -180,6 +180,28 @@ export async function buildFacadeBatch(
 }
 
 /** Merge every mesh of a glTF scene into one float, indexed geometry in scene space. */
+/**
+ * Small static facade-shaded instances (street props, park trees) merged into one geometry
+ * with their transforms baked in, drawn as a single-instance InstancedMesh so it shares the
+ * facade program. Ten prop types cost one draw instead of up to ten; the price is no
+ * per-instance culling (~120k triangles always submitted) and one shared instance seed (the
+ * seed-driven tint varies by position only through the world-space noise).
+ */
+export async function buildMergedStatic(instances: LayoutInstance[], loader: AssetLoader, material: THREE.Material): Promise<THREE.InstancedMesh | null> {
+  if (!instances.length) return null;
+  const ids = [...new Set(instances.map((i) => i.asset))];
+  const geometries = new Map<string, THREE.BufferGeometry>();
+  await Promise.all(ids.map(async (id) => geometries.set(id, flatten((await loader.load(getAsset(id)!)).scene))));
+  const parts = instances.map((i) => geometries.get(i.asset)!.clone().applyMatrix4(instanceMatrix(i)));
+  const merged = mergeGeometries(parts, false);
+  parts.forEach((p) => p.dispose());
+  merged.computeBoundingSphere();
+  const mesh = new THREE.InstancedMesh(merged, material, 1);
+  mesh.setMatrixAt(0, new THREE.Matrix4());
+  mesh.name = 'merged-props';
+  return mesh;
+}
+
 function flatten(root: THREE.Object3D): THREE.BufferGeometry {
   root.updateMatrixWorld(true);
   const parts: THREE.BufferGeometry[] = [];
