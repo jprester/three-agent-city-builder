@@ -219,6 +219,7 @@ async function main() {
     vehicles?.update(now);
     vehicles?.nearest(camera.position, groundUniforms.uCars.value);
     scene.userData.update?.(now);
+    if (rain) (rain.material as THREE.ShaderMaterial).uniforms.uViewportH.value = renderer.domElement.height;
     renderer.info.reset();
     // The reflection is half resolution and smeared: simplified buildings from 1/4 the distance.
     facadeLod?.update(camera, REFLECTION_LOD_BIAS * quality.lodDistanceScale, true);
