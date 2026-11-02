@@ -47,6 +47,8 @@ export function createRain(opts: RainOptions): THREE.Mesh {
       uSignMap: { value: opts.signMap },
       uLampRect: { value: opts.lampRect },
       uViewportH: { value: 1080 },
+      // Share of streaks falling (src/scene/night.ts rain waves), set per frame.
+      uAmount: { value: 1 },
     },
     vertexShader: /* glsl */ `
       attribute vec3 aSeed;
@@ -54,6 +56,7 @@ export function createRain(opts: RainOptions): THREE.Mesh {
       uniform vec3 uBox;
       uniform vec2 uWind;
       uniform float uViewportH;
+      uniform float uAmount;
       varying vec2 vUv;
       varying vec3 vWorld;
       varying float vFade;
@@ -82,7 +85,7 @@ export function createRain(opts: RainOptions): THREE.Mesh {
         vUv = position.xy;
         // Fade at the volume's edges and right in front of the lens.
         vec3 e = abs(rel) / (box * 0.5);
-        vFade = (1.0 - smoothstep(0.7, 1.0, max(max(e.x, e.y), e.z))) * smoothstep(3.5, 8.0, length(rel));
+        vFade = (1.0 - smoothstep(0.7, 1.0, max(max(e.x, e.y), e.z))) * smoothstep(3.5, 8.0, length(rel)) * step(aSeed.y, uAmount);
         gl_Position = projectionMatrix * viewMatrix * vec4(world, 1.0);
       }`,
     fragmentShader: /* glsl */ `

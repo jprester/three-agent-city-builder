@@ -14,6 +14,8 @@ export interface GroundUniforms {
   uTime: { value: number };
   /** Nearest road vehicles to the camera: x, z, heading sin, cos (length 2 = braking; zero = none). */
   uCars: { value: THREE.Vector4[] };
+  /** Rain strength (src/scene/night.ts): puddle ripples follow it. */
+  uRain: { value: number };
 }
 
 /** Vehicles whose headlights light the road (nearest to the camera; see src/systems/vehicles.ts). */
@@ -51,6 +53,7 @@ uniform float uWet;
 uniform sampler2D uSignMap;
 uniform float uTime;
 uniform vec4 uCars[${CAR_LIGHTS}];
+uniform float uRain;
 varying vec3 vGWorld;
 float gHash(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 float gNoise(vec2 p) {
@@ -83,7 +86,7 @@ vec2 gCell = floor(vGWorld.xz / 0.7);
 vec2 gOff = vec2(gHash(gCell), gHash(gCell + 5.1)) * 0.5 + 0.1;
 float gPh = fract(uTime * 1.1 + gHash(gCell + 9.7));
 float gD = length(vGWorld.xz - (gCell + gOff) * 0.7);
-float gRing = exp(-pow((gD - gPh * 0.3) / 0.018, 2.0)) * (1.0 - gPh) * gPuddle;
+float gRing = exp(-pow((gD - gPh * 0.3) / 0.018, 2.0)) * (1.0 - gPh) * gPuddle * step(gHash(gCell + 2.9), uRain);
 gRing *= 1.0 - smoothstep(0.02, 0.08, length(fwidth(vGWorld.xz)));   // gone before it aliases
 gRuv += gRing * 0.012;
 gRuv += gN * vec2(mix(0.003, 0.0012, gPuddle), mix(0.012, 0.003, gPuddle));
@@ -153,6 +156,7 @@ export function createGroundUniforms(lampRect: { value: THREE.Vector4 }): Ground
     uSignMap: { value: null },
     uTime: { value: 0 },
     uCars: { value: Array.from({ length: CAR_LIGHTS }, () => new THREE.Vector4()) },
+    uRain: { value: 1 },
   };
 }
 

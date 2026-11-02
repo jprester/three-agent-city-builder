@@ -1219,3 +1219,7 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 - Signal heads read clearly at junctions and switch red/amber/green in step with the queues; amber blooms nearly white.
 - Walkers under black and clear umbrellas fill the downtown sidewalks; blocky up close (box bodies, no walk cycle beyond a bob) but right at the distances the cameras see them. They pass through bins, kiosks and each other.
 - Perf (idle machine, 1440×900 @2x high): canyon 9.8 ms GPU (was 9.3), storefront 11.3 ms (was 8.6); CPU ~1.5 ms.
+
+### Over the night
+
+- Ten minutes in, the skyline is visibly sparser (whole floors dark on the photo towers, fewer residential windows), small shops have their shutters down while convenience stores glow; rain thins and returns in waves. Windows switch off individually (a light going out), not as a fade.

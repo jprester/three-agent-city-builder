@@ -24,6 +24,8 @@ import { SIGNAL } from '../../art/layouts/lib/traffic.mjs';
  */
 export interface FacadeUniforms {
   uTime: { value: number };
+  /** How late it is (src/scene/night.ts): lit windows and small shops switch off as it rises. */
+  uNight: { value: number };
   /** Layout seed: all window randomness derives from it plus the instance position. */
   uSeed: { value: number };
   /** Top-down street-light intensity (see src/scene/lampmap.ts). */
@@ -200,6 +202,7 @@ vFNormal = normalize(mat3(modelMatrix) * vFNormal);
 const FRAGMENT_PARS = /* glsl */ `
 ${DEFINES}
 uniform float uTime;
+uniform float uNight;
 uniform sampler2D uLampMap;
 uniform vec4 uLampRect;
 uniform float uWindowGain;
@@ -413,7 +416,7 @@ float ceilingBand(float q) {
 vec3 cellLight(int type, vec2 cid, float fill, float seed) {
   float s = seed * 97.13;
   if (openCol(fill, cid.x) < 0.5) return vec3(0.0);
-  float litRatio = mix(fLitRange.x, fLitRange.y, fract(seed * 7.31));
+  float litRatio = mix(fLitRange.x, fLitRange.y, fract(seed * 7.31)) * mix(1.0, 0.55, uNight);
   if (type == T_OFFICE || type == T_CURTAIN) {
     litRatio *= type == T_CURTAIN ? fOffice.x : 0.5;
     float floorOn = fHash(vec2(cid.y, floor(cid.x / 7.0) + s + 3.1));
@@ -485,7 +488,7 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
 
   float s = seed * 97.13;
   float present = openCol(fill, cid.x);
-  float litRatio = mix(fLitRange.x, fLitRange.y, fract(seed * 7.31));
+  float litRatio = mix(fLitRange.x, fLitRange.y, fract(seed * 7.31)) * mix(1.0, 0.55, uNight);
   float baseRatio = litRatio;
   if (type == T_OFFICE || type == T_CURTAIN) {
     litRatio *= type == T_CURTAIN ? fOffice.x : 0.5;
@@ -711,7 +714,8 @@ if (fType == T_ATLAS) {
   float floorId = floor(L.y / Dm.x);
   // Not every floor is occupied: dark floors, then a slower per-bay variation so a whole
   // facade does not pulse as one sheet. Both fade to their mean before they alias.
-  float floorLit = mix(0.35, 1.2, fHash(vec2(floorId, fSeed * 31.0))) * step(0.33, fHash(vec2(floorId, fSeed * 13.0 + 2.0)));
+  // Late at night (uNight) more floors go dark.
+  float floorLit = mix(0.35, 1.2, fHash(vec2(floorId, fSeed * 31.0))) * step(0.33 + 0.4 * uNight, fHash(vec2(floorId, fSeed * 13.0 + 2.0)));
   float bayId = floor(L.x / Dm.y);
   float bayVar = mix(0.68, 1.18, fHash(vec2(bayId, fSeed * 23.0 + 7.0)));
   float bayM = max(Dm.y / perM, 0.1);
@@ -784,7 +788,7 @@ if (fType == T_ATLAS) {
   int shopCard = min(int(fHash(vec2(sid, s + 8.2)) * float(${SHOP_SET.tiles.length})), ${SHOP_SET.tiles.length - 1});
   int tenantKind = shopCard % 3;
   // The scene is late at night: convenience stores stay open; workshops mostly close.
-  float openShare = tenantKind == 0 ? 0.9 : tenantKind == 1 ? 0.65 : 0.3;
+  float openShare = tenantKind == 0 ? 0.9 : (tenantKind == 1 ? 0.65 : 0.3) * mix(1.0, 0.5, uNight);
   float open = step(fHash(vec2(sid, s + 1.3)), openShare) * present;
   float hCol = fHash(vec2(sid, s + 2.1));
   vec3 shopCol = hCol < 0.5 ? P_FLUORESCENT : hCol < 0.85 ? P_TUNGSTEN : mix(P_FLUORESCENT, P_TV, 0.5);
@@ -998,6 +1002,7 @@ export function createFacadeUniforms(time: { value: number }, seed: number, text
   const t = textures;
   return {
     uTime: time,
+    uNight: { value: 0 },
     uSeed: { value: seed },
     uLampMap: { value: null },
     uLampRect: { value: new THREE.Vector4(0, 0, 1, 1) },

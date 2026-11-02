@@ -6,7 +6,7 @@ import { applyViewpoint } from './debug/viewpoints';
 import { createFacadeMaterial, createFacadeUniforms } from './materials/facade';
 import { loadFacadeTextures } from './materials/textures';
 import { createGroundUniforms } from './materials/ground';
-import { createRenderer, createScene } from './scene/environment';
+import { FOG_DENSITY, createRenderer, createScene } from './scene/environment';
 import { captureCityEnvironment, captureGlassEnvironment } from './scene/environment-map';
 import { createLampMap, createSignLightMap } from './scene/lampmap';
 import { CityHazeEffect } from './scene/haze';
@@ -25,6 +25,7 @@ import { FlythroughPath } from './systems/flythrough';
 import type { FacadeLod } from './systems/buildings';
 import { buildInstances } from './systems/instancing';
 import type { VehicleMotion } from './systems/vehicles';
+import { nightAt } from './scene/night';
 import { fetchLayout, generateLayout, type Layout } from './systems/layout';
 import { isQualityName, QUALITY_PRESETS } from './systems/quality';
 import { createWalkSurface } from './systems/walk';
@@ -220,6 +221,12 @@ async function main() {
     vehicles?.nearest(camera.position, groundUniforms.uCars.value);
     scene.userData.update?.(now);
     if (rain) (rain.material as THREE.ShaderMaterial).uniforms.uViewportH.value = renderer.domElement.height;
+    // Slow changes over the night: windows and shops switch off, rain comes in waves, fog breathes.
+    const n = nightAt(now);
+    facadeUniforms.uNight.value = n.night;
+    groundUniforms.uRain.value = n.rain;
+    if (rain) (rain.material as THREE.ShaderMaterial).uniforms.uAmount.value = n.rain;
+    (scene.fog as THREE.FogExp2).density = FOG_DENSITY * n.fog;
     renderer.info.reset();
     // The reflection is half resolution and smeared: simplified buildings from 1/4 the distance.
     facadeLod?.update(camera, REFLECTION_LOD_BIAS * quality.lodDistanceScale, true);
