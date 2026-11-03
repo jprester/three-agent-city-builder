@@ -21,7 +21,6 @@
     "lattice_width": 0.32,
     "scalable": false,
     "landmark": true,
-    "crown_signs": false,
-    "crown_wash": 0
+    "crown_signs": false
   }
 }

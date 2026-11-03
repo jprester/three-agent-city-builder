@@ -1223,9 +1223,3 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 ### Over the night
 
 - Ten minutes in, the skyline is visibly sparser (whole floors dark on the photo towers, fewer residential windows), small shops have their shutters down while convenience stores glow; rain thins and returns in waves. Windows switch off individually (a light going out), not as a fade.
-
-### Lit crowns and tower window variety (2026-11-03)
-
-- Downtown now has an outline at night: about half the photographic towers carry a white or warm floodlit crown, or a top that stays fully lit, visible from `aerial`, `skyline-wide` and `harbor`. Below, towers differ: some busy, some nearly dark, with white open-plan floor bands and floors lit only in segments (`tower-detail`).
-- Weak: the lantern crowns read as smooth milky slabs up close (mullions show only when near); the band has no brighter top edge or uplight gradient like the reference. Open-plan floors are an even flat white with no ceiling-panel structure. Residential towers and glass skins are unchanged.
-- Perf (1440×900 @2x high): canyon 10.3 ms GPU, storefront 9.3, aerial 11.0, harbor 8.0, fly-75 10.2; same draw calls and programs as before.

@@ -22,7 +22,6 @@
     "rib_spacing": 7,
     "scalable": false,
     "landmark": true,
-    "crown_signs": false,
-    "crown_wash": 0
+    "crown_signs": false
   }
 }

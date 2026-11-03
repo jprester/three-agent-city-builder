@@ -715,12 +715,7 @@ if (fType == T_ATLAS) {
   // Not every floor is occupied: dark floors, then a slower per-bay variation so a whole
   // facade does not pulse as one sheet. Both fade to their mean before they alias.
   // Late at night (uNight) more floors go dark.
-  // Per-building occupancy: some towers are busy late, some nearly empty (Marunouchi at
-  // night: neighbours range from mostly lit to a few floors).
-  float busy = fract(fSeed * 6.37 + 0.11);
-  // Centred lower than before (0.33): part-let floors already take away ~20 % of the light.
-  float darkShare = clamp(0.24 + 0.4 * uNight + (0.5 - busy) * 0.5, 0.03, 0.92);
-  float floorLit = mix(0.35, 1.2, fHash(vec2(floorId, fSeed * 31.0))) * step(darkShare, fHash(vec2(floorId, fSeed * 13.0 + 2.0)));
+  float floorLit = mix(0.35, 1.2, fHash(vec2(floorId, fSeed * 31.0))) * step(0.33 + 0.4 * uNight, fHash(vec2(floorId, fSeed * 13.0 + 2.0)));
   float bayId = floor(L.x / Dm.y);
   float bayVar = mix(0.68, 1.18, fHash(vec2(bayId, fSeed * 23.0 + 7.0)));
   float bayM = max(Dm.y / perM, 0.1);
@@ -732,61 +727,16 @@ if (fType == T_ATLAS) {
   float groupId = floor(floorId / groupSize);
   float groupOn = step(0.22, fHash(vec2(groupId, fSeed * 43.0 + 7.0)));
   float group = mix(0.12, 1.0, groupOn);
-  // Part-let floors: in some tenant groups only runs of bays are lit (one office of several
-  // on the floor), so lit floors break into segments instead of full-width stripes.
-  float runLen = mix(4.0, 9.0, fHash(vec2(groupId, fSeed * 5.0 + 1.3)));
-  float partial = step(0.55, fHash(vec2(groupId, fSeed * 61.0 + 3.0)));
-  float runOn = step(0.45, fHash(vec2(floor(bayId / runLen), floorId * 0.37 + groupId + fSeed * 17.0)));
-  float run = mix(1.0, runOn, partial);
-  run = mix(run, mix(1.0, 0.55, partial), smoothstep(0.2, 0.6, fFw.x / (bayM * runLen)));
-  // Far mean: groups 0.78, runs ~0.8 (45 % of groups part-let, half their runs lit).
-  floorLit *= mix(group * run, 0.63, smoothstep(0.35, 0.9, fFw.y / floorM));
-  // Tenant light colour: each floor group picks a tone (cool LED, neutral, warm, a rare
-  // greenish fluorescent), weighted per building so some towers read cool and some warm.
-  float hTone = fHash(vec2(groupId, fSeed * 71.0 + 5.0));
-  float coolBias = fract(fSeed * 4.13 + 0.7);
-  vec3 tone = hTone < coolBias * 0.7 ? vec3(0.86, 0.97, 1.18)
-            : hTone < 0.82 ? vec3(1.0)
-            : hTone < 0.95 ? vec3(1.14, 0.96, 0.74)
-            : vec3(0.9, 1.08, 0.92);
-  // Far away the groups blend, but the building keeps its overall lean.
-  vec3 meanTone = mix(vec3(1.0), vec3(0.86, 0.97, 1.18), coolBias * 0.5);
-  tone = mix(tone, meanTone, smoothstep(0.35, 0.9, fFw.y / (floorM * groupSize)));
-  // Crown band (tower.py "crown_wash", atlas fill 0.5): on about half the towers it is
-  // floodlit (white lantern, warm lantern, or simply every floor lit), and it stays on
-  // all night while offices below go dark.
-  float washPick = fract(fSeed * 17.13 + 0.37);
-  int wash = fFill > 0.75 ? 0 : washPick < 0.22 ? 1 : washPick < 0.34 ? 2 : washPick < 0.5 ? 3 : 0;
-  if (wash > 0) {
-    floorLit = mix(1.05, 1.25, fHash(vec2(floorId, fSeed * 31.0)));
-    bayVar = 1.0;
-    tone = wash == 2 ? vec3(1.18, 0.92, 0.66) : vec3(0.92, 0.98, 1.12);
-  }
-  float glassAmt = 1.0 - smoothstep(0.3, 0.6, dr.a);
-  fEmit = em * 2.1 * floorLit * bayVar * tone;
-  // Open-plan floors: in some lit tenant groups the whole floor is lit behind the glass
-  // (ceiling panels seen through every pane), the bright white bands of office towers at
-  // night, instead of one lamp per window.
-  float openPlan = step(0.62, fHash(vec2(groupId, fSeed * 29.0 + 11.0))) * groupOn;
-  openPlan = mix(openPlan, 0.3, smoothstep(0.35, 0.9, fFw.y / (floorM * groupSize)));
-  if (wash == 3) openPlan = 1.0;
-  fEmit += glassAmt * openPlan * floorLit * run * tone * OFFICE_WHITE * 0.32;
+  floorLit *= mix(group, 0.78, smoothstep(0.35, 0.9, fFw.y / floorM));
+  fEmit = em * 2.1 * floorLit * bayVar;
   // Spill: the emissive map blurred over ~a bay lights the frames and spandrels around windows.
   vec4 drB; vec3 emB, nmB;
   towerSample(bundle, auv, dFdx(L) + vec2(Dm.y * 0.8, 0.0), dFdy(L) + vec2(0.0, Dm.x * 0.8), drB, emB, nmB);
-  fWallLight += emB * floorLit * 0.6 * tone;
-  if (wash == 1 || wash == 2) {
-    // Lantern: the whole crown glows (lit louvres / a backlit screen) behind darker
-    // mullions at every bay, which keep it reading as architecture rather than a blank box.
-    vec3 washCol = (wash == 2 ? mix(P_TUNGSTEN, OFFICE_WHITE, 0.35) : OFFICE_WHITE) * tone;
-    float bx = fract(L.x / Dm.y) * bayM;
-    float mullion = 1.0 - fBox(bx, 0.0, 0.18, fFw.x) - fBox(bx, bayM - 0.18, bayM, fFw.x);
-    mullion = mix(mullion, 1.0 - 0.36 / bayM, smoothstep(0.1, 0.3, fFw.x / 0.36));
-    fEmit = mix(fEmit, washCol * (0.5 + 0.6 * dot(em, vec3(0.333))), 0.75) * mix(0.25, 1.0, mullion);
-  }
+  fWallLight += emB * floorLit * 0.6;
   vec3 n = nm * 2.0 - 1.0;
   fNormalW = normalize(fT * n.x + fB * n.y + normalize(vFNormal) * max(n.z, 0.2));
   // Glass reflects the city, rippled by the pane normals (see glassReflection).
+  float glassAmt = 1.0 - smoothstep(0.3, 0.6, dr.a);
   fEmit += glassAmt * glassReflection(fV, fNormalW, fVt.z, fRough, fEmit, 0.18, vFWorld, 0.0);
 } else if (fType == T_RES || fType == T_OFFICE || fType == T_CURTAIN || fType == T_CAGE) {
   vec3 wEmit, filteredEmit, avgEmit, wSpill, wAvgSpill; float wMask, wFrame, wFrac, wAround, filteredMask;
