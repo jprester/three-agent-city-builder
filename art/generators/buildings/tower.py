@@ -17,6 +17,8 @@ Accents (param "accent"): "corners" (LED strips on every tier's vertical edges) 
 (facade.json fixture_colors); "accent_top_only" limits them to the top tier. "screen": a video screen on the lowest tier's front,
 covering that fraction of the face width (unused by current defs: the layout's vertical
 scaling would stretch it; tower billboards come from the layout's sign zones). Every crown gets red aviation lights.
+The top "crown_wash" floors (default 3; 0 = none) are the crown band: atlas fill 0.5, which
+the facade shader floodlights on a share of buildings.
 
 Landmarks: `scalable: false` keeps the generated height (the layout stops stretching it),
 `landmark: true` reserves it for the layout's rare landmark placement, and
@@ -57,7 +59,14 @@ def generate(ctx):
         h = max(ch, round(frac * shaft / ch) * ch)
         # [z0, z1, setback of this tier's walls from the footprint edge] for sign placement.
         tier_meta.append([round(z, 3), round(z + h, 3), round(inset * cw, 3)])
-        walls(mb, ctx, w, d, z, z + h, z, [("atlas", 1.0, tint)] * 4)
+        # The top floors of the last tier are the crown band (atlas fill 0.5): the facade
+        # shader floodlights it on some buildings (white or warm), like Marunouchi's crowns.
+        wash = min(ctx.p("crown_wash", 3) * ch, h * 0.4) if ti == len(tiers) - 1 else 0.0
+        if wash > 0.0:
+            walls(mb, ctx, w, d, z, z + h - wash, z, [("atlas", 1.0, tint)] * 4)
+            walls(mb, ctx, w, d, z + h - wash, z + h, z, [("atlas", 0.5, tint)] * 4)
+        else:
+            walls(mb, ctx, w, d, z, z + h, z, [("atlas", 1.0, tint)] * 4)
         if ctx.p("exoskeleton", False):
             tower_exoskeleton(mb, ctx, w, d, z, z + h, tint)
         elif ctx.p("structural_ribs", False):
