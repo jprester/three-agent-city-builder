@@ -17,6 +17,7 @@
     "shots": "playwright test --project=chromium",
     "shots:all": "SHOTS=all playwright test --project=chromium",
     "perf": "playwright test --project=perf",
+    "smoke": "playwright test --project=smoke",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check": "npm run typecheck && npm run budgets && npm run coplanar",

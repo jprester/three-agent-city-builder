@@ -25,6 +25,17 @@ export default defineConfig({
       },
     },
     {
+      // `npm run smoke`: every viewpoint, no screenshots (tests/smoke/smoke.spec.ts).
+      name: 'smoke',
+      testMatch: '**/smoke/*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1280, height: 720 },
+        deviceScaleFactor: 1,
+        launchOptions: { args: GPU },
+      },
+    },
+    {
       // `npm run perf`: real-GPU timings at laptop resolution (tests/perf/perf.spec.ts).
       name: 'perf',
       testMatch: '**/perf/*.spec.ts',
