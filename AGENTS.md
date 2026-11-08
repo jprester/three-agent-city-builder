@@ -37,6 +37,9 @@ binary in `public/` is regenerated from them.
 - `npm run perf` (~30 s) measures real GPU and CPU time per frame and GPU memory at 1440×900 @2x,
   high quality, for 5 viewpoints; writes `build/perf/report.json`. `PERF_VIEWS`, `PERF_DPR`,
   `PERF_QUALITY` override. Run it after changes that add geometry, passes or shader work.
+  It fixes the device pixel ratio (`?dynres=0`), so it measures the preset, not adaptive
+  resolution, and it is only meaningful on an idle GPU: close any other tab running the scene
+  first, or every viewpoint reads ~3x slower and looks like a regression.
 - `npm run check` typechecks, enforces budgets and runs `npm run coplanar` (z-fighting scan of
   every GLB: coplanar overlapping faces flicker as the camera moves). Must pass before every commit.
 

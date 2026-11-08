@@ -32,7 +32,7 @@ export type QualityName = 'low' | 'med' | 'high';
 export const QUALITY_PRESETS: Record<QualityName, QualityPreset> = {
   low: { name: 'low', pixelRatio: 1, minPixelRatio: 0.6, reflectionScale: 0.25, reflectBuildings: false, bloomLevels: 3, smaa: false, rainCount: 4000, lodDistanceScale: 0.5, vehicleDensity: 0.35, hazeSteps: 8 },
   med: { name: 'med', pixelRatio: 1.25, minPixelRatio: 0.75, reflectionScale: 0.25, reflectBuildings: true, bloomLevels: 6, smaa: true, rainCount: 9000, lodDistanceScale: 0.75, vehicleDensity: 0.65, hazeSteps: 10 },
-  high: { name: 'high', pixelRatio: 1.5, minPixelRatio: 0.85, reflectionScale: 0.5, reflectBuildings: true, bloomLevels: 8, smaa: true, rainCount: 20000, lodDistanceScale: 1, vehicleDensity: 1, hazeSteps: 12 },
+  high: { name: 'high', pixelRatio: 1.5, minPixelRatio: 0.7, reflectionScale: 0.25, reflectBuildings: true, bloomLevels: 8, smaa: true, rainCount: 20000, lodDistanceScale: 1, vehicleDensity: 1, hazeSteps: 12 },
 };
 
 export function isQualityName(value: string): value is QualityName {
