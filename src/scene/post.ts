@@ -160,7 +160,7 @@ export interface Post {
  * quality preset turns it off).
  * Half-float buffers throughout. Only one convolution effect per pass, hence three passes.
  */
-export function createPost(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, quality: QualityPreset, haze?: Effect, gradeName: GradeName = 'default'): Post {
+export function createPost(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, quality: QualityPreset, haze?: Effect, gradeName: GradeName = 'filmic'): Post {
   renderer.toneMapping = THREE.NoToneMapping;
   const composer = new EffectComposer(renderer, { frameBufferType: THREE.HalfFloatType });
   composer.addPass(new RenderPass(scene, camera));

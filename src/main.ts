@@ -71,9 +71,9 @@ async function main() {
   if (!isQualityName(qualityParam)) problems.push(`?quality= must be low, med or high, got "${qualityParam}"; using high.`);
   const quality = QUALITY_PRESETS[isQualityName(qualityParam) ? qualityParam : 'high'];
 
-  const gradeParam = params.get('grade') ?? 'default';
-  if (!isGradeName(gradeParam)) problems.push(`?grade= must be default or filmic, got "${gradeParam}"; using default.`);
-  const grade = isGradeName(gradeParam) ? gradeParam : 'default';
+  const gradeParam = params.get('grade') ?? 'filmic';
+  if (!isGradeName(gradeParam)) problems.push(`?grade= must be default or filmic, got "${gradeParam}"; using filmic.`);
+  const grade = isGradeName(gradeParam) ? gradeParam : 'filmic';
 
   let frozenAt = parseFrozenTime(params.get('t'));
   if (Number.isNaN(frozenAt)) {
