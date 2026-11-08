@@ -26,7 +26,8 @@ binary in `public/` is regenerated from them.
 - `npm run assets -- --force` ignores the cache.
 - `npm run layouts` regenerates layouts and manifest only (no Blender).
 - `npm run dev` starts the app. URL params: `?layout=<id>`, `?viewpoint=<name>`,
-  `?seed=<int>` (regenerates the layout in the browser with that seed).
+  `?seed=<int>` (regenerates the layout in the browser with that seed), `?quality=` and
+  `?grade=default|filmic` (the final colour grade; filmic is the deeper-shadow variant).
 - `npm run shots` smoke test (~15 s, real GPU): loads 3 viewpoints, saves screenshots to
   `build/shots/`, fails only on browser errors, a blank frame, scene budgets or frame time.
   `npm run shots:all` (~1 min) covers every viewpoint; `SHOTS=canyon,glass` picks some;

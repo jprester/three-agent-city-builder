@@ -11,7 +11,7 @@ import { captureCityEnvironment, captureGlassEnvironment } from './scene/environ
 import { createLampMap, createSignLightMap } from './scene/lampmap';
 import { CityHazeEffect } from './scene/haze';
 import { DynamicResolution } from './systems/dynamic-resolution';
-import { createPost } from './scene/post';
+import { createPost, isGradeName } from './scene/post';
 import { PlanarReflection } from './scene/reflection';
 import { createStreets } from './scene/streets';
 import { createRain } from './scene/rain';
@@ -70,6 +70,10 @@ async function main() {
   const qualityParam = params.get('quality') ?? 'high';
   if (!isQualityName(qualityParam)) problems.push(`?quality= must be low, med or high, got "${qualityParam}"; using high.`);
   const quality = QUALITY_PRESETS[isQualityName(qualityParam) ? qualityParam : 'high'];
+
+  const gradeParam = params.get('grade') ?? 'default';
+  if (!isGradeName(gradeParam)) problems.push(`?grade= must be default or filmic, got "${gradeParam}"; using default.`);
+  const grade = isGradeName(gradeParam) ? gradeParam : 'default';
 
   let frozenAt = parseFrozenTime(params.get('t'));
   if (Number.isNaN(frozenAt)) {
@@ -182,7 +186,7 @@ async function main() {
   facadeUniforms.uGlassOn.value = 1;
 
   const haze = lamps ? new CityHazeEffect(camera, lamps.texture, signMap, lamps.rect, clock.uniform, quality.hazeSteps) : undefined;
-  const post = createPost(renderer, scene, camera, quality, haze);
+  const post = createPost(renderer, scene, camera, quality, haze, grade);
   const size = renderer.getDrawingBufferSize(new THREE.Vector2());
   reflection.setSize(size.x, size.y);
   await post.ready;

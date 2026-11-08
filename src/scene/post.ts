@@ -13,6 +13,9 @@ export interface GradeSettings {
   contrast: number;
   highlightDesat: number;
   lift: number;
+  /** Split-curve gamma below / above 0.5 display grey. 1 / 1 is a straight line. */
+  shadowCurve: number;
+  highCurve: number;
 }
 
 /**
@@ -28,7 +31,29 @@ const DEFAULT_GRADE: GradeSettings = {
   contrast: 1.0,
   highlightDesat: 0.14,
   lift: 0.01,
+  shadowCurve: 1.0,
+  highCurve: 1.0,
 };
+
+/**
+ * `?grade=filmic`: deeper shadows and a warmer top end than the default, from a split-curve
+ * gamma instead of a contrast pivot. Chosen from a four-way A/B/C grade study over the
+ * baseline frames: it darkened the aerial's sky behind the city without crushing it, where a
+ * stronger "neon noir" grade ate the horizon haze.
+ */
+const FILMIC_GRADE: GradeSettings = {
+  exposure: 1.05,
+  saturation: 0.94,
+  contrast: 1.0,
+  highlightDesat: 0.1,
+  lift: 0.018,
+  shadowCurve: 1.22,
+  highCurve: 0.92,
+};
+
+export const GRADE_PRESETS = { default: DEFAULT_GRADE, filmic: FILMIC_GRADE };
+export type GradeName = keyof typeof GRADE_PRESETS;
+export const isGradeName = (value: string): value is GradeName => value in GRADE_PRESETS;
 
 class NightGradeEffect extends Effect {
   readonly settings: GradeSettings;
@@ -37,20 +62,25 @@ class NightGradeEffect extends Effect {
   private readonly uContrast: THREE.Uniform;
   private readonly uHighlightDesat: THREE.Uniform;
   private readonly uLift: THREE.Uniform;
+  private readonly uShadowCurve: THREE.Uniform;
+  private readonly uHighCurve: THREE.Uniform;
 
-  constructor() {
-    const settings = { ...DEFAULT_GRADE };
+  constructor(preset: GradeSettings = DEFAULT_GRADE) {
+    const settings = { ...preset };
     const uniforms = {
       uExposure: new THREE.Uniform(settings.exposure),
       uSaturation: new THREE.Uniform(settings.saturation),
       uContrast: new THREE.Uniform(settings.contrast),
       uHighlightDesat: new THREE.Uniform(settings.highlightDesat),
       uLift: new THREE.Uniform(settings.lift),
+      uShadowCurve: new THREE.Uniform(settings.shadowCurve),
+      uHighCurve: new THREE.Uniform(settings.highCurve),
       uShadowTint: new THREE.Uniform(new THREE.Color(1, 1, 1).lerp(new THREE.Color(palette.tv_blue), 0.1)),
       uHighTint: new THREE.Uniform(new THREE.Color(1, 1, 1).lerp(new THREE.Color(palette.tungsten), 0.14)),
     };
     super('NightGradeEffect', /* glsl */ `
       uniform float uExposure, uSaturation, uContrast, uHighlightDesat, uLift;
+      uniform float uShadowCurve, uHighCurve;
       uniform vec3 uShadowTint, uHighTint;
       // Grade in display space, not linear: a contrast pivot at 0.18 linear would crush
       // every shadow below middle grey to black. The final pass encodes linear to sRGB.
@@ -60,8 +90,15 @@ class NightGradeEffect extends Effect {
       vec3 toLinear(vec3 c) {
         return mix(pow((c + 0.055) / 1.055, vec3(2.4)), c / 12.92, lessThanEqual(c, vec3(0.04045)));
       }
+      // Split curve around mid grey: gamma below, gamma above. 1/1 is the identity, so the
+      // default grade pays nothing for the branch that filmic uses.
+      vec3 splitCurve(vec3 c) {
+        vec3 lo = 0.5 * pow(clamp(c * 2.0, 0.0, 1.0), vec3(uShadowCurve));
+        vec3 hi = 1.0 - 0.5 * pow(clamp((1.0 - c) * 2.0, 0.0, 1.0), vec3(uHighCurve));
+        return mix(lo, hi, step(vec3(0.5), c));
+      }
       void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
-        vec3 c = toSRGB(max(inputColor.rgb * uExposure, 0.0));
+        vec3 c = splitCurve(toSRGB(max(inputColor.rgb * uExposure, 0.0)));
         float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
         float shadow = 1.0 - smoothstep(0.0, 0.35, l);
         float high = smoothstep(0.45, 0.95, l);
@@ -80,6 +117,8 @@ class NightGradeEffect extends Effect {
         ['uContrast', uniforms.uContrast],
         ['uHighlightDesat', uniforms.uHighlightDesat],
         ['uLift', uniforms.uLift],
+        ['uShadowCurve', uniforms.uShadowCurve],
+        ['uHighCurve', uniforms.uHighCurve],
         ['uShadowTint', uniforms.uShadowTint],
         ['uHighTint', uniforms.uHighTint],
       ]),
@@ -90,6 +129,8 @@ class NightGradeEffect extends Effect {
     this.uContrast = uniforms.uContrast;
     this.uHighlightDesat = uniforms.uHighlightDesat;
     this.uLift = uniforms.uLift;
+    this.uShadowCurve = uniforms.uShadowCurve;
+    this.uHighCurve = uniforms.uHighCurve;
   }
 
   /** Push the live settings into the shader uniforms (called by the debug panel). */
@@ -99,6 +140,8 @@ class NightGradeEffect extends Effect {
     this.uContrast.value = this.settings.contrast;
     this.uHighlightDesat.value = this.settings.highlightDesat;
     this.uLift.value = this.settings.lift;
+    this.uShadowCurve.value = this.settings.shadowCurve;
+    this.uHighCurve.value = this.settings.highCurve;
   }
 }
 
@@ -117,7 +160,7 @@ export interface Post {
  * quality preset turns it off).
  * Half-float buffers throughout. Only one convolution effect per pass, hence three passes.
  */
-export function createPost(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, quality: QualityPreset, haze?: Effect): Post {
+export function createPost(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, quality: QualityPreset, haze?: Effect, gradeName: GradeName = 'default'): Post {
   renderer.toneMapping = THREE.NoToneMapping;
   const composer = new EffectComposer(renderer, { frameBufferType: THREE.HalfFloatType });
   composer.addPass(new RenderPass(scene, camera));
@@ -135,7 +178,7 @@ export function createPost(renderer: THREE.WebGLRenderer, scene: THREE.Scene, ca
   composer.addPass(new EffectPass(camera, bloom));
 
   const toneMapping = new ToneMappingEffect({ mode: ToneMappingMode.AGX });
-  const grade = new NightGradeEffect();
+  const grade = new NightGradeEffect(GRADE_PRESETS[gradeName]);
   const vignette = new VignetteEffect({ offset: 0.3, darkness: 0.55 });
   const grain = new NoiseEffect({ blendFunction: BlendFunction.OVERLAY, premultiply: false });
   grain.blendMode.opacity.value = 0.06;
