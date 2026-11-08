@@ -68,7 +68,7 @@ const DEFAULTS = {
   landmarks: { count: 3, spacing: 80 },
   // Pedestrians: a loop down the middle of each downtown block's sidewalk (`inset` × the
   // edge's sidewalk width from the curb), one walker per `spacing` meters by district.
-  walkers: { inset: 0.5, spacing: { core: 12, towers: 20 } },
+  walkers: { inset: 0.5, spacing: { core: 5, towers: 8 } },
   // Buildings on the island blocks outside the city, on lots about `lot` meters wide;
   // `lotGap` leaves yards; the mix goes from `near` (city) to `far` (waterfront).
   fringe: {
