@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const PORT = 5199;
+const NEXT_PORT = 5183;
 /** Real GPU by default (fast, and frame times mean something); SWIFTSHADER=1 for machines without one. */
 const GPU = process.env.SWIFTSHADER
   ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist']
@@ -36,15 +37,21 @@ export default defineConfig({
       },
     },
     {
+      // `npm run next:shots`: the fresh slice (next/tests/slice.spec.ts), at laptop resolution.
+      name: 'next',
+      testDir: 'next/tests',
+      testMatch: '**/*.spec.ts',
+      use: { ...devices['Desktop Chrome'], baseURL: `http://localhost:${NEXT_PORT}`, viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2, launchOptions: { args: GPU } },
+    },
+    {
       // `npm run perf`: real-GPU timings at laptop resolution (tests/perf/perf.spec.ts).
       name: 'perf',
       testMatch: '**/perf/*.spec.ts',
       use: { ...devices['Desktop Chrome'], launchOptions: { args: [...GPU, '--enable-precise-memory-info'] } },
     },
   ],
-  webServer: {
-    command: `npx vite --port ${PORT} --strictPort`,
-    url: `http://localhost:${PORT}`,
-    reuseExistingServer: !process.env.CI,
-  },
+  // The fresh slice (next/) is its own page on its own port; only its project needs that server.
+  webServer: process.env.NEXT
+    ? { command: `npx vite --config next/vite.config.ts --port ${NEXT_PORT} --strictPort`, url: `http://localhost:${NEXT_PORT}`, reuseExistingServer: !process.env.CI }
+    : { command: `npx vite --port ${PORT} --strictPort`, url: `http://localhost:${PORT}`, reuseExistingServer: !process.env.CI },
 });

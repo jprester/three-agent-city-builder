@@ -1232,3 +1232,11 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 - Weak: dead parts now kill a whole character, which is right for lightbox letters but too tidy for bent-glass tubes.
 - Tower wordmarks are cleaner than the stroke letters but small on the widest crowns (400 px across up to 34 m).
 
+## Fresh slice — 2026-11-13
+
+- Checked `corner`, `under`, `platform`, `deck`, `above`, `skyline` frozen and with the clock running (docs/progress/fresh-slice/, build/shots/next/).
+- Works: the viaduct, deck and stairs give the street a second level at once; lamps, signs and shop glass light the wet road without a single light object; the skyline holds from the air with distinct windows near and an even glow far; trains and queues at the signal make it feel inhabited.
+- Weak: too dark between the shopfronts. Sidewalks and the viaduct's underside go to black and the frame leans on the shops.
+- Weak: everything is a box. Cars, trains, stairs and the station read as blockout, not design. The platform at eye level has almost nothing on it.
+- Weak: glass towers light in a regular tenant pattern, a barcode from above. Shop interiors are one procedural room with noise for goods.
+- Weak: `corner` has a wall across its left third.

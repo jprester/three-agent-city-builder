@@ -1,0 +1,7 @@
+{
+  "comment": "Budgets of the fresh slice, enforced by next/tests/slice.spec.ts at 1440x900 @2x. frameMs is submit-to-done: start of a frame until the GPU has finished it. gpuProcessMB is the browser GPU process footprint (macOS only).",
+  "maxDrawCalls": 60,
+  "maxTriangles": 600000,
+  "maxFrameMs": 16.7,
+  "maxGpuProcessMB": 900
+}

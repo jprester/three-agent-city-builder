@@ -44,6 +44,9 @@ binary in `public/` is regenerated from them.
   It fixes the device pixel ratio (`?dynres=0`), so it measures the preset, not adaptive
   resolution, and it is only meaningful on an idle GPU: close any other tab running the scene
   first, or every viewpoint reads ~3x slower and looks like a regression.
+- `npm run next:dev` / `next:shots` / `next:build`: the fresh slice in `next/` (a small city
+  built from scratch on WebGPU; see `next/README.md`). `next:shots` is its gate: every
+  viewpoint, screenshots in `build/shots/next/`, budgets from `next/budgets.json`.
 - `npm run check` typechecks, enforces budgets and runs `npm run coplanar` (z-fighting scan of
   every GLB: coplanar overlapping faces flicker as the camera moves). Must pass before every commit.
 
