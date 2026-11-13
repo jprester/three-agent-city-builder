@@ -1232,3 +1232,11 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 - Weak: dead parts now kill a whole character, which is right for lightbox letters but too tidy for bent-glass tubes.
 - Tower wordmarks are cleaner than the stroke letters but small on the widest crowns (400 px across up to 34 m).
 
+## WebGPU proof of concept — 2026-11-13
+
+- Checked all 20 viewpoints of `/poc.html` against the app on the real GPU, side by side for `canyon`, `storefront`, `facade`, `aerial`, `tower-detail`, `harbor` (docs/progress/webgpu-poc/).
+- Close: sky, water, wet-street reflections, signs, shop interiors and the aerial window field are hard to tell apart at a glance. Buildings match one for one once the seed is computed in the shader.
+- Weak: tile and concrete walls are flat up close (no relief), which is most of what separates `storefront` and `facade` from the app. Tower glass is duller without the city reflection, and the supertall crowns lose their sheen. Windows have one shape per facade type and no blinds or curtains.
+- Weak: bloom is softer and wider around large signs than the app's; the red sushi blade in `facade` glows as a slab.
+- Rain: denser than the app (twice the drops) and reads heavier than the style wants at street level. Splashes are small flecks, visible on the road in `canyon` and barely elsewhere; they need a brighter, shorter flash to earn their place.
+- The red blob in the harbour water is gone in the proof of concept, so it comes from something the ground port does differently (most likely a car-light glare term reaching the water in the app). Worth chasing in the app.

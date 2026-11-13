@@ -13,6 +13,9 @@ import type { SceneStats } from '../../src/main';
 const ALL: Viewpoint[] = JSON.parse(readFileSync('src/debug/viewpoints.json', 'utf8'));
 const BUDGET = JSON.parse(readFileSync('pipeline.config.json', 'utf8')).scene;
 const pick = process.env.SMOKE?.split(',');
+/** APP=poc runs the WebGPU proof of concept (poc.html) instead of the app. */
+const POC = process.env.APP === 'poc';
+const APP = POC ? '/poc.html' : '/';
 const VIEWPOINTS = pick ? ALL.filter((v) => pick.includes(v.name)) : ALL;
 
 test('every viewpoint renders', async ({ page }) => {
@@ -26,14 +29,15 @@ test('every viewpoint renders', async ({ page }) => {
     const bad: string[] = [];
     errors = [];
     try {
-      await page.goto(`/?layout=city&viewpoint=${vp.name}&t=12&dynres=0`);
+      await page.goto(`${APP}?layout=city&viewpoint=${vp.name}&t=12&dynres=0`);
       await page.waitForFunction(() => window.__READY === true, undefined, { timeout: 30_000 });
       const s = await page.evaluate(() => window.__STATS) as SceneStats | undefined;
       if (!s) throw new Error('no __STATS — the app never reached its ready frame');
       if (s.calls === 0) bad.push('nothing drew (0 draw calls)');
       if (s.calls > BUDGET.maxDrawCalls) bad.push(`draw calls ${s.calls} > ${BUDGET.maxDrawCalls}`);
       if (s.triangles > BUDGET.maxTriangles) bad.push(`triangles ${s.triangles} > ${BUDGET.maxTriangles}`);
-      if (s.programs > BUDGET.maxPrograms) bad.push(`shader programs ${s.programs} > ${BUDGET.maxPrograms}`);
+      // The program budget is a WebGL limit (linked programs); WebGPU counts shader modules.
+      if (!POC && s.programs > BUDGET.maxPrograms) bad.push(`shader programs ${s.programs} > ${BUDGET.maxPrograms}`);
     } catch (e) {
       bad.push((e as Error).message.split('\n')[0]);
     }

@@ -44,6 +44,9 @@ binary in `public/` is regenerated from them.
   It fixes the device pixel ratio (`?dynres=0`), so it measures the preset, not adaptive
   resolution, and it is only meaningful on an idle GPU: close any other tab running the scene
   first, or every viewpoint reads ~3x slower and looks like a regression.
+- `APP=poc` in front of `shots`, `smoke` or `perf` runs them against the WebGPU proof of
+  concept (`/poc.html`, `src/poc/`, findings in `docs/WEBGPU_POC.md`) instead of the app.
+  `PERF_SYNC=1 npm run perf` adds the submit-to-done time that is comparable between the two.
 - `npm run check` typechecks, enforces budgets and runs `npm run coplanar` (z-fighting scan of
   every GLB: coplanar overlapping faces flicker as the camera moves). Must pass before every commit.
 

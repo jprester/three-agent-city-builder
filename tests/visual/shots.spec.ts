@@ -18,9 +18,12 @@ const BUDGET: { maxDrawCalls: number; maxTriangles: number; maxPrograms: number;
   JSON.parse(readFileSync('pipeline.config.json', 'utf8')).scene;
 
 const LAYOUT = process.env.LAYOUT ?? 'city';
+/** APP=poc runs the WebGPU proof of concept (poc.html) instead of the app. */
+const POC = process.env.APP === 'poc';
+const APP = POC ? '/poc.html' : '/';
 /** Shots freeze the shared clock here, so animated scenes are comparable between runs. */
 const FROZEN_TIME = 12;
-const OUT_DIR = `build/shots/${LAYOUT}`;
+const OUT_DIR = `build/shots/${POC ? 'poc-' : ''}${LAYOUT}`;
 const INFO_FILE = `${OUT_DIR}/info.json`;
 
 type Shot = SceneStats & { frameMs: { avg: number; p95: number } };
@@ -41,7 +44,8 @@ function violations(s: Shot): string[] {
   const out: string[] = [];
   if (s.calls > BUDGET.maxDrawCalls) out.push(`draw calls ${s.calls} > ${BUDGET.maxDrawCalls}`);
   if (s.triangles > BUDGET.maxTriangles) out.push(`triangles ${s.triangles} > ${BUDGET.maxTriangles}`);
-  if (s.programs > BUDGET.maxPrograms) out.push(`shader programs ${s.programs} > ${BUDGET.maxPrograms}`);
+  // The program budget is a WebGL limit (linked programs); WebGPU counts shader modules.
+  if (!POC && s.programs > BUDGET.maxPrograms) out.push(`shader programs ${s.programs} > ${BUDGET.maxPrograms}`);
   if (s.frameMs.avg > BUDGET.maxFrameMs) out.push(`frame time ${s.frameMs.avg} ms > ${BUDGET.maxFrameMs} ms`);
   return out;
 }
@@ -51,7 +55,7 @@ for (const vp of VIEWPOINTS) {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
-    await page.goto(`/?layout=${LAYOUT}&viewpoint=${vp.name}&t=${FROZEN_TIME}&dynres=0`);
+    await page.goto(`${APP}?layout=${LAYOUT}&viewpoint=${vp.name}&t=${FROZEN_TIME}&dynres=0`);
     await page.waitForFunction(() => window.__READY === true, undefined, { timeout: 90_000 });
 
     // Frame time over ~1.5 s of the running loop (a rough GPU-load signal, vsync-capped).

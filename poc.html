@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Night City (WebGPU proof of concept)</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #140f16; overflow: hidden; }
+      canvas { display: block; }
+      #status {
+        position: fixed; left: 16px; bottom: 16px; max-width: 60ch;
+        font: 13px/1.5 system-ui, sans-serif; color: #c9d1dc;
+        background: rgba(6, 9, 16, 0.75); padding: 8px 12px; border-radius: 6px;
+      }
+      #status:empty { display: none; }
+      #hud {
+        position: fixed; left: 16px; top: 16px; max-width: min(70ch, calc(100vw - 32px));
+        font: 13px/1.5 system-ui, sans-serif; color: #c9d1dc; pointer-events: none;
+        background: rgba(6, 9, 16, 0.6); padding: 8px 12px; border-radius: 6px;
+        opacity: 0; transition: opacity 0.8s;
+      }
+      #hud.on { opacity: 1; transition: opacity 0.2s; }
+      #hud b { color: #ffc98a; font-weight: 600; }
+      #hud span { color: #8b95a3; }
+      #sound {
+        position: fixed; right: 16px; bottom: 16px; font: 13px/1 system-ui, sans-serif;
+        color: #c9d1dc; background: rgba(6, 9, 16, 0.6); border: 1px solid rgba(201, 209, 220, 0.25);
+        border-radius: 6px; padding: 8px 12px; cursor: pointer; opacity: 0.55; transition: opacity 0.2s;
+      }
+      #sound:hover, #sound.on { opacity: 1; }
+    </style>
+  </head>
+  <body>
+    <div id="status"></div>
+    <script type="module" src="/src/poc/main.ts"></script>
+  </body>
+</html>
