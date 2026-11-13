@@ -1,8 +1,12 @@
 import { ASSETS } from '../assets/manifest.gen';
 import signCatalog from '../../art/external/textures/signs/catalog.json';
+import designCatalog from '../../art/textures/signs/designs.json';
 
 /** Artwork facts the layout sizes signs by (same as tools/build-layouts.mjs signArt()). */
 export const SIGN_ART = signCatalog.entries.map(({ kind, aspect, holo, hue, sat, shop, weight }) => ({ kind, aspect, holo, hue, sat, shop: !!shop, weight: weight ?? 1 }));
+
+/** Typeset design facts the layout chooses and sizes signs by (same as tools/build-layouts.mjs signDesigns()). */
+export const SIGN_DESIGNS = designCatalog.designs.map((d) => ({ kind: d.kind, aspect: d.aspect, brand: (d as { brand?: number }).brand }));
 
 export type Vec2 = [number, number];
 export type Vec3 = [number, number, number];
@@ -56,8 +60,10 @@ export interface LayoutSign {
   brand?: number;
   /** Catalog artwork index (art/external/textures/signs/catalog.json entries). */
   art?: number;
-  /** Stroke-drawn design family when not catalog art. */
+  /** Typeset design family when not catalog art. */
   stroke?: 'blade' | 'panel';
+  /** Typeset design index (art/textures/signs/designs.json). */
+  design?: number;
   /** Tower signs on a side face (±1: the building's ±x side) rather than the street front. */
   side?: number;
   /** Tower sign zone (street | billboard | shaft | crown). */
@@ -136,7 +142,7 @@ interface LayoutDef {
 }
 
 interface LayoutGeneratorModule {
-  generate(input: { params: Record<string, unknown>; seed: number; assets: typeof ASSETS; art: typeof SIGN_ART }): Omit<Layout, 'name'>;
+  generate(input: { params: Record<string, unknown>; seed: number; assets: typeof ASSETS; art: typeof SIGN_ART; designs: typeof SIGN_DESIGNS }): Omit<Layout, 'name'>;
 }
 
 export async function generateLayout(id: string, seed: number): Promise<Layout> {
@@ -146,5 +152,5 @@ export async function generateLayout(id: string, seed: number): Promise<Layout> 
   const loadGen = layoutGenerators[`/art/layouts/${def.generator}.mjs`];
   if (!loadGen) throw new Error(`Layout generator "${def.generator}" not found in art/layouts/`);
   const mod = (await loadGen()) as LayoutGeneratorModule;
-  return { name: id, ...mod.generate({ params: def.params ?? {}, seed, assets: ASSETS, art: SIGN_ART }) };
+  return { name: id, ...mod.generate({ params: def.params ?? {}, seed, assets: ASSETS, art: SIGN_ART, designs: SIGN_DESIGNS }) };
 }

@@ -54,6 +54,27 @@
       "license": "SIL Open Font License 1.1; bundled adjacent OFL text",
       "attribution": "Adobe; Noto Sans JP contributors",
       "notes": "Used at build time for advertising typography; no runtime font dependency."
+    },
+    {
+      "files": "art/external/fonts/DelaGothicOne-Regular.ttf",
+      "source": "https://github.com/google/fonts/tree/main/ofl/delagothicone",
+      "license": "SIL Open Font License 1.1; bundled adjacent OFL text",
+      "attribution": "The Dela Gothic Project Authors",
+      "notes": "Used at build time for typeset sign designs (tools/textures/build_sign_designs.py); no runtime font dependency."
+    },
+    {
+      "files": "art/external/fonts/KaiseiTokumin-ExtraBold.ttf",
+      "source": "https://github.com/google/fonts/tree/main/ofl/kaiseitokumin",
+      "license": "SIL Open Font License 1.1; bundled adjacent OFL text",
+      "attribution": "The Kaisei Project Authors",
+      "notes": "Used at build time for typeset sign designs (tools/textures/build_sign_designs.py); no runtime font dependency."
+    },
+    {
+      "files": "art/external/fonts/ReggaeOne-Regular.ttf",
+      "source": "https://github.com/google/fonts/tree/main/ofl/reggaeone",
+      "license": "SIL Open Font License 1.1; bundled adjacent OFL text",
+      "attribution": "The Reggae Project Authors",
+      "notes": "Used at build time for typeset sign designs (tools/textures/build_sign_designs.py); no runtime font dependency."
     }
   ]
 }

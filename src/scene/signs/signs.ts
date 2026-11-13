@@ -69,9 +69,10 @@ export function createSigns(layout: Layout, atlas: SignAtlas, art: SignArt, unif
       image = ART_ENTRIES[s.art];
       source = atlasCode(image);
     } else {
-      const tall = s.stroke ? s.stroke === 'blade' : s.size[1] > s.size[0];
-      const pool = (tall ? atlas.blades : atlas.panels).filter((d) => (s.brand !== undefined ? d.brand === s.brand % BRANDS : d.brand === undefined));
-      design = pool[Math.floor(rng() * pool.length)];
+      // The layout chose the design (and sized the sign to it); older layouts without an
+      // index fall back to any design of the right kind.
+      const pool = atlas.designs.filter((d) => d.kind === (s.stroke ?? s.kind) && d.brand === undefined);
+      design = s.design !== undefined ? atlas.designs[s.design] : pool[Math.floor(rng() * pool.length)];
       source = design.boxed ? 1 : 0;
     }
     // The layout sized the sign to this artwork's aspect: show the whole image, uncropped.
@@ -87,10 +88,12 @@ export function createSigns(layout: Layout, atlas: SignAtlas, art: SignArt, unif
       strength: image ? 0.5 : design!.boxed ? 0.6 : 1,
     });
     // Big tower campaigns (shaft, tower billboard) read from blocks away: brighter than shop art.
-    gains[i] = (image?.gain ?? 1) * (s.zone === 'shaft' || s.zone === 'billboard' ? TOWER_AD_GAIN : 1);
+    // Quiet plates carry their own dim factor and never flicker: a printed sign, not a tube.
+    const quiet = (design?.dim ?? 1) < 1;
+    gains[i] = (image?.gain ?? 1) * (design?.dim ?? 1) * (s.zone === 'shaft' || s.zone === 'billboard' ? TOWER_AD_GAIN : 1);
     const branded = s.brand !== undefined;
-    const broken = !branded && !image && rng() < 0.3 ? 0.15 + 0.35 * rng() : 0;
-    const flicker = !branded && !image && rng() < 0.2 ? 0.1 + 0.3 * rng() : 0;
+    const broken = !branded && !image && !quiet && rng() < 0.3 ? 0.15 + 0.35 * rng() : 0;
+    const flicker = !branded && !image && !quiet && rng() < 0.2 ? 0.1 + 0.3 * rng() : 0;
     params.set([source, rng(), broken, flicker], i * 4);
     m.compose(new THREE.Vector3(...s.position), q.setFromAxisAngle(up, s.rotationY), new THREE.Vector3(...s.size));
     mesh.setMatrixAt(i, m);
@@ -128,7 +131,7 @@ function createHolograms(layout: Layout, holos: NonNullable<Layout['signs']>, ar
     if (s.brand !== undefined) {
       // Stroke wordmark (source 0): tube color per brand, a steady glow (brands don't glitch).
       const brand = s.brand % BRANDS;
-      const d = (s.stroke === 'blade' ? atlas.blades : atlas.panels).find((x) => x.brand === brand)!;
+      const d = atlas.designs.find((x) => x.kind === (s.stroke ?? 'panel') && x.brand === brand)!;
       d.rect.toArray(rect, i * 4);
       const c = col(BRAND_COLORS[brand]);
       c.toArray(tint, i * 3);
@@ -188,7 +191,7 @@ float tear = vHolo.w * step(0.985, fract(uTime * 0.37 + vHolo.y * 13.0)) * step(
 huv.x += tear * 0.015;
 vec3 img;
 if (src == 0) {
-  // Stroke atlas (brand wordmarks): tube core from R plus a soft halo from a coarse mip.
+  // Design atlas (brand wordmarks): tube core from R plus a soft halo from a coarse mip.
   float core = texture2D(uStroke, huv).r;
   float halo = textureLod(uStroke, huv, 3.0).r;
   img = mix(vTint, vec3(1.0), 0.15) * core + vTint * halo * 0.6;
@@ -224,15 +227,22 @@ function createBrackets(signs: NonNullable<Layout['signs']>): THREE.InstancedMes
     const screen = s.art !== undefined && ART_ENTRIES[s.art].surface === 'screen';
     const t = Math.min(screen ? 0.18 : 0.09, w * 0.045);
     if (!holo) {
-      add(0,h/2,0,w+t,t,depth+0.08); add(0,-h/2,0,w+t,t,depth+0.08);
-      add(-w/2,0,0,t,h,depth+0.08); add(w/2,0,0,t,h,depth+0.08);
+      // The case lip wraps around the outside of the board. It used to sit on the face,
+      // which drew a dark band across whatever artwork the sign was carrying.
+      add(0, h/2 + t/2, 0, w + 2*t, t, depth + 0.02);
+      add(0, -h/2 - t/2, 0, w + 2*t, t, depth + 0.02);
+      add(-w/2 - t/2, 0, 0, t, h + 2*t, depth + 0.02);
+      add(w/2 + t/2, 0, 0, t, h + 2*t, depth + 0.02);
     }
     if (s.kind === 'blade') {
-      // Hanger arm along the top from the far edge to the wall, and a bottom stub to the
-      // wall. The wall is at local +x = w/2 + arm (layout: arm clears balconies/AC units).
-      const arm = s.arm ?? 0.3, tb = 0.07;
-      add((arm + 0.05) / 2, h/2 + tb, 0, w + arm - 0.05, tb, tb);
-      add(w/2 + arm/2, -h/2 + 0.2, 0, arm, tb * 0.8, tb * 0.8);
+      // Two arms from the far edge of the board all the way to the wall, plus a plate on
+      // the wall. The arms used to stop half a board width short of it (`arm` instead of
+      // `w/2 + arm`), which is why blades read as hanging in the air.
+      const arm = s.arm ?? 0.3;
+      const tb = Math.max(0.08, Math.min(0.16, w * 0.05));
+      add(arm / 2, h/2 + t + tb / 2, 0, w + arm, tb, tb);
+      add(arm / 2, -h/2 - t - tb / 2, 0, w + arm, tb * 0.9, tb * 0.9);
+      add(w/2 + arm + 0.05, 0, 0, 0.1, Math.min(h * 0.9, 6), depth + 0.1);
       if (holo) add(-w/2 + 0.05, h/2 - 0.02, 0, tb, tb * 2, tb);   // hanger drop at the far end
     } else if (s.legs !== undefined) {
       // Rooftop board or crown lettering: posts and a brace down to the roof.
@@ -335,6 +345,15 @@ if (vFace > 0.5 && vParams.x > 1.5) {
     bool inverse = fract(vParams.y * 7.3) < 0.5;
     vec3 face = inverse ? vTube * 0.7 : mix(vBack, vec3(1.0), 0.25) * 0.45;
     vec3 ink = inverse ? mix(vTube, vec3(1.0), 0.8) * 1.4 : vTube * 1.5;
+    // Pale characters on a pale face are illegible. If the face is bright and the
+    // characters are not clearly brighter, print them dark, the way a real light-face
+    // shop sign with black lettering works.
+    float faceLum = dot(face, vec3(0.299, 0.587, 0.114));
+    float inkLum = dot(ink, vec3(0.299, 0.587, 0.114));
+    if (faceLum > 0.22 && inkLum < faceLum * 2.5) {
+      ink = mix(ink, vec3(0.015, 0.015, 0.018), 0.96);
+      face *= 0.88;
+    }
     e = s.b * (1.0 - s.r) * face + s.r * ink * on;
     diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.5), s.b);
   } else {

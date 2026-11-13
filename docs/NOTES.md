@@ -1223,3 +1223,12 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 ### Over the night
 
 - Ten minutes in, the skyline is visibly sparser (whole floors dark on the photo towers, fewer residential windows), small shops have their shutters down while convenience stores glow; rain thins and returns in waves. Windows switch off individually (a light going out), not as a fade.
+
+## Typeset signs — 2026-11-13
+
+- Checked `build/previews/signs/designs.png` (all 144 designs) and `facade`, `fly-25`, `storefront` and `tower-detail` on the real GPU.
+- The typeset signs sit beside the artwork without standing out as a second system: real words (薬局, パン, 映画, カプセル) in five faces, as neon, thin tube, lightbox and plate.
+- Weak: lightbox faces are one flat tone (no hot spots from the tubes behind, no dirt); every design has the same two or three layouts per board shape; icons are thin line drawings next to heavy type; outline lettering in the heavy faces fills in at small sizes. Captions in Latin are all Barlow Condensed.
+- Weak: dead parts now kill a whole character, which is right for lightbox letters but too tidy for bent-glass tubes.
+- Tower wordmarks are cleaner than the stroke letters but small on the widest crowns (400 px across up to 34 m).
+

@@ -97,13 +97,13 @@ const DEFAULTS = {
     foot: { max: 16, hero: 2, perRoad: 2, spacing: 70, floor: [6.5, 9.0], width: 3.2, depth: 3.0, overlap: 4 },
   },
   signs: {
-    hero: { blades: [2, 5], bladeChance: 1, panelChance: 0.7 },
-    core: { blades: [1, 1], bladeChance: 0.16, panelChance: 0.22 },
+    hero: { blades: [2, 5], bladeChance: 1, panelChance: 0.85 },
+    core: { blades: [1, 1], bladeChance: 0.3, panelChance: 0.45 },
     // Island band, by what the building faces (buildIsland's `frontage`).
     island: {
-      ring: { blades: [1, 2], bladeChance: 0.35, panelChance: 0.5 },
-      avenue: { blades: [1, 2], bladeChance: 0.3, panelChance: 0.45 },
-      street: { blades: [1, 1], bladeChance: 0.08, panelChance: 0.15 },
+      ring: { blades: [1, 2], bladeChance: 0.45, panelChance: 0.65 },
+      avenue: { blades: [1, 2], bladeChance: 0.4, panelChance: 0.6 },
+      street: { blades: [1, 1], bladeChance: 0.16, panelChance: 0.3 },
     },
     // Signs per frontage building above: hero street dense, old core sparse, elsewhere none.
     // Tall signs climbing buildings at mid-height: flat panels on tower shafts, tall blades on
@@ -115,17 +115,15 @@ const DEFAULTS = {
     },
     // Ads in the rooftop billboard frames of buildings whose generator built one (meta.billboard).
     roofBillboardChance: 0.85,
-    // Share of placements showing catalog artwork (the rest stroke-drawn designs).
-    artShare: { street: 1, tower: 1 },
-    // Aspect (w/h) of the stroke atlas designs (src/scene/signs/atlas.ts slot minus gutter).
-    strokeAspect: { blade: 130 / 472, panel: 472 / 88 },
+    // Share of placements showing catalog artwork (the rest typeset designs).
+    artShare: { street: 0.72, tower: 1 },
   },
 };
 
 /** Frontage priority: edges along bigger streets get first pick of buildings. */
 const EDGE_PRIORITY = { hero: 0, arterial: 1, secondary: 2, edge: 3, alley: 4 };
 
-export function generate({ params, seed, assets = {}, art = [] }) {
+export function generate({ params, seed, assets = {}, art = [], designs = [] }) {
   const P = { ...DEFAULTS, ...params };
   // Nested option groups merge with their defaults instead of replacing them.
   for (const k of ['roads', 'sidewalks', 'lampSpacing', 'flythrough', 'signs', 'bridges', 'props', 'fringe', 'landmarks', 'parking', 'island', 'walkers']) P[k] = { ...DEFAULTS[k], ...(params[k] ?? {}) };
@@ -496,10 +494,12 @@ export function generate({ params, seed, assets = {}, art = [] }) {
   };
 
   // ---- sign artwork: every sign shows either a catalog image (the human's neon and ads,
-  // tools/textures/import_ads.py) or a stroke-drawn design, and is sized to that artwork's
+  // tools/textures/import_ads.py) or a typeset design (tools/textures/build_sign_designs.py), and is sized to that artwork's
   // exact aspect within the placement's size limits, so nothing is cropped or stretched.
   const ART = (art ?? []).map((e, i) => ({ ...e, i }));
   const artUses = new Map();
+  const DESIGNS = (designs ?? []).map((d, i) => ({ ...d, i }));
+  const designUses = new Map();
   const artWeight = (e) => (e.weight ?? 1) * (e.hue <= 60 || e.hue >= 330 ? 3 : e.sat < 0.25 ? 1.5 : 1) / (1 + 1.5 * (artUses.get(e.i) ?? 0));
   /** Height range allowed by width/height limits at aspect `a` (null if none). */
   const heightRange = (a, lim) => {
@@ -526,13 +526,19 @@ export function generate({ params, seed, assets = {}, art = [] }) {
       }
       if (want.stroke === null) return null;
     }
-    const a = P.signs.strokeAspect[want.stroke];
-    const range = heightRange(a, lim);
-    if (!range) return null;
-    const h = pickH(range[0], range[1]);
-    return { w: h * a, h, stroke: want.stroke };
+    // Typeset design (art/textures/signs/designs.json): any of the wanted kind that fits the
+    // placement, least-used first so the vocabulary spreads along a street.
+    const fits = DESIGNS.filter((d) => d.kind === want.stroke && d.brand === undefined && heightRange(d.aspect, lim));
+    if (!fits.length) return null;
+    const least = Math.min(...fits.map((d) => designUses.get(d.i) ?? 0));
+    const few = fits.filter((d) => (designUses.get(d.i) ?? 0) <= least + 1);
+    const d = few[Math.floor(rng() * few.length)];
+    designUses.set(d.i, (designUses.get(d.i) ?? 0) + 1);
+    const [lo, hi] = heightRange(d.aspect, lim);
+    const h = pickH(lo, hi);
+    return { w: h * d.aspect, h, stroke: want.stroke, design: d.i };
   };
-  const artFields = (c) => (c.art !== undefined ? { art: c.art } : { stroke: c.stroke });
+  const artFields = (c) => (c.art !== undefined ? { art: c.art } : { stroke: c.stroke, design: c.design });
 
   // ---- signs: blades project from the front face over the street, panels sit flat on it
   const signs = [];
@@ -561,7 +567,7 @@ export function generate({ params, seed, assets = {}, art = [] }) {
         const arm = rng() < (onHero ? 0.5 : 0.3);
         const c = arm
           ? chooseArt({ kind: 'neon', aspect: [2, 99], share, stroke: null }, { w: [2.5, onHero ? 7.5 : 4.5], h: [0.6, Math.min(2.6, top - lift)] })
-          : chooseArt({ kind: 'neon', shopAds: true, aspect: [0, 1.05], share, stroke: null }, { w: [0.7, onHero ? 3.2 : 2.4], h: [2.2, Math.min(onHero ? 12 : 7, top - lift)] });
+          : chooseArt({ kind: 'neon', shopAds: true, aspect: [0, 1.05], share, stroke: 'blade' }, { w: [0.7, onHero ? 3.2 : 2.4], h: [2.2, Math.min(onHero ? 12 : 7, top - lift)] });
         if (!c) continue;
         const { w, h } = c;
         const y = rand(lift, top - h) + h / 2;
@@ -572,34 +578,41 @@ export function generate({ params, seed, assets = {}, art = [] }) {
           // A blade's faces look along the street: its normal is the facade's u axis.
           rotationY: r3(Math.atan2(u[0], u[1])),
           size: [r3(w), r3(h), 0.28],
-          seed: Math.floor(rng() * 2 ** 31),};
+          seed: Math.floor(rng() * 2 ** 31),
+          };
         if (!hitsBridge(sgn.position, sgn.rotationY, sgn.size)) signs.push(sgn);
       }
     }
     if (rng() < cfg.panelChance && hu > 2.5) {
-      const aboveCanopy = rng() < 0.5;
-      const c = aboveCanopy
-        ? chooseArt({ kind: 'neon', aspect: [0.6, 99], share, stroke: null }, { w: [1.6, Math.min(9, 2 * hu - 1)], h: [0.6, 2.8] })
-        : chooseArt({ kind: 'neon', aspect: [3, 99], share, stroke: null }, { w: [1.5, Math.min(9, 2 * hu - 1)], h: [0.5, 1.0] });
-      if (c) {
-        const { w, h } = c;
-        // Above the canopy: stands on the canopy's front edge (clear of balconies above);
-        // below it: flat on the shop fascia under the canopy soffit.
-        const ph = 4.8 * k[1];
-        const y = aboveCanopy ? (canopy > 0 ? ph - 0.1 : ph + 0.4) + h / 2 : 3.3 * k[1] + h / 2;
-        const off = rand(-hu + w / 2 + 0.3, hu - w / 2 - 0.3);
-        const out = aboveCanopy ? (canopy > 0 ? canopy - 0.12 : depth + 0.15) : 0.12;
-        const sgn = {
-          building: index, kind: 'panel', ...artFields(c),
-          position: [r3(front[0] + u[0] * off + v[0] * out), r3(y), r3(front[1] + u[1] * off + v[1] * out)],
-          rotationY: r3(t),
-          size: [r3(w), r3(h), 0.2],
-          seed: Math.floor(rng() * 2 ** 31),};
-        // A blade's arm can reach over the canopy edge where the panel stands (stretched shells).
-        const box = (g) => G.obb([g.position[0], g.position[2]], [Math.cos(g.rotationY), -Math.sin(g.rotationY)], g.size[0] / 2, g.size[2] / 2);
-        const clash = signs.some((o) => o.building === index && Math.abs(o.position[1] - sgn.position[1]) < (o.size[1] + sgn.size[1]) / 2
-          && G.obbOverlap(box(o), box(sgn), 0.01));
-        if (!clash && !hitsBridge(sgn.position, sgn.rotationY, sgn.size)) signs.push(sgn);
+      const aboveCanopy = rng() < 0.4;
+      // Shopfront fascias carry a row of one to three small plates: the dense small-business
+      // read. Above the canopy stays a single sign per building.
+      const plates = aboveCanopy ? 1 : 1 + Math.floor(rng() * 3);
+      for (let j = 0; j < plates; j++) {
+        const c = aboveCanopy
+          ? chooseArt({ kind: 'neon', aspect: [0.6, 99], share, stroke: null }, { w: [1.6, Math.min(9, 2 * hu - 1)], h: [0.6, 2.8] })
+          : chooseArt({ kind: 'neon', aspect: [3, 99], share, stroke: 'panel' }, { w: [1.2, Math.min(9, 2 * hu - 1)], h: [0.45, 1.0] });
+        if (c) {
+          const { w, h } = c;
+          // Above the canopy: stands on the canopy's front edge (clear of balconies above);
+          // below it: flat on the shop fascia under the canopy soffit.
+          const ph = 4.8 * k[1];
+          const y = aboveCanopy ? (canopy > 0 ? ph - 0.1 : ph + 0.4) + h / 2 : 3.3 * k[1] + h / 2;
+          const off = rand(-hu + w / 2 + 0.3, hu - w / 2 - 0.3);
+          const out = aboveCanopy ? (canopy > 0 ? canopy - 0.12 : depth + 0.15) : 0.12;
+          const sgn = {
+            building: index, kind: 'panel', ...artFields(c),
+            position: [r3(front[0] + u[0] * off + v[0] * out), r3(y), r3(front[1] + u[1] * off + v[1] * out)],
+            rotationY: r3(t),
+            size: [r3(w), r3(h), 0.2],
+            seed: Math.floor(rng() * 2 ** 31),
+          };
+          // A blade's arm can reach over the canopy edge where the panel stands (stretched shells).
+          const box = (g) => G.obb([g.position[0], g.position[2]], [Math.cos(g.rotationY), -Math.sin(g.rotationY)], g.size[0] / 2, g.size[2] / 2);
+          const clash = signs.some((o) => o.building === index && Math.abs(o.position[1] - sgn.position[1]) < (o.size[1] + sgn.size[1]) / 2
+            && G.obbOverlap(box(o), box(sgn), 0.01));
+          if (!clash && !hitsBridge(sgn.position, sgn.rotationY, sgn.size)) signs.push(sgn);
+        }
       }
     }
   };
@@ -720,11 +733,14 @@ export function generate({ params, seed, assets = {}, art = [] }) {
         const topTier = tiers[tiers.length - 1];
         const f = sideOf(topTier, 0);
         const w = Math.min(2 * f.half - 4, 34);
-        const h = w / P.signs.strokeAspect.panel;
+        const brand = Math.floor(rng() * tallCfg.brands);
+        const mark = DESIGNS.find((d) => d.kind === 'panel' && d.brand === brand);
+        if (!mark) return;
+        const h = w / mark.aspect;
         const legs = 1.2;
         const out = f.dist - f.setback - 1.0;
         signs.push({
-          building: index, kind: 'panel', zone: 'crown', legs, brand: Math.floor(rng() * tallCfg.brands), stroke: 'panel',
+          building: index, kind: 'panel', zone: 'crown', legs, brand, stroke: 'panel', design: mark.i,
           position: [r3(front[0] - v[0] * f.dist + v[0] * out), r3(meta.roof * sy + legs + h / 2), r3(front[1] - v[1] * f.dist + v[1] * out)],
           rotationY: r3(t), size: [r3(w), r3(h), 0.3], seed: Math.floor(rng() * 2 ** 31),
         });

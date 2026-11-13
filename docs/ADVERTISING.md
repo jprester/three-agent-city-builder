@@ -46,3 +46,26 @@ if a sheet exceeds the configured maximum; expanding beyond that requires adding
 atlas/shader binding or a texture-array strategy. It is not an unlimited library.
 The layouts currently share a template per format; custom campaign layouts and richer
 weathering are the next art improvements, not more random text or colors.
+
+## Typeset sign designs (2026-11-13)
+
+Simple shop signs no longer need an image each. `tools/textures/build_sign_designs.py`
+(`npm run signs:designs`) sets real trade words from `art/signs/designs.def.json` in the
+bundled fonts and bakes 144 designs into one data atlas, `art/textures/signs/designs.png`
+(R ink, G part id, B backlit face), with `designs.json` beside it. The sign shader colours each
+instance, so one design appears as red neon on one building and a pale lightbox on another.
+
+- **Add a sign:** add `{ "jp", "en"?, "icon"? }` to `words` in the def and rebuild. Trades and
+  services only, never real brands. Words are spread evenly over the slots.
+- **Styles** (shares in the def): `neon` (solid glowing letters on a dark board), `tube` (thin
+  even strokes, like bent glass), `outline`, `box` (lightbox) and `plate` (dim printed plate).
+- **Slots:** tall and short blades, wide and small panels; counts and pixel sizes are in the
+  def's `classes`. The build fails if they overflow the atlas.
+- **Fonts:** Noto Sans JP (two weights), Dela Gothic One, Kaisei Tokumin and Reggae One for
+  Japanese, Barlow Condensed for Latin; all OFL, build time only.
+- **Brands:** the eight tower wordmarks and stacked logos are in the same atlas, set in Barlow
+  Condensed from the def's `brands` list (fixed names; they no longer change with the seed).
+- The layout picks a design per sign (`design` index) and sizes the sign to its aspect, the same
+  way it treats catalog artwork. `signs.artShare.street` in `art/layouts/city.mjs` sets how many
+  street placements use artwork versus typeset designs.
+- Look at `build/previews/signs/designs.png` after every rebuild.

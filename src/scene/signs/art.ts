@@ -10,7 +10,7 @@ import screens from '../../../art/external/textures/signs/screens.webp?url';
 export type ArtEntry = (typeof catalog.entries)[number];
 export const ART_ENTRIES: ArtEntry[] = catalog.entries;
 
-/** Atlas names in shader order: source code = index + 2 (0/1 are the stroke atlas). */
+/** Atlas names in shader order: source code = index + 2 (0/1 are the typeset design atlas). */
 export const ATLASES = ['neon_v', 'neon_h', 'posters_p', 'posters_l'] as const;
 export const atlasCode = (e: ArtEntry) => ATLASES.indexOf(e.atlas as (typeof ATLASES)[number]) + 2;
 

@@ -1,0 +1,3170 @@
+{
+ "size": [
+  4096,
+  2048
+ ],
+ "brands": [
+  "NEXKOR",
+  "VOLHEX",
+  "GENZEN",
+  "MIRAION",
+  "KAIDYN",
+  "SHINOTO",
+  "AKARYU",
+  "ONITEK"
+ ],
+ "designs": [
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "スナック",
+   "style": "neon",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    12,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.00293,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "鮮魚",
+   "style": "outline",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    164,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.040039,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "内科",
+   "style": "outline",
+   "font": "DelaGothicOne-Regular.ttf",
+   "px": [
+    316,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.077148,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "歯科",
+   "style": "neon",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    468,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.114258,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "文具",
+   "style": "tube",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    620,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.151367,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "薬局",
+   "style": "neon",
+   "font": "ReggaeOne-Regular.ttf",
+   "px": [
+    772,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.188477,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "劇場",
+   "style": "tube",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    924,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.225586,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "年中無休",
+   "style": "neon",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    1076,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.262695,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": true,
+   "dim": 1,
+   "text": "珈琲",
+   "style": "box",
+   "font": "ReggaeOne-Regular.ttf",
+   "px": [
+    1228,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.299805,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": true,
+   "dim": 1,
+   "text": "理容",
+   "style": "box",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    1380,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.336914,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "宝石",
+   "style": "neon",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    1532,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.374023,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "メガネ",
+   "style": "neon",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    1684,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.411133,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": true,
+   "dim": 1,
+   "text": "寿司",
+   "style": "box",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    1836,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.448242,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "レコード",
+   "style": "outline",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    1988,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.485352,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": true,
+   "dim": 1,
+   "text": "書店",
+   "style": "box",
+   "font": "DelaGothicOne-Regular.ttf",
+   "px": [
+    2140,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.522461,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "古本",
+   "style": "tube",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    2292,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.55957,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": true,
+   "dim": 1,
+   "text": "タバコ",
+   "style": "box",
+   "font": "DelaGothicOne-Regular.ttf",
+   "px": [
+    2444,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.59668,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "温泉",
+   "style": "neon",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    2596,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.633789,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": true,
+   "dim": 1,
+   "text": "ゲーム",
+   "style": "box",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    2748,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.670898,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": true,
+   "dim": 1,
+   "text": "飯店",
+   "style": "box",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    2900,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.708008,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "麻雀",
+   "style": "outline",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    3052,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.745117,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": true,
+   "dim": 1,
+   "text": "学習塾",
+   "style": "box",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    3204,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.782227,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "そば",
+   "style": "neon",
+   "font": "DelaGothicOne-Regular.ttf",
+   "px": [
+    3356,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.819336,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": true,
+   "dim": 1,
+   "text": "ホテル",
+   "style": "box",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    3508,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.856445,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": true,
+   "dim": 1,
+   "text": "美容室",
+   "style": "box",
+   "font": "DelaGothicOne-Regular.ttf",
+   "px": [
+    3660,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.893555,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "占い",
+   "style": "neon",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    3812,
+    12,
+    128,
+    512
+   ],
+   "rect": [
+    0.930664,
+    0.744141,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "食堂",
+   "style": "neon",
+   "font": "DelaGothicOne-Regular.ttf",
+   "px": [
+    12,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.00293,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "洋服",
+   "style": "neon",
+   "font": "ReggaeOne-Regular.ttf",
+   "px": [
+    164,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.040039,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": true,
+   "dim": 1,
+   "text": "修理",
+   "style": "box",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    316,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.077148,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": true,
+   "dim": 1,
+   "text": "弁当",
+   "style": "box",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    468,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.114258,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "旅館",
+   "style": "neon",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    620,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.151367,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "電器",
+   "style": "neon",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    772,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.188477,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "夜市",
+   "style": "outline",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    924,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.225586,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": true,
+   "dim": 1,
+   "text": "カプセル",
+   "style": "box",
+   "font": "DelaGothicOne-Regular.ttf",
+   "px": [
+    1076,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.262695,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "洗濯",
+   "style": "neon",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    1228,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.299805,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": true,
+   "dim": 1,
+   "text": "餃子",
+   "style": "box",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    1380,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.336914,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "サウナ",
+   "style": "neon",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    1532,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.374023,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": true,
+   "dim": 1,
+   "text": "ビリヤード",
+   "style": "box",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    1684,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.411133,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": true,
+   "dim": 1,
+   "text": "印刷",
+   "style": "box",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    1836,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.448242,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": true,
+   "dim": 1,
+   "text": "喫茶",
+   "style": "box",
+   "font": "ReggaeOne-Regular.ttf",
+   "px": [
+    1988,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.485352,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": true,
+   "dim": 1,
+   "text": "自転車",
+   "style": "box",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    2140,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.522461,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": true,
+   "dim": 1,
+   "text": "カラオケ",
+   "style": "box",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    2292,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.55957,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "text": "ラーメン",
+   "style": "neon",
+   "font": "ReggaeOne-Regular.ttf",
+   "px": [
+    2444,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.59668,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": true,
+   "dim": 1,
+   "text": "眼科",
+   "style": "box",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    2596,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.633789,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "brand": 0,
+   "text": "NEXKOR",
+   "px": [
+    2748,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.670898,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "brand": 1,
+   "text": "VOLHEX",
+   "px": [
+    2900,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.708008,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "brand": 2,
+   "text": "GENZEN",
+   "px": [
+    3052,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.745117,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "brand": 3,
+   "text": "MIRAION",
+   "px": [
+    3204,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.782227,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "brand": 4,
+   "text": "KAIDYN",
+   "px": [
+    3356,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.819336,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "brand": 5,
+   "text": "SHINOTO",
+   "px": [
+    3508,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.856445,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "brand": 6,
+   "text": "AKARYU",
+   "px": [
+    3660,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.893555,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_tall",
+   "boxed": false,
+   "dim": 1,
+   "brand": 7,
+   "text": "ONITEK",
+   "px": [
+    3812,
+    548,
+    128,
+    512
+   ],
+   "rect": [
+    0.930664,
+    0.482422,
+    0.03125,
+    0.25
+   ],
+   "aspect": 0.25
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": false,
+   "dim": 1,
+   "text": "時計",
+   "style": "tube",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    12,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.00293,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": false,
+   "dim": 1,
+   "text": "仕立",
+   "style": "tube",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    164,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.040039,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": false,
+   "dim": 1,
+   "text": "バー",
+   "style": "neon",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    316,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.077148,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": false,
+   "dim": 1,
+   "text": "無線",
+   "style": "outline",
+   "font": "ReggaeOne-Regular.ttf",
+   "px": [
+    468,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.114258,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": false,
+   "dim": 1,
+   "text": "市場",
+   "style": "neon",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    620,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.151367,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": true,
+   "dim": 1,
+   "text": "焼鳥",
+   "style": "box",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    772,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.188477,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": false,
+   "dim": 1,
+   "text": "茶",
+   "style": "neon",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    924,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.225586,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": true,
+   "dim": 1,
+   "text": "焼肉",
+   "style": "box",
+   "font": "ReggaeOne-Regular.ttf",
+   "px": [
+    1076,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.262695,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": true,
+   "dim": 1,
+   "text": "薬",
+   "style": "box",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    1228,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.299805,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": false,
+   "dim": 1,
+   "text": "買取",
+   "style": "outline",
+   "font": "ReggaeOne-Regular.ttf",
+   "px": [
+    1380,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.336914,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": false,
+   "dim": 1,
+   "text": "米",
+   "style": "neon",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    1532,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.374023,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": false,
+   "dim": 1,
+   "text": "合鍵",
+   "style": "outline",
+   "font": "ReggaeOne-Regular.ttf",
+   "px": [
+    1684,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.411133,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": true,
+   "dim": 1,
+   "text": "茶房",
+   "style": "box",
+   "font": "DelaGothicOne-Regular.ttf",
+   "px": [
+    1836,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.448242,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": true,
+   "dim": 1,
+   "text": "精肉",
+   "style": "box",
+   "font": "DelaGothicOne-Regular.ttf",
+   "px": [
+    1988,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.485352,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": false,
+   "dim": 1,
+   "text": "定食",
+   "style": "tube",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    2140,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.522461,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": false,
+   "dim": 1,
+   "text": "酒場",
+   "style": "neon",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    2292,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.55957,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": false,
+   "dim": 1,
+   "text": "酒",
+   "style": "outline",
+   "font": "ReggaeOne-Regular.ttf",
+   "px": [
+    2444,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.59668,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": true,
+   "dim": 1,
+   "text": "鍼灸",
+   "style": "box",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    2596,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.633789,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": false,
+   "dim": 1,
+   "text": "青果",
+   "style": "outline",
+   "font": "DelaGothicOne-Regular.ttf",
+   "px": [
+    2748,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.670898,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": true,
+   "dim": 1,
+   "text": "整体",
+   "style": "box",
+   "font": "DelaGothicOne-Regular.ttf",
+   "px": [
+    2900,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.708008,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": true,
+   "dim": 1,
+   "text": "花",
+   "style": "box",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    3052,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.745117,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": true,
+   "dim": 1,
+   "text": "質",
+   "style": "box",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    3204,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.782227,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": true,
+   "dim": 1,
+   "text": "映画",
+   "style": "box",
+   "font": "ReggaeOne-Regular.ttf",
+   "px": [
+    3356,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.819336,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": false,
+   "dim": 1,
+   "text": "銭湯",
+   "style": "neon",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    3508,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.856445,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": false,
+   "dim": 1,
+   "text": "パン",
+   "style": "neon",
+   "font": "DelaGothicOne-Regular.ttf",
+   "px": [
+    3660,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.893555,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "blade",
+   "cls": "blade_short",
+   "boxed": true,
+   "dim": 1,
+   "text": "焼鳥",
+   "style": "box",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    3812,
+    1084,
+    128,
+    288
+   ],
+   "rect": [
+    0.930664,
+    0.330078,
+    0.03125,
+    0.140625
+   ],
+   "aspect": 0.44444
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": false,
+   "dim": 1,
+   "text": "らーめん",
+   "style": "neon",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    12,
+    1396,
+    400,
+    80
+   ],
+   "rect": [
+    0.00293,
+    0.279297,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": true,
+   "dim": 1,
+   "text": "営業中",
+   "style": "box",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    436,
+    1396,
+    400,
+    80
+   ],
+   "rect": [
+    0.106445,
+    0.279297,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": true,
+   "dim": 0.55,
+   "text": "囲碁将棋",
+   "style": "plate",
+   "font": "ReggaeOne-Regular.ttf",
+   "px": [
+    860,
+    1396,
+    400,
+    80
+   ],
+   "rect": [
+    0.209961,
+    0.279297,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": true,
+   "dim": 0.55,
+   "text": "カメラ",
+   "style": "plate",
+   "font": "DelaGothicOne-Regular.ttf",
+   "px": [
+    1284,
+    1396,
+    400,
+    80
+   ],
+   "rect": [
+    0.313477,
+    0.279297,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": true,
+   "dim": 0.55,
+   "text": "中華そば",
+   "style": "plate",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    1708,
+    1396,
+    400,
+    80
+   ],
+   "rect": [
+    0.416992,
+    0.279297,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": false,
+   "dim": 1,
+   "text": "接骨院",
+   "style": "neon",
+   "font": "DelaGothicOne-Regular.ttf",
+   "px": [
+    2132,
+    1396,
+    400,
+    80
+   ],
+   "rect": [
+    0.520508,
+    0.279297,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": false,
+   "dim": 1,
+   "text": "居酒屋",
+   "style": "tube",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    2556,
+    1396,
+    400,
+    80
+   ],
+   "rect": [
+    0.624023,
+    0.279297,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": true,
+   "dim": 1,
+   "text": "中華料理",
+   "style": "box",
+   "font": "DelaGothicOne-Regular.ttf",
+   "px": [
+    2980,
+    1396,
+    400,
+    80
+   ],
+   "rect": [
+    0.727539,
+    0.279297,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": true,
+   "dim": 1,
+   "text": "クリーニング",
+   "style": "box",
+   "font": "DelaGothicOne-Regular.ttf",
+   "px": [
+    3404,
+    1396,
+    400,
+    80
+   ],
+   "rect": [
+    0.831055,
+    0.279297,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": true,
+   "dim": 1,
+   "text": "24時間",
+   "style": "box",
+   "font": "DelaGothicOne-Regular.ttf",
+   "px": [
+    12,
+    1500,
+    400,
+    80
+   ],
+   "rect": [
+    0.00293,
+    0.228516,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": true,
+   "dim": 0.55,
+   "text": "うどん",
+   "style": "plate",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    436,
+    1500,
+    400,
+    80
+   ],
+   "rect": [
+    0.106445,
+    0.228516,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": true,
+   "dim": 1,
+   "text": "地下鉄",
+   "style": "box",
+   "font": "DelaGothicOne-Regular.ttf",
+   "px": [
+    860,
+    1500,
+    400,
+    80
+   ],
+   "rect": [
+    0.209961,
+    0.228516,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": true,
+   "dim": 0.55,
+   "text": "駐車場",
+   "style": "plate",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    1284,
+    1500,
+    400,
+    80
+   ],
+   "rect": [
+    0.313477,
+    0.228516,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": false,
+   "dim": 1,
+   "text": "不動産",
+   "style": "neon",
+   "font": "DelaGothicOne-Regular.ttf",
+   "px": [
+    1708,
+    1500,
+    400,
+    80
+   ],
+   "rect": [
+    0.416992,
+    0.228516,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": true,
+   "dim": 1,
+   "text": "ホテル",
+   "style": "box",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    2132,
+    1500,
+    400,
+    80
+   ],
+   "rect": [
+    0.520508,
+    0.228516,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": false,
+   "dim": 1,
+   "text": "映画",
+   "style": "tube",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    2556,
+    1500,
+    400,
+    80
+   ],
+   "rect": [
+    0.624023,
+    0.228516,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": false,
+   "dim": 1,
+   "text": "焼肉",
+   "style": "neon",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    2980,
+    1500,
+    400,
+    80
+   ],
+   "rect": [
+    0.727539,
+    0.228516,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": true,
+   "dim": 0.55,
+   "text": "接骨院",
+   "style": "plate",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    3404,
+    1500,
+    400,
+    80
+   ],
+   "rect": [
+    0.831055,
+    0.228516,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": true,
+   "dim": 1,
+   "text": "ゲーム",
+   "style": "box",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    12,
+    1604,
+    400,
+    80
+   ],
+   "rect": [
+    0.00293,
+    0.177734,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": true,
+   "dim": 1,
+   "text": "青果",
+   "style": "box",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    436,
+    1604,
+    400,
+    80
+   ],
+   "rect": [
+    0.106445,
+    0.177734,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": false,
+   "dim": 1,
+   "text": "パン",
+   "style": "tube",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    860,
+    1604,
+    400,
+    80
+   ],
+   "rect": [
+    0.209961,
+    0.177734,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": false,
+   "dim": 1,
+   "text": "カプセル",
+   "style": "neon",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    1284,
+    1604,
+    400,
+    80
+   ],
+   "rect": [
+    0.313477,
+    0.177734,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": true,
+   "dim": 1,
+   "text": "サウナ",
+   "style": "box",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    1708,
+    1604,
+    400,
+    80
+   ],
+   "rect": [
+    0.416992,
+    0.177734,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": false,
+   "dim": 1,
+   "text": "宝石",
+   "style": "neon",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    2132,
+    1604,
+    400,
+    80
+   ],
+   "rect": [
+    0.520508,
+    0.177734,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": false,
+   "dim": 1,
+   "text": "銭湯",
+   "style": "tube",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    2556,
+    1604,
+    400,
+    80
+   ],
+   "rect": [
+    0.624023,
+    0.177734,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": true,
+   "dim": 1,
+   "text": "飯店",
+   "style": "box",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    2980,
+    1604,
+    400,
+    80
+   ],
+   "rect": [
+    0.727539,
+    0.177734,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": true,
+   "dim": 1,
+   "text": "理容",
+   "style": "box",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    3404,
+    1604,
+    400,
+    80
+   ],
+   "rect": [
+    0.831055,
+    0.177734,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": true,
+   "dim": 0.55,
+   "text": "カメラ",
+   "style": "plate",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    12,
+    1708,
+    400,
+    80
+   ],
+   "rect": [
+    0.00293,
+    0.126953,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": false,
+   "dim": 1,
+   "brand": 0,
+   "text": "NEXKOR",
+   "px": [
+    436,
+    1708,
+    400,
+    80
+   ],
+   "rect": [
+    0.106445,
+    0.126953,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": false,
+   "dim": 1,
+   "brand": 1,
+   "text": "VOLHEX",
+   "px": [
+    860,
+    1708,
+    400,
+    80
+   ],
+   "rect": [
+    0.209961,
+    0.126953,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": false,
+   "dim": 1,
+   "brand": 2,
+   "text": "GENZEN",
+   "px": [
+    1284,
+    1708,
+    400,
+    80
+   ],
+   "rect": [
+    0.313477,
+    0.126953,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": false,
+   "dim": 1,
+   "brand": 3,
+   "text": "MIRAION",
+   "px": [
+    1708,
+    1708,
+    400,
+    80
+   ],
+   "rect": [
+    0.416992,
+    0.126953,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": false,
+   "dim": 1,
+   "brand": 4,
+   "text": "KAIDYN",
+   "px": [
+    2132,
+    1708,
+    400,
+    80
+   ],
+   "rect": [
+    0.520508,
+    0.126953,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": false,
+   "dim": 1,
+   "brand": 5,
+   "text": "SHINOTO",
+   "px": [
+    2556,
+    1708,
+    400,
+    80
+   ],
+   "rect": [
+    0.624023,
+    0.126953,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": false,
+   "dim": 1,
+   "brand": 6,
+   "text": "AKARYU",
+   "px": [
+    2980,
+    1708,
+    400,
+    80
+   ],
+   "rect": [
+    0.727539,
+    0.126953,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_wide",
+   "boxed": false,
+   "dim": 1,
+   "brand": 7,
+   "text": "ONITEK",
+   "px": [
+    3404,
+    1708,
+    400,
+    80
+   ],
+   "rect": [
+    0.831055,
+    0.126953,
+    0.097656,
+    0.039062
+   ],
+   "aspect": 5.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": false,
+   "dim": 1,
+   "text": "珈琲",
+   "style": "neon",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    12,
+    1812,
+    240,
+    80
+   ],
+   "rect": [
+    0.00293,
+    0.076172,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": false,
+   "dim": 1,
+   "text": "仕立",
+   "style": "tube",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    276,
+    1812,
+    240,
+    80
+   ],
+   "rect": [
+    0.067383,
+    0.076172,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": true,
+   "dim": 0.55,
+   "text": "歯科",
+   "style": "plate",
+   "font": "ReggaeOne-Regular.ttf",
+   "px": [
+    540,
+    1812,
+    240,
+    80
+   ],
+   "rect": [
+    0.131836,
+    0.076172,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": true,
+   "dim": 1,
+   "text": "無線",
+   "style": "box",
+   "font": "ReggaeOne-Regular.ttf",
+   "px": [
+    804,
+    1812,
+    240,
+    80
+   ],
+   "rect": [
+    0.196289,
+    0.076172,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": false,
+   "dim": 1,
+   "text": "修理",
+   "style": "tube",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    1068,
+    1812,
+    240,
+    80
+   ],
+   "rect": [
+    0.260742,
+    0.076172,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": true,
+   "dim": 1,
+   "text": "薬",
+   "style": "box",
+   "font": "DelaGothicOne-Regular.ttf",
+   "px": [
+    1332,
+    1812,
+    240,
+    80
+   ],
+   "rect": [
+    0.325195,
+    0.076172,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": true,
+   "dim": 0.55,
+   "text": "茶",
+   "style": "plate",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    1596,
+    1812,
+    240,
+    80
+   ],
+   "rect": [
+    0.389648,
+    0.076172,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": false,
+   "dim": 1,
+   "text": "洋服",
+   "style": "neon",
+   "font": "DelaGothicOne-Regular.ttf",
+   "px": [
+    1860,
+    1812,
+    240,
+    80
+   ],
+   "rect": [
+    0.454102,
+    0.076172,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": true,
+   "dim": 1,
+   "text": "24時間",
+   "style": "box",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    2124,
+    1812,
+    240,
+    80
+   ],
+   "rect": [
+    0.518555,
+    0.076172,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": false,
+   "dim": 1,
+   "text": "メガネ",
+   "style": "neon",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    2388,
+    1812,
+    240,
+    80
+   ],
+   "rect": [
+    0.583008,
+    0.076172,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": false,
+   "dim": 1,
+   "text": "米",
+   "style": "tube",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    2652,
+    1812,
+    240,
+    80
+   ],
+   "rect": [
+    0.647461,
+    0.076172,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": true,
+   "dim": 1,
+   "text": "喫茶",
+   "style": "box",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    2916,
+    1812,
+    240,
+    80
+   ],
+   "rect": [
+    0.711914,
+    0.076172,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": false,
+   "dim": 1,
+   "text": "そば",
+   "style": "neon",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    3180,
+    1812,
+    240,
+    80
+   ],
+   "rect": [
+    0.776367,
+    0.076172,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": true,
+   "dim": 1,
+   "text": "うどん",
+   "style": "box",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    3444,
+    1812,
+    240,
+    80
+   ],
+   "rect": [
+    0.84082,
+    0.076172,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": true,
+   "dim": 0.55,
+   "text": "営業中",
+   "style": "plate",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    3708,
+    1812,
+    240,
+    80
+   ],
+   "rect": [
+    0.905273,
+    0.076172,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": true,
+   "dim": 1,
+   "text": "整体",
+   "style": "box",
+   "font": "ReggaeOne-Regular.ttf",
+   "px": [
+    12,
+    1916,
+    240,
+    80
+   ],
+   "rect": [
+    0.00293,
+    0.025391,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": true,
+   "dim": 1,
+   "text": "書店",
+   "style": "box",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    276,
+    1916,
+    240,
+    80
+   ],
+   "rect": [
+    0.067383,
+    0.025391,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": true,
+   "dim": 0.55,
+   "text": "古本",
+   "style": "plate",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    540,
+    1916,
+    240,
+    80
+   ],
+   "rect": [
+    0.131836,
+    0.025391,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": true,
+   "dim": 0.55,
+   "text": "温泉",
+   "style": "plate",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    804,
+    1916,
+    240,
+    80
+   ],
+   "rect": [
+    0.196289,
+    0.025391,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": false,
+   "dim": 1,
+   "text": "電器",
+   "style": "neon",
+   "font": "ReggaeOne-Regular.ttf",
+   "px": [
+    1068,
+    1916,
+    240,
+    80
+   ],
+   "rect": [
+    0.260742,
+    0.025391,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": false,
+   "dim": 1,
+   "text": "精肉",
+   "style": "neon",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    1332,
+    1916,
+    240,
+    80
+   ],
+   "rect": [
+    0.325195,
+    0.025391,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": true,
+   "dim": 0.55,
+   "text": "合鍵",
+   "style": "plate",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    1596,
+    1916,
+    240,
+    80
+   ],
+   "rect": [
+    0.389648,
+    0.025391,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": true,
+   "dim": 0.55,
+   "text": "不動産",
+   "style": "plate",
+   "font": "ReggaeOne-Regular.ttf",
+   "px": [
+    1860,
+    1916,
+    240,
+    80
+   ],
+   "rect": [
+    0.454102,
+    0.025391,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": true,
+   "dim": 0.55,
+   "text": "美容室",
+   "style": "plate",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    2124,
+    1916,
+    240,
+    80
+   ],
+   "rect": [
+    0.518555,
+    0.025391,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": false,
+   "dim": 1,
+   "text": "自転車",
+   "style": "neon",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    2388,
+    1916,
+    240,
+    80
+   ],
+   "rect": [
+    0.583008,
+    0.025391,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": true,
+   "dim": 1,
+   "text": "餃子",
+   "style": "box",
+   "font": "KaiseiTokumin-ExtraBold.ttf",
+   "px": [
+    2652,
+    1916,
+    240,
+    80
+   ],
+   "rect": [
+    0.647461,
+    0.025391,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": false,
+   "dim": 1,
+   "text": "酒",
+   "style": "tube",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    2916,
+    1916,
+    240,
+    80
+   ],
+   "rect": [
+    0.711914,
+    0.025391,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": false,
+   "dim": 1,
+   "text": "時計",
+   "style": "tube",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    3180,
+    1916,
+    240,
+    80
+   ],
+   "rect": [
+    0.776367,
+    0.025391,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": false,
+   "dim": 1,
+   "text": "学習塾",
+   "style": "neon",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    3444,
+    1916,
+    240,
+    80
+   ],
+   "rect": [
+    0.84082,
+    0.025391,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  },
+  {
+   "kind": "panel",
+   "cls": "panel_small",
+   "boxed": true,
+   "dim": 0.55,
+   "text": "酒場",
+   "style": "plate",
+   "font": "NotoSansJP.ttf",
+   "px": [
+    3708,
+    1916,
+    240,
+    80
+   ],
+   "rect": [
+    0.905273,
+    0.025391,
+    0.058594,
+    0.039062
+   ],
+   "aspect": 3.0
+  }
+ ]
+}

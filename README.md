@@ -24,6 +24,8 @@ npm run perf         # GPU/CPU ms per frame and GPU memory at 1440x900@2x (~30 s
 
 `npm run signs` rebuilds typeset shop signs, illustrated campaign atlases and their
 layout references. It requires Python 3 with Pillow; the full asset build uses it too.
+`npm run signs:designs` rebuilds the typeset shop-sign designs (real trade words in bundled
+fonts, no images) from `art/signs/designs.def.json`.
 See [the advertising guide](docs/ADVERTISING.md) for copy, artwork, fonts and emission masks.
 
 ## URL parameters

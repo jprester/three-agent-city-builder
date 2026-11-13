@@ -55,3 +55,30 @@ describe('runtime sign catalog (tools/textures/import_ads.py)', () => {
     }
   });
 });
+
+describe('typeset sign designs (tools/textures/build_sign_designs.py)', () => {
+  it('keeps every design inside the atlas, aspect-exact, with a brand mark of each kind per brand', async () => {
+    const cat = (await import('../../art/textures/signs/designs.json')).default;
+    const def = (await import('../../art/signs/designs.def.json')).default;
+    const [W, H] = cat.size;
+    for (const d of cat.designs) {
+      const [u, v, du, dv] = d.rect;
+      expect(u >= 0 && v >= 0 && u + du <= 1 && v + dv <= 1).toBe(true);
+      expect((du * W) / (dv * H) / d.aspect).toBeCloseTo(1, 2);
+    }
+    // Slots never overlap, gutters included (glow reads a coarse mip).
+    const px = cat.designs.map((d) => d.px);
+    const g = def.atlas.gutter;
+    for (let i = 0; i < px.length; i++) for (let j = i + 1; j < px.length; j++) {
+      const [a, b] = [px[i], px[j]];
+      expect(a[0] + a[2] + g <= b[0] || b[0] + b[2] + g <= a[0] || a[1] + a[3] + g <= b[1] || b[1] + b[3] + g <= a[1]).toBe(true);
+    }
+    expect(cat.brands).toEqual(def.brands);
+    for (let brand = 0; brand < def.brands.length; brand++) for (const kind of ['blade', 'panel']) {
+      expect(cat.designs.filter((d) => d.kind === kind && (d as { brand?: number }).brand === brand).length).toBe(1);
+    }
+    // Shop signs only use words from the def: trades and services, no brands.
+    const words = new Set(def.words.map((w) => w.jp));
+    expect(cat.designs.filter((d) => (d as { brand?: number }).brand === undefined && !words.has(d.text)).map((d) => d.text)).toEqual([]);
+  });
+});

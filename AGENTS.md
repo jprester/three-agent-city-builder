@@ -25,6 +25,8 @@ binary in `public/` is regenerated from them.
 - `npm run assets -- --only 'buildings/*'` limits to matching asset ids.
 - `npm run assets -- --force` ignores the cache.
 - `npm run layouts` regenerates layouts and manifest only (no Blender).
+- `npm run signs:designs` rebuilds the typeset sign designs from `art/signs/designs.def.json`
+  (Python 3 with Pillow and numpy), then the layouts. Preview: `build/previews/signs/designs.png`.
 - `npm run dev` starts the app. URL params: `?layout=<id>`, `?viewpoint=<name>`,
   `?seed=<int>` (regenerates the layout in the browser with that seed), `?quality=` and
   `?grade=default|filmic` (the final colour grade; filmic is the default, `?grade=default`

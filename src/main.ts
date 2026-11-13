@@ -16,7 +16,7 @@ import { PlanarReflection } from './scene/reflection';
 import { createStreets } from './scene/streets';
 import { createRain } from './scene/rain';
 import { createBridges } from './scene/bridges';
-import { createSignAtlas } from './scene/signs/atlas';
+import { loadSignAtlas } from './scene/signs/atlas';
 import { loadSignArt } from './scene/signs/art';
 import { createSigns } from './scene/signs/signs';
 import { CameraRig, isCameraMode, obstaclesFrom } from './systems/cameras';
@@ -143,7 +143,7 @@ async function main() {
     uPosterP: { value: signArt.atlases[2] }, uPosterL: { value: signArt.atlases[3] },
   };
   if (layout) {
-    const atlas = createSignAtlas(layout.seed);
+    const atlas = await loadSignAtlas();
     signUniforms.uAtlas.value = atlas.texture;
     const signs = createSigns(layout, atlas, signArt, signUniforms);
     if (signs) {

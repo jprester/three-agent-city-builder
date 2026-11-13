@@ -5,7 +5,7 @@ import { coastDistance } from '../../art/layouts/lib/island.mjs';
 import def from '../../art/layouts/defs/city.json';
 import { ASSETS } from '../../src/assets/manifest.gen';
 import { FlythroughPath } from '../../src/systems/flythrough';
-import { SIGN_ART, generateLayout, type Layout, type LayoutInstance, type Vec2 } from '../../src/systems/layout';
+import { SIGN_ART, SIGN_DESIGNS, generateLayout, type Layout, type LayoutInstance, type Vec2 } from '../../src/systems/layout';
 
 const box = (i: LayoutInstance) => {
   const t = i.rotationY;
@@ -194,12 +194,11 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
 
   it('sizes every sign to its artwork aspect (no cropping or stretching)', async () => {
     const L = await get();
-    const stroke = { blade: 130 / 472, panel: 472 / 88 };
     const wrong = L.signs!.filter((s) => {
-      const want = s.art !== undefined ? SIGN_ART[s.art].aspect : s.stroke ? stroke[s.stroke] : null;
+      const want = s.art !== undefined ? SIGN_ART[s.art].aspect : s.design !== undefined ? SIGN_DESIGNS[s.design].aspect : null;
       return want === null || Math.abs(s.size[0] / s.size[1] / want - 1) > 0.02;
     });
-    expect(wrong.map((s) => [s.size, s.art, s.stroke])).toEqual([]);
+    expect(wrong.map((s) => [s.size, s.art, s.design])).toEqual([]);
   });
 
   it('keeps tower signs in their zones (street, billboard 15–50 m, tall campaigns low, mostly below mid-height, crown)', async () => {
@@ -227,7 +226,10 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     const shafts = L.signs!.filter((s) => s.zone === 'shaft');
     const low = shafts.filter((s) => s.position[1] + s.size[1] / 2 <= L.instances[s.building].h! * 0.5 + 0.01);
     expect(low.length / shafts.length).toBeGreaterThan(0.7);
-    expect(L.signs!.filter((s) => s.stroke && s.brand === undefined)).toEqual([]);
+    // Typeset designs are shop signs: street level only, of the sign's own kind; brand marks on crowns.
+    const typeset = L.signs!.filter((s) => s.design !== undefined);
+    expect(typeset.filter((s) => SIGN_DESIGNS[s.design!].kind !== s.kind || (s.brand === undefined ? s.zone !== undefined && s.zone !== 'street' : SIGN_DESIGNS[s.design!].brand !== s.brand)).map((s) => [s.zone, s.kind, s.design])).toEqual([]);
+    expect(typeset.filter((s) => s.brand === undefined).length).toBeGreaterThan(100);
   });
 
   it('keeps signs from overlapping each other or reaching into other buildings', async () => {
