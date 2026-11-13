@@ -133,3 +133,8 @@ the gitignored `references/_raw/`.
 - `ref-tokyo-banded-towers-day.jpg`: Tokyo office towers by day (human, 2026-10-30): cream
   horizontal bands, blue glass corners, lattice crown frames, a glass rotunda lobby. Use for
   banded commercial skins and lattice crowns.
+- `ref-tokyo-station-day-night.jpg`: Tokyo Station and the Marunouchi towers, the same view by
+  day and by night (human, 2026-11-03). By night the glass towers are dark bodies with whole
+  floors lit cool white and one bright crown band; the low brick station is the only warm,
+  floodlit object, and the plaza trees are lit from below. Use for the day-to-night change of
+  glass towers, a low heritage landmark against towers, and warm/cool contrast.
