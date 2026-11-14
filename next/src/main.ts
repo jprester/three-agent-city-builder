@@ -79,8 +79,9 @@ async function main() {
   const roofs = assemble(plan, boxes, signs);
   const rect = mapRect(plan), uRect = uniform(rect);
   const lampMap = createLampMap(plan, rect), signMap = createSignMap(signs.lights, rect);
-  const fixtureMap = createFixtureMap(boxes.fixtures, rect);
-  const lit = { time: uTime, lampMap, signMap, fixtureMap, lampRect: uRect };
+  const fixtures = createFixtureMap(boxes.fixtures, rect);
+  const fixtureMap = fixtures.texture, fixtureHeights = uniform(fixtures.heights);
+  const lit = { time: uTime, lampMap, signMap, fixtureMap, fixtureHeights, lampRect: uRect };
 
   const buildings = new THREE.Mesh(buildShell([...plan.buildings, ...plan.skyline]), createFacadeMaterial(lit));
   buildings.name = 'buildings';
@@ -95,7 +96,7 @@ async function main() {
   const reflection = new PlanarReflection(0.25);
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(9000, 9000).rotateX(-Math.PI / 2),
-    createGroundMaterial({ color: 'road_wet', roughness: 0.35 }, { time: uTime, rain: uRain, lampMap, signMap, fixtureMap, lampRect: uRect, reflection: reflection.target.texture, reflMatrix: reflection.matrix }),
+    createGroundMaterial({ color: 'road_wet', roughness: 0.35 }, { time: uTime, rain: uRain, lampMap, signMap, fixtureMap, fixtureHeights, lampRect: uRect, reflection: reflection.target.texture, reflMatrix: reflection.matrix }),
   );
   ground.name = 'ground';
   scene.add(ground, traffic.pools);

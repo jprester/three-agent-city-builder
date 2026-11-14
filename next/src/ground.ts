@@ -1,6 +1,6 @@
 import * as THREE from 'three/webgpu';
 import {
-  Fn, cameraPosition, clamp, exp, floor, fract, fwidth, length, mix, normalize, positionWorld, pow, property, smoothstep, step, texture, uniform, vec2, vec3, vec4,
+  Fn, cameraPosition, clamp, exp, float, floor, fract, fwidth, length, mix, normalize, positionWorld, pow, property, smoothstep, step, texture, uniform, vec2, vec3, vec4,
 } from './tsl';
 import { P, colorNode, fixtureSpill, hash21, mapUv, noise2, paletteColor, type N, type PaletteName } from './tsl';
 
@@ -12,6 +12,7 @@ export interface GroundShared {
   lampMap: THREE.Texture;
   signMap: THREE.Texture;
   fixtureMap: THREE.Texture;
+  fixtureHeights: N;
   lampRect: N;
   reflection: THREE.Texture;
   /** World position to reflection-target UV (src/reflection.ts). */
@@ -53,7 +54,7 @@ export function createGroundMaterial(v: GroundVariant, s: GroundShared): THREE.M
     const lamp = lampTex.sample(uv).r;
     const emit = diffuse.mul(SODIUM).mul(lamp).mul(lamp).mul(6 * pool).toVar();
     emit.addAssign(diffuse.mul(signTex.sample(uv).rgb).mul(3 * pool));
-    emit.addAssign(diffuse.mul(fixtureSpill(fixtureTex.sample(uv).rgb, world.y)).mul(pool));
+    emit.addAssign(diffuse.mul(fixtureSpill(fixtureTex, uv, world.y, float(1), s.fixtureHeights)).mul(pool));
 
     // Wet reflection. The noise normal breaks the mirror up; taps spread along the reflection
     // image's vertical axis give the long smears of lights on wet roads.

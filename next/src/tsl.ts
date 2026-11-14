@@ -94,11 +94,31 @@ export const heightFog: (world: N, density: N) => N = Fn(([world, density]: N[])
 /** World XZ to lamp / sign map UV (rect: minX, minZ, 1/sizeX, 1/sizeZ). */
 export const mapUv = (xz: N, rect: N): N => xz.sub(rect.xy).mul(rect.zw);
 
-/** Interpolate the fixture map's three height samples; fade above the elevated layers. */
-export const fixtureSpill = (sample: N, y: N): N => {
-  // Materialize before component reads: nested swizzles fail Tint → Metal lowering.
-  const bands = sample.toVar();
-  const lower = mix(bands.x, bands.y, clamp(y.div(8), 0, 1));
-  return P('fluorescent').mul(mix(lower, bands.z, clamp(y.sub(8).div(8), 0, 1)))
-    .mul(exp(max(y.sub(16), 0).div(-5))).mul(1.15);
+/** Texels per meter of the top-down light maps (next/src/lightmaps.ts). */
+const MAP_TEXELS_PER_METER = 2;
+
+/**
+ * Light from the downward fixtures at a surface point. For each of the map's three layers:
+ * nothing if the point is above the layer; otherwise the layer's pools read at a mip that
+ * grows with the drop below the fixtures, so the pool spreads and thins the way a real one
+ * does (the mip chain conserves energy). Then a facing weight: floors take it fully, walls
+ * partly, ceilings only a little bounce.
+ *   tex: the fixture map node, uv: its coordinates, y: world height, ny: world normal y,
+ *   heights: the layers' mounting heights (vec3).
+ */
+export const fixtureSpill = (tex: N, uv: N, y: N, ny: N, heights: N): N => {
+  let sum: N = float(0);
+  for (const [k, h] of [heights.x, heights.y, heights.z].entries()) {
+    const drop = h.sub(y);
+    // The pool is about as wide as the drop: one texel per 0.35 × drop meters.
+    const level = max(drop.mul(0.35 * MAP_TEXELS_PER_METER), 1).log2();
+    // Materialize before component reads: nested swizzles fail Tint → Metal lowering.
+    const texel = tex.sample(uv).level(level).toVar();
+    const value = k === 0 ? texel.x : k === 1 ? texel.y : texel.z;
+    sum = sum.add(value.mul(smoothstep(0.05, 0.6, drop)));
+  }
+  const facing = select(ny.greaterThan(0), mix(0.5, 1, ny), mix(0.5, 0.1, ny.negate()));
+  return P('fluorescent').mul(sum).mul(facing).mul(FIXTURE_GAIN);
 };
+/** Fixture map value to light on a surface, tuned by eye against the tubes' own emission. */
+const FIXTURE_GAIN = 3.4;

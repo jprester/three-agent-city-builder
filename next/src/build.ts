@@ -77,11 +77,12 @@ export class Boxes {
   /** Fluorescent fixtures feed the height-sampled spill map as well as visible geometry. */
   readonly fixtures: FixtureLight[] = [];
 
+  /** A tube along x. Its light is registered every ~3 m, in proportion to its length (a 2.4 m tube = `emission`). */
   tube(x: number, y: number, z: number, length: number, emission: number, width = 0.12) {
     this.add(x, y, z, length, 0.05, width, col('fluorescent'), emission);
     const samples = Math.max(1, Math.ceil(length / 3));
     for (let i = 0; i < samples; i++) {
-      this.fixtures.push({ x: x + ((i + 0.5) / samples - 0.5) * length, y, z, strength: emission / Math.sqrt(samples), radius: 8 });
+      this.fixtures.push({ x: x + ((i + 0.5) / samples - 0.5) * length, y, z, strength: emission * Math.max(length / samples, 1.2) / 2.4 });
     }
   }
 
@@ -99,7 +100,7 @@ export class Boxes {
   }
 }
 
-export interface FixtureLight { x: number; y: number; z: number; strength: number; radius: number }
+export interface FixtureLight { x: number; y: number; z: number; strength: number }
 export interface SignLight { x: number; z: number; size: number; color: THREE.Color; strength: number }
 export interface Roof { x0: number; x1: number; z0: number; z1: number; h: number }
 

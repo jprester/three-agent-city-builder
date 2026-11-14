@@ -67,28 +67,47 @@ export function createSignMap(lights: SignLight[], rect: THREE.Vector4): THREE.T
   return finish(canvas, true);
 }
 
-/** RGB stores fluorescent irradiance at 0, 8 and 16 m, not colour. Sampling by height
- * keeps platform lighting off the road and lets tubes reveal the structure around them.
- * This is deliberately soft spill, not an occlusion/shadow solution. */
-export function createFixtureMap(lights: FixtureLight[], rect: THREE.Vector4): THREE.Texture {
+export interface FixtureMap {
+  texture: THREE.Texture;
+  /** Mounting height of the fixtures in each channel (R, G, B), meters. */
+  heights: THREE.Vector3;
+}
+
+/** Radius of a fixture's footprint as baked (m): the light right under it. Further down the shader widens it. */
+const FIXTURE_RADIUS = 3;
+
+/**
+ * Downward fixtures (tubes under decks, canopies and bridges) in three layers by mounting
+ * height, one per channel: each channel is where that layer's fixtures are, as tight pools.
+ * The shader does the rest per pixel (see fixtureSpill in tsl.ts): nothing above a layer is
+ * lit by it, the pool widens and thins with the drop below it, and surfaces are weighted by
+ * the way they face. A light map still cannot see slabs in between, so light from a high
+ * layer reaches the ground under a lower deck, much weakened by the drop.
+ */
+export function createFixtureMap(lights: FixtureLight[], rect: THREE.Vector4): FixtureMap {
   const { canvas, g, scale } = canvasFor(rect);
+  // Three layers: split the sorted mounting heights at their two widest gaps.
+  const ys = [...new Set(lights.map((l) => +l.y.toFixed(2)))].sort((a, b) => a - b);
+  const gaps = ys.slice(1).map((y, i) => ({ at: (y + ys[i]) / 2, size: y - ys[i] })).sort((a, b) => b.size - a.size).slice(0, 2).map((x) => x.at).sort((a, b) => a - b);
+  const layerOf = (y: number) => gaps.filter((c) => y > c).length;
+  const heights = [0, 1, 2].map((k) => {
+    const group = lights.filter((l) => layerOf(l.y) === k).map((l) => l.y).sort((a, b) => a - b);
+    return group.length ? group[Math.floor(group.length / 2)] : 0;   // the layer's median mounting height
+  });
   for (const l of lights) {
-    for (let band = 0; band < 3; band++) {
-      const dy = Math.abs(l.y - band * 8);
-      const reach = l.radius * 1.5;
-      if (dy >= reach) continue;
-      const radius = Math.sqrt(reach * reach - dy * dy) * scale;
-      const gain = Math.min(1, l.strength * 0.55 / (1 + (dy / 4) ** 2));
-      const rgb = [0, 0, 0];
-      rgb[band] = 255;
-      const cx = (l.x - rect.x) * scale, cz = (l.z - rect.y) * scale;
-      const grad = g.createRadialGradient(cx, cz, 0, cx, cz, radius);
-      grad.addColorStop(0, `rgba(${rgb.join(',')},${gain})`);
-      grad.addColorStop(0.35, `rgba(${rgb.join(',')},${gain * 0.5})`);
-      grad.addColorStop(1, `rgba(${rgb.join(',')},0)`);
-      g.fillStyle = grad;
-      g.fillRect(cx - radius, cz - radius, radius * 2, radius * 2);
-    }
+    const k = layerOf(l.y);
+    // A fixture mounted above its layer's height would read too bright on the ground: thin it by the inverse square.
+    const correction = Math.min(1, (heights[k] / l.y) ** 2);
+    const alpha = Math.min(0.5, l.strength * 0.32 * correction);
+    const rgb = [0, 0, 0];
+    rgb[k] = 255;
+    const cx = (l.x - rect.x) * scale, cz = (l.z - rect.y) * scale, r = FIXTURE_RADIUS * scale;
+    const grad = g.createRadialGradient(cx, cz, 0, cx, cz, r);
+    grad.addColorStop(0, `rgba(${rgb.join(',')},${alpha})`);
+    grad.addColorStop(0.5, `rgba(${rgb.join(',')},${alpha * 0.45})`);
+    grad.addColorStop(1, `rgba(${rgb.join(',')},0)`);
+    g.fillStyle = grad;
+    g.fillRect(cx - r, cz - r, r * 2, r * 2);
   }
-  return finish(canvas, false);
+  return { texture: finish(canvas, false), heights: new THREE.Vector3(heights[0], heights[1], heights[2]) };
 }

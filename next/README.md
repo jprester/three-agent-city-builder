@@ -72,8 +72,9 @@ structure costs, not that the slice looks as good.
 
 ## Critique
 
-- Covered sidewalks and the viaduct now receive soft fluorescent spill from the existing
-  fixtures. Unlit stretches remain dark; the flat concrete needs surface detail next.
+- Floors under the tubes are lit and the ceilings stay dark, which gives the covered
+  sidewalk and the platform some shape. Unlit stretches remain dark, and the flat concrete
+  needs surface detail.
 - The kit is honest but crude: cars and trains are boxes, the station has no detail at eye
   level, stairs are solid blocks.
 - Glass towers light in a regular tenant pattern that reads as a barcode from above.
@@ -82,24 +83,33 @@ structure costs, not that the slice looks as good.
 - `corner` now looks from the cross-street approach: the crossing and reflected light lead
   into the canyon. The left corner building still dominates, but its base is visible.
 
-## Continuation — lighting and corner composition (2026-11-13)
+## Fixture light (2026-11-13, reworked 2026-11-14)
 
-The existing fluorescent tubes now register their positions with a third light map. Its RGB
-channels hold irradiance at 0, 8 and 16 m; ground, facades and kit interpolate by height. Long
-fixtures contribute along their length. This adds one texture sample per receiving material,
-no lights, draw calls or triangles. It is soft spill without occlusion, so some light can leak
-through decks. The sky lighting, exposure and colour grade remain as before.
+The fluorescent tubes under the viaduct, the deck, the canopies and the bridges register
+their positions in a third top-down map (`lightmaps.ts`), split into three layers by mounting
+height, one per colour channel. The materials turn that into light per pixel (`fixtureSpill`
+in `tsl.ts`):
 
-The corner camera moved to the cross-street approach at eye height. Checked all six viewpoints,
-frozen and running, against the style bible. Progress images and measurements are in
-`docs/progress/fresh-slice-lighting/`; the original blockout images remain in `fresh-slice/`.
+- a layer lights nothing above its own height, so the top of a deck is not lit from below;
+- the pool is read at a coarser mip the further the surface is below the fixtures, so it
+  spreads and thins with distance;
+- floors take the light fully, walls half, ceilings a tenth.
 
-Final gate: 32 calls, 259,355 triangles, median frame 6.7–8.2 ms, GPU process 566–578 MB.
-`npm run check`, all 97 unit tests and `npm run next:build` also pass.
+Three samples of one texture per lit pixel; no lights, draw calls or triangles. It still
+cannot see slabs in between: canopy light reaches the road under the viaduct, weakened by the
+14 m drop. The first version (irradiance baked at 0, 8 and 16 m) lit every surface evenly and
+flattened the frame; images of it are in `docs/progress/fresh-slice-lighting/`, of this one in
+`docs/progress/fresh-slice-spill/`.
 
-Next: model the station/viaduct kit (open railings, stair supports, platform furniture), then
-vehicles. Lighting exposes these placeholders more clearly; this is still not a finished hero
-frame. The tower barcode and repeated shop interiors remain open after that.
+The `corner` camera stands at the cross-street approach, so the crossing and the wet road
+lead into the canyon.
+
+Gate on 2026-11-14: 32 calls, 259,355 triangles, median frame 6.6–8.2 ms, GPU process about
+575 MB.
+
+Next: the railway. The human wants a suspended monorail in the Chiba style instead of the
+current viaduct with box trains, so the station and vehicle work should start from that
+design rather than polish what is here. The tower barcode and the shop interiors stay open.
 
 ## Files
 

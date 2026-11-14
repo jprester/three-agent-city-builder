@@ -1250,3 +1250,10 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 - The spill map is an approximation with no occlusion; light can bleed through elevated slabs. Above/skyline retain their previous lighting hierarchy, including the unresolved barcode glass facades.
 - Baseline measured this session: 32 calls, 259,355 tris, 7.1–8.7 ms median, 555–561 MB GPU process. Final: same calls/tris, 6.7–8.2 ms median (p95 8.0–10.2), 566–578 MB. Timing differences are run noise, not a claimed speedup.
 - Verification: next:shots 6/6 pass, check passes, 97 unit tests pass, production next:build passes. No Blender previews required because no generated assets changed. Shader compiler failure in the first run was fixed before visual acceptance.
+
+### Fresh slice — fixture light reworked, 2026-11-14
+
+- Checked `under`, `deck`, `platform`, `corner` before and after, then all six through the gate (docs/progress/fresh-slice-spill/).
+- Better: the underside of the viaduct and the canopies are dark again and the light sits where it lands, on the covered sidewalk, the platform floor and the lower walls. The top of the pedestrian deck is no longer lit by the tubes under it. The noir contrast the first spill pass flattened is back.
+- Weak: the pools are soft discs with no shadow of columns, railings or people; on the platform the train's side stays dark because the tubes are over the platform, not the track. The deck's walking surface is now lit only by the street lamps and reads dim.
+- Weak: still no occlusion between layers, so a faint canopy glow reaches the road.

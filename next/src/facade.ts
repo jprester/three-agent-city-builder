@@ -11,7 +11,9 @@ export interface FacadeInputs {
   time: N;
   lampMap: THREE.Texture;
   signMap: THREE.Texture;
+  /** Downward fixtures in three height layers and their mounting heights (lightmaps.ts). */
   fixtureMap: THREE.Texture;
+  fixtureHeights: N;
   /** minX, minZ, 1/sizeX, 1/sizeZ of the lamp and sign maps (uniform vec4). */
   lampRect: N;
 }
@@ -219,7 +221,7 @@ export function createFacadeMaterial(inp: FacadeInputs): THREE.MeshStandardNodeM
     const sign = signTex.sample(mapUv(world.xz.add(nW.xz.mul(1.5)), inp.lampRect)).rgb;
     emit.addAssign(base.mul(sign).mul(0.7).mul(exp(max(world.y.sub(14), 0).div(-8))).mul(smoothstep(0, 3, world.y)));
     emit.addAssign(base.mul(wallLight));
-    emit.addAssign(base.mul(fixtureSpill(fixtureTex.sample(wideUv).rgb, world.y)));
+    emit.addAssign(base.mul(fixtureSpill(fixtureTex, mapUv(world.xz.add(nW.xz.mul(0.6)), inp.lampRect), world.y, nW.y, inp.fixtureHeights)));
     pEmit.assign(emit);
     return base;
   });
@@ -255,7 +257,7 @@ export function createBoxMaterial(inp: FacadeInputs): THREE.MeshStandardNodeMate
     const reach = exp(max(world.y.sub(1), 0).div(-9)).mul(nW.y.mul(0.35).add(0.65));
     const ambient = mix(HAZE.mul(2.2), SODIUM.mul(0.25), 0.12).mul(0.3);
     const blink = select(vFx.y.greaterThan(0.5), step(0.55, fract(inp.time.mul(0.8).add(vFx.y.mul(0.37)))), float(1));
-    return vColor.mul(street.mul(reach).add(ambient).add(fixtureSpill(fixtureTex.sample(uv).rgb, world.y))).add(vColor.mul(vFx.x).mul(blink));
+    return vColor.mul(street.mul(reach).add(ambient).add(fixtureSpill(fixtureTex, mapUv(world.xz.add(nW.xz.mul(0.4)), inp.lampRect), world.y, nW.y, inp.fixtureHeights))).add(vColor.mul(vFx.x).mul(blink));
   })();
   return material;
 }
