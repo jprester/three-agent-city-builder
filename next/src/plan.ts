@@ -50,7 +50,18 @@ export interface Plan {
     x0: number; x1: number; piers: number[]; trackZ: number; beamY: number; floorY: number; roofY: number;
     /** Station extent along x, and its side platforms' inner and outer edge (|z|). */
     station: [number, number]; platform: [number, number];
+    /**
+     * The cars: length, gap between cars, count, body width and height (floor to roof), and
+     * the door centres along a car (from its middle) with the door width. Trains stop with
+     * their middle at x = 0, so `doorXs` are where the doors stand at the platform.
+     */
+    car: { length: number; gap: number; count: number; width: number; height: number; doors: number[]; doorWidth: number };
+    doorXs: number[];
+    /** Girder section, stiffener rib spacing along it, and the span between joints. */
+    girder: { width: number; height: number; ribEvery: number };
   };
+  /** Every stair in the plan: riser and tread, landing length (m), and the most a flight rises before a landing. */
+  stair: { riser: number; tread: number; landing: number; maxRise: number };
   /** Pedestrian deck beside the station: x0, x1, z0, z1, y. */
   deck: { x0: number; x1: number; z0: number; z1: number; y: number };
   /** Skybridges over cross streets: x0, x1, z, y (enclosed, 3.2 m tall, 4 m wide). */
@@ -161,7 +172,14 @@ export function createPlan(seed = 7): Plan {
   const piers: number[] = [];
   for (let x = -size.x - 15; x <= size.x + 16; x += 30) if (!cross.xs.some((c) => Math.abs(x - c) < cross.half + 2)) piers.push(x);
   const beamY = 11.7, floorY = beamY - 0.75 - 2.9;
-  const monorail = { x0: -size.x - 20, x1: size.x + 20, piers, trackZ: 2.6, beamY, floorY, roofY: 14.3, station: [-34, 34] as [number, number], platform: [4.05, 7.8] as [number, number] };
+  const car = { length: 14.5, gap: 0.5, count: 3, width: 2.6, height: 2.9, doors: [-3.6, 3.6], doorWidth: 1.3 };
+  const doorXs: number[] = [];
+  for (let c = 0; c < car.count; c++) for (const d of car.doors) doorXs.push((c - (car.count - 1) / 2) * (car.length + car.gap) + d);
+  const monorail = {
+    x0: -size.x - 20, x1: size.x + 20, piers, trackZ: 2.6, beamY, floorY, roofY: 14.3, station: [-34, 34] as [number, number], platform: [4.05, 7.8] as [number, number],
+    car, doorXs, girder: { width: 1.5, height: 1.7, ribEvery: 7.5 },
+  };
+  const stair = { riser: 0.18, tread: 0.3, landing: 1.6, maxRise: 4 };
   const deck = { x0: -38, x1: 38, z0: main.half + 0.3, z1: mainEdge - 0.2, y: 5.6 };
 
   const bridges: Plan['bridges'] = [];
@@ -183,7 +201,7 @@ export function createPlan(seed = 7): Plan {
     for (const d of [-1, 1]) lanes.push({ x: cx - d * 2.3, z: -d * Lz / 2, dx: 0, dz: d, length: Lz, phase: 1, cars: 6, speed: 7 + rng() * 2 });
   }
 
-  return { seed, size, main, cross, back, blocks, buildings, skyline, lamps, monorail, deck, bridges, lanes, signal: { period: 44, green: 18, amber: 3 } };
+  return { seed, size, main, cross, back, blocks, buildings, skyline, lamps, monorail, stair, deck, bridges, lanes, signal: { period: 44, green: 18, amber: 3 } };
 }
 
 export const FLOOR_HEIGHT = FLOOR;

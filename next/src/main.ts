@@ -20,13 +20,13 @@ import { FOG_DENSITY, P, fog, heightFog, paletteColor, positionWorld, uniform } 
  * no light objects for the practical lights, signage as a system, and motion from day one.
  * WebGPU with node materials throughout; traffic and rain are compute passes.
  *
- * URL: ?view=flyover (a loop along the monorail) or corner|under|line|platform|deck|above|skyline, ?t=<seconds> freezes the clock, ?seed=<int>,
+ * URL: ?cam=x,y,z,tx,ty,tz (a fixed camera), ?view=flyover (a loop along the monorail) or corner|under|line|platform|deck|above|skyline, ?t=<seconds> freezes the clock, ?seed=<int>,
  * ?rain=<count> (0 = off).
  */
 const VIEWS: Record<string, { position: [number, number, number]; target: [number, number, number] }> = {
   corner: { position: [-58, 1.7, -8.8], target: [30, 8.5, -1] },
   under: { position: [-33, 1.7, 10.4], target: [20, 6, -4] },
-  platform: { position: [-30, 9.75, 6.4], target: [30, 9.3, -1] },
+  platform: { position: [-30, 9.75, -6.4], target: [30, 9.3, 1] },
   line: { position: [-92, 4.2, -7.5], target: [-20, 10.5, 1] },
   deck: { position: [30.5, 7.3, 12.1], target: [-30, 8, 2] },
   above: { position: [-150, 105, 150], target: [-10, 6, -4] },
@@ -66,7 +66,10 @@ async function main() {
   const params = new URLSearchParams(location.search);
   // The page opens on the flyover; a named view or key 1-7 gives a fixed camera with orbit controls.
   const viewNames = Object.keys(VIEWS);
-  let flying = !VIEWS[params.get('view') ?? 'flyover'];
+  let flying = !VIEWS[params.get('view') ?? 'flyover'] && !params.has('cam');
+  // ?cam=x,y,z,tx,ty,tz: any fixed camera, for close inspection.
+  const cam = params.get('cam')?.split(',').map(Number);
+  if (cam?.length === 6 && cam.every(Number.isFinite)) { VIEWS.cam = { position: [cam[0], cam[1], cam[2]], target: [cam[3], cam[4], cam[5]] }; params.set('view', 'cam'); flying = false; }
   const view = VIEWS[params.get('view') ?? ''] ?? VIEWS.line;
   const frozen = params.has('t') ? Number.parseFloat(params.get('t')!) : null;
   const plan = createPlan(Number.parseInt(params.get('seed') ?? '7', 10) || 7);

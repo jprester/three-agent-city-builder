@@ -1267,3 +1267,14 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 - Weak: the south stair is a 13 m solid ramp of blocks on the sidewalk, and the portal legs pass through the pedestrian deck.
 - Weak: on the platform the train's side is unlit; the window panes are flat white cards.
 - Frame time not judged this session (GPU shared with another Chrome; the previous commit read the same 12–16 ms).
+
+### Fresh slice — monorail detail, 2026-11-14
+
+- Checked all eight gate views plus close-ups of the car side at the platform, the nose, the south stair, the deck notch and a pier (docs/progress/fresh-slice-monorail-detail/).
+- Works: a train standing in the station now reads as a vehicle. The lit interior through real openings (ceiling strips, seat backs, silhouettes) does most of it; the recessed doors with lit thresholds line up with the screen gaps and floor markings, so the platform says where to stand. The edge tube line makes the side facing the platform the brightest white surface in the frame instead of a dark slab.
+- Works: the stairs are open steel stairs now, with a landing on columns; from under the platform and in `line` they read as walkable, not as ramps of blocks.
+- Weak: the nose is better, but from the side it still shows its slices as a staircase under the raked glass, and the glass floats a few centimetres above the steps.
+- Weak: the station name board is meaningless stroke glyphs that read as "MOF" or "33エ" in pseudo-Latin. It needs a real typeset name (the sign atlas lives in `art/`, which this task could not touch).
+- Weak: the platform screens are flat dark-teal walls that fill the lower third of `platform`. They need to read as glass (lighter, with a frame and a reflection hint).
+- Weak: the girders and piers are near-black under the night fill, so the ribs, joints, plates and braces that were added barely register from the street. The rail on top is the only new detail that reads at distance. The geometry is there, but it needs light (a grazing wash from the lamps, or a lighter hull colour).
+- Weak: the doors stay shut through the 12 s dwell, and the passengers are two boxes each. They hold up through a window and not closer.

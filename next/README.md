@@ -12,7 +12,7 @@ with it: the palette (`art/style/palette.json`), the typeset sign atlas
 The page opens on a flyover: a 90 s loop along the monorail, out on one side of the street and
 back on the other. `F` returns to it; keys `1`-`7` jump to the fixed views, which you can orbit.
 
-URL parameters: `?view=flyover|corner|under|line|platform|deck|above|skyline`, `?t=<seconds>` (freeze the
+URL parameters: `?view=flyover|corner|under|line|platform|deck|above|skyline`, `?cam=x,y,z,tx,ty,tz` (any fixed camera, for close inspection), `?t=<seconds>` (freeze the
 clock), `?seed=<int>`, `?rain=<count>` (0 = off). WebGPU only (Chromium).
 
 ## What it is
@@ -140,6 +140,43 @@ this commit and the one before it read 12–16 ms where an idle machine gave 7�
 Next: the cars have no door openings or interior, the south stair is a solid ramp of blocks,
 piers and girders are plain boxes with no joints. Then vehicles on the road, the tower
 barcode and the shop interiors.
+
+## Monorail detail (2026-11-14)
+
+Task 1 of `next/PLAN.md`. Images in `docs/progress/fresh-slice-monorail-detail/` (the gate's eight views and five
+close-ups taken with `?cam=`).
+
+- **Cars** (`train.ts`): the body is now built around real openings. Skirt and roof band are solid, and the window band
+  is piers with gaps, so the lit interior shows through: a ceiling panel with two light strips, a lining behind each
+  pier, seat backs along both walls, grab rails, end walls with a gangway door, bellows between cars, and 3–8 passengers
+  per car as dark silhouettes (seeded). Two doors per side per car: the leaf sits 12 cm back in the wall, with two
+  lit panes, a centre seam, a lit threshold and an amber lamp over it. Hangers are a roof fairing, a plate up into a
+  dark slot under the girder, and two raked links. The nose is 16 slices on a curve that turns into a straight rake,
+  with a raked windscreen over it, a chin panel, an amber destination display at the head of the screen, and
+  lamps on the lower front.
+- **Girders and piers** (`build.ts`): stiffener ribs every 7.5 m, a joint beside each arm, side plates and a bearing
+  pad where the girder hangs from the arm, knee braces from shaft to arm, a cable tray and a walkway rail with posts
+  on top, a footing, a cap and an access door on each plinth. The light line under each girder stays.
+- **Station**: every stair is now an open stair (`openStair`): separate treads on two stringers, rails on posts, and
+  a landing on two columns wherever a flight would rise more than 4 m. The south stairs have a landing halfway and a
+  railed bridge across to the platform; the north flights and the deck's end stairs use the same builder. The deck is
+  notched round the portal legs, with a kerb round each notch. The balustrades and the deck rail open where a stair
+  arrives. Platform screens now break at the six door positions, with queue lines on the floor, a lit threshold and a
+  door lamp at each. New: a name board facing the track and two hanging along each platform, a timetable case, an
+  octagonal clock, a red drinks machine beside the navy one, recycling bins, bench legs.
+- **Light on the train**: a line of tubes under a fascia over each track edge, at the platform lights' height so it
+  joins their fixture layer. It lights the side of a standing train, the screens and the platform edge. No new layer,
+  light or draw call.
+- `platform` now stands on the south platform, where the train is at `t=20`, so the gate looks at the lit side.
+- Dimensions (car, doors, girder, stairs) are in `plan.ts` (`monorail.car`, `monorail.doorXs`, `monorail.girder`, `stair`).
+
+Gate on 2026-11-14: 8/8 viewpoints, 32 calls (unchanged), 302,099 triangles (+40,896 against 261,203; the
+budget for this task was 60,000), GPU process 575–581 MB. Median frame 6.7–11.5 ms. Another Chrome tab had the slice
+open on the same GPU during the run, so these figures are not comparable with an idle machine.
+
+Still weak: the station name is made-up stroke glyphs that read as pseudo-Latin; the platform screens are opaque
+dark-teal slabs; the girders are near-black at night, so their ribs and joints barely show from the street; the
+doors do not open during the dwell; the passengers are two boxes each.
 
 ## Files
 

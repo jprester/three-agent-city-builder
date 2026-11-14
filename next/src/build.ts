@@ -197,21 +197,57 @@ export function assemble(plan: Plan, boxes: Boxes, signs: Signs): Roof[] {
 
   // --- the suspended monorail: piers, twin box girders with a light line, the station ---
   const m = plan.monorail, mLen = m.x1 - m.x0, mMid = (m.x0 + m.x1) / 2;
-  const BEAM_W = 1.5, BEAM_H = 1.7, beamTop = m.beamY + BEAM_H;
-  const hull = col('car_silver', 0.5), glass = col('glass_dark', 2.2), trim = col('fluorescent').lerp(col('sign_cyan'), 0.35);
+  const { width: BEAM_W, height: BEAM_H, ribEvery } = m.girder, beamTop = m.beamY + BEAM_H;
+  const hull = col('car_silver', 0.5), rib = col('car_silver', 0.42), glass = col('glass_dark', 2.2), trim = col('fluorescent').lerp(col('sign_cyan'), 0.35);
+  const black = col('car_black', 0.5), lit = col('interior_white');
+  const ARM = 1.5;
+  const nearPier = (x: number, pad: number) => m.piers.some((p) => Math.abs(x - p) < ARM / 2 + pad);
+  /** Parts of [a, b] left after removing `holes` (each [lo, hi]). */
+  const solid = (a: number, b: number, holes: [number, number][]) => {
+    const out: [number, number][] = [];
+    let at = a;
+    for (const [lo, hi] of [...holes].sort((p, q) => p[0] - q[0])) { if (lo > at) out.push([at, Math.min(lo, b)]); at = Math.max(at, hi); }
+    if (b > at) out.push([at, b]);
+    return out.filter(([p, q]) => q - p > 0.05);
+  };
   boxes.add(mMid, 0.11, 0, mLen, 0.22, 2, dark);                                     // median
   for (const s of [-1, 1]) {
-    boxes.add(mMid, m.beamY + BEAM_H / 2, s * m.trackZ, mLen, BEAM_H, BEAM_W, hull);                  // girder
-    boxes.add(mMid, m.beamY + 0.03, s * (m.trackZ + BEAM_W / 2 + 0.03), mLen, 0.05, 0.05, trim, 1.3);  // light line
-    roofs.push({ x0: m.x0, x1: m.x1, z0: s * m.trackZ - BEAM_W / 2, z1: s * m.trackZ + BEAM_W / 2, h: beamTop });
+    const gz = s * m.trackZ, outer = gz + s * BEAM_W / 2, inner = gz - s * BEAM_W / 2;
+    boxes.add(mMid, m.beamY + BEAM_H / 2, gz, mLen, BEAM_H, BEAM_W, hull);                         // girder
+    boxes.add(mMid, m.beamY - 0.012, gz, mLen, 0.025, 0.34, black);                                // the slot the hangers run in
+    boxes.add(mMid, m.beamY + 0.03, outer + s * 0.03, mLen, 0.05, 0.05, trim, 1.3);                // light line
+    roofs.push({ x0: m.x0, x1: m.x1, z0: gz - BEAM_W / 2, z1: gz + BEAM_W / 2, h: beamTop });
+    // Stiffener ribs down both faces, kept clear of the pier arms.
+    for (let x = m.x0 + ribEvery / 2; x < m.x1; x += ribEvery) {
+      if (nearPier(x, 0.6)) continue;
+      for (const f of [outer, inner]) boxes.add(x, m.beamY + BEAM_H / 2, f + Math.sign(f - gz) * 0.02, 0.12, BEAM_H - 0.12, 0.04, rib);
+    }
+    // On top: a cable tray on the inner edge, a walkway rail on the outer edge.
+    boxes.add(mMid, beamTop + 0.08, inner + s * 0.22, mLen, 0.16, 0.34, metal);
+    for (const y of [0.55, 1.05]) boxes.add(mMid, beamTop + y, outer - s * 0.06, mLen, 0.05, 0.05, steel);
+    for (let x = m.x0 + 2; x < m.x1; x += 4) if (!nearPier(x, 0.2)) boxes.add(x, beamTop + 0.53, outer - s * 0.06, 0.05, 1.06, 0.05, steel);
   }
   for (const x of m.piers) {
-    // T pier: a shaft that narrows above a plinth, an arm across both girders, a lit collar.
+    // T pier: a footing on the median, a plinth with a cap and an access door, a shaft, an arm
+    // across both girders, a lit collar, beacons.
+    boxes.add(x, 0.31, 0, 2.4, 0.18, 1.95, concrete);
     boxes.add(x, 1.4, 0, 1.7, 2.8, 1.5, concrete);
+    boxes.add(x, 2.75, 0, 1.86, 0.12, 1.66, col('concrete_light', 0.45));
+    for (const s of [-1, 1]) boxes.add(x, 1.25, s * 0.755, 0.6, 1.3, 0.02, metal);
     boxes.add(x, (beamTop + 2.8) / 2, 0, 1.15, beamTop - 2.8, 1.0, hull);
-    boxes.add(x, beamTop + 0.5, 0, 1.5, 1.0, 2 * m.trackZ + BEAM_W + 0.8, hull);
+    boxes.add(x, beamTop + 0.5, 0, ARM, 1.0, 2 * m.trackZ + BEAM_W + 0.8, hull);
     boxes.add(x, 2.86, 0, 1.2, 0.05, 1.05, trim, 1.1);
-    for (const s of [-1, 1]) boxes.add(x, beamTop + 1.05, s * (m.trackZ + BEAM_W / 2 + 0.2), 0.3, 0.12, 0.3, red, 5, 3 + (Math.abs(x) % 5));
+    for (const s of [-1, 1]) {
+      boxes.add(x, beamTop + 1.05, s * (m.trackZ + BEAM_W / 2 + 0.2), 0.3, 0.12, 0.3, red, 5, 3 + (Math.abs(x) % 5));
+      // Where each girder hangs from the arm: side plates over its upper half, a bearing pad, a joint.
+      const gz = s * m.trackZ;
+      for (const f of [-1, 1]) boxes.add(x, beamTop - 0.5, gz + f * (BEAM_W / 2 + 0.04), 1.3, 1.1, 0.08, rib);
+      boxes.add(x, beamTop, gz, ARM + 0.14, 0.1, BEAM_W + 0.2, black);
+      boxes.add(x + ARM / 2 + 0.35, m.beamY + BEAM_H / 2, gz, 0.04, BEAM_H + 0.03, BEAM_W + 0.03, black);
+      // Knee brace from the shaft up to the arm, inside the inner girder.
+      const z0 = 0.5, z1 = m.trackZ - BEAM_W / 2 - 0.15, y0 = beamTop - 1.6, y1 = beamTop + 0.05;
+      boxes.add(x, (y0 + y1) / 2, s * (z0 + z1) / 2, 0.45, 0.22, Math.hypot(z1 - z0, y1 - y0), hull, 0, 0, [-s * Math.atan2(y1 - y0, z1 - z0), 0, 0]);
+    }
   }
 
   // Station: side platforms slung at car-floor height under a roof on portal frames that
@@ -219,61 +255,212 @@ export function assemble(plan: Plan, boxes: Boxes, signs: Signs): Roof[] {
   const [s0, s1] = m.station, sMid = (s0 + s1) / 2, sLen = s1 - s0;
   const [pIn, pOut] = m.platform, pMid = (pIn + pOut) / 2, pW = pOut - pIn;
   const platY = m.floorY, roofHalf = pOut + 0.8, legZ = plan.main.half + 0.9;
+  const legXs: number[] = [];
+  for (let x = s0; x <= s1 + 0.1; x += sLen / 4) legXs.push(x);
   boxes.add(sMid, m.roofY + 0.12, 0, sLen + 3, 0.24, roofHalf * 2, hull);
   for (const e of [-1, 1]) boxes.add(sMid, m.roofY + 0.12, e * (roofHalf + 0.03), sLen + 3, 0.07, 0.05, trim, 1.2);   // roof edge lines
   roofs.push({ x0: s0 - 1.5, x1: s1 + 1.5, z0: -roofHalf, z1: roofHalf, h: m.roofY + 0.24 });
-  for (let x = s0; x <= s1 + 0.1; x += sLen / 4) {
+  for (const x of legXs) {
     for (const s of [-1, 1]) boxes.add(x, m.roofY / 2, s * legZ, 0.8, m.roofY, 0.65, hull);
     boxes.add(x, m.roofY + 0.7, 0, 0.9, 0.95, legZ * 2 + 0.65, hull);
   }
+
+  // Stairs: open flights of separate treads on two stringers, handrails on posts, a landing
+  // wherever a flight would rise more than `stair.maxRise`, carried on columns to the ground.
+  const st = plan.stair;
+  const flightRun = (rise: number) => Math.round(rise / st.riser) * st.tread;
+  const stairRun = (rise: number) => {
+    const flights = Math.ceil(rise / st.maxRise - 1e-6);
+    return flights * flightRun(rise / flights) + (flights - 1) * st.landing;
+  };
+  /** From (x, z) at `y0`, rising toward `dir` along x to `y1`. */
+  const openStair = (x: number, z: number, y0: number, y1: number, dir: number, width: number) => {
+    const flights = Math.ceil((y1 - y0) / st.maxRise - 1e-6), rise = (y1 - y0) / flights;
+    const steps = Math.round(rise / st.riser), r = rise / steps, run = steps * st.tread, slope = Math.atan2(rise, run), len = Math.hypot(rise, run);
+    const sides = [-1, 1].map((k) => z + k * (width / 2 + 0.05));
+    let at = x, y = y0;
+    for (let f = 0; f < flights; f++) {
+      for (let i = 0; i < steps; i++) boxes.add(at + dir * (i + 0.5) * st.tread, y + (i + 1) * r - 0.03, z, st.tread + 0.03, 0.06, width, concrete);
+      for (const sz of sides) {
+        // Stringer under the tread ends, rail 0.9 m above the nosings, posts between.
+        boxes.add(at + dir * run / 2, y + rise / 2 - 0.08, sz, len + 0.1, 0.32, 0.08, metal, 0, 0, [0, 0, dir * slope]);
+        boxes.add(at + dir * run / 2, y + rise / 2 + 0.95, sz, len, 0.05, 0.05, steel, 0, 0, [0, 0, dir * slope]);
+        for (let k = 1; k < 4; k++) boxes.add(at + dir * run * k / 4, y + rise * k / 4 + 0.5, sz, 0.04, 0.9, 0.04, steel);
+      }
+      at += dir * run;
+      y += rise;
+      if (f < flights - 1) {
+        // Landing, its rail on the outer side, and two columns to the ground.
+        boxes.add(at + dir * st.landing / 2, y - 0.1, z, st.landing, 0.2, width + 0.2, concrete);
+        for (const sz of sides) {
+          boxes.add(at + dir * st.landing / 2, y + 0.95, sz, st.landing, 0.05, 0.05, steel);
+          boxes.add(at + dir * (st.landing - 0.15), (y - 0.2) / 2, sz, 0.14, y - 0.2, 0.14, metal);
+        }
+        at += dir * st.landing;
+      }
+    }
+    return at;
+  };
+
+  // Openings in the platforms' outer balustrade where the stairs arrive: |x| ranges, per platform side.
+  const zGap = (pOut + plan.deck.z0) / 2 + 0.1, zS = -(legZ + 1.15), stairW = 1.3;
+  const openings: Record<number, [number, number]> = { [-1]: [6, 9], [1]: [11, 14] };
+  const doorGaps = m.doorXs.map((d) => [d - 0.9, d + 0.9] as [number, number]);
   for (const s of [-1, 1]) {
+    const [oa, ob] = openings[s];
+    const holes: [number, number][] = [[-ob, -oa], [oa, ob]];
     boxes.add(sMid, platY - 0.18, s * pMid, sLen, 0.36, pW, concrete);                              // platform
     boxes.add(sMid, platY + 0.012, s * (pIn + 0.5), sLen, 0.02, 0.22, col('car_yellow', 1.3));     // tactile strip
     boxes.add(sMid, platY - 0.34, s * (pIn + 0.06), sLen, 0.05, 0.06, trim, 0.9);                   // underside line
-    // Platform screens: glass to waist height with a lit rail, in panels between door gaps.
-    for (let x = s0 + 2.4; x < s1 - 2; x += 4.8) {
-      boxes.add(x, platY + 0.62, s * (pIn + 0.05), 3.4, 1.24, 0.05, glass);
-      boxes.add(x, platY + 1.27, s * (pIn + 0.05), 3.4, 0.05, 0.07, trim, 1.2);
+    // Platform screens between the door positions: glass to waist height with a lit rail, posts.
+    for (const [a, b] of solid(s0 + 1, s1 - 1, doorGaps)) {
+      const panels = Math.ceil((b - a) / 3.6), pl = (b - a) / panels;
+      for (let k = 0; k < panels; k++) {
+        const x = a + (k + 0.5) * pl;
+        boxes.add(x, platY + 0.62, s * (pIn + 0.05), pl - 0.06, 1.24, 0.05, glass);
+        boxes.add(x, platY + 1.27, s * (pIn + 0.05), pl - 0.06, 0.05, 0.07, trim, 1.2);
+      }
+      for (const x of [a, b]) boxes.add(x, platY + 0.66, s * (pIn + 0.05), 0.1, 1.32, 0.12, steel);
     }
-    // Outer edge: a glass balustrade with a rail, between the hangers that carry the platform from the roof.
-    boxes.add(sMid, platY + 0.6, s * (pOut - 0.04), sLen, 1.2, 0.05, glass);
-    boxes.add(sMid, platY + 1.23, s * (pOut - 0.04), sLen, 0.05, 0.07, hull);
-    for (let x = s0 + 3; x <= s1 - 3; x += 6.2) boxes.add(x, (platY + m.roofY) / 2, s * (pOut - 0.1), 0.12, m.roofY - platY, 0.12, hull);
+    // At every door: queue lines on the floor, a lit threshold at the edge, a door number lamp.
+    for (const d of m.doorXs) {
+      for (const o of [-0.75, 0.75]) boxes.add(d + o, platY + 0.012, s * (pIn + 1.6), 0.1, 0.02, 1.6, paint);
+      boxes.add(d, platY + 0.012, s * (pIn + 2.45), 1.6, 0.02, 0.1, paint);
+      boxes.add(d, platY + 0.008, s * (pIn + 0.12), 1.6, 0.02, 0.12, fluor, 1.4);
+      boxes.add(d + 0.86, platY + 1.38, s * (pIn + 0.05), 0.08, 0.14, 0.14, col('sign_cyan'), 2.5);
+    }
+    // Outer edge: a glass balustrade with a rail, open where the stair lands; hangers carry the platform from the roof.
+    for (const [a, b] of solid(s0, s1, holes)) {
+      boxes.add((a + b) / 2, platY + 0.6, s * (pOut - 0.04), b - a, 1.2, 0.05, glass);
+      boxes.add((a + b) / 2, platY + 1.23, s * (pOut - 0.04), b - a, 0.05, 0.07, hull);
+    }
+    for (let x = s0 + 3; x <= s1 - 3; x += 6.2) {
+      if (holes.some(([a, b]) => x > a - 0.3 && x < b + 0.3)) continue;
+      boxes.add(x, (platY + m.roofY) / 2, s * (pOut - 0.1), 0.12, m.roofY - platY, 0.12, hull);
+    }
     for (let x = s0 + 5; x < s1 - 4; x += 4) boxes.tube(x, platY + 2.85, s * (pMid + 0.5), 2.4, 1.5);                   // platform lights
-    for (let x = s0 + 9; x < s1 - 6; x += 16) {
-      boxes.add(x, platY + 0.9, s * (pOut - 0.5), 1.1, 1.8, 0.7, col('car_navy'));                                      // vending machine
-      boxes.add(x, platY + 1.05, s * (pOut - 0.86), 0.9, 1.3, 0.03, fluor, 0.8);
+    // A line of tubes over the track edge under a fascia: it lights the platform edge and the
+    // side of a train standing at it, at the platform lights' height so it shares their layer.
+    boxes.add(sMid, platY + 3.05, s * (pIn + 0.25), sLen - 2, 0.3, 0.06, hull);
+    for (let x = s0 + 2.5; x < s1 - 2; x += 3.5) boxes.tube(x, platY + 2.85, s * (pIn + 0.32), 3, 1.6, 0.1);
+    for (let x = s0 + 6; x < s1 - 3; x += 12) boxes.add(x, (platY + 3.2 + m.roofY) / 2, s * (pIn + 0.25), 0.06, m.roofY - platY - 3.2, 0.06, metal);
+
+    // Furniture along the back: two vending machine styles with a recycling bin, benches.
+    const clear = (a: number, b: number) => !holes.some(([p, q]) => b > p - 0.4 && a < q + 0.4);
+    let k = 0;
+    for (let x = s0 + 9; x < s1 - 6; x += 16, k++) {
+      const zb = s * (pOut - 0.5), face = s * (pOut - 0.86);
+      if (!clear(x - 1.9, x + 0.6)) { /* the stair lands here */ } else if ((k + (s > 0 ? 1 : 0)) % 2 === 0) {
+        boxes.add(x, platY + 0.9, zb, 1.1, 1.8, 0.7, col('car_navy'));
+        boxes.add(x, platY + 1.05, face, 0.9, 1.3, 0.03, fluor, 0.8);
+      } else {
+        // Drinks machine: red body, a lit display of three shelves, a dark slot, a button strip.
+        boxes.add(x, platY + 0.92, zb, 1.0, 1.84, 0.72, col('car_red', 0.8));
+        boxes.add(x, platY + 1.3, face, 0.84, 0.82, 0.03, lit, 0.9);
+        for (const y of [1.05, 1.3, 1.55]) boxes.add(x, platY + y, face - s * 0.012, 0.8, 0.12, 0.02, col('car_grey', 0.6));
+        boxes.add(x, platY + 0.84, face, 0.84, 0.05, 0.03, col('sign_cyan'), 2);
+        boxes.add(x, platY + 0.3, face, 0.6, 0.18, 0.03, black);
+      }
+      // Recycling bin: three bodies with coloured lids and dark slots.
+      for (let b = 0; b < 3 && clear(x - 1.9, x + 0.6); b++) {
+        const bx = x - 1.25 + (b - 1) * 0.4;
+        boxes.add(bx, platY + 0.45, s * (pOut - 0.35), 0.36, 0.9, 0.38, col('car_silver', 0.55));
+        boxes.add(bx, platY + 0.92, s * (pOut - 0.35), 0.37, 0.05, 0.39, col((['car_green', 'car_yellow', 'paint_blue'] as const)[b]));
+        boxes.add(bx, platY + 0.78, s * (pOut - 0.55), 0.18, 0.05, 0.02, black);
+      }
+      if (!clear(x + 3.9, x + 6.1)) continue;
       boxes.add(x + 5, platY + 0.45, s * (pOut - 0.55), 2.2, 0.08, 0.5, col('interior_wood'));                          // bench
+      for (const o of [-0.9, 0.9]) boxes.add(x + 5 + o, platY + 0.22, s * (pOut - 0.55), 0.08, 0.44, 0.4, metal);
+    }
+
+    // Station name board on the balustrade, facing the track, and two hanging along the platform.
+    const glyphs = mulberry32(s > 0 ? 401 : 409);
+    const board = (x: number, y: number, z: number, w: number, h: number, nx: number, nz: number) => {
+      const along = (u: number, v: number, du: number, dv: number, color: THREE.Color, emit = 0) => {
+        const out = 0.035;
+        boxes.add(x + (nz ? u : 0) + nx * out, y + v, z + (nx ? u : 0) + nz * out, nz ? du : 0.01, dv, nx ? du : 0.01, color, emit);
+      };
+      boxes.add(x, y, z, nz ? w : 0.06, h, nx ? w : 0.06, lit, 0.9);
+      along(0, -h / 2 + h * 0.1, w, h * 0.12, col('sign_cyan'), 1.6);
+      // Three large characters of strokes on a 3x3 grid, a line of small text beneath.
+      const cw = h * 0.42;
+      for (let c = 0; c < 3; c++) {
+        const cu = (c - 1) * cw * 1.25;
+        const strokes = new Set<number>();
+        while (strokes.size < 4) strokes.add(Math.floor(glyphs() * 6));
+        for (const k2 of strokes) {
+          const p = (k2 % 3) / 2 - 0.5;
+          if (k2 < 3) along(cu, h * 0.12 + p * cw, cw, 0.06 * h, black);
+          else along(cu + p * cw, h * 0.12, 0.07 * h, cw, black);
+        }
+      }
+      for (let c = 0; c < 9; c++) along((c - 4) * cw * 0.32, -h * 0.22, cw * (0.14 + 0.12 * glyphs()), 0.05 * h, black);
+    };
+    board(3.1, platY + 1.9, s * (pOut - 0.12), 3.6, 0.95, 0, -s);
+    for (const o of [-1.5, 1.5]) boxes.add(3.1 + o, platY + 1.33, s * (pOut - 0.1), 0.06, 0.2, 0.06, metal);
+    for (const bx of [-20, 21]) {
+      board(bx, platY + 2.55, s * pMid, 1.7, 0.45, 1, 0);
+      board(bx, platY + 2.55, s * pMid, 1.7, 0.45, -1, 0);
+      for (const o of [-0.7, 0.7]) boxes.add(bx, (platY + 2.8 + m.roofY) / 2, s * pMid + o, 0.04, m.roofY - platY - 2.8, 0.04, metal);
+    }
+    // Timetable case on a post, facing the track; a clock hanging over the platform, readable along it.
+    const tz = s * (pOut - 0.3);
+    boxes.add(-15.5, platY + 0.6, tz, 0.12, 1.2, 0.12, metal);
+    boxes.add(-15.5, platY + 1.75, tz, 0.95, 1.25, 0.12, col('car_silver', 0.4));
+    boxes.add(-15.5, platY + 1.75, tz - s * 0.065, 0.85, 1.12, 0.01, lit, 0.7);
+    for (let r = 0; r < 6; r++) boxes.add(-15.5, platY + 1.28 + r * 0.19, tz - s * 0.072, 0.82, 0.015, 0.01, black);
+    boxes.add(-15.5 - 0.15, platY + 1.75, tz - s * 0.072, 0.015, 1.1, 0.01, black);
+    const cx = 9.5, cy = platY + 2.65, cz = s * pMid;
+    boxes.add(cx, (cy + 0.3 + m.roofY) / 2, cz, 0.04, m.roofY - cy - 0.3, 0.04, metal);
+    for (const a of [0, Math.PI / 4]) {
+      boxes.add(cx, cy, cz, 0.14, 0.5, 0.5, col('car_black', 0.6), 0, 0, [a, 0, 0]);
+      boxes.add(cx, cy, cz, 0.16, 0.44, 0.44, lit, 0.8, 0, [a, 0, 0]);
+    }
+    for (const [a, len] of [[-1.05, 0.13], [1.05, 0.2]]) {
+      // Hands at ten past ten, on both faces.
+      boxes.add(cx, cy + Math.cos(a) * len / 2, cz + Math.sin(a) * len / 2, 0.18, len, 0.025, black, 0, 0, [a, 0, 0]);
     }
     roofs.push({ x0: s0, x1: s1, z0: Math.min(s * pIn, s * pOut), z1: Math.max(s * pIn, s * pOut), h: platY });
   }
+
+  // Pedestrian deck, notched round the portal legs that pass through it.
   const dk = plan.deck, dMidZ = (dk.z0 + dk.z1) / 2, dW = dk.z1 - dk.z0;
-  boxes.add((dk.x0 + dk.x1) / 2, dk.y - 0.2, dMidZ, dk.x1 - dk.x0, 0.4, dW, concrete);
-  boxes.add((dk.x0 + dk.x1) / 2, dk.y + 0.55, dk.z0 + 0.06, dk.x1 - dk.x0, 1.1, 0.08, steel);
+  const notch = legZ + 0.325 + 0.15, deckHoles = legXs.map((x) => [x - 0.55, x + 0.55] as [number, number]);
+  boxes.add((dk.x0 + dk.x1) / 2, dk.y - 0.2, (notch + dk.z1) / 2, dk.x1 - dk.x0, 0.4, dk.z1 - notch, concrete);
+  for (const [a, b] of solid(dk.x0, dk.x1, deckHoles)) boxes.add((a + b) / 2, dk.y - 0.2, (dk.z0 + notch) / 2, b - a, 0.4, notch - dk.z0, concrete);
+  for (const x of legXs) {
+    if (x < dk.x0 || x > dk.x1) continue;
+    for (const o of [-0.55, 0.55]) boxes.add(x + o, dk.y + 0.06, (dk.z0 + notch) / 2, 0.06, 0.12, notch - dk.z0, steel);
+    boxes.add(x, dk.y + 0.06, notch - 0.03, 1.16, 0.12, 0.06, steel);
+  }
+  // Deck rail on the street side, open where the north flights leave it.
+  const northRun = flightRun(platY - dk.y);
+  const deckLanding: [number, number] = [14 + northRun, 17 + northRun];
+  for (const [a, b] of solid(dk.x0, dk.x1, [[-deckLanding[1], -deckLanding[0]], deckLanding])) {
+    boxes.add((a + b) / 2, dk.y + 0.55, dk.z0 + 0.06, b - a, 1.1, 0.08, steel);
+  }
   for (let x = dk.x0 + 5; x < dk.x1 - 3; x += 6) boxes.tube(x, dk.y - 0.43, dMidZ, 2.4, 1.3);
   for (let x = dk.x0 + 3; x <= dk.x1 - 3; x += 10) boxes.add(x, (dk.y - 0.4) / 2, dk.z1 - 0.4, 0.3, dk.y - 0.4, 0.3, metal);
   roofs.push({ x0: dk.x0, x1: dk.x1, z0: dk.z0, z1: dk.z1, h: dk.y });
-  // A flight of steps from (x, z) at `y0`, rising toward `dir` along x until `y1`.
-  const stairs = (x: number, z: number, y0: number, y1: number, dir: number, width: number) => {
-    const steps = Math.round((y1 - y0) / 0.18);
-    for (let i = 0; i < steps; i++) {
-      const top = y0 + (i + 1) * 0.18, h = Math.min(top - y0, 0.7);   // blocks down to the flight's underside
-      boxes.add(x + (i + 0.5) * 0.3 * dir, top - h / 2, z, 0.3, h, width, dark);
-    }
-  };
-  const runOf = (rise: number) => Math.round(rise / 0.18) * 0.3;
   for (const s of [-1, 1]) {
     // Sidewalk up to the deck at both of its ends.
-    stairs((s < 0 ? dk.x0 : dk.x1) + s * runOf(dk.y - 0.15), dMidZ, 0.15, dk.y, -s, dW - 0.4);
-    // Deck up to the north platform: a flight in the gap between them, with a landing at each end.
-    const zGap = (pOut + dk.z0) / 2 + 0.1, run = runOf(platY - dk.y);
-    stairs(s * (14 + run), zGap, dk.y, platY, -s, 1.4);
-    boxes.add(s * (15.5 + run), dk.y - 0.1, zGap, 3, 0.2, dk.z0 - pOut + 0.3, concrete);
-    boxes.add(s * 12.5, platY - 0.1, zGap, 3, 0.2, dk.z0 - pOut + 0.3, concrete);
-    // South platform: one long flight from the sidewalk, and a landing across to the platform.
-    const zS = -(legZ + 1.0), runS = runOf(platY - 0.15);
-    stairs(s * (9 + runS), zS, 0.15, platY, -s, 1.3);
-    boxes.add(s * 7.5, platY - 0.1, (zS - 0.65 - pOut) / 2, 3, 0.2, zS - 0.65 + pOut < 0 ? -(zS - 0.65 + pOut) : 0.1, concrete);
+    openStair((s < 0 ? dk.x0 : dk.x1) + s * stairRun(dk.y - 0.15), dMidZ, 0.15, dk.y, -s, dW - 0.4);
+    // Deck up to the north platform: one open flight in the gap between them, a landing at each end.
+    const landW = dk.z0 - pOut + 0.3;
+    openStair(s * (14 + northRun), zGap, dk.y, platY, -s, 1.4);
+    boxes.add(s * (15.5 + northRun), dk.y - 0.1, zGap, 3, 0.2, landW, concrete);
+    boxes.add(s * 12.5, platY - 0.1, zGap, 3, 0.2, landW, concrete);
+    // South platform: an open stair with a landing halfway, from the sidewalk to a bridge across to the platform.
+    openStair(s * (9 + stairRun(platY - 0.15)), zS, 0.15, platY, -s, stairW);
+    const zb0 = zS - stairW / 2 - 0.1, zb1 = -pOut;
+    boxes.add(s * 7.5, platY - 0.1, (zb0 + zb1) / 2, 3, 0.2, zb1 - zb0, concrete);
+    boxes.add(s * 6, platY + 0.55, (zb0 + zb1) / 2, 0.05, 1.1, zb1 - zb0, glass);
+    boxes.add(s * 6, platY + 1.12, (zb0 + zb1) / 2, 0.06, 0.05, zb1 - zb0, steel);
+    boxes.add(s * 7.5, platY + 0.55, zb0, 3, 1.1, 0.05, glass);
+    boxes.add(s * 7.5, platY + 1.12, zb0, 3, 0.05, 0.06, steel);
+    const za = zS + stairW / 2 + 0.1;
+    boxes.add(s * 9, platY + 0.55, (za + zb1) / 2, 0.05, 1.1, zb1 - za, glass);
+    boxes.add(s * 9, platY + 1.12, (za + zb1) / 2, 0.06, 0.05, zb1 - za, steel);
   }
 
   // --- skybridges over the cross streets ---

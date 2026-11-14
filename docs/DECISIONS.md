@@ -292,3 +292,10 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 2026-11-14 | fresh-slice | Girders at 11.7 m put the car floor and platforms at 8 m | Leaves 7.7 m clear over the road and makes the climb from the 5.6 m deck a short flight.
 2026-11-14 | fresh-slice | The station roof stands on portal frames with legs on the sidewalks, not on columns under the platforms | Columns under platforms 4-8 m from the centreline would land in the traffic lanes.
 2026-11-14 | fresh-slice | Only the deck, platform and bridge tubes register as fixture light; the girder and pier light lines are emission only | The fixture map has three height layers; more mounting heights would merge layers and bring back light leaking upward.
+2026-11-14 | fresh-slice | Car windows are real openings in the body with a lit interior behind them, not lit panes | A visible interior needs depth; the cost is about 100 boxes per car (about 8,500 triangles for both trains).
+2026-11-14 | fresh-slice | Train light at the platform is a tube line over each track edge at the platform lights' mounting height | It joins an existing fixture layer, so no layer is split and no light leaks upward. Train-borne emission cannot write to the static fixture map.
+2026-11-14 | fresh-slice | The platform name board uses stroke glyphs built from boxes, not the sign atlas | The atlas has no station name, and the brief forbids touching art/. A typeset name is a follow-up.
+2026-11-14 | fresh-slice | The `platform` view moved to the south platform | At the gate's t=20 the south train stands there, so the screenshot shows the side that faces the platform.
+2026-11-14 | fresh-slice | The deck is notched round the portal legs rather than moving the legs | The legs cannot move outward (buildings) or inward (traffic lanes).
+2026-11-14 | fresh-slice | The deck's end stairs were also rebuilt as open stairs | They are in `line` beside the monorail and read as the same solid ramps the brief criticised.
+2026-11-14 | fresh-slice | Added `?cam=x,y,z,tx,ty,tz` | Close-up checks of details the fixed views do not frame, with no new viewpoints in the gate.
