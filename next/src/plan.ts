@@ -7,17 +7,25 @@ import { mulberry32 } from '../../art/layouts/lib/rng.mjs';
  * over the main street, a pedestrian deck beside it, and skybridges over the cross streets.
  * Everything is axis-aligned and deterministic from the seed. Units are meters, +y up.
  */
+export type HousingForm = 'corner' | 'slab' | 'wing';
+export interface BuildingSection {
+  x0: number; x1: number; z0: number; z1: number;
+  bottom: number; top: number; style: number; frontage: boolean;
+}
+
 export interface Building {
   x0: number; x1: number; z0: number; z1: number;
   h: number;
   seed: number;
-  /** 0 tiled housing, 1 concrete office, 2 painted housing, 3 glass block, 4 tower with a photographic facade. */
+  /** 0 tiled housing, 1 concrete office, 2 painted housing, 4 photographic glass. */
   style: number;
   /**
    * The massing, bottom up: each tier is the footprint inset by `inset` metres, rising to `top`.
    * One tier is a plain box; towers stand on a podium, step back, and end in a crown.
    */
   tiers: { inset: number; top: number }[];
+  /** Three trial forms on the deck-side frontage beside the station. */
+  housingForm?: HousingForm;
   /** Which walls face a street (and get shopfronts, signs and street furniture). */
   street: { xmin: boolean; xmax: boolean; zmin: boolean; zmax: boolean };
   /** Near tier: gets kit parts (AC units, balconies, pipes, awnings, roof clutter). */
@@ -77,6 +85,11 @@ export interface Plan {
 }
 
 const FLOOR = 3.2;
+const PHOTO_OFFICE_HEIGHT = 55;
+
+function facadeStyle(style: number, height: number): number {
+  return style === 3 || (style === 1 && height >= PHOTO_OFFICE_HEIGHT) ? 4 : style;
+}
 
 /** Podium, shaft, setbacks and a crown for a building of height h on a w x d lot. */
 function massing(rng: () => number, w: number, d: number, h: number, style: number): Building['tiers'] {
@@ -137,7 +150,9 @@ export function createPlan(seed = 7): Plan {
     const mid = (z0 + z1) / 2 + (rng() - 0.5) * 6;
     for (const [r0, r1] of [[z0, mid], [mid, z1]] as const) {
       const onMain = Math.abs(r0) === mainEdge || Math.abs(r1) === mainEdge;
-      let x = x0;
+      const pilot = x0 < 0 && x1 > 0 && r0 === mainEdge;
+      const forms: readonly HousingForm[] = ['corner', 'slab', 'wing'];
+      let lot = 0, x = x0;
       while (x < x1 - 1) {
         let w = 14 + rng() * 12;
         if (x1 - (x + w) < 12) w = x1 - x;
@@ -160,14 +175,22 @@ export function createPlan(seed = 7): Plan {
           if (style === 4) h += 20 + rng() * 40;
         }
         const hs = Math.round(h / FLOOR) * FLOOR + 1.1;
-        buildings.push({
+        const building: Building = {
           x0: x + GAP / 2, x1: x + w - GAP / 2, z0: r0 + GAP / 2, z1: r1 - GAP / 2,
           h: hs, tiers: massing(rng, w - GAP, Math.abs(r1 - r0) - GAP, hs, style),
-          seed: Math.floor(rng() * 1e6), style,
+          seed: Math.floor(rng() * 1e6), style: facadeStyle(style, hs),
           street: { xmin: x === x0, xmax: x + w >= x1 - 1e-6, zmin: r0 === z0, zmax: r1 === z1 },
           // Kit geometry (balconies, AC units, signs) close to the monorail; further out the facade draws them.
           near: onMain || (Math.abs(cx) < 170 && Math.abs(cz) < 110),
-        });
+        };
+        // Keep the rest of the plan on the same random stream as the ordinary lots.
+        const form = forms[lot++];
+        if (pilot && form) {
+          building.housingForm = form;
+          building.h = snapHousingTop(form === 'corner' ? 8 : form === 'slab' ? 12 : 16);
+          building.style = form === 'slab' ? 2 : 0;
+        }
+        buildings.push(building);
         x += w;
       }
     }
@@ -188,7 +211,7 @@ export function createPlan(seed = 7): Plan {
     const hs = Math.round(h / FLOOR) * FLOOR;
     skyline.push({
       x0: cx - w / 2, x1: cx + w / 2, z0: cz - d / 2, z1: cz + d / 2, h: hs, tiers: massing(rng, w, d, hs, style),
-      seed: Math.floor(rng() * 1e6), style,
+      seed: Math.floor(rng() * 1e6), style: facadeStyle(style, hs),
       street: { xmin: false, xmax: false, zmin: false, zmax: false }, near: false,
     });
   }
@@ -253,9 +276,47 @@ export function createPlan(seed = 7): Plan {
 }
 
 export const FLOOR_HEIGHT = FLOOR;
+export const SIDEWALK_HEIGHT = 0.15;
 
-/** The top tier's footprint and height: where roofs carry their kit, crowns and signs. */
-export function topTier(b: Building) {
-  const t = b.tiers[b.tiers.length - 1];
-  return { x0: b.x0 + t.inset, x1: b.x1 - t.inset, z0: b.z0 + t.inset, z1: b.z1 - t.inset, h: t.top };
+export function sidewalks(plan: Plan) {
+  const mainEdge = plan.main.half + plan.main.sidewalk;
+  const widthZ = (z: number) => Math.abs(z) === mainEdge ? plan.main.sidewalk
+    : Math.abs(z) < plan.size.z ? plan.back.sidewalk : 0;
+  return plan.blocks.map(([x0, x1, z0, z1]) => ({
+    x0: x0 - (x0 > -plan.size.x ? plan.cross.sidewalk : 0),
+    x1: x1 + (x1 < plan.size.x ? plan.cross.sidewalk : 0),
+    z0: z0 - widthZ(z0), z1: z1 + widthZ(z1),
+  }));
+}
+
+const snapHousingTop = (floors: number) => 4.5 + floors * FLOOR;
+export const HOUSING_PODIUM = snapHousingTop(3);
+
+/** The shell, rooftop kit and rain map all use the same sections. */
+export function buildingSections(b: Building): BuildingSection[] {
+  if (!b.housingForm) return b.tiers.map((t, i) => ({
+    x0: b.x0 + t.inset, x1: b.x1 - t.inset, z0: b.z0 + t.inset, z1: b.z1 - t.inset,
+    bottom: b.tiers[i - 1]?.top ?? 0, top: t.top, style: b.style, frontage: i === 0,
+  }));
+
+  const { x0, x1, z0, z1, h, style } = b;
+  const width = x1 - x0;
+  const podium: BuildingSection = { x0, x1, z0, z1, bottom: 0, top: HOUSING_PODIUM, style, frontage: true };
+  const upper = (left: number, right: number, front: number, back: number, top: number, finish = style): BuildingSection =>
+    ({ x0: left, x1: right, z0: front, z1: back, bottom: HOUSING_PODIUM, top, style: finish, frontage: false });
+
+  if (b.housingForm === 'corner') {
+    const end = x0 + width * 0.33;
+    return [podium, upper(x0 + 0.65, end, z0 + 0.5, z1 - 9, h),
+      upper(end, x1 - 1.5, z0 + 2.2, z1 - 11, h - FLOOR, 2)];
+  }
+  if (b.housingForm === 'slab') {
+    const core = x0 + width * 0.48, halfCore = 1.65;
+    return [podium, upper(x0 + 1.1, core - halfCore, z0 + 0.8, z1 - 10, h - FLOOR),
+      upper(core - halfCore, core + halfCore, z0 + 3.6, z1 - 8, h, 1),
+      upper(core + halfCore, x1 - 1.1, z0 + 1.15, z1 - 10, h - FLOOR)];
+  }
+  const seam = x0 + width * 0.56;
+  return [podium, upper(x0 + 1.4, seam, z0 + 1.1, z1 - 12, h - 3 * FLOOR),
+    upper(seam, x1 - 1.3, z0 + 4.4, z1 - 7, h, 2)];
 }

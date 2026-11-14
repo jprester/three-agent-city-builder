@@ -1,7 +1,7 @@
 import * as THREE from 'three/webgpu';
 import { mulberry32, weightedChoice } from '../../art/layouts/lib/rng.mjs';
 import catalog from '../assets/signs.json';
-import { FLOOR_HEIGHT, topTier, type Building, type Plan } from './plan';
+import { FLOOR_HEIGHT, HOUSING_PODIUM, SIDEWALK_HEIGHT, buildingSections, sidewalks, type Building, type Plan } from './plan';
 import { paletteColor, type PaletteName } from './tsl';
 
 /** Facade grid per style: bay width, and the ground floor the shopfronts occupy. Shared with the facade shader. */
@@ -10,9 +10,10 @@ export const PODIUM = 4.5;
 export const SHOP_BAY = 4.5;
 
 const col = (name: PaletteName, k = 1) => paletteColor(name).multiplyScalar(k);
+const DECORATIVE_TOWER_LIGHTS = false;
 
 /**
- * Every building, near to horizon, as one mesh: four walls and a roof per building, with
+ * Every building, near to horizon, as one mesh: four walls and a roof per section, with
  * facade coordinates in meters. No windows are modelled; the facade material draws them and
  * reduces them with distance, so the three tiers (street, mid-rise field, skyline) are one
  * draw call and the tier is decided per pixel.
@@ -27,18 +28,16 @@ export function buildShell(buildings: Building[]): THREE.BufferGeometry {
   };
   for (const b of buildings) {
     const seed = (b.seed % 9973) / 9973;
-    const bay = BAY[b.style];
-    let bottom = 0;
-    b.tiers.forEach((t, k) => {
-      const x0 = b.x0 + t.inset, x1 = b.x1 - t.inset, z0 = b.z0 + t.inset, z1 = b.z1 - t.inset, top = t.top;
+    for (const { x0, x1, z0, z1, bottom, top, style, frontage } of buildingSections(b)) {
+      const bay = BAY[style];
       // Only the bottom tier meets the street (shopfronts); upper tiers are set back from it.
-      const street = k === 0 ? b.street : { xmin: false, xmax: false, zmin: false, zmax: false };
+      const street = frontage ? b.street : { xmin: false, xmax: false, zmin: false, zmax: false };
       const side = (ax: number, az: number, bx: number, bz: number, n: number[], onStreet: boolean) => {
         const len = Math.hypot(bx - ax, bz - az);
         const bays = Math.max(1, Math.floor((len - 0.6) / bay));
         const margin = (len - bays * bay) / 2;
         quad([[ax, bottom, az], [bx, bottom, bz], [bx, top, bz], [ax, top, az]], n,
-          [[-margin, bottom], [len - margin, bottom], [len - margin, top], [-margin, top]], [seed, b.style, top, onStreet ? 1 : 0], [bays, len]);
+          [[-margin, bottom], [len - margin, bottom], [len - margin, top], [-margin, top]], [seed, style, top, onStreet ? 1 : 0], [bays, len]);
       };
       // Counter-clockwise seen from outside, so u runs left to right on every wall.
       side(x0, z1, x1, z1, [0, 0, 1], street.zmax);
@@ -47,8 +46,7 @@ export function buildShell(buildings: Building[]): THREE.BufferGeometry {
       side(x0, z0, x0, z1, [-1, 0, 0], street.xmin);
       quad([[x0, top, z1], [x1, top, z1], [x1, top, z0], [x0, top, z0]], [0, 1, 0],
         [[0, 0], [x1 - x0, 0], [x1 - x0, z1 - z0], [0, z1 - z0]], [seed, 9, top, 0], [1, 1]);
-      bottom = top;
-    });
+    }
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
@@ -114,6 +112,19 @@ export class Boxes {
     mesh.frustumCulled = false;
     mesh.name = 'boxes';
     return mesh;
+  }
+
+  /** Horizontal bounds of static kit that overlaps a street-level walker. */
+  walkingObstacles() {
+    const obstacles = [];
+    for (let i = 0; i < this.m.length; i += 16) {
+      const extent = (row: number) => (Math.abs(this.m[i + row]) + Math.abs(this.m[i + row + 4]) + Math.abs(this.m[i + row + 8])) / 2;
+      const y = this.m[i + 13], ey = extent(1);
+      if (y + ey <= 0.33 || y - ey >= 1.95) continue;
+      const x = this.m[i + 12], z = this.m[i + 14], ex = extent(0), ez = extent(2);
+      obstacles.push({ x0: x - ex, x1: x + ex, z0: z - ez, z1: z + ez });
+    }
+    return obstacles;
   }
 
   /**
@@ -239,11 +250,8 @@ export function assemble(plan: Plan, boxes: Boxes, signs: Signs): Roof[] {
   const mainEdge = plan.main.half + plan.main.sidewalk;
 
   // --- ground level: sidewalks under every block, lane markings, the median, crossings ---
-  for (const [x0, x1, z0, z1] of plan.blocks) {
-    const sz = (z: number) => (Math.abs(Math.abs(z) - mainEdge) < 1e-6 ? plan.main.sidewalk : Math.abs(z) < plan.size.z ? plan.back.sidewalk : 0);
-    const a = x0 - (x0 > -plan.size.x ? plan.cross.sidewalk : 0), b = x1 + (x1 < plan.size.x ? plan.cross.sidewalk : 0);
-    const c = z0 - sz(z0), d = z1 + sz(z1);
-    boxes.add((a + b) / 2, 0.075, (c + d) / 2, b - a, 0.15, d - c, sidewalk);
+  for (const { x0, x1, z0, z1 } of sidewalks(plan)) {
+    boxes.add((x0 + x1) / 2, SIDEWALK_HEIGHT / 2, (z0 + z1) / 2, x1 - x0, SIDEWALK_HEIGHT, z1 - z0, sidewalk);
   }
   const atCross = (x: number, pad: number) => plan.cross.xs.some((c) => Math.abs(x - c) < plan.cross.half + plan.cross.sidewalk + pad);
   for (let x = -plan.size.x - 20; x < plan.size.x + 20; x += 9) {
@@ -550,17 +558,17 @@ export function assemble(plan: Plan, boxes: Boxes, signs: Signs): Roof[] {
   // --- buildings: roofs for the rain, roof kit and crowns, and the street kit on the near tier ---
   const inCity = new Set(plan.buildings);
   for (const b of [...plan.buildings, ...plan.skyline]) {
-    let lastTop = 0;
-    for (const t of b.tiers) {
-      roofs.push({ x0: b.x0 + t.inset, x1: b.x1 - t.inset, z0: b.z0 + t.inset, z1: b.z1 - t.inset, h: t.top });
-      lastTop = t.top;
+    const sections = buildingSections(b);
+    const top = sections.reduce((highest, section) => section.top >= highest.top ? section : highest);
+    for (const section of sections) {
+      roofs.push({ x0: section.x0, x1: section.x1, z0: section.z0, z1: section.z1, h: section.top });
     }
-    const top = topTier(b), tx0 = top.x0, tx1 = top.x1, tz0 = top.z0, tz1 = top.z1, th = top.h;
+    const { x0: tx0, x1: tx1, z0: tz0, z1: tz1, top: th } = top;
     const cx = (tx0 + tx1) / 2, cz = (tz0 + tz1) / 2, tw = tx1 - tx0, td = tz1 - tz0;
     const r = mulberry32(b.seed);
-    const tall = b.style === 4 || b.h > 60;
+    const tall = !b.housingForm && (b.style === 4 || b.h > 60);
     // Aviation lights on anything tall, visible to the horizon.
-    if (lastTop > 90) for (const [x, z] of [[tx0 + 1, tz0 + 1], [tx1 - 1, tz1 - 1]]) boxes.add(x, th + 0.8, z, 1.3, 1.3, 1.3, red, 9, 1 + (b.seed % 7));
+    if (th > 90) for (const [x, z] of [[tx0 + 1, tz0 + 1], [tx1 - 1, tz1 - 1]]) boxes.add(x, th + 0.24, z, 0.28, 0.28, 0.28, red, 5, 1 + (b.seed % 7));
     const city = inCity.has(b);
     if (!city && !(tall && r() < 0.35)) continue;
 
@@ -591,24 +599,27 @@ export function assemble(plan: Plan, boxes: Boxes, signs: Signs): Roof[] {
         boxes.add(cx, th + mh / 2, cz, mw, mh, mw, metal);
         boxes.add(cx, th + mh + 0.4, cz, 0.7, 0.7, 0.7, red, 9, 2 + (b.seed % 5));
       }
-      if (city && r() < 0.35) {
+      const edgeLights = city && r() < 0.35;
+      if (edgeLights) {
         // LED lines up the corners of the top tier.
         const y0 = th * (0.45 + r() * 0.3);
-        for (const [x, z] of [[tx0, tz0], [tx1, tz0], [tx0, tz1], [tx1, tz1]]) boxes.add(x, (y0 + th) / 2, z, 0.18, th - y0, 0.18, led, 3);
+        if (DECORATIVE_TOWER_LIGHTS) for (const [x, z] of [[tx0, tz0], [tx1, tz0], [tx0, tz1], [tx1, tz1]]) boxes.add(x, (y0 + th) / 2, z, 0.18, th - y0, 0.18, led, 3);
       }
-      if (city && lastTop > 80 && tw < 34 && td < 34 && r() < 0.25) {
+      if (city && th > 80 && tw < 34 && td < 34 && r() < 0.25) {
         // A lit lattice crown on a slim tower: a frame round the roof edge and crossed braces on its faces.
         const ch = 4 + r() * 6, y = th + ch / 2;
-        for (const yy of [th + 0.1, th + ch]) {
-          boxes.add(cx, yy, tz0, tw, 0.14, 0.14, led, 2.2); boxes.add(cx, yy, tz1, tw, 0.14, 0.14, led, 2.2);
-          boxes.add(tx0, yy, cz, 0.14, 0.14, td, led, 2.2); boxes.add(tx1, yy, cz, 0.14, 0.14, td, led, 2.2);
-        }
-        for (const [x, z] of [[tx0, tz0], [tx1, tz0], [tx0, tz1], [tx1, tz1]]) boxes.add(x, y, z, 0.14, ch, 0.14, led, 2.2);
-        for (const s2 of [-1, 1]) {
-          boxes.add(cx, y, tz0, Math.hypot(tw, ch), 0.12, 0.12, led, 2.2, 0, [0, 0, s2 * Math.atan2(ch, tw)]);
-          boxes.add(cx, y, tz1, Math.hypot(tw, ch), 0.12, 0.12, led, 2.2, 0, [0, 0, s2 * Math.atan2(ch, tw)]);
-          boxes.add(tx0, y, cz, 0.12, 0.12, Math.hypot(td, ch), led, 2.2, 0, [s2 * Math.atan2(ch, td), 0, 0]);
-          boxes.add(tx1, y, cz, 0.12, 0.12, Math.hypot(td, ch), led, 2.2, 0, [s2 * Math.atan2(ch, td), 0, 0]);
+        if (DECORATIVE_TOWER_LIGHTS) {
+          for (const yy of [th + 0.1, th + ch]) {
+            boxes.add(cx, yy, tz0, tw, 0.14, 0.14, led, 2.2); boxes.add(cx, yy, tz1, tw, 0.14, 0.14, led, 2.2);
+            boxes.add(tx0, yy, cz, 0.14, 0.14, td, led, 2.2); boxes.add(tx1, yy, cz, 0.14, 0.14, td, led, 2.2);
+          }
+          for (const [x, z] of [[tx0, tz0], [tx1, tz0], [tx0, tz1], [tx1, tz1]]) boxes.add(x, y, z, 0.14, ch, 0.14, led, 2.2);
+          for (const s2 of [-1, 1]) {
+            boxes.add(cx, y, tz0, Math.hypot(tw, ch), 0.12, 0.12, led, 2.2, 0, [0, 0, s2 * Math.atan2(ch, tw)]);
+            boxes.add(cx, y, tz1, Math.hypot(tw, ch), 0.12, 0.12, led, 2.2, 0, [0, 0, s2 * Math.atan2(ch, tw)]);
+            boxes.add(tx0, y, cz, 0.12, 0.12, Math.hypot(td, ch), led, 2.2, 0, [s2 * Math.atan2(ch, td), 0, 0]);
+            boxes.add(tx1, y, cz, 0.12, 0.12, Math.hypot(td, ch), led, 2.2, 0, [s2 * Math.atan2(ch, td), 0, 0]);
+          }
         }
       }
       if (city && r() < 0.06) {
@@ -619,23 +630,38 @@ export function assemble(plan: Plan, boxes: Boxes, signs: Signs): Roof[] {
         boxes.add(kx + Math.cos(yaw) * jib * 0.3, th + mh, kz + Math.sin(yaw) * jib * 0.3, jib, 0.9, 0.9, col('car_yellow', 0.5), 0, 0, [0, -yaw, 0]);
         boxes.add(kx, th + mh + 0.9, kz, 0.6, 0.6, 0.6, red, 8, 3);
       }
-      if (city && lastTop > 70 && r() < 0.55) {
+      if (city && th > 70 && r() < 0.55) {
         // Brand letters on the roof edge that faces the main street.
         const d = signs.pick('letters', r, true);
         const face = cz > 0 ? -1 : 1, len = tw;
         const h = Math.min(4.5, (len - 4) / d.aspect);
         if (h > 1.2) {
           const z = face < 0 ? tz0 + 0.4 : tz1 - 0.4;
-          signs.add(d, cx, th + 1 + h / 2, z, h, face < 0 ? Math.PI : 0, r, 1.4, false);
+          signs.add(d, cx, th + 1 + h / 2, z, h, face < 0 ? Math.PI : 0, r, 0.85, false);
           boxes.add(cx, th + 1 + h * 0.15, z - face * 0.3, h * d.aspect * 0.95, 0.12, 0.12, metal);
         }
       }
     }
     if (!b.near) continue;
+    if (b.housingForm) {
+      // Two repeated balcony stacks frame the slab's recessed stair core. Keeping the ledge and
+      // fascia in the existing kit batch also keeps the road reflection on the same draw path.
+      for (const section of sections.slice(1)) {
+        if (section.style === 1 || (b.housingForm === 'wing' && section === top)) continue;
+        const x = (section.x0 + section.x1) / 2;
+        const width = Math.min(b.housingForm === 'slab' ? 5.4 : 3.2, section.x1 - section.x0 - 0.6);
+        const spacing = b.housingForm === 'slab' ? FLOOR_HEIGHT : FLOOR_HEIGHT * 2;
+        for (let y = section.bottom + 0.45; y < section.top - 1.3; y += spacing) {
+          boxes.add(x, y, section.z0 - 0.42, width, 0.24, 0.9, concrete);
+          boxes.add(x, y + 0.52, section.z0 - 0.82, width, 0.84, 0.09, steel);
+        }
+      }
+    }
     const housing = b.style === 0 || b.style === 2;
     const bay = BAY[b.style];
     // Street-wall kit stops at the podium of a stepped building: the tiers above are set back.
-    const wallTop = b.tiers.length > 1 && b.tiers[1].inset > 0 ? b.tiers[0].top : b.h;
+    const wallTop = b.housingForm ? HOUSING_PODIUM
+      : b.tiers.length > 1 && b.tiers[1].inset > 0 ? b.tiers[0].top : b.h;
 
     // Walls: start point, direction along the wall, outward normal, whether it faces a street.
     const walls: [number, number, number, number, number, number, number, boolean][] = [
@@ -711,7 +737,7 @@ export function assemble(plan: Plan, boxes: Boxes, signs: Signs): Roof[] {
       const base = overDeck ? dk.y + 3 : PODIUM + 1;
       const room = wallTop - base - 1;
       // A multi-floor LED tower at a corner of some taller buildings.
-      if (room > 13 && b.style !== 3 && r() < 0.35) {
+      if (DECORATIVE_TOWER_LIGHTS && room > 13 && r() < 0.35) {
         const d = signs.pick('tower', r);
         const h = Math.min(8 + r() * 8, room - 1, 2.4 / d.aspect);
         const y = base + 0.2 + h / 2;
@@ -735,7 +761,7 @@ export function assemble(plan: Plan, boxes: Boxes, signs: Signs): Roof[] {
       }
 
       // Upper floors: AC units and balconies on housing, per bay and floor, clear of the signs.
-      if (housing) {
+      if (housing && !b.housingForm) {
         for (let f = 0; f < Math.min(floors, 14); f++) {
           const y0 = PODIUM + f * FLOOR_HEIGHT;
           for (let k = 0; k < bays; k++) {

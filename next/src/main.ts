@@ -4,6 +4,7 @@ import { Boxes, Signs, assemble, buildShell, cullChunks } from './build';
 import { createBoxMaterial, createFacadeMaterial } from './facade';
 import { createGroundMaterial } from './ground';
 import { createFixtureMap, createLampMap, createSignMap, mapRect } from './lightmaps';
+import { createNavigation, type ManualMode } from './navigation';
 import { createPlan } from './plan';
 import { createPost } from './post';
 import { createRain } from './rain';
@@ -69,11 +70,15 @@ async function main() {
   const params = new URLSearchParams(location.search);
   // The page opens on the flyover; a named view or key 1-7 gives a fixed camera with orbit controls.
   const viewNames = Object.keys(VIEWS);
-  let flying = !VIEWS[params.get('view') ?? 'flyover'] && !params.has('cam');
+  type CameraMode = 'flyover' | 'orbit' | ManualMode;
+  const requested = params.get('view');
+  let mode: CameraMode = requested === 'walk' || requested === 'free-fly' ? requested
+    : requested && Object.hasOwn(VIEWS, requested) ? 'orbit' : 'flyover';
   // ?cam=x,y,z,tx,ty,tz: any fixed camera, for close inspection.
   const cam = params.get('cam')?.split(',').map(Number);
-  if (cam?.length === 6 && cam.every(Number.isFinite)) { VIEWS.cam = { position: [cam[0], cam[1], cam[2]], target: [cam[3], cam[4], cam[5]] }; params.set('view', 'cam'); flying = false; }
-  const view = VIEWS[params.get('view') ?? ''] ?? VIEWS.line;
+  if (cam?.length === 6 && cam.every(Number.isFinite)) { VIEWS.cam = { position: [cam[0], cam[1], cam[2]], target: [cam[3], cam[4], cam[5]] }; params.set('view', 'cam'); mode = 'orbit'; }
+  const fixedView = params.get('view') ?? '';
+  const view = Object.hasOwn(VIEWS, fixedView) ? VIEWS[fixedView] : mode === 'walk' ? VIEWS.corner : VIEWS.line;
   const frozen = params.has('t') ? Number.parseFloat(params.get('t')!) : null;
   const plan = createPlan(Number.parseInt(params.get('seed') ?? '7', 10) || 7);
 
@@ -89,22 +94,8 @@ async function main() {
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(...view.target);
   controls.enableDamping = !params.has('view');
-  controls.enabled = !flying;
+  controls.enabled = mode === 'orbit';
   controls.update();
-  const hint = document.getElementById('status');
-  const showMode = (name: string) => { if (hint && !navigator.webdriver) hint.textContent = `${name}  ·  F flyover  ·  1-${viewNames.length} fixed views (drag to orbit)`; };
-  showMode(flying ? 'flyover' : params.get('view') ?? 'line');
-  window.addEventListener('keydown', (e) => {
-    const index = Number.parseInt(e.key, 10) - 1;
-    if (e.code === 'KeyF') flying = true;
-    else if (index >= 0 && index < viewNames.length) {
-      flying = false;
-      camera.position.set(...VIEWS[viewNames[index]].position);
-      controls.target.set(...VIEWS[viewNames[index]].target);
-    } else return;
-    controls.enabled = !flying;
-    showMode(flying ? 'flyover' : viewNames[index]);
-  });
 
   const uTime = uniform(frozen ?? 0), uRain = uniform(1), uFog = uniform(FOG_DENSITY);
   const scene = new THREE.Scene();
@@ -123,6 +114,38 @@ async function main() {
   // Plan → instance data. Signs come first: their glow map lights everything else.
   const boxes = new Boxes(), signs = new Signs();
   const roofs = assemble(plan, boxes, signs);
+  const hint = document.getElementById('status');
+  let orbitName = fixedView;
+  const manualMode = () => mode === 'walk' || mode === 'free-fly' ? mode : null;
+  const showMode = () => {
+    if (!hint) return;
+    hint.hidden = navigator.webdriver;
+    const manual = manualMode();
+    const movement = mode === 'walk' ? 'WASD move · Shift run' : 'WASD move · Q/E down/up · Shift boost';
+    hint.textContent = manual
+      ? `${manual === 'walk' ? 'Walk' : 'Free-fly'} · ${navigation.locked() ? `${movement} · Esc release mouse` : `Click to capture mouse or drag to look · ${movement}`} · G walk · V free-fly · F flyover`
+      : `${mode === 'orbit' ? orbitName : 'flyover'} · G walk · V free-fly · F flyover · 1–${viewNames.length} views`;
+  };
+  const navigation = createNavigation(camera, renderer.domElement, plan, boxes.walkingObstacles(), showMode);
+  navigation.setMode(manualMode());
+  showMode();
+  window.addEventListener('keydown', (e) => {
+    if (e.repeat || e.altKey || e.ctrlKey || e.metaKey) return;
+    const index = Number.parseInt(e.key, 10) - 1;
+    if (e.code === 'KeyF') mode = 'flyover';
+    else if (e.code === 'KeyG') mode = 'walk';
+    else if (e.code === 'KeyV') mode = 'free-fly';
+    else if (index >= 0 && index < viewNames.length) {
+      mode = 'orbit';
+      orbitName = viewNames[index];
+      camera.position.set(...VIEWS[orbitName].position);
+      controls.target.set(...VIEWS[orbitName].target);
+    } else return;
+    controls.enabled = mode === 'orbit';
+    navigation.setMode(manualMode());
+    showMode();
+  });
+
   const rect = mapRect(plan), uRect = uniform(rect);
   const lampMap = createLampMap(plan, rect), signMap = createSignMap(signs.lights, rect);
   const fixtures = createFixtureMap(boxes.fixtures, rect);
@@ -164,12 +187,21 @@ async function main() {
   resize();
 
   const start = performance.now();
-  let last = frozen ?? 0, frames = 0;
+  let last = frozen ?? 0, lastFrame = start, frames = 0;
   renderer.setAnimationLoop(() => {
-    const now = frozen ?? (performance.now() - start) / 1000;
+    const frame = performance.now();
+    const now = frozen ?? (frame - start) / 1000;
     const dt = now - last;
     last = now;
-    if (flying) { flyover(plan, now, camera.position, controls.target); camera.lookAt(controls.target); } else controls.update();
+    if (mode === 'flyover') {
+      flyover(plan, now, camera.position, controls.target);
+      camera.lookAt(controls.target);
+    } else if (mode === 'orbit') {
+      controls.update();
+    } else {
+      navigation.update((frame - lastFrame) / 1000);
+    }
+    lastFrame = frame;
     uTime.value = now;
     // Rain comes in slow waves; the fog breathes a little.
     const wave = 0.5 + 0.5 * Math.cos((2 * Math.PI * now) / 180);

@@ -315,3 +315,10 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 2026-11-14 | fresh-slice | Buildings have massing tiers (podium, setbacks, crown) in the plan; the shell is one box per tier | A silhouette needs more than a box, and keeping tiers in the plan lets roofs, rain and kit follow them.
 2026-11-14 | fresh-slice | Cuts to fit 600k triangles: reflection kit reach 90 m, far ring 1,300, rain 25,000, main-street lanes 20 cars | Towers, crowns and roofs added about 150k; these cuts are the least visible ones.
 2026-11-14 | fresh-slice | Sign attributes packed to four per instance (gain in aBack.w) | Past 1,024 instances three.js passes the matrix as a vertex buffer, and nine buffers exceed WebGPU's limit of eight.
+
+2026-11-14 | fresh-slice | Pilot three housing forms on the deck-side station frontage using rectangular sections with independent setbacks and heights | This tests silhouette variety in the existing shell draw, while retaining shop frontage, station geometry and the surrounding seeded layout.
+2026-11-14 | fresh-slice | Replace the pilot lots' random upper facade props with repeated balcony stacks on selected sections | The stacked slabs and rails support the intended building shapes and keep the added geometry small in the road reflection.
+
+2026-11-14 | fresh-slice | Reuse the photo atlas for glass blocks and offices at least 55 m tall, keeping the existing seeded massing | Removes placeholder window grids from the tall commercial buildings without new textures or draws.
+2026-11-14 | fresh-slice | Interpret lightbox buildings as tower-scale LED blade signs and illuminated crown decoration | Switch off these elements together for easy restoration, reduce bright rooftop wordmarks and resize aviation beacons; ordinary shop signs still identify the street.
+2026-11-14 | fresh-slice | Walking follows public streets and sidewalks with static collision; free-fly reaches elevated areas | The station is assembled from render parts and has no full walkable surface graph; reuse the actual curb geometry and low kit bounds for street navigation.

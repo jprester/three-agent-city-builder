@@ -1,0 +1,14 @@
+# Downtown skyline concept — 2026-11-14
+
+Created with built-in image_gen using finished-city-rooftop-2026-11-14.png as the edit reference. User requested more high-rises and a downtown packed with tall skyscrapers. Concept art only; runtime scene unchanged.
+
+Image: [finished-city-downtown-2026-11-14.png](finished-city-downtown-2026-11-14.png)
+
+## Full prompt
+
+Edit the supplied elevated rainy-night city photograph concept. Main change: add MANY MORE HIGH-RISE BUILDINGS and a clearly defined, dense DOWNTOWN DISTRICT WITH LOTS OF TALL SKYSCRAPERS. Make the transformation substantial and immediately obvious.
+Preserve the photographic realism, elevated oblique camera, wide landscape composition, rainy 2 a.m. atmosphere, amber practical lighting, wet streets, foreground old tiled buildings and rooftop clutter. Preserve the straight suspended monorail and station, its white train hanging BELOW the overhead girder, the foreground road intersection and stair access. Keep this lived-in old neighbourhood recognizable in the lower half.
+Rebuild the middle and far city into a layered major metropolis: scattered 25–45 storey residential high-rises rise amongst older blocks in the middle distance, then a packed commercial downtown of dozens of tall 40–80 storey skyscrapers across the upper middle and background. A handful of slender 80–100 storey landmark towers punctuate the dense cluster, with credible real-world proportions, setbacks, distinctive crowns and restrained aviation lights. Downtown should dominate the skyline, occupy a substantial portion of the upper half, and feel connected to the old district by the illuminated street network. It must NOT look like a few small distant towers pasted on the horizon.
+Varied heights and widths, overlapping towers in depth, groups of dark reflective curtain-wall offices with pale mullions and cool-white lit office floors, warmer residential towers with balconies, a few stepped crowns. Mixed occupancy and irregularly lit windows, dark tower bodies. Cool blue-grey rainy haze separates near high-rises from the dense far downtown. Some tallest crowns graze low cloud; keep their silhouettes visible. Warm old district below contrasts naturally with cooler office windows above. Preserve realistic scale and strong architectural perspective. If necessary subtly reframe upward to fit skyscraper tops, keeping foreground station and monorail clear.
+The result should feel like a convincing Hong Kong/Tokyo-scale metropolis with a modest near-future suspended monorail, photographed from a high rooftop. Rich detail, photographic natural exposure, restrained bloom. No fantasy megastructures, no enormous sci-fi spires, no flying cars or holograms, no magenta/cyan wash, no uniform identical buildings, no giant ads, no real logos, no annotation, no watermark. One full-bleed finished photograph-style image.
+

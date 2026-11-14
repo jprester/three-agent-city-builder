@@ -12,9 +12,15 @@ its own (`next/assets/`, `npm run next:signs`).
     npm run next:signs      # rebuilds next/assets/signs.png + .json (Python 3, Pillow, numpy)
 
 The page opens on a flyover: a 90 s loop along the monorail, out on one side of the street and
-back on the other. `F` returns to it; keys `1`-`7` jump to the fixed views, which you can orbit.
+back on the other. Press `F` to return to it or `1`–`7` to orbit a fixed view.
 
-URL parameters: `?view=flyover|corner|under|line|platform|deck|above|skyline`, `?cam=x,y,z,tx,ty,tz` (any fixed camera, for close inspection), `?t=<seconds>` (freeze the
+Press `G` to walk or `V` to free-fly. Click the scene to capture the mouse or drag to look.
+Use `WASD` to move, `Shift` to run or boost, and `Q` / `E` to descend or climb while flying
+(`Space` also climbs). Press `Esc` to release the mouse. Walking follows the road and
+sidewalks with collision against walls and street fixtures. Use free-fly to reach the
+station platforms and decks.
+
+URL parameters: `?view=flyover|walk|free-fly|corner|under|line|platform|deck|above|skyline`, `?cam=x,y,z,tx,ty,tz` (any fixed camera, for close inspection), `?t=<seconds>` (freeze the
 clock), `?seed=<int>`, `?rain=<count>` (0 = off). WebGPU only (Chromium).
 
 ## What it is
@@ -301,6 +307,31 @@ Still weak:
 - From `skyline` the far ring is scattered boxes with dark ground between them.
 - Cranes are dark bars, and one crosses the `above` frame.
 
+## Station housing pilot
+
+Three lots on the deck side of the station now form a height progression: a tiled corner
+walk-up, a taller slab with a recessed stair core and paired balcony stacks, and a taller
+residential building with offset wings. The shop bases follow the existing lot edges.
+The shell, roof props and rain collision all read the same section bounds. The facade shader
+and instanced kit also draw the new forms in the road reflection.
+
+The clearest view is `?cam=-46,36,-12,-1,25,20&t=20`. The fixed `line` and frozen `flyover`
+frames are in [the progress folder](../docs/progress/fresh-slice-housing/), along with that
+review angle. See the notes for the visual critique and measurements.
+
+## Tower facades and manual cameras
+
+Glass blocks and offices 55 m and taller use the existing photographic facade atlas. Housing
+and smaller concrete offices retain their own facade treatment. The facade change keeps the
+seeded building footprints and tier shapes. A switch in `build.ts` disables the large LED
+blade signs, tower corner strips and illuminated rooftop frames. Rooftop wordmarks and
+aviation beacons are smaller in the frame through lower emission and smaller beacon geometry.
+
+Walking and free-fly use the same camera and run on wall-clock time, including with a frozen
+city clock. Walking currently covers streets and sidewalks, with collision against buildings
+and low static kit. Moving traffic, stairs and elevated walking surfaces have no navigation
+collision. Free-fly lets the camera pass through geometry.
+
 ## Files
 
 | File | Role |
@@ -311,6 +342,7 @@ Still weak:
 | `src/lightmaps.ts` | Top-down lamp/sign maps and height-sampled fixture spill |
 | `src/ground.ts`, `src/reflection.ts` | Wet road and its planar reflection |
 | `src/signs.ts` | Sign material and atlas loading |
+| `src/navigation.ts` | Walking, free-fly and mouse look |
 | `src/towers.ts` | The main app's photographic tower facades, loaded for style-4 towers |
 | `tools/build_signs.py`, `signs.def.json`, `assets/` | The slice's sign atlas, every board sized to its text |
 | `src/traffic.ts`, `src/train.ts`, `src/rain.ts` | Motion; traffic and rain are compute passes |

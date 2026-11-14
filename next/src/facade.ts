@@ -114,9 +114,9 @@ export function createFacadeMaterial(inp: FacadeInputs): THREE.MeshStandardNodeM
     pRough.assign(0.85);
     pMetal.assign(0);
 
+    const atlas = style.greaterThan(3.5).and(isRoof.not());
     const inBays = step(0, uvm.x).mul(step(uvm.x, bays.mul(select(glass, float(BAY[3]), select(office, float(BAY[1]), float(BAY[0])))))).toVar();
     const shopZone = street.greaterThan(0.5).and(uvm.y.lessThan(PODIUM));
-    const atlas = style.greaterThan(3.5).and(isRoof.not());
 
     If(isRoof, () => {
       base.assign(P('concrete_dark').mul(0.5).mul(noise2(uvm.mul(0.4).add(seed.mul(40))).mul(0.3).add(0.85)));
@@ -159,7 +159,7 @@ export function createFacadeMaterial(inp: FacadeInputs): THREE.MeshStandardNodeM
       // Shopfronts: a tenant per bay, glass with a lit room or a ribbed shutter.
       const len = vWall.y;
       const shops = max(1, floor(len.div(SHOP_BAY)));
-      const u = uvm.x.add(len.sub(bays.mul(select(glass, float(BAY[3]), select(office, float(BAY[1]), float(BAY[0]))))).div(2)).sub(len.sub(shops.mul(SHOP_BAY)).div(2)).toVar();
+      const u = uvm.x.add(len.sub(bays.mul(select(atlas, float(BAY[4]), select(glass, float(BAY[3]), select(office, float(BAY[1]), float(BAY[0])))))).div(2)).sub(len.sub(shops.mul(SHOP_BAY)).div(2)).toVar();
       const sid = floor(u.div(SHOP_BAY)).toVar();
       const x = u.sub(sid.mul(SHOP_BAY)).toVar();
       const inShops = step(0, sid).mul(step(sid, shops.sub(0.5)));

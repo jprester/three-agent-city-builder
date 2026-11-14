@@ -1,0 +1,13 @@
+# Taller downtown-edge neighbourhood — 2026-11-14
+
+Created with built-in image_gen using finished-city-downtown-2026-11-14.png as the edit reference. User requested taller foreground buildings to convey proximity to downtown. Concept art only; runtime scene unchanged.
+
+Image: [finished-city-downtown-taller-2026-11-14.png](finished-city-downtown-taller-2026-11-14.png)
+
+## Full prompt
+
+Edit the supplied photorealistic rainy-night city concept with ONE targeted architectural change: make the foreground and near-middle-distance buildings a bit taller, so this neighbourhood convincingly feels immediately adjacent to the dense downtown rather than a separate low-rise district.
+Replace the predominantly 4–7 storey foreground blocks with mostly 10–16 storey mixed-use residential buildings, with a few 18–22 storey buildings in the near-middle distance. Add believable extra floors with normal floor-to-floor heights, do not stretch existing windows. Vary roof heights and setbacks so this is a dense, irregular mid-rise urban fabric, not a uniform wall. Retain the older tiled, concrete and faded terracotta architecture, AC units, window cages, balconies, pipes, occupied warm windows, small shops below, roof tanks and equipment above. The foreground should be visibly taller on BOTH sides of the central street and around the station. Preserve some lower podiums and gaps that let us see the streets.
+Keep the existing downtown skyline and its many skyscrapers substantially unchanged: these must remain distinctly taller than the new foreground buildings. Preserve the same high rooftop camera direction and wide landscape framing; raise the vantage point only slightly if needed to keep rooftops, station and the downtown skyline readable. Maintain the visual transition from textured older 10–16 storey foreground through taller residential high-rises to dense modern commercial skyscrapers.
+CRITICAL INVARIANTS: keep the straight suspended monorail corridor, train hanging BELOW the girder, station, stairs, road intersection and street routing. The monorail stays at its existing approximately 12 metre height above the ROAD, so the taller buildings now rise well above it; do not raise the monorail to the new rooftops. Keep the rainy nighttime weather, photographic realism, amber street lighting, warm windows, cooler distant office windows and blue-grey haze. Keep wet reflections and lived-in details. Preserve a readable view of the central street, train and station rather than hiding them behind the taller buildings. No additional train lines or infrastructure. No fantasy megastructures, no saturated neon wash, no text overlay or watermark. Produce one full-bleed finished image, same aspect ratio as the reference.
+

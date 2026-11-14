@@ -1319,3 +1319,32 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 - Weak: from `skyline` the far ring is scattered boxes with dark ground between them; the old version's crowd of towers was denser and taller.
 - Weak: cranes are unlit black bars; one crosses the `above` frame.
 - Weak: no triangle headroom left (599k of 600k in `above`).
+
+### Fresh slice — station housing pilot
+
+- Reviewed all eight standard shots and two elevated angles of the deck-side block. The
+  tiled corner, paired slab balconies and recessed core, and offset taller wings read
+  together best in `docs/progress/fresh-slice-housing/housing-block.jpg`. At street level
+  the station roof and deck obscure most of the upper forms. In the elevated view the
+  recesses give the facades depth, but the balcony faces are still flat strips and the
+  tiled upper walls are too dark to read clearly from across the street.
+- The eight-view gate passed at 38–53 calls, 6.0–10.2 ms median and 779–812 MB.
+  `above` reached 599,811 triangles out of 600,000. The optional east-side orbit still
+  submits 609,795 triangles, so there is little margin beyond the fixed views. The
+  west-side review camera submits 593,583. No budget changes.
+- `npm run check`, all 97 unit tests and `npm run next:build` passed. The pilot uses
+  runtime geometry, so there are no generated assets or Blender previews to rebuild.
+
+### Fresh slice — tower facades and manual cameras
+
+- Compared the street, aerial, and manual exploration shots. Textured upper offices have
+  more visible depth and surface variation. Reduced rooftop glow leaves the windows and
+  crowns easier to distinguish. The far skirt still has dark gaps and office textures
+  repeat on some neighboring towers.
+- Both manual modes loaded directly. Chromium exercised drag-to-look, street movement,
+  boosted ascent with the city clock frozen, and switching to a fixed view and the flyover.
+  Automated Chromium did not engage pointer lock, so drag-to-look is available on the
+  focused canvas. Walking is street-level, with static collision and no stair traversal.
+- The final eight-view gate passed with 38–53 draws, 351,567–578,535 triangles, 6.7–8.6 ms
+  median and 778–801 MB. The highest standard view dropped by 21,276 triangles from the
+  station housing pass. Typecheck, asset checks, all 97 unit tests and the production build passed.
