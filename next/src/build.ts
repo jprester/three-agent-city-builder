@@ -74,6 +74,17 @@ export class Boxes {
     this.fx.push(emit, blink);
   }
 
+  /** Fluorescent fixtures feed the height-sampled spill map as well as visible geometry. */
+  readonly fixtures: FixtureLight[] = [];
+
+  tube(x: number, y: number, z: number, length: number, emission: number, width = 0.12) {
+    this.add(x, y, z, length, 0.05, width, col('fluorescent'), emission);
+    const samples = Math.max(1, Math.ceil(length / 3));
+    for (let i = 0; i < samples; i++) {
+      this.fixtures.push({ x: x + ((i + 0.5) / samples - 0.5) * length, y, z, strength: emission / Math.sqrt(samples), radius: 8 });
+    }
+  }
+
   get count() { return this.fx.length / 2; }
 
   build(material: THREE.Material): THREE.InstancedMesh {
@@ -88,6 +99,7 @@ export class Boxes {
   }
 }
 
+export interface FixtureLight { x: number; y: number; z: number; strength: number; radius: number }
 export interface SignLight { x: number; z: number; size: number; color: THREE.Color; strength: number }
 export interface Roof { x0: number; x1: number; z0: number; z1: number; h: number }
 
@@ -191,7 +203,7 @@ export function assemble(plan: Plan, boxes: Boxes, signs: Signs): Roof[] {
   for (const x of v.columns) {
     boxes.add(x, (v.y - 1.9) / 2, 0, 1.5, v.y - 1.9, 1.3, concrete);
     boxes.add(x, v.y - 1.4, 0, 1.9, 1, v.half * 2 - 0.6, concrete);                // crossbeam
-    boxes.add(x + 12.5, v.y - 0.93, 0, 1.2, 0.05, 0.14, fluor, 0.9);                 // light under the deck
+    boxes.tube(x + 12.5, v.y - 0.93, 0, 1.2, 0.9, 0.14);                 // light under the deck
     // Catenary: a mast on each side, a span across, the wires along.
     for (const s of [-1, 1]) boxes.add(x, v.y + 3.4, s * (v.half - 0.4), 0.16, 5.8, 0.16, metal);
     boxes.add(x, v.y + 6.1, 0, 0.12, 0.12, v.half * 2 - 0.6, metal);
@@ -207,7 +219,7 @@ export function assemble(plan: Plan, boxes: Boxes, signs: Signs): Roof[] {
     boxes.add(sMid, v.y + 0.3, zc, sLen, 1.5, w, concrete);
     boxes.add(sMid, platY + 0.012, s * (v.half + 0.35), sLen, 0.02, 0.3, col('car_yellow', 1.3));     // platform edge
     boxes.add(sMid, canopyY, s * (v.platformHalf - 1.7), sLen - 4, 0.22, 5.2, dark);
-    for (let x = s0 + 6; x < s1 - 5; x += 4) boxes.add(x, canopyY - 0.15, s * (v.platformHalf - 1.6), 2.4, 0.05, 0.12, fluor, 1.5);   // canopy tubes
+    for (let x = s0 + 6; x < s1 - 5; x += 4) boxes.tube(x, canopyY - 0.15, s * (v.platformHalf - 1.6), 2.4, 1.5);   // canopy tubes
     boxes.add(sMid, platY + 0.6, s * (v.platformHalf - 0.08), sLen, 1.2, 0.12, steel);                // back railing
     for (let x = s0 + 4; x <= s1 - 4; x += 8) boxes.add(x, (platY + canopyY) / 2, s * (v.platformHalf - 0.5), 0.2, canopyY - platY, 0.2, metal);
     for (let x = s0 + 9; x < s1 - 6; x += 16) {
@@ -220,7 +232,7 @@ export function assemble(plan: Plan, boxes: Boxes, signs: Signs): Roof[] {
   const dk = plan.deck, dMidZ = (dk.z0 + dk.z1) / 2, dW = dk.z1 - dk.z0;
   boxes.add((dk.x0 + dk.x1) / 2, dk.y - 0.2, dMidZ, dk.x1 - dk.x0, 0.4, dW, concrete);
   boxes.add((dk.x0 + dk.x1) / 2, dk.y + 0.55, dk.z0 + 0.06, dk.x1 - dk.x0, 1.1, 0.08, steel);
-  for (let x = dk.x0 + 5; x < dk.x1 - 3; x += 6) boxes.add(x, dk.y - 0.43, dMidZ, 2.4, 0.05, 0.12, fluor, 1.3);
+  for (let x = dk.x0 + 5; x < dk.x1 - 3; x += 6) boxes.tube(x, dk.y - 0.43, dMidZ, 2.4, 1.3);
   for (let x = dk.x0 + 3; x <= dk.x1 - 3; x += 10) boxes.add(x, (dk.y - 0.4) / 2, dk.z0 + 0.4, 0.3, dk.y - 0.4, 0.3, metal);
   roofs.push({ x0: dk.x0, x1: dk.x1, z0: dk.z0, z1: dk.z1, h: dk.y });
   // A flight of steps from (x, z) at `y0`, rising toward `dir` along `axis` until `y1`.
@@ -246,7 +258,7 @@ export function assemble(plan: Plan, boxes: Boxes, signs: Signs): Roof[] {
     const mx = (b.x0 + b.x1) / 2, len = b.x1 - b.x0;
     boxes.add(mx, b.y + 1.6, b.z, len, 3.2, 4, metal);
     for (const s of [-1, 1]) boxes.add(mx, b.y + 1.75, b.z + s * 2.01, len - 1.2, 1.5, 0.04, fluor, 0.9);
-    boxes.add(mx, b.y - 0.03, b.z, len - 3, 0.05, 0.2, fluor, 1.8);
+    boxes.tube(mx, b.y - 0.03, b.z, len - 3, 1.8, 0.2);
     roofs.push({ x0: b.x0, x1: b.x1, z0: b.z - 2, z1: b.z + 2, h: b.y + 3.2 });
   }
 

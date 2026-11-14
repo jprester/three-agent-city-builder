@@ -1240,3 +1240,13 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 - Weak: everything is a box. Cars, trains, stairs and the station read as blockout, not design. The platform at eye level has almost nothing on it.
 - Weak: glass towers light in a regular tenant pattern, a barcode from above. Shop interiors are one procedural room with noise for goods.
 - Weak: `corner` has a wall across its left third.
+
+### Fresh slice continuation — lighting and corner composition, 2026-11-13
+
+- Inspected all six frozen and running screenshots after the final pass. Saved the frozen images and measurement report in docs/progress/fresh-slice-lighting/; original blockout images retained.
+- The crossing and wet-road foreground now lead into corner. The building on the left has a readable base instead of a wall cropped against the lens. It still occupies a large part of the shot; this is improved staging, not final composition.
+- The underside of the viaduct, covered sidewalk, station platform and deck now read around the existing fluorescent fixtures. First pass was too green and broad; reduced spill gain from 1.8 to 1.15. Sodium and shopfronts still provide the warm contrast, without raising exposure or flattening the sky.
+- Harsh remaining issues: smooth, untextured platforms look like brown plastic; the big blank viaduct planes need joints and beams; station vending machines are luminous slabs, stairs lack convincing supports/rails, cars remain toy boxes. The raised lighting makes these deficiencies more obvious. Next work should be the station kit before expanding the city.
+- The spill map is an approximation with no occlusion; light can bleed through elevated slabs. Above/skyline retain their previous lighting hierarchy, including the unresolved barcode glass facades.
+- Baseline measured this session: 32 calls, 259,355 tris, 7.1–8.7 ms median, 555–561 MB GPU process. Final: same calls/tris, 6.7–8.2 ms median (p95 8.0–10.2), 566–578 MB. Timing differences are run noise, not a claimed speedup.
+- Verification: next:shots 6/6 pass, check passes, 97 unit tests pass, production next:build passes. No Blender previews required because no generated assets changed. Shader compiler failure in the first run was fixed before visual acceptance.

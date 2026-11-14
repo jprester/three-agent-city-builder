@@ -93,3 +93,12 @@ export const heightFog: (world: N, density: N) => N = Fn(([world, density]: N[])
 
 /** World XZ to lamp / sign map UV (rect: minX, minZ, 1/sizeX, 1/sizeZ). */
 export const mapUv = (xz: N, rect: N): N => xz.sub(rect.xy).mul(rect.zw);
+
+/** Interpolate the fixture map's three height samples; fade above the elevated layers. */
+export const fixtureSpill = (sample: N, y: N): N => {
+  // Materialize before component reads: nested swizzles fail Tint → Metal lowering.
+  const bands = sample.toVar();
+  const lower = mix(bands.x, bands.y, clamp(y.div(8), 0, 1));
+  return P('fluorescent').mul(mix(lower, bands.z, clamp(y.sub(8).div(8), 0, 1)))
+    .mul(exp(max(y.sub(16), 0).div(-5))).mul(1.15);
+};

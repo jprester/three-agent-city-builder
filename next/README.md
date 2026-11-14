@@ -72,15 +72,34 @@ structure costs, not that the slice looks as good.
 
 ## Critique
 
-- The street is too dark between the shopfronts; sidewalks and the underside of the viaduct
-  sink to black, so the frame depends on the shops.
+- Covered sidewalks and the viaduct now receive soft fluorescent spill from the existing
+  fixtures. Unlit stretches remain dark; the flat concrete needs surface detail next.
 - The kit is honest but crude: cars and trains are boxes, the station has no detail at eye
   level, stairs are solid blocks.
 - Glass towers light in a regular tenant pattern that reads as a barcode from above.
 - Shop interiors are one procedural room with noise for goods; up close it is the weakest
   surface in the frame.
-- `corner` puts a wall across the left third. The composition wants a wider street or a
-  camera on the deck.
+- `corner` now looks from the cross-street approach: the crossing and reflected light lead
+  into the canyon. The left corner building still dominates, but its base is visible.
+
+## Continuation — lighting and corner composition (2026-11-13)
+
+The existing fluorescent tubes now register their positions with a third light map. Its RGB
+channels hold irradiance at 0, 8 and 16 m; ground, facades and kit interpolate by height. Long
+fixtures contribute along their length. This adds one texture sample per receiving material,
+no lights, draw calls or triangles. It is soft spill without occlusion, so some light can leak
+through decks. The sky lighting, exposure and colour grade remain as before.
+
+The corner camera moved to the cross-street approach at eye height. Checked all six viewpoints,
+frozen and running, against the style bible. Progress images and measurements are in
+`docs/progress/fresh-slice-lighting/`; the original blockout images remain in `fresh-slice/`.
+
+Final gate: 32 calls, 259,355 triangles, median frame 6.7–8.2 ms, GPU process 566–578 MB.
+`npm run check`, all 97 unit tests and `npm run next:build` also pass.
+
+Next: model the station/viaduct kit (open railings, stair supports, platform furniture), then
+vehicles. Lighting exposes these placeholders more clearly; this is still not a finished hero
+frame. The tower barcode and repeated shop interiors remain open after that.
 
 ## Files
 
@@ -89,7 +108,7 @@ structure costs, not that the slice looks as good.
 | `src/plan.ts` | Roads, blocks, lots, buildings, railway, deck, bridges, lanes, signals |
 | `src/build.ts` | Plan to geometry: the building shell, the box kit, the signs |
 | `src/facade.ts` | The facade material with its three tiers; the kit material |
-| `src/lightmaps.ts` | Top-down lamp and sign light maps |
+| `src/lightmaps.ts` | Top-down lamp/sign maps and height-sampled fixture spill |
 | `src/ground.ts`, `src/reflection.ts` | Wet road and its planar reflection |
 | `src/signs.ts` | Sign material and atlas loading |
 | `src/traffic.ts`, `src/train.ts`, `src/rain.ts` | Motion; traffic and rain are compute passes |

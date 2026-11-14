@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Boxes, Signs, assemble, buildShell } from './build';
 import { createBoxMaterial, createFacadeMaterial } from './facade';
 import { createGroundMaterial } from './ground';
-import { createLampMap, createSignMap, mapRect } from './lightmaps';
+import { createFixtureMap, createLampMap, createSignMap, mapRect } from './lightmaps';
 import { createPlan } from './plan';
 import { createPost } from './post';
 import { createRain } from './rain';
@@ -24,7 +24,7 @@ import { FOG_DENSITY, P, fog, heightFog, paletteColor, positionWorld, uniform } 
  * ?rain=<count> (0 = off).
  */
 const VIEWS: Record<string, { position: [number, number, number]; target: [number, number, number] }> = {
-  corner: { position: [-40.5, 1.7, -10.4], target: [12, 8.5, 5] },
+  corner: { position: [-58, 1.7, -8.8], target: [30, 8.5, -1] },
   under: { position: [-33, 1.7, 10.4], target: [20, 6, -4] },
   platform: { position: [-30, 12.4, 6.6], target: [30, 11.6, -1] },
   deck: { position: [36, 7.3, 11.4], target: [-30, 6.5, 2] },
@@ -79,7 +79,8 @@ async function main() {
   const roofs = assemble(plan, boxes, signs);
   const rect = mapRect(plan), uRect = uniform(rect);
   const lampMap = createLampMap(plan, rect), signMap = createSignMap(signs.lights, rect);
-  const lit = { time: uTime, lampMap, signMap, lampRect: uRect };
+  const fixtureMap = createFixtureMap(boxes.fixtures, rect);
+  const lit = { time: uTime, lampMap, signMap, fixtureMap, lampRect: uRect };
 
   const buildings = new THREE.Mesh(buildShell([...plan.buildings, ...plan.skyline]), createFacadeMaterial(lit));
   buildings.name = 'buildings';
@@ -94,7 +95,7 @@ async function main() {
   const reflection = new PlanarReflection(0.25);
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(9000, 9000).rotateX(-Math.PI / 2),
-    createGroundMaterial({ color: 'road_wet', roughness: 0.35 }, { time: uTime, rain: uRain, lampMap, signMap, lampRect: uRect, reflection: reflection.target.texture, reflMatrix: reflection.matrix }),
+    createGroundMaterial({ color: 'road_wet', roughness: 0.35 }, { time: uTime, rain: uRain, lampMap, signMap, fixtureMap, lampRect: uRect, reflection: reflection.target.texture, reflMatrix: reflection.matrix }),
   );
   ground.name = 'ground';
   scene.add(ground, traffic.pools);

@@ -1,0 +1,114 @@
+{
+  "resolution": "1440x900@2x",
+  "budget": {
+    "comment": "Budgets of the fresh slice, enforced by next/tests/slice.spec.ts at 1440x900 @2x. frameMs is submit-to-done: start of a frame until the GPU has finished it. gpuProcessMB is the browser GPU process footprint (macOS only).",
+    "maxDrawCalls": 60,
+    "maxTriangles": 600000,
+    "maxFrameMs": 16.7,
+    "maxGpuProcessMB": 900
+  },
+  "views": {
+    "corner": {
+      "calls": 32,
+      "triangles": 259355,
+      "reflection": {
+        "calls": 6,
+        "triangles": 99564
+      },
+      "cars": 104,
+      "boxes": 5905,
+      "signs": 515,
+      "buildings": 690,
+      "frameMs": {
+        "p50": 7.4,
+        "p95": 9.6
+      },
+      "gpuProcessMB": 567
+    },
+    "under": {
+      "calls": 32,
+      "triangles": 259355,
+      "reflection": {
+        "calls": 6,
+        "triangles": 99564
+      },
+      "cars": 104,
+      "boxes": 5905,
+      "signs": 515,
+      "buildings": 690,
+      "frameMs": {
+        "p50": 7.3,
+        "p95": 10.2
+      },
+      "gpuProcessMB": 566
+    },
+    "platform": {
+      "calls": 32,
+      "triangles": 259355,
+      "reflection": {
+        "calls": 6,
+        "triangles": 99564
+      },
+      "cars": 104,
+      "boxes": 5905,
+      "signs": 515,
+      "buildings": 690,
+      "frameMs": {
+        "p50": 6.8,
+        "p95": 8.2
+      },
+      "gpuProcessMB": 576
+    },
+    "deck": {
+      "calls": 32,
+      "triangles": 259355,
+      "reflection": {
+        "calls": 6,
+        "triangles": 99564
+      },
+      "cars": 104,
+      "boxes": 5905,
+      "signs": 515,
+      "buildings": 690,
+      "frameMs": {
+        "p50": 6.9,
+        "p95": 8
+      },
+      "gpuProcessMB": 576
+    },
+    "above": {
+      "calls": 32,
+      "triangles": 259355,
+      "reflection": {
+        "calls": 6,
+        "triangles": 99564
+      },
+      "cars": 104,
+      "boxes": 5905,
+      "signs": 515,
+      "buildings": 690,
+      "frameMs": {
+        "p50": 8.2,
+        "p95": 9.8
+      },
+      "gpuProcessMB": 573
+    },
+    "skyline": {
+      "calls": 32,
+      "triangles": 259355,
+      "reflection": {
+        "calls": 6,
+        "triangles": 99564
+      },
+      "cars": 104,
+      "boxes": 5905,
+      "signs": 515,
+      "buildings": 690,
+      "frameMs": {
+        "p50": 6.7,
+        "p95": 8.3
+      },
+      "gpuProcessMB": 578
+    }
+  }
+}

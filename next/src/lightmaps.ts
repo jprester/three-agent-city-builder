@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import type { SignLight } from './build';
+import type { FixtureLight, SignLight } from './build';
 import type { Plan } from './plan';
 
 const TEXELS_PER_METER = 2, MAX_SIZE = 2048, MARGIN = 60, POOL_RADIUS = 11;
@@ -65,4 +65,30 @@ export function createSignMap(lights: SignLight[], rect: THREE.Vector4): THREE.T
     g.fillRect(cx - r, cz - r, 2 * r, 2 * r);
   }
   return finish(canvas, true);
+}
+
+/** RGB stores fluorescent irradiance at 0, 8 and 16 m, not colour. Sampling by height
+ * keeps platform lighting off the road and lets tubes reveal the structure around them.
+ * This is deliberately soft spill, not an occlusion/shadow solution. */
+export function createFixtureMap(lights: FixtureLight[], rect: THREE.Vector4): THREE.Texture {
+  const { canvas, g, scale } = canvasFor(rect);
+  for (const l of lights) {
+    for (let band = 0; band < 3; band++) {
+      const dy = Math.abs(l.y - band * 8);
+      const reach = l.radius * 1.5;
+      if (dy >= reach) continue;
+      const radius = Math.sqrt(reach * reach - dy * dy) * scale;
+      const gain = Math.min(1, l.strength * 0.55 / (1 + (dy / 4) ** 2));
+      const rgb = [0, 0, 0];
+      rgb[band] = 255;
+      const cx = (l.x - rect.x) * scale, cz = (l.z - rect.y) * scale;
+      const grad = g.createRadialGradient(cx, cz, 0, cx, cz, radius);
+      grad.addColorStop(0, `rgba(${rgb.join(',')},${gain})`);
+      grad.addColorStop(0.35, `rgba(${rgb.join(',')},${gain * 0.5})`);
+      grad.addColorStop(1, `rgba(${rgb.join(',')},0)`);
+      g.fillStyle = grad;
+      g.fillRect(cx - radius, cz - radius, radius * 2, radius * 2);
+    }
+  }
+  return finish(canvas, false);
 }
