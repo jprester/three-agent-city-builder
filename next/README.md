@@ -20,8 +20,8 @@ clock), `?seed=<int>`, `?rain=<count>` (0 = off). WebGPU only (Chromium).
 ## What it is
 
 The same footprint as the main app (1000 × 800 m): one main street with a suspended monorail and a
-station over its median, ten cross streets, six back streets, about 1,000 buildings on their lots
-and 1,800 more out to the horizon. Trains run and
+station over its median, ten cross streets, six back streets, about 660 buildings on their lots
+and 1,300 more out to the horizon. Trains run and
 stop, cars queue at signals, rain falls and splashes, signs flicker. About 2,000 lines.
 
 Measured at 1440×900 @2x on the Apple GPU (`npm run next:shots`, 2026-11-13):
@@ -263,6 +263,44 @@ Still weak:
 - Housing away from the main street has no AC units or balconies at all: the shader version is not done.
 - Triangles sit near the 600k budget, mostly from cars drawn twice.
 
+## Towers and massing (2026-11-14)
+
+The human judged the full-size city much plainer than the old version: too uniform, and procedural
+skyscrapers look worse than textured ones. Images in `docs/progress/fresh-slice-towers/`
+(`close-cbd2.jpg` is the business district).
+
+- **Photographic tower facades:** the main app's three tower bundles (`art/external/textures`, read only),
+  mapped the way the app maps them: a bundle and facade per building, offset by whole bays and floors, at a
+  3.8 m floor, lit by the atlas's own emissive windows in floors and tenant runs (`towers.ts`, the atlas branch
+  in `facade.ts`). Style 4 is a photo tower: most of the business district, the odd tower on the main street
+  and in the housing, and the towers of the far ring. The normal maps are left out to save memory.
+- **Massing** (`plan.ts`, `massing`): towers stand on a podium, step back once or twice, and end in a plant
+  crown; some housing steps back its top floors. The shell builds one box per tier, and only the podium meets
+  the street.
+- **Crowns** (`build.ts`): spires and antennas with beacons, LED lines up tower corners, lit lattice tops on
+  slim towers, the odd crane, and brand letters on the roofs of towers over 70 m.
+- **Roofs** on every city building: a stair head and a water tank (the full parapet and tank legs near the
+  monorail).
+- **Housing** windows are sparser and dimmer, so walls read dark with scattered warm lights, as in the old
+  version, and the barcode is gone.
+- **Budget work:**
+  - the road reflection draws kit chunks only within 90 m
+  - the far ring is down to 1,300 buildings
+  - rain is down to 25,000 drops
+  - the main street has 20 cars per lane
+  - sign attributes are packed (more than 1,024 signs pushed three.js past WebGPU's eight vertex buffers)
+
+Gate: 8/8, 51–53 calls, 594–599k triangles (`skyline` 38, 370k), GPU process 780–812 MB (the six tower maps
+add about 135 MB). Median frame 7.2–12.9 ms with the dev-server tab open on the same GPU; the earlier
+commit read 7–9 ms in the same conditions, so the photo facades cost somewhere up to a few ms. That needs an
+idle-GPU measurement.
+
+Still weak:
+- Triangles sit at the 600k budget with no headroom.
+- Most housing is still one or two boxes; the main app's slabs, walk-ups and estates had far more shape.
+- From `skyline` the far ring is scattered boxes with dark ground between them.
+- Cranes are dark bars, and one crosses the `above` frame.
+
 ## Files
 
 | File | Role |
@@ -273,6 +311,7 @@ Still weak:
 | `src/lightmaps.ts` | Top-down lamp/sign maps and height-sampled fixture spill |
 | `src/ground.ts`, `src/reflection.ts` | Wet road and its planar reflection |
 | `src/signs.ts` | Sign material and atlas loading |
+| `src/towers.ts` | The main app's photographic tower facades, loaded for style-4 towers |
 | `tools/build_signs.py`, `signs.def.json`, `assets/` | The slice's sign atlas, every board sized to its text |
 | `src/traffic.ts`, `src/train.ts`, `src/rain.ts` | Motion; traffic and rain are compute passes |
 | `src/vehicles.ts` | Road vehicle body types (sedan, kei car, van, taxi) from one part scheme |

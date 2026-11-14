@@ -1,11 +1,11 @@
 import * as THREE from 'three/webgpu';
 import { mulberry32, weightedChoice } from '../../art/layouts/lib/rng.mjs';
 import catalog from '../assets/signs.json';
-import { FLOOR_HEIGHT, type Building, type Plan } from './plan';
+import { FLOOR_HEIGHT, topTier, type Building, type Plan } from './plan';
 import { paletteColor, type PaletteName } from './tsl';
 
 /** Facade grid per style: bay width, and the ground floor the shopfronts occupy. Shared with the facade shader. */
-export const BAY = [3.2, 2.4, 3.2, 1.6];
+export const BAY = [3.2, 2.4, 3.2, 1.6, 3.2];
 export const PODIUM = 4.5;
 export const SHOP_BAY = 4.5;
 
@@ -28,20 +28,27 @@ export function buildShell(buildings: Building[]): THREE.BufferGeometry {
   for (const b of buildings) {
     const seed = (b.seed % 9973) / 9973;
     const bay = BAY[b.style];
-    const side = (ax: number, az: number, bx: number, bz: number, n: number[], street: boolean) => {
-      const len = Math.hypot(bx - ax, bz - az);
-      const bays = Math.max(1, Math.floor((len - 0.6) / bay));
-      const margin = (len - bays * bay) / 2;
-      quad([[ax, 0, az], [bx, 0, bz], [bx, b.h, bz], [ax, b.h, az]], n,
-        [[-margin, 0], [len - margin, 0], [len - margin, b.h], [-margin, b.h]], [seed, b.style, b.h, street ? 1 : 0], [bays, len]);
-    };
-    // Counter-clockwise seen from outside, so u runs left to right on every wall.
-    side(b.x0, b.z1, b.x1, b.z1, [0, 0, 1], b.street.zmax);
-    side(b.x1, b.z0, b.x0, b.z0, [0, 0, -1], b.street.zmin);
-    side(b.x1, b.z1, b.x1, b.z0, [1, 0, 0], b.street.xmax);
-    side(b.x0, b.z0, b.x0, b.z1, [-1, 0, 0], b.street.xmin);
-    quad([[b.x0, b.h, b.z1], [b.x1, b.h, b.z1], [b.x1, b.h, b.z0], [b.x0, b.h, b.z0]], [0, 1, 0],
-      [[0, 0], [b.x1 - b.x0, 0], [b.x1 - b.x0, b.z1 - b.z0], [0, b.z1 - b.z0]], [seed, 9, b.h, 0], [1, 1]);
+    let bottom = 0;
+    b.tiers.forEach((t, k) => {
+      const x0 = b.x0 + t.inset, x1 = b.x1 - t.inset, z0 = b.z0 + t.inset, z1 = b.z1 - t.inset, top = t.top;
+      // Only the bottom tier meets the street (shopfronts); upper tiers are set back from it.
+      const street = k === 0 ? b.street : { xmin: false, xmax: false, zmin: false, zmax: false };
+      const side = (ax: number, az: number, bx: number, bz: number, n: number[], onStreet: boolean) => {
+        const len = Math.hypot(bx - ax, bz - az);
+        const bays = Math.max(1, Math.floor((len - 0.6) / bay));
+        const margin = (len - bays * bay) / 2;
+        quad([[ax, bottom, az], [bx, bottom, bz], [bx, top, bz], [ax, top, az]], n,
+          [[-margin, bottom], [len - margin, bottom], [len - margin, top], [-margin, top]], [seed, b.style, top, onStreet ? 1 : 0], [bays, len]);
+      };
+      // Counter-clockwise seen from outside, so u runs left to right on every wall.
+      side(x0, z1, x1, z1, [0, 0, 1], street.zmax);
+      side(x1, z0, x0, z0, [0, 0, -1], street.zmin);
+      side(x1, z1, x1, z0, [1, 0, 0], street.xmax);
+      side(x0, z0, x0, z1, [-1, 0, 0], street.xmin);
+      quad([[x0, top, z1], [x1, top, z1], [x1, top, z0], [x0, top, z0]], [0, 1, 0],
+        [[0, 0], [x1 - x0, 0], [x1 - x0, z1 - z0], [0, z1 - z0]], [seed, 9, top, 0], [1, 1]);
+      bottom = top;
+    });
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
@@ -214,7 +221,10 @@ export class Signs {
     const mesh = new THREE.InstancedMesh(geometry, material, n);
     mesh.instanceMatrix.array.set(this.m);
     const attr = (name: string, data: number[], size: number) => geometry.setAttribute(name, new THREE.InstancedBufferAttribute(new Float32Array(data), size));
-    attr('aRect', this.rect, 4); attr('aTube', this.tube, 3); attr('aBack', this.back, 3); attr('aParams', this.params, 4); attr('aGain', this.gain, 1);
+    // Four instance attributes at most: with the matrix that is WebGPU's limit of eight vertex buffers. Gain rides in aBack.w.
+    const backGain: number[] = [];
+    for (let i = 0; i < n; i++) backGain.push(this.back[i * 3], this.back[i * 3 + 1], this.back[i * 3 + 2], this.gain[i]);
+    attr('aRect', this.rect, 4); attr('aTube', this.tube, 3); attr('aBack', backGain, 4); attr('aParams', this.params, 4);
     mesh.frustumCulled = false;
     mesh.name = 'signs';
     return mesh;
@@ -537,27 +547,95 @@ export function assemble(plan: Plan, boxes: Boxes, signs: Signs): Roof[] {
     roofs.push({ x0: b.x0, x1: b.x1, z0: b.z - 2, z1: b.z + 2, h: b.y + 3.2 });
   }
 
-  // --- buildings: roofs for the rain, kit parts and signs on the near tier ---
+  // --- buildings: roofs for the rain, roof kit and crowns, and the street kit on the near tier ---
+  const inCity = new Set(plan.buildings);
   for (const b of [...plan.buildings, ...plan.skyline]) {
-    roofs.push({ x0: b.x0, x1: b.x1, z0: b.z0, z1: b.z1, h: b.h });
-    const cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2;
-    // Aviation lights on anything tall, visible to the horizon.
-    if (b.h > 90) for (const [x, z] of [[b.x0 + 1, b.z0 + 1], [b.x1 - 1, b.z1 - 1]]) boxes.add(x, b.h + 0.8, z, 1.3, 1.3, 1.3, red, 9, 1 + (b.seed % 7));
-    if (!b.near) continue;
+    let lastTop = 0;
+    for (const t of b.tiers) {
+      roofs.push({ x0: b.x0 + t.inset, x1: b.x1 - t.inset, z0: b.z0 + t.inset, z1: b.z1 - t.inset, h: t.top });
+      lastTop = t.top;
+    }
+    const top = topTier(b), tx0 = top.x0, tx1 = top.x1, tz0 = top.z0, tz1 = top.z1, th = top.h;
+    const cx = (tx0 + tx1) / 2, cz = (tz0 + tz1) / 2, tw = tx1 - tx0, td = tz1 - tz0;
     const r = mulberry32(b.seed);
+    const tall = b.style === 4 || b.h > 60;
+    // Aviation lights on anything tall, visible to the horizon.
+    if (lastTop > 90) for (const [x, z] of [[tx0 + 1, tz0 + 1], [tx1 - 1, tz1 - 1]]) boxes.add(x, th + 0.8, z, 1.3, 1.3, 1.3, red, 9, 1 + (b.seed % 7));
+    const city = inCity.has(b);
+    if (!city && !(tall && r() < 0.35)) continue;
+
+    // Roof: a parapet, a stair head, a water tank on legs, sometimes a mast.
+    if (city) {
+      // The full set close to the monorail; further out a stair head and a tank, which is what reads from a distance.
+      if (b.near) for (const [x, z, sx, szz] of [[cx, tz0 + 0.12, tw, 0.24], [cx, tz1 - 0.12, tw, 0.24], [tx0 + 0.12, cz, 0.24, td], [tx1 - 0.12, cz, 0.24, td]]) {
+        boxes.add(x, th + 0.35, z, sx, 0.7, szz, dark);
+      }
+      boxes.add(cx + (r() - 0.5) * Math.min(4, tw - 4), th + 1.4, cz + (r() - 0.5) * Math.min(4, td - 5), 3.2, 2.8, 4.2, concrete);
+      if (!tall && r() < 0.7) {
+        const wx = tx0 + 2.5 + r() * 2, wz = tz1 - 2.5 - r() * 2;
+        boxes.add(wx, th + 2.2, wz, 2.2, 2, 2.2, col(r() < 0.5 ? 'paint_cream' : 'car_silver', 0.5));
+        boxes.add(wx, th + 3.25, wz, 1.6, 0.1, 1.6, metal);
+        if (b.near) for (const [ox, oz] of [[-0.9, -0.9], [0.9, -0.9], [-0.9, 0.9], [0.9, 0.9]]) boxes.add(wx + ox, th + 0.6, wz + oz, 0.12, 1.2, 0.12, metal);
+        else boxes.add(wx, th + 0.6, wz, 1.9, 1.2, 1.9, metal);
+      }
+      if (b.near && r() < 0.35) boxes.add(tx1 - 2, th + 4, tz0 + 2, 0.1, 8, 0.1, metal);
+    }
+
+    // Crowns on the towers, after the old app's skyline: spires, LED edge lines, lit lattice tops, cranes, brand letters.
+    if (tall) {
+      const roll = r();
+      const led = [col('fluorescent'), col('sign_cyan'), col('office_white'), col('sign_red')][Math.floor(r() * 4)];
+      if (roll < 0.4) {
+        // A spire or antenna mast with a beacon.
+        const mh = 12 + r() * 35, mw = r() < 0.5 ? 0.5 : 1.4;
+        boxes.add(cx, th + mh / 2, cz, mw, mh, mw, metal);
+        boxes.add(cx, th + mh + 0.4, cz, 0.7, 0.7, 0.7, red, 9, 2 + (b.seed % 5));
+      }
+      if (city && r() < 0.35) {
+        // LED lines up the corners of the top tier.
+        const y0 = th * (0.45 + r() * 0.3);
+        for (const [x, z] of [[tx0, tz0], [tx1, tz0], [tx0, tz1], [tx1, tz1]]) boxes.add(x, (y0 + th) / 2, z, 0.18, th - y0, 0.18, led, 3);
+      }
+      if (city && lastTop > 80 && tw < 34 && td < 34 && r() < 0.25) {
+        // A lit lattice crown on a slim tower: a frame round the roof edge and crossed braces on its faces.
+        const ch = 4 + r() * 6, y = th + ch / 2;
+        for (const yy of [th + 0.1, th + ch]) {
+          boxes.add(cx, yy, tz0, tw, 0.14, 0.14, led, 2.2); boxes.add(cx, yy, tz1, tw, 0.14, 0.14, led, 2.2);
+          boxes.add(tx0, yy, cz, 0.14, 0.14, td, led, 2.2); boxes.add(tx1, yy, cz, 0.14, 0.14, td, led, 2.2);
+        }
+        for (const [x, z] of [[tx0, tz0], [tx1, tz0], [tx0, tz1], [tx1, tz1]]) boxes.add(x, y, z, 0.14, ch, 0.14, led, 2.2);
+        for (const s2 of [-1, 1]) {
+          boxes.add(cx, y, tz0, Math.hypot(tw, ch), 0.12, 0.12, led, 2.2, 0, [0, 0, s2 * Math.atan2(ch, tw)]);
+          boxes.add(cx, y, tz1, Math.hypot(tw, ch), 0.12, 0.12, led, 2.2, 0, [0, 0, s2 * Math.atan2(ch, tw)]);
+          boxes.add(tx0, y, cz, 0.12, 0.12, Math.hypot(td, ch), led, 2.2, 0, [s2 * Math.atan2(ch, td), 0, 0]);
+          boxes.add(tx1, y, cz, 0.12, 0.12, Math.hypot(td, ch), led, 2.2, 0, [s2 * Math.atan2(ch, td), 0, 0]);
+        }
+      }
+      if (city && r() < 0.06) {
+        // A tower crane, still building the next floor.
+        const mh = 22 + r() * 12, jib = 28 + r() * 12, yaw = r() * Math.PI;
+        const kx = tx0 + 3, kz = tz0 + 3;
+        boxes.add(kx, th + mh / 2, kz, 1.2, mh, 1.2, col('car_yellow', 0.5));
+        boxes.add(kx + Math.cos(yaw) * jib * 0.3, th + mh, kz + Math.sin(yaw) * jib * 0.3, jib, 0.9, 0.9, col('car_yellow', 0.5), 0, 0, [0, -yaw, 0]);
+        boxes.add(kx, th + mh + 0.9, kz, 0.6, 0.6, 0.6, red, 8, 3);
+      }
+      if (city && lastTop > 70 && r() < 0.55) {
+        // Brand letters on the roof edge that faces the main street.
+        const d = signs.pick('letters', r, true);
+        const face = cz > 0 ? -1 : 1, len = tw;
+        const h = Math.min(4.5, (len - 4) / d.aspect);
+        if (h > 1.2) {
+          const z = face < 0 ? tz0 + 0.4 : tz1 - 0.4;
+          signs.add(d, cx, th + 1 + h / 2, z, h, face < 0 ? Math.PI : 0, r, 1.4, false);
+          boxes.add(cx, th + 1 + h * 0.15, z - face * 0.3, h * d.aspect * 0.95, 0.12, 0.12, metal);
+        }
+      }
+    }
+    if (!b.near) continue;
     const housing = b.style === 0 || b.style === 2;
     const bay = BAY[b.style];
-    // Roof: parapet, stair head, water tank, mast.
-    for (const [x, z, sx, szz] of [[cx, b.z0 + 0.12, b.x1 - b.x0, 0.24], [cx, b.z1 - 0.12, b.x1 - b.x0, 0.24], [b.x0 + 0.12, cz, 0.24, b.z1 - b.z0], [b.x1 - 0.12, cz, 0.24, b.z1 - b.z0]]) {
-      boxes.add(x, b.h + 0.35, z, sx, 0.7, szz, dark);
-    }
-    boxes.add(cx + (r() - 0.5) * 4, b.h + 1.4, cz + (r() - 0.5) * 4, 3.2, 2.8, 4.2, concrete);
-    if (r() < 0.6) {
-      const tx = b.x0 + 2.5 + r() * 2, tz = b.z1 - 2.5 - r() * 2;
-      boxes.add(tx, b.h + 1.9, tz, 2, 1.8, 2, col('paint_cream', 0.5));
-      for (const [ox, oz] of [[-0.8, -0.8], [0.8, -0.8], [-0.8, 0.8], [0.8, 0.8]]) boxes.add(tx + ox, b.h + 0.5, tz + oz, 0.12, 1, 0.12, metal);
-    }
-    if (r() < 0.35) boxes.add(b.x1 - 2, b.h + 4, b.z0 + 2, 0.1, 8, 0.1, metal);
+    // Street-wall kit stops at the podium of a stepped building: the tiers above are set back.
+    const wallTop = b.tiers.length > 1 && b.tiers[1].inset > 0 ? b.tiers[0].top : b.h;
 
     // Walls: start point, direction along the wall, outward normal, whether it faces a street.
     const walls: [number, number, number, number, number, number, number, boolean][] = [
@@ -574,7 +652,7 @@ export function assemble(plan: Plan, boxes: Boxes, signs: Signs): Roof[] {
       boxes.add(lx, PODIUM + 0.12, lz, ux ? len : 0.28, 0.24, uz ? len : 0.28, dark);
       for (let k = 0; k < 1 + Math.floor(r() * 2); k++) {
         const [px, pz] = at(margin * 0.5 + (k ? len - margin : 0), 0.09);
-        boxes.add(px, (b.h + PODIUM) / 2, pz, 0.12, b.h - PODIUM, 0.12, metal);
+        boxes.add(px, (wallTop + PODIUM) / 2, pz, 0.12, wallTop - PODIUM, 0.12, metal);
       }
       // Shopfront bays: an awning over some, and either a board per bay or one fascia across the frontage.
       const shops = Math.max(1, Math.floor(len / SHOP_BAY)), shopMargin = (len - shops * SHOP_BAY) / 2;
@@ -608,7 +686,7 @@ export function assemble(plan: Plan, boxes: Boxes, signs: Signs): Roof[] {
 
       // Signs up the facade hang from the piers between window bays, never across a window, and
       // the bays beside them on the floors they span keep no balconies or AC units.
-      const floors = Math.floor((b.h - PODIUM) / FLOOR_HEIGHT);
+      const floors = Math.floor((wallTop - PODIUM) / FLOOR_HEIGHT);
       const blocked = new Set<number>();
       const block = (k: number, y0: number, y1: number) => {
         for (let f = 0; f < floors; f++) {
@@ -631,7 +709,7 @@ export function assemble(plan: Plan, boxes: Boxes, signs: Signs): Roof[] {
       const dk = plan.deck;
       const overDeck = nz === -1 && Math.abs(b.z0 - dk.z1) < 1 && b.x1 > dk.x0 && b.x0 < dk.x1;
       const base = overDeck ? dk.y + 3 : PODIUM + 1;
-      const room = b.h - base - 1;
+      const room = wallTop - base - 1;
       // A multi-floor LED tower at a corner of some taller buildings.
       if (room > 13 && b.style !== 3 && r() < 0.35) {
         const d = signs.pick('tower', r);
@@ -644,7 +722,7 @@ export function assemble(plan: Plan, boxes: Boxes, signs: Signs): Roof[] {
       // Blades on the piers between bays.
       const piers = Array.from({ length: Math.max(0, bays - 1) }, (_, k) => k + 1);
       for (let k = piers.length - 1; k > 0; k--) { const j = Math.floor(r() * (k + 1)); [piers[k], piers[j]] = [piers[j], piers[k]]; }
-      const blades = Math.min(piers.length, b.h < 50 ? Math.floor(r() * 3.8) : Math.floor(r() * 2.5));
+      const blades = Math.min(piers.length, wallTop < 50 ? Math.floor(r() * 3.8) : Math.floor(r() * 2.5));
       for (let k = 0; k < blades; k++) {
         const d = signs.pick('blade', r);
         const h = Math.min(2.4 + r() * 4, room, 2.0 / d.aspect);
@@ -677,7 +755,7 @@ export function assemble(plan: Plan, boxes: Boxes, signs: Signs): Roof[] {
       }
 
       // On the roof: a lit board or free-standing channel letters on a frame, along the street edge.
-      if (len > 10 && r() < (b.h < 45 ? 0.35 : 0.5)) {
+      if (wallTop === b.h && b.h < 70 && len > 10 && r() < (b.h < 45 ? 0.35 : 0.5)) {
         const letters = b.h >= 45 || r() < 0.5;
         const d = signs.pick(letters ? 'letters' : 'panel', r, letters);
         const h = Math.min(letters ? (b.h >= 45 ? 3.2 : 2.2) : 2.4, (len - 3) / d.aspect);

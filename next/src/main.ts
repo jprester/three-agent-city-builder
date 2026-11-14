@@ -10,6 +10,7 @@ import { createRain } from './rain';
 import { PlanarReflection } from './reflection';
 import { createSignMaterial, loadSignAtlas } from './signs';
 import { createSky } from './sky';
+import { loadTowerTextures } from './towers';
 import { createTraffic } from './traffic';
 import { createTrains } from './train';
 import { FOG_DENSITY, P, fog, heightFog, paletteColor, positionWorld, uniform } from './tsl';
@@ -34,7 +35,7 @@ const VIEWS: Record<string, { position: [number, number, number]; target: [numbe
 };
 const READY_FRAME = 3;
 /** Kit chunk size and how far from the camera a chunk is still drawn (m). */
-const KIT_CELL = 250, KIT_REACH = 420, KIT_REFLECT = 200;
+const KIT_CELL = 250, KIT_REACH = 420, KIT_REFLECT = 90;
 /** Seconds for one lap of the flyover. */
 const FLYOVER_LAP = 90;
 
@@ -126,7 +127,8 @@ async function main() {
   const lampMap = createLampMap(plan, rect), signMap = createSignMap(signs.lights, rect);
   const fixtures = createFixtureMap(boxes.fixtures, rect);
   const fixtureMap = fixtures.texture, fixtureHeights = uniform(fixtures.heights);
-  const lit = { time: uTime, lampMap, signMap, fixtureMap, fixtureHeights, lampRect: uRect };
+  const towers = await loadTowerTextures();
+  const lit = { time: uTime, lampMap, signMap, fixtureMap, fixtureHeights, lampRect: uRect, towers };
 
   const buildings = new THREE.Mesh(buildShell([...plan.buildings, ...plan.skyline]), createFacadeMaterial(lit));
   buildings.name = 'buildings';
@@ -145,7 +147,7 @@ async function main() {
   );
   ground.name = 'ground';
   scene.add(ground, traffic.pools);
-  const rainCount = Number.parseInt(params.get('rain') ?? '30000', 10);
+  const rainCount = Number.parseInt(params.get('rain') ?? '25000', 10);
   const rain = rainCount > 0 ? createRain(roofs, { count: rainCount, lampMap, signMap, lampRect: uRect, rect, eye: camera.position }) : null;
   if (rain) scene.add(rain.mesh);
   const unreflected: THREE.Object3D[] = [ground, traffic.pools, ...(rain ? [rain.mesh] : [])];

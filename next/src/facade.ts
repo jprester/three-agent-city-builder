@@ -1,11 +1,15 @@
 import * as THREE from 'three/webgpu';
 import { BAY, PODIUM, SHOP_BAY } from './build';
 import { FLOOR_HEIGHT } from './plan';
+import { FACADES, FACADES_PER_BUNDLE, type TowerTextures } from './towers';
 import {
-  Fn, If, abs, attribute, cameraPosition, clamp, dot, exp, float, floor, fract, fwidth, instanceColor, max, min, mix, normalWorld, normalize, positionWorld,
-  pow, property, select, smoothstep, step, texture, varying, vec2, vec3, vec4,
+  Fn, If, abs, attribute, cameraPosition, clamp, dFdx, dFdy, dot, exp, float, floor, fract, fwidth, instanceColor, int, max, min, mix, mod, normalWorld, normalize, positionWorld,
+  pow, property, select, smoothstep, step, texture, uniformArray, varying, vec2, vec3, vec4,
   P, box, fixtureSpill, hash21, mapUv, noise2, type N,
 } from './tsl';
+
+/** The photographic facades are mapped at the main app's curtain-wall floor height (art/style/facade.json). */
+const ATLAS_FLOOR = 3.8;
 
 export interface FacadeInputs {
   time: N;
@@ -16,6 +20,8 @@ export interface FacadeInputs {
   fixtureHeights: N;
   /** minX, minZ, 1/sizeX, 1/sizeZ of the lamp and sign maps (uniform vec4). */
   lampRect: N;
+  /** Photographic tower facades (towers.ts); towers (style 4) map them at real scale. */
+  towers: TowerTextures;
 }
 
 /**
@@ -67,6 +73,11 @@ export function createFacadeMaterial(inp: FacadeInputs): THREE.MeshStandardNodeM
     return paint.mul(tone).mul(light);
   };
 
+  const towers = inp.towers;
+  const atlasRect = uniformArray(FACADES.map((f) => new THREE.Vector4(...(f.rect as [number, number, number, number]))));
+  const atlasDim = uniformArray(FACADES.map((f) => new THREE.Vector4(f.floor, f.bay, f.wrap[0], f.wrap[1])));
+  const diffTex = towers.diffuse.map((t) => texture(t) as N), emitTex = towers.emissive.map((t) => texture(t) as N);
+
   const surface = Fn(() => {
     const seed = vData.x, style = vData.y, height = vData.z, street = vData.w;
     const bays = vWall.x;
@@ -105,9 +116,45 @@ export function createFacadeMaterial(inp: FacadeInputs): THREE.MeshStandardNodeM
 
     const inBays = step(0, uvm.x).mul(step(uvm.x, bays.mul(select(glass, float(BAY[3]), select(office, float(BAY[1]), float(BAY[0])))))).toVar();
     const shopZone = street.greaterThan(0.5).and(uvm.y.lessThan(PODIUM));
+    const atlas = style.greaterThan(3.5).and(isRoof.not());
 
     If(isRoof, () => {
       base.assign(P('concrete_dark').mul(0.5).mul(noise2(uvm.mul(0.4).add(seed.mul(40))).mul(0.3).add(0.85)));
+    }).ElseIf(atlas.and(shopZone.not()), () => {
+      // Photographic tower facade (the main app's mapping): a bundle and facade per building,
+      // offset by whole bays and floors, lit by the atlas's own emissive windows in tenant bands.
+      const bundle = floor(fract(seed.mul(3.17)).mul(3)).toVar();
+      const fi = int(bundle.mul(FACADES_PER_BUNDLE).add(floor(fract(seed.mul(11.3)).mul(FACADES_PER_BUNDLE))));
+      const R = atlasRect.element(fi).toVar(), Dm = atlasDim.element(fi).toVar();
+      const perM = Dm.x.div(ATLAS_FLOOR);
+      const L = uvm.mul(perM).add(vec2(floor(fract(seed.mul(5.1)).mul(9)).mul(Dm.y), floor(fract(seed.mul(7.9)).mul(9)).mul(Dm.x))).toVar();
+      const Lw = mod(L, Dm.zw);
+      const auv = vec2(R.x.add(Lw.x), float(1).sub(R.w).add(Lw.y)).toVar();
+      const gx = dFdx(L).toVar(), gy = dFdy(L).toVar();
+      const dr = vec4(0).toVar(), em = vec3(0).toVar(), spill = vec3(0).toVar();
+      const sx = gx.add(vec2(Dm.y.mul(0.8), 0)), sy = gy.add(vec2(0, Dm.x.mul(0.8)));
+      for (let k = 0; k < 3; k++) {
+        If(bundle.equal(k), () => {
+          dr.assign(diffTex[k].sample(auv).grad(gx, gy));
+          em.assign(emitTex[k].sample(auv).grad(gx, gy).rgb);
+          spill.assign(emitTex[k].sample(auv).grad(sx, sy).rgb);
+        });
+      }
+      base.assign(dr.rgb.mul(0.5));
+      pRough.assign(clamp(dr.a, 0.12, 0.95));
+      pMetal.assign(dr.a.oneMinus().mul(0.4));
+      // Not every floor is occupied, and offices light in runs of whole floors; both fade to their mean before they alias.
+      const floorId = floor(L.y.div(Dm.x));
+      const floorLit = mix(0.35, 1.2, hash21(vec2(floorId, seed.mul(31)))).mul(step(0.38, hash21(vec2(floorId, seed.mul(13).add(2)))));
+      const bayVar = mix(mix(0.68, 1.18, hash21(vec2(floor(L.x.div(Dm.y)), seed.mul(23).add(7)))), 0.95, smoothstep(0.25, 0.7, fw.x.div(max(Dm.y.div(perM), 0.1))));
+      const groupSize = mix(4, 9, fract(seed.mul(9.7).add(0.31)));
+      const groupOn = step(0.22, hash21(vec2(floor(floorId.div(groupSize)), seed.mul(43).add(7))));
+      const lit = floorLit.mul(mix(mix(0.12, 1, groupOn), 0.78, smoothstep(0.35, 0.9, fw.y.div(max(Dm.x.div(perM), 0.1)))));
+      emit.assign(em.mul(2.1).mul(lit).mul(bayVar));
+      wallLight.addAssign(spill.mul(lit).mul(0.6));
+      // Unlit glass catches the night sky.
+      const glassAmt = smoothstep(0.3, 0.6, dr.a).oneMinus();
+      emit.addAssign(skyRefl(vt.y.negate().mul(0.5).add(0.25)).mul(pow(facing.oneMinus(), 4).mul(0.5).add(0.05)).mul(glassAmt));
     }).ElseIf(shopZone, () => {
       // Shopfronts: a tenant per bay, glass with a lit room or a ribbed shutter.
       const len = vWall.y;
@@ -150,8 +197,8 @@ export function createFacadeMaterial(inp: FacadeInputs): THREE.MeshStandardNodeM
       const groupId = vec2(cid.y, floor(cid.x.div(7)));
       const floorOn = hash21(groupId.add(s).add(3.1));
       const ratio = select(glass, select(floorOn.lessThan(0.32), float(0), float(0.9)),
-        select(office, select(floorOn.lessThan(0.45), float(0.04), float(0.55)), mix(0.28, 0.6, fract(seed.mul(7.31)))));
-      const meanRatio = select(glass, float(0.61), select(office, float(0.32), mix(0.28, 0.6, fract(seed.mul(7.31)))));
+        select(office, select(floorOn.lessThan(0.45), float(0.04), float(0.45)), mix(0.14, 0.4, fract(seed.mul(7.31)))));
+      const meanRatio = select(glass, float(0.61), select(office, float(0.25), mix(0.14, 0.4, fract(seed.mul(7.31)))));
       const lit = step(hash21(cid.add(s).add(17.7)), ratio).mul(present).toVar();
       const hInt = hash21(cid.add(s).add(2.9));
       const inten = select(glass, hash21(groupId.add(s).add(2.9)).mul(0.7).add(0.7), mix(0.5, 2.6, hInt.mul(hInt).mul(hInt))).toVar();

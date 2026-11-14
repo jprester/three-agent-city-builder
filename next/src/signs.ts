@@ -29,8 +29,8 @@ export function createSignMaterial(atlas: THREE.Texture, time: N): THREE.MeshSta
   const nrm = attribute('normal', 'vec3') as N, uv0 = attribute('uv', 'vec2') as N, aRect = attribute('aRect', 'vec4') as N;
   const vUv = varying(aRect.xy.add(uv0.mul(aRect.zw))) as N;
   const vFace = varying(select(abs(nrm.z).greaterThan(0.5), float(1), float(0))) as N;
-  const vTube = flat(attribute('aTube', 'vec3')), vBack = flat(attribute('aBack', 'vec3'));
-  const vParams = flat(attribute('aParams', 'vec4')), vGain = flat(attribute('aGain', 'float'));
+  const vTube = flat(attribute('aTube', 'vec3')), aBack = attribute('aBack', 'vec4') as N, vBack = flat(aBack.xyz);
+  const vParams = flat(attribute('aParams', 'vec4')), vGain = flat(aBack.w);
   const atlasTex = texture(atlas) as N;
   const pEmit = property('vec3') as N;
   const sHash = (x: N): N => fract(sin(x.mul(127.1)).mul(43758.5453));

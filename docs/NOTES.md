@@ -1309,3 +1309,13 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 - Weak: a dark fogged band between the far ring and the hills; the concept's horizon glows.
 - Weak: the far facades are a pale grey-and-amber mosaic, cooler and busier than the concept's warm windows on dark walls.
 - Weak: away from the main street, housing has no AC units, balconies or rooftop tanks, the things that make the concept read as Hong Kong.
+
+### Fresh slice — towers and massing, 2026-11-14
+
+- Checked all eight gate views plus close-ups of the business district (docs/progress/fresh-slice-towers/).
+- Works: the business district now reads like the old version: photographic curtain walls, lit floors in tenant runs, setbacks, antennas, logo crowns and LED edge lines. From the street, the towers at the end of the main street finally look like a skyline, not a mosaic.
+- Works: housing walls are dark with scattered warm windows; the pale barcode is gone everywhere.
+- Weak: most housing is still a box or a box with a step. The old version's slabs, walk-ups and estates had balconies, cores and wings in their geometry.
+- Weak: from `skyline` the far ring is scattered boxes with dark ground between them; the old version's crowd of towers was denser and taller.
+- Weak: cranes are unlit black bars; one crosses the `above` frame.
+- Weak: no triangle headroom left (599k of 600k in `above`).

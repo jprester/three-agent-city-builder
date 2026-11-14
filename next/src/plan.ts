@@ -11,8 +11,13 @@ export interface Building {
   x0: number; x1: number; z0: number; z1: number;
   h: number;
   seed: number;
-  /** 0 tiled housing, 1 concrete office, 2 painted housing, 3 glass tower. */
+  /** 0 tiled housing, 1 concrete office, 2 painted housing, 3 glass block, 4 tower with a photographic facade. */
   style: number;
+  /**
+   * The massing, bottom up: each tier is the footprint inset by `inset` metres, rising to `top`.
+   * One tier is a plain box; towers stand on a podium, step back, and end in a crown.
+   */
+  tiers: { inset: number; top: number }[];
   /** Which walls face a street (and get shopfronts, signs and street furniture). */
   street: { xmin: boolean; xmax: boolean; zmin: boolean; zmax: boolean };
   /** Near tier: gets kit parts (AC units, balconies, pipes, awnings, roof clutter). */
@@ -73,6 +78,31 @@ export interface Plan {
 
 const FLOOR = 3.2;
 
+/** Podium, shaft, setbacks and a crown for a building of height h on a w x d lot. */
+function massing(rng: () => number, w: number, d: number, h: number, style: number): Building['tiers'] {
+  const room = Math.min(w, d) / 2 - 5;             // how far a tier may step in and keep a usable floor
+  const snap = (y: number) => Math.round(y / FLOOR) * FLOOR + 1.1;
+  if (style === 4 && room > 1) {
+    const tiers: Building['tiers'] = [];
+    let inset = 0;
+    if (rng() < 0.7) { tiers.push({ inset: 0, top: snap(9 + rng() * 9) }); inset = Math.min(room * 0.6, 1.5 + rng() * 3); }
+    const steps = rng() < 0.55 ? 2 : 1;
+    for (let k = 0; k < steps; k++) {
+      const top = k === steps - 1 ? h : snap(h * (0.55 + rng() * 0.25));
+      tiers.push({ inset, top });
+      inset = Math.min(room, inset + 1.5 + rng() * 3);
+    }
+    // A crown: a narrower plant storey or two on top.
+    if (rng() < 0.6) tiers.push({ inset: Math.min(room, inset + 1), top: h + 3 + rng() * 6 });
+    return tiers;
+  }
+  if (h > 30 && room > 0 && rng() < 0.3) {
+    // Housing with its top floors stepped back.
+    return [{ inset: 0, top: snap(h - FLOOR * (1 + Math.floor(rng() * 3))) }, { inset: Math.min(room, 1.2 + rng()), top: h }];
+  }
+  return [{ inset: 0, top: h }];
+}
+
 export function createPlan(seed = 7): Plan {
   const rng = mulberry32(seed);
   // The same footprint as the main app's city (1000 x 800 m): a grid of cross streets every
@@ -117,20 +147,22 @@ export function createPlan(seed = 7): Plan {
         if (onMain) {
           // Old core on the main street: low and mixed, with the odd slim tower.
           h = roll < 0.12 ? 60 + rng() * 45 : 16 + rng() * 26;
-          style = roll < 0.12 ? (rng() < 0.5 ? 3 : 1) : [0, 0, 2, 2, 1][Math.floor(rng() * 5)];
+          style = roll < 0.12 ? 4 : [0, 0, 2, 2, 1][Math.floor(rng() * 5)];
         } else if (cx > 240 && Math.abs(cz) < 260) {
-          // The business district at the east end of the main street: offices and glass towers.
+          // The business district at the east end of the main street: towers with photographic facades.
           h = 70 + rng() * rng() * 190;
-          style = rng() < 0.55 ? 3 : 1;
+          style = rng() < 0.8 ? 4 : 1;
         } else {
           // Everywhere else, dense housing blocks of ten to twenty-five floors, higher away from the old core.
           const lift = Math.min(1, Math.abs(cz) / 200);
           h = 28 + lift * 14 + rng() * (32 + lift * 18);
-          style = roll < 0.08 ? 3 : [0, 0, 2, 2, 2, 1][Math.floor(rng() * 6)];
+          style = roll < 0.06 ? 4 : roll < 0.09 ? 3 : [0, 0, 2, 2, 2, 1][Math.floor(rng() * 6)];
+          if (style === 4) h += 20 + rng() * 40;
         }
+        const hs = Math.round(h / FLOOR) * FLOOR + 1.1;
         buildings.push({
           x0: x + GAP / 2, x1: x + w - GAP / 2, z0: r0 + GAP / 2, z1: r1 - GAP / 2,
-          h: Math.round(h / FLOOR) * FLOOR + 1.1,
+          h: hs, tiers: massing(rng, w - GAP, Math.abs(r1 - r0) - GAP, hs, style),
           seed: Math.floor(rng() * 1e6), style,
           street: { xmin: x === x0, xmax: x + w >= x1 - 1e-6, zmin: r0 === z0, zmax: r1 === z1 },
           // Kit geometry (balconies, AC units, signs) close to the monorail; further out the facade draws them.
@@ -143,7 +175,7 @@ export function createPlan(seed = 7): Plan {
 
   // Far tier, out to the horizon: dense mid-rise housing right up to the city's edge, then towers.
   const skyline: Building[] = [];
-  for (let i = 0; i < 1800; i++) {
+  for (let i = 0; i < 1300; i++) {
     // Even density by area out to ~2 km, so lit windows run all the way to the hills.
     const a = rng() * Math.PI * 2, r = 330 + Math.sqrt(rng()) * 1700;
     const cx = Math.cos(a) * r * 1.3, cz = Math.sin(a) * r;
@@ -152,9 +184,11 @@ export function createPlan(seed = 7): Plan {
     const w = 24 + rng() * 34, d = 24 + rng() * 34;
     const tower = edge > 260 && rng() < 0.45;
     const h = tower ? (90 + rng() * rng() * 300) * (1 - Math.min(r / 3000, 0.45)) : 30 + rng() * 55;
+    const style = tower ? (rng() < 0.75 ? 4 : 1) : [0, 2, 2, 1][Math.floor(rng() * 4)];
+    const hs = Math.round(h / FLOOR) * FLOOR;
     skyline.push({
-      x0: cx - w / 2, x1: cx + w / 2, z0: cz - d / 2, z1: cz + d / 2, h: Math.round(h / FLOOR) * FLOOR,
-      seed: Math.floor(rng() * 1e6), style: tower ? (rng() < 0.6 ? 3 : 1) : [0, 2, 2, 1][Math.floor(rng() * 4)],
+      x0: cx - w / 2, x1: cx + w / 2, z0: cz - d / 2, z1: cz + d / 2, h: hs, tiers: massing(rng, w, d, hs, style),
+      seed: Math.floor(rng() * 1e6), style,
       street: { xmin: false, xmax: false, zmin: false, zmax: false }, near: false,
     });
   }
@@ -205,7 +239,7 @@ export function createPlan(seed = 7): Plan {
   const lanes: Lane[] = [];
   const L = 2 * size.x + 40;
   for (const [z, d] of [[-6.6, 1], [-3.4, 1], [3.4, -1], [6.6, -1]] as const) {
-    lanes.push({ x: -d * L / 2, z, dx: d, dz: 0, length: L, phase: 0, cars: 22, speed: 9 + rng() * 3 });
+    lanes.push({ x: -d * L / 2, z, dx: d, dz: 0, length: L, phase: 0, cars: 20, speed: 9 + rng() * 3 });
   }
   for (const bz of back.zs) {
     for (const d of [-1, 1]) lanes.push({ x: -d * L / 2, z: bz + d * 1.9, dx: d, dz: 0, length: L, phase: 0, cars: 5, speed: 7 + rng() * 2 });
@@ -219,3 +253,9 @@ export function createPlan(seed = 7): Plan {
 }
 
 export const FLOOR_HEIGHT = FLOOR;
+
+/** The top tier's footprint and height: where roofs carry their kit, crowns and signs. */
+export function topTier(b: Building) {
+  const t = b.tiers[b.tiers.length - 1];
+  return { x0: b.x0 + t.inset, x1: b.x1 - t.inset, z0: b.z0 + t.inset, z1: b.z1 - t.inset, h: t.top };
+}
