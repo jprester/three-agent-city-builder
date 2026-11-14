@@ -30,7 +30,7 @@ binary in `public/` is regenerated from them.
 - `npm run textures` encodes the large textures listed in `art/textures/ktx2.def.json` to
   GPU-compressed KTX2 in `public/textures/` (a few minutes the first time, then only what
   changed). `npm run dev`, `npm run build` and the Playwright runs call it first. The outputs
-  are not committed.
+  are committed, like the GLBs.
 - `npm run dev` starts the app. URL params: `?layout=<id>`, `?viewpoint=<name>`,
   `?seed=<int>` (regenerates the layout in the browser with that seed), `?quality=` and
   `?grade=default|filmic` (the final colour grade; filmic is the default, `?grade=default`
@@ -113,5 +113,5 @@ Keep commits scoped to one asset family or one feature.
 - Blender: version pinned in `pipeline.config.json`. Binary from `BLENDER_BIN`, then
   config `blender.path`, then the macOS default, then `blender` on PATH.
 - Node 22.15+. No Git LFS: generated GLBs and screenshots are small and committed as regular files.
-  The KTX2 textures (~50 MB) are the exception: generated locally, ignored by git.
+  The KTX2 textures (~50 MB in all) are committed too; re-encode only when a source changes.
 - Blender is transient: generators run headless and export GLB; `.blend` files are never saved or committed.

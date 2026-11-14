@@ -5,8 +5,8 @@
 //
 // art/textures/ktx2.def.json -> public/textures/<id>.ktx2 + public/basis/ (three's transcoder,
 // copied so the app makes no network request outside its own origin). The GPU holds UASTC as
-// ASTC or BC7 at 8 bits per pixel instead of RGBA8 at 32. Outputs are generated and ignored by
-// git; an entry is skipped when its source, settings and the encoder version are unchanged.
+// ASTC or BC7 at 8 bits per pixel instead of RGBA8 at 32. Outputs are generated and committed
+// like the GLBs; an entry is skipped when its source, settings and the encoder version are unchanged.
 //
 // Images are flipped vertically here: compressed textures cannot be flipped at upload, and the
 // shaders expect three's flipY = true convention.

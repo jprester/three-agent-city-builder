@@ -8,7 +8,7 @@ Measured with `npm run perf` ×3, 1440×900 @2x, high quality, Apple M5, idle GP
 | GPU process memory | 1,736–2,037 MB | 784–797 MB | under 1,200 MB: met |
 | Late frames | not measured | 0 % in all five views | — |
 | GPU time at full clock (`fast`) | about 7.7–10.7 ms | 8.0–13.7 ms | — |
-| GPU time, 95th percentile | 13.5–25.9 ms | 13.8–24.0 ms | under 14 ms: not met, see below |
+| GPU time, 95th percentile | 13.5–25.9 ms | 13.8–24.0 ms | replaced: late frames ≤ 5 % and `fast` < 16.7 ms, met |
 | Draw calls, worst view | 230 | 230 | 20 under the 250 budget: met, exactly |
 
 Per perf view (draw calls and triangles are unchanged by this work):
@@ -44,7 +44,8 @@ Not met or open:
   same static picture reads 10 or 17 ms and no frame is late. Not proven. See QUESTIONS.md.
 - Draw-call headroom is exactly 20; Part B's monorail may add up to 8.
 - Only Chrome on Apple silicon was measured.
-- `maxFrameMs` (50) is unchanged; the proposal for 33 is still in QUESTIONS.md.
+- Answered 2026-11-14: the KTX2 files are committed, the frame-time target is the late-frame
+  one above, and `maxFrameMs` is 33.
 
 Next: Part B (monorail) after review.
 

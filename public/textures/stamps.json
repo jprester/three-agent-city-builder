@@ -1,0 +1,18 @@
+{
+  "tower_osaka_diffuse": "4e2c6933f9f53e011513ee4cbf0ac09d2e2f0f319e45fa0edf6e33a8d8a36160",
+  "tower_osaka_emissive": "034e2fc5309ea9d362acd48b80e71d241bd361d9108520a54f3860f23443db76",
+  "tower_osaka_normal": "88387e38b70bafb5316815d85103fce382c5d27423cc64928081f02d50b145de",
+  "tower_real_glass_diffuse": "cf28d9a3d0f0a45d64164f6262d3df3a9813509859b3cded6f247823f662390f",
+  "tower_real_glass_emissive": "6fe97f7f962e08b8ea88c6d7c19be9336eff05e2b75b142dcec8c1fac2c78100",
+  "tower_real_glass_normal": "52f9d01152602410d21c4741dba99f04cb9d702790f29b9997f1f4d38fa42663",
+  "tower_glass_sky_diffuse": "66300db2fa4c7949c8fbfbe3a6836ee0a66c1a33e0c518130e481a39f4966f37",
+  "tower_glass_sky_emissive": "f64737af49e4eafdb1d55e0b48e75c04a2a13e48561a82ea5fbca74603596843",
+  "tower_glass_sky_normal": "56ff553ba93d2f7c39fd22d15bd244f249c7c9b554b6f4db5738fe2ec6dd6f04",
+  "walls": "7b3e92c0ff8c7a26893354d37e2c256b6273f1a5e60ee1c7efc3c7be94413685",
+  "interiors": "488e460ada2818bcf0050982c58f607fda6393e2aa889338858d4e568b9c868c",
+  "signs_neon_v": "3ac50d23ee3711623a3a7126e7a82d57ddf0cc35f677152723b3c5297f955b91",
+  "signs_neon_h": "a4d19bf6ec94aaac75272d301462e3bee74fbfac3c47d1f8aaa75848c5a97e61",
+  "signs_posters_p": "b9f177e69538df2210b870e0dc25504b2e7910f25afbf755e348190eeb8f92a9",
+  "signs_posters_l": "9edd5b05ec45f0f95b85af0f2fc1b546221647acdb5c45082abd4f1cc2566e26",
+  "signs_screens": "a03b128502c3cfda6001e46b991d26dd49481904d3f10a4067f0d32b4634d0b3"
+}

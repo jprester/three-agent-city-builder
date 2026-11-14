@@ -10,13 +10,8 @@ Only questions an agent cannot resolve with a sensible default. Newest at the bo
 - ~~**City edge**~~ (2026-09-28): answered. Add the light carpet (done: ground sprawl lights).
 - ~~**KTX2 encoder (perf A1)**~~: went ahead with `ktx2-encoder@0.6.0` (npm devDependency)
   when you said to continue. Say so if you would rather have `toktx`; it is a small swap.
-- **KTX2 files in git (perf A1)**: they are 51 MB and currently generated on `npm run dev` /
-  `build` / tests and ignored by git (first run takes ~4 min). Keep it that way, or commit them
-  so a fresh clone starts at once?
+- ~~**KTX2 files in git (perf A1)**~~: answered 2026-11-14. Commit them.
 - ~~**1.3 MB driver buffers (perf A0)**~~: solved (docs/NOTES.md, A5). GPU process is now ~790 MB.
-- **Frame-time target (perf)**: "p95 under 14 ms" cannot be measured reliably: the GPU slows
-  its clock when a frame leaves slack (docs/NOTES.md, A5). Proposed replacement: no more than
-  5 % late frames and full-clock GPU time under 16.7 ms, which `npm run perf` now enforces. OK?
-- **maxFrameMs (perf A4)**: the scene budget is 50 ms; real frames measure 7.7–10.7 ms median,
-  13.5–25.9 ms p95 at 2x/high. Proposed: 33 ms (keeps software-GL shots passing headroom on
-  real GPUs). Change it?
+- ~~**Frame-time target (perf)**~~: answered 2026-11-14. No more than 5 % late frames and
+  full-clock GPU time under 16.7 ms replaces "p95 under 14 ms".
+- ~~**maxFrameMs (perf A4)**~~: answered 2026-11-14. Now 33 ms.
