@@ -9,6 +9,8 @@ import {
 import { BODY_TYPES, BodyBuilder, PART, bodyTypeOf } from './vehicles';
 
 const CAR_LENGTH = 4.4;
+/** Stop lines per lane, in vec4s: room for 12 crossings. */
+const STOP_SLOTS = 3;
 export interface Traffic {
   /** One instanced draw per body type. */
   cars: THREE.Group;
@@ -31,18 +33,21 @@ export function createTraffic(plan: Plan, lampMap: THREE.Texture, lampRect: N): 
   const rng = mulberry32((plan.seed ^ 0x7e41c1e5) >>> 0);
   const count = plan.lanes.reduce((n, l) => n + l.cars, 0);
   const state = new Float32Array(count * 4), meta = new Float32Array(count * 4);
-  const mainEdge = plan.main.half + plan.main.sidewalk, crossEdge = plan.cross.half + plan.cross.sidewalk;
+  const mainEdge = plan.main.half + plan.main.sidewalk, crossEdge = plan.cross.half + plan.cross.sidewalk, backEdge = plan.back.half + plan.back.sidewalk;
   let i = 0;
   const byType: number[][] = BODY_TYPES.map(() => []);
   const laneA: THREE.Vector4[] = [], laneB: THREE.Vector4[] = [], stops: THREE.Vector4[] = [];
   plan.lanes.forEach((lane, li) => {
     laneA.push(new THREE.Vector4(lane.x, lane.z, lane.dx, lane.dz));
     laneB.push(new THREE.Vector4(lane.length, lane.phase, lane.speed, 0));
-    // Stop lines as distances along the lane (-1: unused).
+    // Stop lines as distances along the lane (-1: unused), STOP_SLOTS vec4s per lane. Lanes along x
+    // stop before every cross street; lanes along z before the main street and every back street.
     const s = lane.dx !== 0
       ? plan.cross.xs.map((cx) => lane.dx * (cx - lane.dx * (crossEdge + 5.5) - lane.x))
-      : [lane.dz * (-lane.dz * (mainEdge + 5.5) - lane.z), -1, -1, -1];
-    stops.push(new THREE.Vector4(...(s as [number, number, number, number])));
+      : [lane.dz * (-lane.dz * (mainEdge + 5.5) - lane.z), ...plan.back.zs.map((bz) => lane.dz * (bz - lane.dz * (backEdge + 4) - lane.z))];
+    if (s.length > STOP_SLOTS * 4) throw new Error(`a lane crosses ${s.length} streets; raise STOP_SLOTS`);
+    while (s.length < STOP_SLOTS * 4) s.push(-1);
+    for (let k = 0; k < STOP_SLOTS; k++) stops.push(new THREE.Vector4(s[4 * k], s[4 * k + 1], s[4 * k + 2], s[4 * k + 3]));
     const first = i;
     for (let k = 0; k < lane.cars; k++, i++) {
       const seed = rng();
@@ -67,12 +72,14 @@ export function createTraffic(plan: Plan, lampMap: THREE.Texture, lampRect: N): 
     // Signal: each phase gets green then amber, the other half of the cycle is red.
     const t = mod(uTime.add(phase.mul(period / 2)), period);
     const isGreen = t.lessThan(green), isAmber = t.greaterThanEqual(green).and(t.lessThan(green + amber));
-    const stop = uStops.element(lane);
-    for (const s of [stop.x, stop.y, stop.z, stop.w]) {
-      const d = mod(s.sub(st.x).add(L), L);
-      // Red stops everyone short of the line; amber only those who can still brake.
-      const hold = s.greaterThanEqual(0).and(d.lessThan(45)).and(isGreen.not()).and(isAmber.not().or(d.greaterThan(9)));
-      If(hold, () => { gap.assign(min(gap, d.sub(0.5))); });
+    for (let k = 0; k < STOP_SLOTS; k++) {
+      const stop = uStops.element(lane.mul(STOP_SLOTS).add(k)).toVar();
+      for (const s of [stop.x, stop.y, stop.z, stop.w]) {
+        const d = mod(s.sub(st.x).add(L), L);
+        // Red stops everyone short of the line; amber only those who can still brake.
+        const hold = s.greaterThanEqual(0).and(d.lessThan(45)).and(isGreen.not()).and(isAmber.not().or(d.greaterThan(9)));
+        If(hold, () => { gap.assign(min(gap, d.sub(0.5))); });
+      }
     }
     const target = cruise.mul(clamp(gap.sub(1.5).div(11), 0, 1));
     const v = max(st.y.add(clamp(target.sub(st.y), uDt.mul(-7), uDt.mul(2.6))), 0);

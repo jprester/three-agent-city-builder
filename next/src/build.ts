@@ -89,14 +89,64 @@ export class Boxes {
   get count() { return this.fx.length / 2; }
 
   build(material: THREE.Material): THREE.InstancedMesh {
+    return this.mesh(material, [...Array(this.count).keys()]);
+  }
+
+  private mesh(material: THREE.Material, ids: number[]): THREE.InstancedMesh {
     const geometry = new THREE.BoxGeometry(1, 1, 1);
-    const mesh = new THREE.InstancedMesh(geometry, material, this.count);
-    mesh.instanceMatrix.array.set(this.m);
-    mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(this.c), 3);
-    geometry.setAttribute('aFx', new THREE.InstancedBufferAttribute(new Float32Array(this.fx), 2));
+    const mesh = new THREE.InstancedMesh(geometry, material, ids.length);
+    const m = new Float32Array(ids.length * 16), c = new Float32Array(ids.length * 3), fx = new Float32Array(ids.length * 2);
+    ids.forEach((id, k) => {
+      m.set(this.m.slice(id * 16, id * 16 + 16), k * 16);
+      c.set(this.c.slice(id * 3, id * 3 + 3), k * 3);
+      fx.set(this.fx.slice(id * 2, id * 2 + 2), k * 2);
+    });
+    mesh.instanceMatrix.array.set(m);
+    mesh.instanceColor = new THREE.InstancedBufferAttribute(c, 3);
+    geometry.setAttribute('aFx', new THREE.InstancedBufferAttribute(fx, 2));
     mesh.frustumCulled = false;
     mesh.name = 'boxes';
     return mesh;
+  }
+
+  /**
+   * The kit for a city this size: one instanced draw per `cell` × `cell` square, each with its
+   * own bounds so the renderer can skip it outside the view, and hidden beyond `reach` by
+   * `cullChunks`. Lit parts and parts longer than half a cell (girders, kerbs, the median) go in
+   * one mesh that is always drawn, so lamps and aviation lights still dot the far city.
+   */
+  buildChunked(material: THREE.Material, cell: number): THREE.Group {
+    const group = new THREE.Group();
+    group.name = 'kit';
+    const always: number[] = [], cells = new Map<string, number[]>();
+    for (let id = 0; id < this.count; id++) {
+      const e = this.m.slice(id * 16, id * 16 + 16);
+      const extent = Math.max(Math.hypot(e[0], e[1], e[2]), Math.hypot(e[4], e[5], e[6]), Math.hypot(e[8], e[9], e[10]));
+      if (this.fx[id * 2] > 2 || extent > cell / 2) { always.push(id); continue; }
+      const key = `${Math.floor(e[12] / cell)},${Math.floor(e[14] / cell)}`;
+      if (!cells.has(key)) cells.set(key, []);
+      cells.get(key)!.push(id);
+    }
+    const lit = this.mesh(material, always);
+    lit.name = 'kit-always';
+    group.add(lit);
+    for (const [key, ids] of cells) {
+      const mesh = this.mesh(material, ids);
+      mesh.name = `kit-${key}`;
+      mesh.computeBoundingSphere();
+      mesh.frustumCulled = true;
+      mesh.userData.chunk = true;
+      group.add(mesh);
+    }
+    return group;
+  }
+}
+
+/** Hide kit chunks whose bounds are further than `reach` from the camera (fog has them by then). */
+export function cullChunks(group: THREE.Object3D, eye: THREE.Vector3, reach: number) {
+  for (const mesh of group.children as THREE.InstancedMesh[]) {
+    if (!mesh.userData.chunk || !mesh.boundingSphere) continue;
+    mesh.visible = mesh.boundingSphere.center.distanceTo(eye) - mesh.boundingSphere.radius < reach;
   }
 }
 

@@ -5,7 +5,7 @@ import type { Plan } from './plan';
 import { paletteColor, type PaletteName } from './tsl';
 
 /** Seconds: one full cycle, of which the train stands in the station for DWELL. */
-const CYCLE = 64, DWELL = 12, RUN = 16;
+const CYCLE = 84, DWELL = 12, RUN = 24;
 /** Heights on the car body above its floor: window sill, window and door head, ceiling. */
 const SILL = 0.85, HEAD = 2.15, CEIL = 2.08;
 /** Side wall thickness: deep enough that a door leaf sits in a visible recess. */

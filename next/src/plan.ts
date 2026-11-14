@@ -75,10 +75,12 @@ const FLOOR = 3.2;
 
 export function createPlan(seed = 7): Plan {
   const rng = mulberry32(seed);
-  const size = { x: 250, z: 185 };
+  // The same footprint as the main app's city (1000 x 800 m): a grid of cross streets every
+  // 100 m and three back streets either side of the main street.
+  const size = { x: 500, z: 400 };
   const main = { half: 9, sidewalk: 4 };
-  const cross = { xs: [-150, -50, 50, 150], half: 5, sidewalk: 3 };
-  const back = { zs: [-95, 95], half: 4, sidewalk: 2.5 };
+  const cross = { xs: [-450, -350, -250, -150, -50, 50, 150, 250, 350, 450], half: 5, sidewalk: 3 };
+  const back = { zs: [-300, -195, -95, 95, 195, 300], half: 4, sidewalk: 2.5 };
 
   // Blocks: the rectangles left between the streets.
   const cut = (centers: number[], half: number, lo: number, hi: number) => {
@@ -90,9 +92,11 @@ export function createPlan(seed = 7): Plan {
   };
   const xRanges = cut(cross.xs, cross.half + cross.sidewalk, -size.x, size.x);
   const mainEdge = main.half + main.sidewalk, backEdge = back.half + back.sidewalk;
-  const zRanges: [number, number][] = [
-    [-size.z, back.zs[0] - backEdge], [back.zs[0] + backEdge, -mainEdge], [mainEdge, back.zs[1] - backEdge], [back.zs[1] + backEdge, size.z],
-  ];
+  const zCuts = [...back.zs.map((z) => [z, backEdge]), [0, mainEdge]].sort((a, b) => a[0] - b[0]);
+  const zRanges: [number, number][] = [];
+  let zAt = -size.z;
+  for (const [c, e] of zCuts) { zRanges.push([zAt, c - e]); zAt = c + e; }
+  zRanges.push([zAt, size.z]);
   const blocks: Plan['blocks'] = [];
   for (const [x0, x1] of xRanges) for (const [z0, z1] of zRanges) blocks.push([x0, x1, z0, z1]);
 
@@ -100,7 +104,6 @@ export function createPlan(seed = 7): Plan {
   const buildings: Building[] = [];
   const GAP = 0.5;
   for (const [x0, x1, z0, z1] of blocks) {
-    const inner = Math.abs(z0) < 100 && Math.abs(z1) < 100;   // touches the main street
     const mid = (z0 + z1) / 2 + (rng() - 0.5) * 6;
     for (const [r0, r1] of [[z0, mid], [mid, z1]] as const) {
       const onMain = Math.abs(r0) === mainEdge || Math.abs(r1) === mainEdge;
@@ -110,40 +113,48 @@ export function createPlan(seed = 7): Plan {
         if (x1 - (x + w) < 12) w = x1 - x;
         const roll = rng();
         let h: number, style: number;
+        const cx = x + w / 2, cz = (r0 + r1) / 2;
         if (onMain) {
           // Old core on the main street: low and mixed, with the odd slim tower.
           h = roll < 0.12 ? 60 + rng() * 45 : 16 + rng() * 26;
           style = roll < 0.12 ? (rng() < 0.5 ? 3 : 1) : [0, 0, 2, 2, 1][Math.floor(rng() * 5)];
-        } else if (inner) {
-          h = 30 + rng() * 60;
-          style = [0, 1, 1, 2, 3][Math.floor(rng() * 5)];
-        } else {
-          h = 50 + rng() * rng() * 150;
+        } else if (cx > 240 && Math.abs(cz) < 260) {
+          // The business district at the east end of the main street: offices and glass towers.
+          h = 70 + rng() * rng() * 190;
           style = rng() < 0.55 ? 3 : 1;
+        } else {
+          // Everywhere else, dense housing blocks of ten to twenty-five floors, higher away from the old core.
+          const lift = Math.min(1, Math.abs(cz) / 200);
+          h = 28 + lift * 14 + rng() * (32 + lift * 18);
+          style = roll < 0.08 ? 3 : [0, 0, 2, 2, 2, 1][Math.floor(rng() * 6)];
         }
         buildings.push({
           x0: x + GAP / 2, x1: x + w - GAP / 2, z0: r0 + GAP / 2, z1: r1 - GAP / 2,
           h: Math.round(h / FLOOR) * FLOOR + 1.1,
           seed: Math.floor(rng() * 1e6), style,
           street: { xmin: x === x0, xmax: x + w >= x1 - 1e-6, zmin: r0 === z0, zmax: r1 === z1 },
-          near: onMain || (inner && (x === x0 || x + w >= x1 - 1e-6)),
+          // Kit geometry (balconies, AC units, signs) close to the monorail; further out the facade draws them.
+          near: onMain || (Math.abs(cx) < 170 && Math.abs(cz) < 110),
         });
         x += w;
       }
     }
   }
 
-  // Far tier: a ring of towers out to the horizon, denser near the city.
+  // Far tier, out to the horizon: dense mid-rise housing right up to the city's edge, then towers.
   const skyline: Building[] = [];
-  for (let i = 0; i < 520; i++) {
-    const a = rng() * Math.PI * 2, r = 330 + rng() * rng() * 1300;
-    const cx = Math.cos(a) * r * 1.25, cz = Math.sin(a) * r;
-    if (Math.abs(cx) < size.x + 30 && Math.abs(cz) < size.z + 30) continue;
+  for (let i = 0; i < 1800; i++) {
+    // Even density by area out to ~2 km, so lit windows run all the way to the hills.
+    const a = rng() * Math.PI * 2, r = 330 + Math.sqrt(rng()) * 1700;
+    const cx = Math.cos(a) * r * 1.3, cz = Math.sin(a) * r;
+    if (Math.abs(cx) < size.x + 25 && Math.abs(cz) < size.z + 25) continue;
+    const edge = Math.max(Math.abs(cx) - size.x, Math.abs(cz) - size.z);
     const w = 24 + rng() * 34, d = 24 + rng() * 34;
-    const h = (50 + rng() * rng() * 330) * (1 - Math.min(r / 2600, 0.5));
+    const tower = edge > 260 && rng() < 0.45;
+    const h = tower ? (90 + rng() * rng() * 300) * (1 - Math.min(r / 3000, 0.45)) : 30 + rng() * 55;
     skyline.push({
       x0: cx - w / 2, x1: cx + w / 2, z0: cz - d / 2, z1: cz + d / 2, h: Math.round(h / FLOOR) * FLOOR,
-      seed: Math.floor(rng() * 1e6), style: rng() < 0.6 ? 3 : 1,
+      seed: Math.floor(rng() * 1e6), style: tower ? (rng() < 0.6 ? 3 : 1) : [0, 2, 2, 1][Math.floor(rng() * 4)],
       street: { xmin: false, xmax: false, zmin: false, zmax: false }, near: false,
     });
   }
@@ -194,11 +205,14 @@ export function createPlan(seed = 7): Plan {
   const lanes: Lane[] = [];
   const L = 2 * size.x + 40;
   for (const [z, d] of [[-6.6, 1], [-3.4, 1], [3.4, -1], [6.6, -1]] as const) {
-    lanes.push({ x: -d * L / 2, z, dx: d, dz: 0, length: L, phase: 0, cars: 14, speed: 9 + rng() * 3 });
+    lanes.push({ x: -d * L / 2, z, dx: d, dz: 0, length: L, phase: 0, cars: 22, speed: 9 + rng() * 3 });
+  }
+  for (const bz of back.zs) {
+    for (const d of [-1, 1]) lanes.push({ x: -d * L / 2, z: bz + d * 1.9, dx: d, dz: 0, length: L, phase: 0, cars: 5, speed: 7 + rng() * 2 });
   }
   const Lz = 2 * size.z + 40;
   for (const cx of cross.xs) {
-    for (const d of [-1, 1]) lanes.push({ x: cx - d * 2.3, z: -d * Lz / 2, dx: 0, dz: d, length: Lz, phase: 1, cars: 6, speed: 7 + rng() * 2 });
+    for (const d of [-1, 1]) lanes.push({ x: cx - d * 2.3, z: -d * Lz / 2, dx: 0, dz: d, length: Lz, phase: 1, cars: 5, speed: 7 + rng() * 2 });
   }
 
   return { seed, size, main, cross, back, blocks, buildings, skyline, lamps, monorail, stair, deck, bridges, lanes, signal: { period: 44, green: 18, amber: 3 } };

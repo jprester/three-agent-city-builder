@@ -19,8 +19,9 @@ clock), `?seed=<int>`, `?rain=<count>` (0 = off). WebGPU only (Chromium).
 
 ## What it is
 
-One main street with a suspended monorail and a station over its median, four cross streets,
-two back streets, 170 buildings around them and 520 more out to the horizon. Trains run and
+The same footprint as the main app (1000 × 800 m): one main street with a suspended monorail and a
+station over its median, ten cross streets, six back streets, about 1,000 buildings on their lots
+and 1,800 more out to the horizon. Trains run and
 stop, cars queue at signals, rain falls and splashes, signs flicker. About 2,000 lines.
 
 Measured at 1440×900 @2x on the Apple GPU (`npm run next:shots`, 2026-11-13):
@@ -231,6 +232,35 @@ Gate: 8/8, 38 calls, 396,843 triangles (+13,680, the signboard bands and arms), 
 Still weak: dead characters on a pale lightbox read as dark gaps rather than as unlit tubes; nothing
 animates (no LED chase on the towers); the channel letters have no visible returns or side depth; all
 signs are flat cards, with no box depth on the lightboxes.
+
+## Full size (2026-11-14)
+
+The city now covers the main app's footprint, 1000 × 800 m, after the human's concept art: dense housing
+of ten to twenty-five floors everywhere, the low old core along the monorail, and a high-rise district at
+the east end of the main street. Images in `docs/progress/fresh-slice-full-size/`.
+
+- **Plan:**
+  - Cross streets every 100 m (ten in all) and three back streets either side of the main street.
+  - Traffic on all of them: 88 cars on the main street, 60 on the back streets, 100 on the cross streets.
+    Signals now take up to twelve stop lines per lane.
+  - The monorail is the same single straight line, now 1,040 m long. The train runs take 24 s, and a full cycle 84 s.
+  - Balconies, AC units and signs are built as geometry only on the main street and within 170 × 110 m of
+    the station. Further out, the facade shader draws the detail.
+  - The far ring has 1,800 buildings spread evenly by area up to the city's edge: mid-rise housing near it,
+    towers further out.
+- **What scaling needed** (where the advantages would have broken):
+  - The kit is no longer one draw. It is one instanced mesh per 250 m chunk: the renderer skips chunks outside
+    the view, and the code hides those further than 420 m (200 m in the road reflection). Lit parts and long
+    parts stay in one always-drawn mesh, so lamps and aviation lights still dot the far city.
+  - Cars got cheaper: one tyre prism and hub plate per axle, one mirror bar.
+- **Gate:** 8/8, 50–54 calls, 560–587k triangles (`skyline` 38 calls, 341k), median frame 7.1–10.8 ms,
+  GPU process 643–659 MB. The main app at this size: up to 230 calls, 1.64 M triangles, 11–13 ms, about 1.76 GB.
+
+Still weak:
+- Beyond about 2 km the fogged ground shows as a dark band below the hills.
+- The far facades show the pale tenant mosaic (the barcode) across the whole city.
+- Housing away from the main street has no AC units or balconies at all: the shader version is not done.
+- Triangles sit near the 600k budget, mostly from cars drawn twice.
 
 ## Files
 

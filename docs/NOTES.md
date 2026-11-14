@@ -1299,3 +1299,13 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 - Weak: the LED towers do not animate. In the reference, the bulb borders chase and the faces cycle.
 - Weak: signs are still flat 22 cm cards; lightboxes need a visible box depth and channel letters need returns.
 - Weak: the rooftop channel letters are small against tall buildings; real crown signs are a floor or two high.
+
+### Fresh slice — full size, 2026-11-14
+
+- Checked all eight gate views (docs/progress/fresh-slice-full-size/).
+- Works: the street views gained a lot. Taller housing walls the main street in `line` and `flyover`, so the monorail runs in a canyon like the concept's, and the towers at the east end close the view.
+- Works: the far ring now meets the city's edge, so from `skyline` the city reads as continuous to the hills.
+- Weak: from `skyline` the city is a grid of separate boxes with dark ground between them. The concept is one continuous mass of slabs with rooftop clutter, and ours has flat dark roofs.
+- Weak: a dark fogged band between the far ring and the hills; the concept's horizon glows.
+- Weak: the far facades are a pale grey-and-amber mosaic, cooler and busier than the concept's warm windows on dark walls.
+- Weak: away from the main street, housing has no AC units, balconies or rooftop tanks, the things that make the concept read as Hong Kong.

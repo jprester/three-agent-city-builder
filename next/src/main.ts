@@ -1,6 +1,6 @@
 import * as THREE from 'three/webgpu';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { Boxes, Signs, assemble, buildShell } from './build';
+import { Boxes, Signs, assemble, buildShell, cullChunks } from './build';
 import { createBoxMaterial, createFacadeMaterial } from './facade';
 import { createGroundMaterial } from './ground';
 import { createFixtureMap, createLampMap, createSignMap, mapRect } from './lightmaps';
@@ -30,9 +30,11 @@ const VIEWS: Record<string, { position: [number, number, number]; target: [numbe
   line: { position: [-92, 4.2, -7.5], target: [-20, 10.5, 1] },
   deck: { position: [30.5, 7.3, 12.1], target: [-30, 8, 2] },
   above: { position: [-150, 105, 150], target: [-10, 6, -4] },
-  skyline: { position: [-640, 330, 560], target: [0, 60, 0] },
+  skyline: { position: [-1150, 360, 960], target: [0, 60, 0] },
 };
 const READY_FRAME = 3;
+/** Kit chunk size and how far from the camera a chunk is still drawn (m). */
+const KIT_CELL = 250, KIT_REACH = 420, KIT_REFLECT = 200;
 /** Seconds for one lap of the flyover. */
 const FLYOVER_LAP = 90;
 
@@ -42,7 +44,7 @@ const FLYOVER_LAP = 90;
  * climbs over the station roof, whose frames span the whole street.
  */
 function flyover(plan: ReturnType<typeof createPlan>, time: number, position: THREE.Vector3, target: THREE.Vector3) {
-  const m = plan.monorail, reach = plan.size.x - 25;
+  const m = plan.monorail, reach = 225;
   const at = (u: number) => {
     const a = 2 * Math.PI * u;
     const x = reach * Math.cos(a);
@@ -130,7 +132,7 @@ async function main() {
   buildings.name = 'buildings';
   buildings.frustumCulled = false;
   const boxMaterial = createBoxMaterial(lit);
-  const kit = boxes.build(boxMaterial);
+  const kit = boxes.buildChunked(boxMaterial, KIT_CELL);
   const signMesh = signs.build(createSignMaterial(await loadSignAtlas(), uTime));
   const trains = createTrains(plan, boxMaterial);
   const traffic = createTraffic(plan, lampMap, uRect);
@@ -176,7 +178,10 @@ async function main() {
     rain?.update(renderer, camera, dt, uRain.value);
 
     renderer.info.reset();
+    // The wet road only reflects what is near: far kit chunks are skipped in the reflection pass.
+    cullChunks(kit, camera.position, KIT_REFLECT);
     reflection.update(renderer, scene, camera, unreflected);
+    cullChunks(kit, camera.position, KIT_REACH);
     const reflCalls = renderer.info.render.drawCalls, reflTris = renderer.info.render.triangles;
     post.update();
     post.pipeline.render();
