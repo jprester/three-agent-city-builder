@@ -245,7 +245,8 @@ the east end of the main street. Images in `docs/progress/fresh-slice-full-size/
     Signals now take up to twelve stop lines per lane.
   - The monorail is the same single straight line, now 1,040 m long. The train runs take 24 s, and a full cycle 84 s.
   - Balconies, AC units and signs are built as geometry only on the main street and within 170 × 110 m of
-    the station. Further out, the facade shader draws the detail.
+    the station. Further out, facades have only their shader windows; drawing AC units and balconies there is
+    still to do.
   - The far ring has 1,800 buildings spread evenly by area up to the city's edge: mid-rise housing near it,
     towers further out.
 - **What scaling needed** (where the advantages would have broken):
