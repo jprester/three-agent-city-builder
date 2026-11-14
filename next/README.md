@@ -178,6 +178,31 @@ Still weak: the station name is made-up stroke glyphs that read as pseudo-Latin;
 dark-teal slabs; the girders are near-black at night, so their ribs and joints barely show from the street; the
 doors do not open during the dwell; the passengers are two boxes each.
 
+## Road vehicles (2026-11-14)
+
+Task 2 of `next/PLAN.md`. Images in `docs/progress/fresh-slice-vehicles/`.
+
+- Four body types from one part scheme (`src/vehicles.ts`): sedan (40 %), kei car (25 %), delivery van (15 %), taxi (20 %).
+  Each body is a few side profiles extruded across the car, so the windscreen and rear window slope. Parts on top:
+  pillars, roof skin, dark wheel arches, octagonal wheels with hubs, mirrors, bumpers, grille, front and rear plates,
+  and lamps shaped per type (wide and slim on the sedan, square on the kei car, tall tail lamps on the kei car and the
+  van). The taxi adds a lit roof sign, a red vacancy lamp behind the screen and a cream stripe. The van has a short cab,
+  a tall box with small side windows and a sliding-door seam.
+- The type comes from the car's seed when the buffer is filled; the paint comes from a different hash of the same seed,
+  out of a per-type list (taxis in taxi colours, vans in fleet white and grey). The glass shows a dim warm interior,
+  brighter in about one car in five with the dome light on.
+- The simulation and the storage buffers are unchanged. Each body type is its own instanced draw that reads its cars
+  through a small list of indices. Brake lights still come from the simulation. Lamps emit only from their front and
+  back faces, so a car seen from above does not bloom.
+
+Gate on 2026-11-14: 8/8 viewpoints, 38 calls (+6: three more types, in the main pass and the reflection), 383,163
+triangles (+81,064, about 390 per car per pass), GPU process 575–589 MB, median frame 6.9–8.8 ms (the dev-server tab
+was still open).
+
+Still weak: there are no rounded forms at all, so up close every car is facets; the glass is one opaque dark block
+with no visible occupants; the wheels never turn; every car of a type is the same length, and the simulation still
+spaces all of them as 4.4 m cars.
+
 ## Files
 
 | File | Role |
@@ -189,6 +214,7 @@ doors do not open during the dwell; the passengers are two boxes each.
 | `src/ground.ts`, `src/reflection.ts` | Wet road and its planar reflection |
 | `src/signs.ts` | Sign material and atlas loading |
 | `src/traffic.ts`, `src/train.ts`, `src/rain.ts` | Motion; traffic and rain are compute passes |
+| `src/vehicles.ts` | Road vehicle body types (sedan, kei car, van, taxi) from one part scheme |
 | `src/sky.ts`, `src/post.ts` | Sky dome; haze, bloom, tone mapping, grade, anti-aliasing |
 | `src/tsl.ts` | Palette and shared shader helpers |
 | `tests/slice.spec.ts`, `budgets.json` | The gate |

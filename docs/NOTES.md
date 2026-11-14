@@ -1278,3 +1278,13 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 - Weak: the platform screens are flat dark-teal walls that fill the lower third of `platform`. They need to read as glass (lighter, with a frame and a reflection hint).
 - Weak: the girders and piers are near-black under the night fill, so the ribs, joints, plates and braces that were added barely register from the street. The rail on top is the only new detail that reads at distance. The geometry is there, but it needs light (a grazing wash from the lamps, or a lighter hull colour).
 - Weak: the doors stay shut through the 12 s dwell, and the passengers are two boxes each. They hold up through a window and not closer.
+
+### Fresh slice — road vehicles, 2026-11-14
+
+- Checked all eight gate views plus three close-ups of a queue at the -50 junction (front, rear, side) (docs/progress/fresh-slice-vehicles/).
+- Works: a queue now reads as different vehicles. The taxis' roof signs are the first thing you see in `line`; the van in `under` has a recognisable cab-and-box silhouette; kei cars are visibly shorter and taller than sedans. From the side the sloped glasshouse, the wheels in dark arches and the taxi stripe make the sedan read as a car, not a box with a box on it.
+- Works: plates, grilles and the paired lamps give each front and rear a face. The vacancy lamp catches the eye when a taxi faces the camera.
+- Weak: everything is planar facets. Up close the cars look like low-poly game props from 2000; there is no rounding at the bonnet, roof or wheel arches.
+- Weak: the glass is an opaque dark block. The warm interior hint is too faint to register except on dome-light cars, and there are no heads. At night a real queue shows lit dashboards and silhouettes.
+- Weak: the wheels do not turn, and the hubs are lighter than the bodies of dark cars, so on a black sedan the wheels read as two beige octagons.
+- Weak: the simulation spaces every car as 4.4 m long, so kei cars leave large gaps in queues and vans sit a little closer than they should.

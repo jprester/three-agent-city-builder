@@ -1,38 +1,21 @@
 import * as THREE from 'three/webgpu';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { mulberry32 } from '../../art/layouts/lib/rng.mjs';
 import type { Plan } from './plan';
 import {
   Fn, If, attribute, clamp, exp, float, instanceIndex, instancedArray, int, max, min, mix, mod, select, smoothstep, step, texture, uniform,
   uniformArray, varying, vec2, vec3,
-  P, mapUv, paletteColor, type N, type PaletteName,
+  P, fract, mapUv, paletteColor, type N,
 } from './tsl';
+import { BODY_TYPES, BodyBuilder, PART, bodyTypeOf } from './vehicles';
 
 const CAR_LENGTH = 4.4;
-const PAINTS: PaletteName[] = ['car_white', 'car_white', 'car_black', 'car_black', 'car_grey', 'car_silver', 'car_silver', 'car_navy', 'car_red', 'car_green', 'car_beige', 'car_yellow'];
-
 export interface Traffic {
-  cars: THREE.Mesh;
+  /** One instanced draw per body type. */
+  cars: THREE.Group;
   /** Headlight pools on the road, one additive quad per car. */
   pools: THREE.Mesh;
   count: number;
   update(renderer: THREE.WebGPURenderer, dt: number, time: number): void;
-}
-
-/** Car body, cabin, lamps and wheels as one geometry; `part`: 0 paint, 1 glass, 2 headlamp, 3 tail lamp, 4 tyre. Forward is +x. */
-function carGeometry(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-  const add = (sx: number, sy: number, sz: number, x: number, y: number, z: number, part: number) => {
-    const g = new THREE.BoxGeometry(sx, sy, sz).translate(x, y, z);
-    g.setAttribute('part', new THREE.Float32BufferAttribute(new Array(g.getAttribute('position').count).fill(part), 1));
-    parts.push(g);
-  };
-  add(CAR_LENGTH, 0.62, 1.78, 0, 0.56, 0, 0);
-  add(2.3, 0.52, 1.6, -0.25, 1.12, 0, 1);
-  add(2.1, 0.06, 1.5, -0.25, 1.4, 0, 0);
-  for (const z of [-0.6, 0.6]) { add(0.06, 0.16, 0.36, CAR_LENGTH / 2 + 0.02, 0.66, z, 2); add(0.06, 0.14, 0.4, -CAR_LENGTH / 2 - 0.02, 0.7, z, 3); }
-  for (const x of [-1.35, 1.35]) for (const z of [-0.82, 0.82]) add(0.64, 0.64, 0.22, x, 0.32, z, 4);
-  return mergeGeometries(parts, false);
 }
 
 /**
@@ -40,7 +23,9 @@ function carGeometry(): THREE.BufferGeometry {
  * speed, lane, seed); a compute pass advances every car each frame, keeping its distance from
  * the car ahead in the same buffer and stopping at red signals. Lanes, stop lines and the
  * signal cycle come from the plan. The vertex stage places the car model from the same buffer,
- * so nothing about a car ever touches JavaScript after start-up.
+ * so nothing about a car ever touches JavaScript after start-up. Each body type (vehicles.ts) is
+ * its own draw, reading its cars through a list of their indices; the type is fixed per car
+ * by its seed when the buffer is filled.
  */
 export function createTraffic(plan: Plan, lampMap: THREE.Texture, lampRect: N): Traffic {
   const rng = mulberry32((plan.seed ^ 0x7e41c1e5) >>> 0);
@@ -48,6 +33,7 @@ export function createTraffic(plan: Plan, lampMap: THREE.Texture, lampRect: N): 
   const state = new Float32Array(count * 4), meta = new Float32Array(count * 4);
   const mainEdge = plan.main.half + plan.main.sidewalk, crossEdge = plan.cross.half + plan.cross.sidewalk;
   let i = 0;
+  const byType: number[][] = BODY_TYPES.map(() => []);
   const laneA: THREE.Vector4[] = [], laneB: THREE.Vector4[] = [], stops: THREE.Vector4[] = [];
   plan.lanes.forEach((lane, li) => {
     laneA.push(new THREE.Vector4(lane.x, lane.z, lane.dx, lane.dz));
@@ -59,7 +45,9 @@ export function createTraffic(plan: Plan, lampMap: THREE.Texture, lampRect: N): 
     stops.push(new THREE.Vector4(...(s as [number, number, number, number])));
     const first = i;
     for (let k = 0; k < lane.cars; k++, i++) {
-      state.set([((k + 0.15 + 0.7 * rng()) / lane.cars) * lane.length, lane.speed, li, rng()], i * 4);
+      const seed = rng();
+      state.set([((k + 0.15 + 0.7 * rng()) / lane.cars) * lane.length, lane.speed, li, seed], i * 4);
+      byType[bodyTypeOf(seed)].push(i);
       // The car ahead is the next index; the last car of a lane follows the first.
       meta.set([k === lane.cars - 1 ? first : i + 1, 0, 0, 0], i * 4);
     }
@@ -94,39 +82,70 @@ export function createTraffic(plan: Plan, lampMap: THREE.Texture, lampRect: N): 
   });
   const computeNode = simulate().compute(count);
 
-  // --- drawing: the car model placed along its lane in the vertex stage ---
-  const st = sBuf.element(instanceIndex), me = mBuf.element(instanceIndex);
-  const a = uLaneA.element(int(st.z));
-  const origin = vec3(a.x, 0, a.y), dir = vec3(a.z, 0, a.w), perp = vec3(a.w.negate(), 0, a.z);
-  const place = (local: N): N => origin.add(dir.mul(st.x.add(local.x))).add(perp.mul(local.z)).add(vec3(0, local.y, 0));
+  // --- drawing: each body type placed along its lane in the vertex stage ---
+  const placeFor = (st: N) => {
+    const a = uLaneA.element(int(st.z));
+    const origin = vec3(a.x, 0, a.y), dir = vec3(a.z, 0, a.w), perp = vec3(a.w.negate(), 0, a.z);
+    return { dir, perp, place: (local: N): N => origin.add(dir.mul(st.x.add(local.x))).add(perp.mul(local.z)).add(vec3(0, local.y, 0)) };
+  };
   const lp = attribute('position', 'vec3') as N, ln = attribute('normal', 'vec3') as N;
   const flat = (node: N): N => varying(node).setInterpolation(THREE.InterpolationSamplingType.FLAT, THREE.InterpolationSamplingMode.FIRST);
-  const vPart = flat(attribute('part', 'float')), vSeed = flat(st.w), vBrake = flat(me.y);
-  const worldN = dir.mul(ln.x).add(perp.mul(ln.z)).add(vec3(0, ln.y, 0));
-  const vShade = varying(vec2(ln.y, worldN.dot(vec3(0.4, 0.7, -0.3)))) as N;
-  const vWorld = varying(place(lp)) as N;
-  const paints = uniformArray(PAINTS.map((n) => paletteColor(n)));
   const lampTex = texture(lampMap) as N;
-
-  const carMat = new THREE.MeshBasicNodeMaterial();
-  carMat.name = 'cars';
-  carMat.positionNode = place(lp);
-  carMat.colorNode = Fn(() => {
-    const paint = paints.element(int(vSeed.mul(PAINTS.length)));
-    const albedo = select(vPart.lessThan(0.5), paint, select(vPart.lessThan(1.5), P('glass_dark').mul(1.4), select(vPart.lessThan(3.5), vec3(0.2), P('metal_dark').mul(0.5))));
-    const lamp = lampTex.sample(mapUv(vWorld.xz, lampRect)).r;
-    // Street light from above and the sky's cool fill: no light objects.
-    const light = P('sodium').mul(lamp.mul(lamp).mul(4).add(lampTex.sample(mapUv(vWorld.xz, lampRect)).bias(4).r.mul(0.5)).add(0.06)).mul(max(vShade.x, 0).mul(0.6).add(0.4)).add(P('haze').mul(1.8).mul(vShade.y.mul(0.5).add(0.7)));
-    const head = vec3(1.0, 0.95, 0.85).mul(7).mul(step(1.5, vPart)).mul(step(vPart, 2.5));
-    const tail = P('sign_red').mul(mix(1.6, 7, vBrake)).mul(step(2.5, vPart)).mul(step(vPart, 3.5));
-    return albedo.mul(light).add(head).add(tail);
-  })();
-  const cars = new THREE.Mesh(carGeometry(), carMat);
-  cars.count = count;
-  cars.frustumCulled = false;
+  const cars = new THREE.Group();
   cars.name = 'cars';
+  BODY_TYPES.forEach((type, t) => {
+    const ids = byType[t];
+    if (!ids.length) return;
+    const idBuf = instancedArray(new Float32Array(ids), 'float') as N;
+    const index = int(idBuf.element(instanceIndex));
+    const st = sBuf.element(index), me = mBuf.element(index);
+    const { dir, perp, place } = placeFor(st);
+    const vPart = flat(attribute('part', 'float')), vSeed = flat(st.w), vBrake = flat(me.y), vEnd = flat(ln.x.abs());
+    const worldN = dir.mul(ln.x).add(perp.mul(ln.z)).add(vec3(0, ln.y, 0));
+    const vShade = varying(vec2(ln.y, worldN.dot(vec3(0.4, 0.7, -0.3)))) as N;
+    const vWorld = varying(place(lp)) as N, vLocalY = varying(lp.y) as N;
+    const paints = uniformArray(type.paints.map((n) => paletteColor(n)));
+    const is = (part: number) => step(part - 0.5, vPart).mul(step(vPart, part + 0.5));
+
+    const material = new THREE.MeshBasicNodeMaterial();
+    material.name = `cars-${type.name}`;
+    material.positionNode = place(lp);
+    material.colorNode = Fn(() => {
+      // The paint uses another hash of the seed than the type does, so paint and type are independent.
+      const paint = paints.element(int(fract(vSeed.mul(53.17)).mul(type.paints.length)));
+      const albedo = vec3(0).toVar();
+      albedo.addAssign(paint.mul(is(PART.paint)));
+      albedo.addAssign(P('glass_dark').mul(1.4).mul(is(PART.glass)));
+      albedo.addAssign(vec3(0.2).mul(is(PART.head).add(is(PART.tail))));
+      albedo.addAssign(P('metal_dark').mul(0.5).mul(is(PART.tyre)));
+      albedo.addAssign(P('car_black').mul(0.6).mul(is(PART.trim)));
+      albedo.addAssign(P('office_white').mul(0.8).mul(is(PART.plate)));
+      albedo.addAssign(P('car_silver').mul(is(PART.hub)));
+      albedo.addAssign(P('paint_cream').mul(is(PART.stripe)));
+      const lamp = lampTex.sample(mapUv(vWorld.xz, lampRect)).r;
+      // Street light from above and the sky's cool fill: no light objects.
+      const light = P('sodium').mul(lamp.mul(lamp).mul(4).add(lampTex.sample(mapUv(vWorld.xz, lampRect)).bias(4).r.mul(0.5)).add(0.06)).mul(max(vShade.x, 0).mul(0.6).add(0.4)).add(P('haze').mul(1.8).mul(vShade.y.mul(0.5).add(0.7)));
+      // Lamps shine from their front and back faces only, so a lamp seen from above does not bloom.
+      const head = vec3(1.0, 0.95, 0.85).mul(7).mul(is(PART.head)).mul(vEnd);
+      const tail = P('sign_red').mul(mix(1.6, 7, vBrake)).mul(is(PART.tail)).mul(vEnd);
+      // Through the glass: a dim warm interior low in the cabin, brighter in a few cars with the dome light on.
+      const dome = step(0.8, fract(vSeed.mul(17.31)));
+      const inside = P('warm_interior').mul(float(0.035).add(dome.mul(0.12))).mul(smoothstep(1.55, 0.95, vLocalY)).mul(is(PART.glass));
+      const signs = P('neon_amber').mul(3).mul(is(PART.roofLight)).add(P('sign_red').mul(5).mul(is(PART.vacancy))).add(vec3(0.25).mul(is(PART.plate)));
+      return albedo.mul(light).add(head).add(tail).add(inside).add(signs);
+    })();
+    const builder = new BodyBuilder();
+    type.build(builder);
+    const mesh = new THREE.Mesh(builder.build(), material);
+    mesh.count = ids.length;
+    mesh.frustumCulled = false;
+    mesh.name = `cars-${type.name}`;
+    cars.add(mesh);
+  });
 
   // Light pools: a soft cone ahead of each car and a red smear behind, added onto the road.
+  const { place } = placeFor(sBuf.element(instanceIndex));
+  const me = mBuf.element(instanceIndex);
   const poolGeo = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
   const corner = attribute('position', 'vec3') as N;
   const vPoolUv = varying(vec2(corner.x.add(0.5), corner.z.add(0.5))) as N;

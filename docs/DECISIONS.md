@@ -299,3 +299,7 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 2026-11-14 | fresh-slice | The deck is notched round the portal legs rather than moving the legs | The legs cannot move outward (buildings) or inward (traffic lanes).
 2026-11-14 | fresh-slice | The deck's end stairs were also rebuilt as open stairs | They are in `line` beside the monorail and read as the same solid ramps the brief criticised.
 2026-11-14 | fresh-slice | Added `?cam=x,y,z,tx,ty,tz` | Close-up checks of details the fixed views do not frame, with no new viewpoints in the gate.
+2026-11-14 | fresh-slice | One instanced draw per body type, reading its cars through a list of indices | The simulation and storage buffers stay untouched. Drawing every type for every car and discarding three would have cost four times the triangles; this costs 6 draw calls (main plus reflection).
+2026-11-14 | fresh-slice | Body types and their dimensions live in `vehicles.ts`, not `plan.ts` | They are vehicle models, not city layout; the plan holds where cars drive, not what they look like.
+2026-11-14 | fresh-slice | Car spacing in the simulation stays at 4.4 m for every type | The brief said to keep the simulation as it is; per-type length in the meta buffer is a small follow-up.
+2026-11-14 | fresh-slice | Lamp emission is weighted by how much the face points forward or back | Lamp boxes stand proud of the body, and their lit top faces bloomed when cars were seen from above (the `line` view).
