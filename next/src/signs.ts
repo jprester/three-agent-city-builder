@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import atlasUrl from '../../art/textures/signs/designs.png?url';
+import atlasUrl from '../assets/signs.png?url';
 import {
   Fn, If, abs, attribute, dFdx, dFdy, dot, floor, float, fract, ivec2, length, max, min, mix, property, select, sin, smoothstep, step,
   texture, textureSize, varying, vec2, vec3,
@@ -7,7 +7,7 @@ import {
 } from './tsl';
 
 /**
- * The typeset sign atlas (art/textures/signs, built from real fonts): channels are data.
+ * The slice's typeset sign atlas (next/assets, `npm run next:signs`, real fonts): channels are data.
  *   R ink / tube coverage   G part id × coverage   B backlit face (lightboxes)
  */
 export async function loadSignAtlas(): Promise<THREE.Texture> {

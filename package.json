@@ -26,6 +26,7 @@
     "signs:typeset": "python3 tools/textures/build_advertising.py",
     "signs:designs": "python3 tools/textures/build_sign_designs.py && npm run layouts",
     "interiors": "node tools/build-interiors.mjs",
+    "next:signs": "python3 next/tools/build_signs.py",
     "next:dev": "vite --config next/vite.config.ts --open",
     "next:build": "vite build --config next/vite.config.ts",
     "next:shots": "NEXT=1 playwright test --project=next"

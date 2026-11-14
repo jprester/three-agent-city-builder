@@ -1288,3 +1288,14 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 - Weak: the glass is an opaque dark block. The warm interior hint is too faint to register except on dome-light cars, and there are no heads. At night a real queue shows lit dashboards and silhouettes.
 - Weak: the wheels do not turn, and the hubs are lighter than the bodies of dark cars, so on a black sedan the wheels read as two beige octagons.
 - Weak: the simulation spaces every car as 4.4 m long, so kei cars leave large gaps in queues and vans sit a little closer than they should.
+
+### Fresh slice — signs, 2026-11-14
+
+- Checked all eight gate views and four facade close-ups along the main street (docs/progress/fresh-slice-signs/).
+- Works: text fills its board now. 書店, 美容室 and 茶 in `line` read at a glance, and the street finally looks like the human's Nanjing Road reference: tall lit blades stacked down the canyon, each a different size.
+- Works: blades sit on the piers between window bays with arms up their height, and balconies no longer pass through them. Over the deck they clear the walkway.
+- Works: the signboard bands make each shopfront one unit, so a short word no longer leaves a bare wall.
+- Weak: broken characters on pale lightboxes read as dark ink, which looks like a typo, not a dead tube.
+- Weak: the LED towers do not animate. In the reference, the bulb borders chase and the faces cycle.
+- Weak: signs are still flat 22 cm cards; lightboxes need a visible box depth and channel letters need returns.
+- Weak: the rooftop channel letters are small against tall buildings; real crown signs are a floor or two high.

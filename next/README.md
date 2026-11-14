@@ -2,12 +2,14 @@
 
 A new, small night city built from nothing in the order the retrospective on the main app
 recommends, to see what that order buys. It lives beside the app and shares only three things
-with it: the palette (`art/style/palette.json`), the typeset sign atlas
-(`art/textures/signs/`) and the seeded random helper.
+with it: the palette (`art/style/palette.json`), the sign vocabulary, fonts and typesetting code
+(`art/signs/`, `tools/textures/build_sign_designs.py`) and the seeded random helper. Its sign atlas is
+its own (`next/assets/`, `npm run next:signs`).
 
     npm run next:dev        # opens http://localhost:5183/ (not the main app's port 5173)
     npm run next:shots      # every viewpoint: screenshots, budgets, frame time, GPU memory
     npm run next:build
+    npm run next:signs      # rebuilds next/assets/signs.png + .json (Python 3, Pillow, numpy)
 
 The page opens on a flyover: a 90 s loop along the monorail, out on one side of the street and
 back on the other. `F` returns to it; keys `1`-`7` jump to the fixed views, which you can orbit.
@@ -203,6 +205,33 @@ Still weak: there are no rounded forms at all, so up close every car is facets; 
 with no visible occupants; the wheels never turn; every car of a type is the same length, and the simulation still
 spaces all of them as 4.4 m cars.
 
+## Signs (2026-11-14)
+
+The human reported signs set on windows and through balconies, and boards far too big for their text.
+Images in `docs/progress/fresh-slice-signs/` (`atlas.jpg` is the whole atlas).
+
+- **Atlas sized to the text.** The app's atlas has four fixed slot sizes, so one character sat in a frame made
+  for four. `next/tools/build_signs.py` reuses the app's typesetting, fonts and vocabulary but measures each
+  design and gives it a slot that fits, then packs the slots on shelves (`next/assets/signs.png`, 4096×2048,
+  148 designs). The sign shader is unchanged.
+- **New kinds, after the human's reference photos:** multi-floor LED towers with a bulb border (some with a
+  clock), shop fascias across a whole frontage, and channel letters on rooftop frames (brand names on the
+  taller buildings, the way crown signs read from a distance).
+- **Placement** (`build.ts`):
+  - Blades and towers hang on the piers between window bays, never across a window.
+  - The bays beside them keep no balconies or AC units on the floors they span.
+  - Blades get an arm every 2.5 m.
+  - Signs over the pedestrian deck start 3 m above it.
+  - Every shopfront has a signboard band, with its sign on it; 40 % of frontages get one fascia instead.
+  - A design is not repeated within the last eight picks of its kind.
+  - Signs above 30 m no longer add to the street's sign light map.
+
+Gate: 8/8, 38 calls, 396,843 triangles (+13,680, the signboard bands and arms), GPU process 577–586 MB.
+
+Still weak: dead characters on a pale lightbox read as dark gaps rather than as unlit tubes; nothing
+animates (no LED chase on the towers); the channel letters have no visible returns or side depth; all
+signs are flat cards, with no box depth on the lightboxes.
+
 ## Files
 
 | File | Role |
@@ -213,6 +242,7 @@ spaces all of them as 4.4 m cars.
 | `src/lightmaps.ts` | Top-down lamp/sign maps and height-sampled fixture spill |
 | `src/ground.ts`, `src/reflection.ts` | Wet road and its planar reflection |
 | `src/signs.ts` | Sign material and atlas loading |
+| `tools/build_signs.py`, `signs.def.json`, `assets/` | The slice's sign atlas, every board sized to its text |
 | `src/traffic.ts`, `src/train.ts`, `src/rain.ts` | Motion; traffic and rain are compute passes |
 | `src/vehicles.ts` | Road vehicle body types (sedan, kei car, van, taxi) from one part scheme |
 | `src/sky.ts`, `src/post.ts` | Sky dome; haze, bloom, tone mapping, grade, anti-aliasing |

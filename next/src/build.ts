@@ -1,6 +1,6 @@
 import * as THREE from 'three/webgpu';
 import { mulberry32, weightedChoice } from '../../art/layouts/lib/rng.mjs';
-import catalog from '../../art/textures/signs/designs.json';
+import catalog from '../assets/signs.json';
 import { FLOOR_HEIGHT, type Building, type Plan } from './plan';
 import { paletteColor, type PaletteName } from './tsl';
 
@@ -106,6 +106,7 @@ export interface Roof { x0: number; x1: number; z0: number; z1: number; h: numbe
 
 const TUBE_COLORS: Record<string, number> = { sign_red: 32, sign_amber: 25, tungsten: 14, fluorescent: 16, sign_cyan: 5, sodium: 8 };
 const BOX_COLORS: Record<string, number> = { fluorescent: 45, tungsten: 30, sign_amber: 15, sign_red: 10 };
+const BANDS: PaletteName[] = ['concrete_dark', 'car_navy', 'car_black', 'clad_charcoal', 'car_red', 'paint_cream', 'car_green'];
 const AWNINGS: PaletteName[] = ['car_red', 'car_green', 'car_navy', 'paint_cream', 'car_orange', 'concrete_dark'];
 
 /** Signs as instance data for the sign material (one unit box each, the design on its ±Z faces). */
@@ -117,16 +118,30 @@ export class Signs {
   private readonly params: number[] = [];
   private readonly gain: number[] = [];
   readonly lights: SignLight[] = [];
-  private readonly blades = catalog.designs.map((d, i) => ({ d, i })).filter((x) => x.d.kind === 'blade' && !('brand' in x.d));
-  private readonly panels = catalog.designs.map((d, i) => ({ d, i })).filter((x) => x.d.kind === 'panel' && !('brand' in x.d));
+  private readonly pools = new Map<string, { plain: (typeof catalog.designs)[number][]; all: (typeof catalog.designs)[number][] }>();
 
-  pick(kind: 'blade' | 'panel', rng: () => number) {
-    const pool = kind === 'blade' ? this.blades : this.panels;
-    return pool[Math.floor(rng() * pool.length)].d;
+  /** A design of `kind` (blade, panel, fascia, tower, letters); `brands` lets brand marks in. */
+  pick(kind: string, rng: () => number, brands = false) {
+    if (!this.pools.has(kind)) {
+      const all = catalog.designs.filter((d) => d.kind === kind);
+      this.pools.set(kind, { all, plain: all.filter((d) => !('brand' in d)) });
+    }
+    const pool = this.pools.get(kind)!;
+    const list = brands || !pool.plain.length ? pool.all : pool.plain;
+    // Neighbours should not repeat: skip a design picked in the last few picks of this kind.
+    const recent = this.recent.get(kind) ?? [];
+    let d = list[Math.floor(rng() * list.length)];
+    for (let tries = 0; tries < 6 && recent.includes(d.text); tries++) d = list[Math.floor(rng() * list.length)];
+    this.recent.set(kind, [...recent, d.text].slice(-Math.min(8, list.length >> 1)));
+    return d;
   }
 
+  private readonly recent = new Map<string, string[]>();
+
+  get count() { return this.gain.length; }
+
   /** `rotY`: the sign's face normal is +Z rotated by it. Returns the sign's width. */
-  add(d: (typeof catalog.designs)[number], x: number, y: number, z: number, height: number, rotY: number, rng: () => number, gain = 1) {
+  add(d: (typeof catalog.designs)[number], x: number, y: number, z: number, height: number, rotY: number, rng: () => number, gain = 1, light = true) {
     const w = height * d.aspect;
     const tmp = new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotY), new THREE.Vector3(w, height, 0.22));
     this.m.push(...tmp.elements);
@@ -139,7 +154,7 @@ export class Signs {
     const flicker = !quiet && rng() < 0.2 ? 0.1 + 0.3 * rng() : 0;
     this.params.push(d.boxed ? 1 : 0, rng(), broken, flicker);
     this.gain.push(d.dim * gain);
-    this.lights.push({ x, z, size: Math.max(w, height), color: d.boxed ? back.clone().lerp(new THREE.Color(1, 1, 1), 0.3) : tube, strength: d.boxed ? 0.6 : 1 });
+    if (light) this.lights.push({ x, z, size: Math.max(w, height), color: d.boxed ? back.clone().lerp(new THREE.Color(1, 1, 1), 0.3) : tube, strength: d.boxed ? 0.6 : 1 });
     return w;
   }
 
@@ -511,8 +526,9 @@ export function assemble(plan: Plan, boxes: Boxes, signs: Signs): Roof[] {
         const [px, pz] = at(margin * 0.5 + (k ? len - margin : 0), 0.09);
         boxes.add(px, (b.h + PODIUM) / 2, pz, 0.12, b.h - PODIUM, 0.12, metal);
       }
-      // Shopfront bays: awning and a sign board over most of them.
+      // Shopfront bays: an awning over some, and either a board per bay or one fascia across the frontage.
       const shops = Math.max(1, Math.floor(len / SHOP_BAY)), shopMargin = (len - shops * SHOP_BAY) / 2;
+      const fascia = shops >= 2 && r() < 0.4;
       for (let s = 0; s < shops; s++) {
         const u = shopMargin + (s + 0.5) * SHOP_BAY;
         if (r() < 0.5) {
@@ -520,20 +536,83 @@ export function assemble(plan: Plan, boxes: Boxes, signs: Signs): Roof[] {
           // Tilted so the outer edge drops: about X on walls facing ±z, about Z on walls facing ±x.
           boxes.add(x, 3.25, z, ux ? SHOP_BAY - 0.7 : 1.5, 0.07, ux ? 1.5 : SHOP_BAY - 0.7, col(AWNINGS[Math.floor(r() * AWNINGS.length)], 0.8), 0, 0, [nz * 0.24, 0, -nx * 0.24]);
         }
-        if (r() < 0.78) {
-          const d = signs.pick('panel', r);
-          const h = Math.min(0.85, (SHOP_BAY - 0.9) / d.aspect);
-          const [x, z] = at(u, 0.2);
-          signs.add(d, x, 3.95, z, h, yaw, r);
+        if (!fascia) {
+          // The shop's signboard band across its bay, and the sign on it: a short word does not leave a bare wall.
+          const [bx, bz] = at(u, 0.08);
+          boxes.add(bx, 3.92, bz, ux ? SHOP_BAY - 0.3 : 0.12, 0.95, uz ? SHOP_BAY - 0.3 : 0.12, col(BANDS[Math.floor(r() * BANDS.length)], 0.55));
+          if (r() < 0.85) {
+            const d = signs.pick('panel', r);
+            const h = Math.min(0.78, (SHOP_BAY - 0.9) / d.aspect);
+            const [x, z] = at(u, 0.25);
+            signs.add(d, x, 3.92, z, h, yaw, r);
+          }
         }
       }
-      // Upper floors: AC units and balconies on housing, per bay and floor.
+      if (fascia) {
+        // One lit board across the shopfronts, as tall as the gap under the podium ledge allows.
+        const d = signs.pick('fascia', r);
+        const h = Math.min(1.0, (len - 1.2) / d.aspect);
+        const [x, z] = at(len / 2, 0.2);
+        signs.add(d, x, 3.85, z, h, yaw, r);
+      }
+
+      // Signs up the facade hang from the piers between window bays, never across a window, and
+      // the bays beside them on the floors they span keep no balconies or AC units.
       const floors = Math.floor((b.h - PODIUM) / FLOOR_HEIGHT);
+      const blocked = new Set<number>();
+      const block = (k: number, y0: number, y1: number) => {
+        for (let f = 0; f < floors; f++) {
+          const fy = PODIUM + f * FLOOR_HEIGHT;
+          if (fy < y1 + 0.3 && fy + FLOOR_HEIGHT > y0 - 0.3) blocked.add(f * 1000 + k);
+        }
+      };
+      /** A vertical board at u standing out from the wall, with an arm every 2.5 m. */
+      const hang = (d: (typeof catalog.designs)[number], u: number, y: number, h: number, gain = 1) => {
+        const w = h * d.aspect, out = 0.45 + w / 2;
+        const [x, z] = at(u, out);
+        signs.add(d, x, y, z, h, yaw + Math.PI / 2, r, gain, y < 30);
+        const arms = Math.max(2, Math.round(h / 2.5) + 1);
+        for (let k = 0; k < arms; k++) {
+          const [bx, bz] = at(u, out / 2);
+          boxes.add(bx, y - h / 2 + 0.12 + (k / (arms - 1)) * (h - 0.24), bz, nx ? out : 0.07, 0.07, nz ? out : 0.07, metal);
+        }
+      };
+      // Over the pedestrian deck the signs start above head height on the deck, not on the podium.
+      const dk = plan.deck;
+      const overDeck = nz === -1 && Math.abs(b.z0 - dk.z1) < 1 && b.x1 > dk.x0 && b.x0 < dk.x1;
+      const base = overDeck ? dk.y + 3 : PODIUM + 1;
+      const room = b.h - base - 1;
+      // A multi-floor LED tower at a corner of some taller buildings.
+      if (room > 13 && b.style !== 3 && r() < 0.35) {
+        const d = signs.pick('tower', r);
+        const h = Math.min(8 + r() * 8, room - 1, 2.4 / d.aspect);
+        const y = base + 0.2 + h / 2;
+        const corner = r() < 0.5 ? 0 : bays - 1;
+        hang(d, corner === 0 ? margin * 0.5 + 0.1 : len - margin * 0.5 - 0.1, y, h, 1.15);
+        block(corner, y - h / 2, y + h / 2);
+      }
+      // Blades on the piers between bays.
+      const piers = Array.from({ length: Math.max(0, bays - 1) }, (_, k) => k + 1);
+      for (let k = piers.length - 1; k > 0; k--) { const j = Math.floor(r() * (k + 1)); [piers[k], piers[j]] = [piers[j], piers[k]]; }
+      const blades = Math.min(piers.length, b.h < 50 ? Math.floor(r() * 3.8) : Math.floor(r() * 2.5));
+      for (let k = 0; k < blades; k++) {
+        const d = signs.pick('blade', r);
+        const h = Math.min(2.4 + r() * 4, room, 2.0 / d.aspect);
+        if (h < 1.5) continue;
+        const y = base + h / 2 + r() * Math.max(0, Math.min(room - h, 16));
+        const p = piers[k];
+        hang(d, margin + p * bay, y, h);
+        block(p - 1, y - h / 2, y + h / 2);
+        block(p, y - h / 2, y + h / 2);
+      }
+
+      // Upper floors: AC units and balconies on housing, per bay and floor, clear of the signs.
       if (housing) {
         for (let f = 0; f < Math.min(floors, 14); f++) {
           const y0 = PODIUM + f * FLOOR_HEIGHT;
           for (let k = 0; k < bays; k++) {
             const u = margin + (k + 0.5) * bay, h = r();
+            if (blocked.has(f * 1000 + k)) continue;
             if (b.style === 2 && h < 0.45) {
               const [x, z] = at(u, 0.5);
               boxes.add(x, y0 + 0.5, z, ux ? 2.5 : 1, 0.12, uz ? 2.5 : 1, concrete);
@@ -546,32 +625,23 @@ export function assemble(plan: Plan, boxes: Boxes, signs: Signs): Roof[] {
           }
         }
       }
-      // Blade signs out over the sidewalk, on arms.
-      const blades = b.h < 50 ? Math.floor(r() * 3.2) : Math.floor(r() * 2);
-      for (let k = 0; k < blades; k++) {
-        const d = signs.pick('blade', r);
-        const h = Math.min(3 + r() * 4.5, b.h - PODIUM - 2);
-        const y = PODIUM + 1 + h / 2 + r() * Math.max(0, Math.min(b.h - PODIUM - 2 - h, 16));
-        const u = 1.2 + r() * (len - 2.4);
-        const w = h * d.aspect, out = 0.45 + w / 2;
-        const [x, z] = at(u, out);
-        signs.add(d, x, y, z, h, yaw + Math.PI / 2, r);
-        for (const dy of [h / 2 - 0.1, -h / 2 + 0.1]) {
-          const [bx, bz] = at(u, out / 2);
-          boxes.add(bx, y + dy, bz, nx ? out : 0.07, 0.07, nz ? out : 0.07, metal);
-        }
-      }
-      // A rooftop board on some of the lower buildings.
-      if (b.h < 45 && len > 12 && r() < 0.3) {
-        const d = signs.pick('panel', r);
-        const h = Math.min(2.6, (len - 3) / d.aspect);
+
+      // On the roof: a lit board or free-standing channel letters on a frame, along the street edge.
+      if (len > 10 && r() < (b.h < 45 ? 0.35 : 0.5)) {
+        const letters = b.h >= 45 || r() < 0.5;
+        const d = signs.pick(letters ? 'letters' : 'panel', r, letters);
+        const h = Math.min(letters ? (b.h >= 45 ? 3.2 : 2.2) : 2.4, (len - 3) / d.aspect);
         const [x, z] = at(len / 2, -0.6);
-        signs.add(d, x, b.h + 1.6 + h / 2, z, h, yaw, r, 1.5);
+        const y = b.h + (letters ? 0.9 : 1.6) + h / 2;
+        signs.add(d, x, y, z, h, yaw, r, letters ? 1.3 : 1.5, b.h < 30);
         const w = h * d.aspect;
-        for (const o of [-0.4, 0.4]) {
+        for (const o of [-0.4, 0, 0.4]) {
+          if (!letters && o === 0) continue;
           const [px, pz] = at(len / 2 + o * w, -0.85);
-          boxes.add(px, b.h + 1.3 + h / 2, pz, 0.14, h + 1.2, 0.14, metal);
+          boxes.add(px, b.h + (y - b.h) / 2 + 0.2, pz, 0.12, y - b.h + 0.2, 0.12, metal);
         }
+        // Channel letters stand on a rail behind them rather than on a backing board.
+        if (letters) { const [rx, rz] = at(len / 2, -0.85); boxes.add(rx, y - h * 0.35, rz, ux ? w * 0.95 : 0.1, 0.1, uz ? w * 0.95 : 0.1, metal); }
       }
     }
   }

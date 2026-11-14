@@ -1,0 +1,20 @@
+{
+  "comment": "The fresh slice's sign atlas (next/tools/build_signs.py, `npm run next:signs`). Vocabulary and fonts come from art/signs/designs.def.json; this file sets the classes and the style mix. Every board is sized to its text. `cells`: how many characters a word in this class may have. `brands`: how many designs in the class are brand marks.",
+  "seed": 20261114,
+  "atlas": { "width": 4096, "gutter": 12 },
+  "classes": [
+    { "name": "blade", "kind": "blade", "width": 128, "count": 46, "cells": [1, 4], "brands": 4 },
+    { "name": "panel", "kind": "panel", "height": 80, "count": 56, "cells": [1, 6] },
+    { "name": "fascia", "kind": "fascia", "height": 96, "count": 18, "cells": [2, 6] },
+    { "name": "tower", "kind": "tower", "width": 128, "count": 12, "cells": [2, 4], "brands": 2 },
+    { "name": "letters", "kind": "letters", "height": 96, "count": 16, "cells": [2, 5], "brands": 6 }
+  ],
+  "styles": {
+    "blade": { "neon": 0.26, "tube": 0.22, "outline": 0.08, "box": 0.44 },
+    "panel": { "neon": 0.2, "tube": 0.12, "outline": 0.05, "box": 0.38, "plate": 0.25 },
+    "fascia": { "box": 0.85, "plate": 0.15 },
+    "tower": { "box": 0.75, "neon": 0.25 },
+    "letters": { "neon": 1 }
+  },
+  "towerSuffixes": ["本店", "会館", "商店", "ビル"]
+}

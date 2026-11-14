@@ -184,7 +184,7 @@ async function main() {
       window.__SLICE = {
         calls: renderer.info.render.drawCalls, triangles: renderer.info.render.triangles,
         reflection: { calls: reflCalls, triangles: reflTris },
-        cars: traffic.count, boxes: boxes.count, signs: signs.lights.length, buildings: plan.buildings.length + plan.skyline.length,
+        cars: traffic.count, boxes: boxes.count, signs: signs.count, buildings: plan.buildings.length + plan.skyline.length,
       };
       window.__READY = true;
     }
