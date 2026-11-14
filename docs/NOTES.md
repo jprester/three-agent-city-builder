@@ -1348,3 +1348,44 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 - The final eight-view gate passed with 38–53 draws, 351,567–578,535 triangles, 6.7–8.6 ms
   median and 778–801 MB. The highest standard view dropped by 21,276 triangles from the
   station housing pass. Typecheck, asset checks, all 97 unit tests and the production build passed.
+
+### Main app performance — A0: where the GPU memory goes, 2026-11-14
+
+Baseline, `npm run perf` ×3 (1440×900 @2x, high, idle GPU): median GPU 7.7–10.7 ms, p95
+13.5–25.9 ms, GPU process 1,736–2,037 MB. `shots:all`: 70–230 draw calls. Shots at frozen
+time are pixel-identical between runs, so before/after pairs can be diffed exactly
+(`build/shots/before-A/`).
+
+Method: GPU process `footprint -v` at storefront, split by region size, plus a WebGL hook
+that tallies every texture, render buffer and vertex buffer the page allocates, plus groups
+switched off one at a time with a temporary `?memoff=` switch (not committed).
+
+| Share | MB | Notes |
+|---|---|---|
+| Chrome GPU process, empty WebGL page | ~370 | Fixed; not ours |
+| Sign art atlases (`art/external/textures/signs`) | ~270 | Five RGB images up to 4000×3840, uploaded as RGBA8 with mips |
+| Tower texture arrays (diffuse, emissive, normal) | ~195 | 3 × 2048²×3 layers, RGBA8 with mips |
+| Walls + interiors | ~45 | |
+| Everything else deterministic | ~250 | Render targets ~135 (3 half-float + 3 RGBA8 + 3 depth at 2160×1350), sign designs 43, lamp/sign light maps 32, glass cube 8, buffers 23 |
+| **1.3 MB driver buffers** | **600–860** | Varies run to run; see below |
+
+**The largest single share is not textures.** The GPU process holds 450–860 separate 1.3 MB
+allocations (`IOAccelerator (graphics)`) that exist only when facade-material instanced meshes
+are drawn. Facts established:
+- Switching the facade instances off, or drawing them with `MeshBasicMaterial` or a plain
+  `MeshStandardMaterial`, removes them all. Their vertex, index and instance buffers total only
+  ~21 MB.
+- They scale with the number of facade meshes drawn (49 full-detail building meshes ≈ 390
+  regions; lamps and signals ≈ 15), not with resolution (same size and count at 1x), not with
+  the startup cube captures (389 remain without them), and not with any one texture input
+  (glass cube, lamp map, sign map). Freezing the per-frame instance-buffer rewrites saved only
+  ~100 MB.
+- They are all allocated by the time the scene is ready and do not grow afterwards.
+- **Not reproduced in isolation**: a test page drawing 100 instanced meshes with the real
+  facade material, its textures, the height fog, a half-float target, varied surface codes and
+  per-frame instance rewrites allocates none. The trigger is something else about the app's
+  draws. The root cause is open.
+
+Textures are still the largest share that can be cut with a known technique, so the step
+order stays A1 → A4. The 1.3 MB buffers are logged as an open question; at 600–860 MB they
+decide whether the 1.2 GB target is reachable.
