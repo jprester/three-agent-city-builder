@@ -104,8 +104,10 @@ flattened the frame; images of it are in `docs/progress/fresh-slice-lighting/`, 
 The `corner` camera stands at the cross-street approach, so the crossing and the wet road
 lead into the canyon.
 
-Gate on 2026-11-14: 32 calls, 259,355 triangles, median frame 6.6–8.2 ms, GPU process about
-575 MB.
+Gate on 2026-11-14: 32 calls, 259,355 triangles, GPU process about 575 MB. Median frame
+6.7–10.4 ms over three runs, against 6.0–7.3 ms for the first version in one run. Runs differ
+by about 1.5 ms on this machine, so the two extra samples cost somewhere between nothing and
+1 ms; both are far inside the 16.7 ms budget.
 
 Next: the railway. The human wants a suspended monorail in the Chiba style instead of the
 current viaduct with box trains, so the station and vehicle work should start from that
