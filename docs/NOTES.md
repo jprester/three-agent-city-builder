@@ -1409,3 +1409,36 @@ decide whether the 1.2 GB target is reachable.
   starts green; lower it to ~15 % above the measured result once A1 lands.
 - The p95 spikes (13.5–25.9 ms against a 7.7–10.7 ms median) are not explained by geometry.
   They are the next thing to profile after A1.
+
+### Main app performance — A1 and A5: compressed textures, flat varyings, 2026-11-14
+
+Result, `npm run perf` ×3 (1440×900 @2x, high): GPU process **784–797 MB** (was 1,736–2,037),
+no late frames in any view. Draw calls and triangles are unchanged (max 230 of 250).
+
+- **A1, KTX2.** The nine tower maps, walls, interiors and the five sign art atlases are UASTC
+  KTX2 (`npm run textures`, `src/materials/ktx2.ts`): 8 bits per pixel on the GPU instead of 32.
+  Texture share ~510 MB → ~140 MB. Files: 51 MB, not committed. Encode: ~4 min once.
+- **Look.** All 20 viewpoints against `build/shots/before-A/`: mean difference 0.04–0.52 of 255,
+  0.00–0.08 % of pixels off by more than 24. Checked by eye at 2x on the worst blocks of
+  `fly-50`, `tower-detail`, `landmarks` and `storefront`: lit windows keep their edges, no
+  blocks, sign text unchanged. The difference is mostly the mip filter (encoder vs. the GPU's),
+  visible only when flipping between frames. Pairs in `docs/progress/perf-A/`.
+  Harsh view: far facades are a hair softer in `fly-50`; nobody would see it without the pair.
+- **A5, the 1.3 MB driver buffers: cause found.** They are index buffers. GL takes `flat`
+  varyings from a triangle's last vertex, Metal from its first, so Chrome's Metal backend keeps
+  a rewritten index buffer for each draw of a shader that has `flat` varyings (the facade and
+  sign shaders do; plain MeshStandardMaterial does not, which is why swapping the material
+  removed them). The same mechanism explains the 8–16 GB BatchedMesh incident: one rewritten
+  buffer per sub-draw. Evidence: making the varyings smooth took the 1.2–1.5 MB regions from
+  643 to 1 (1,657 → 795 MB); pooling all vertex data into shared buffers changed nothing (644);
+  a tenth of the triangles still left 407.
+- **Fix:** `WEBGL_provoking_vertex`, first-vertex convention, set in `createRenderer`. Same
+  795 MB, shader untouched. With and without it: 0 differing pixels in `canyon`, `glass` and
+  `aerial`, 1 in `fly-50`, 17 in `tower-detail`, each by 1/255.
+- **Not covered:** browsers without the extension keep the old memory use (nothing breaks).
+  Only Chrome on Apple silicon was measured.
+- **Frame time.** The old perf numbers were skewed: Playwright polled in animation frames, so
+  every second sample was an empty frame. Fixed. Real frames are bimodal for a static picture
+  (aerial 10 or 17 ms, harbor 8 or 12 ms) and none arrive late, which fits the GPU clocking
+  down when it has slack. So the brief's "p95 under 14 ms" cannot be judged with a timer query;
+  the test now reports the full-clock cost (`fast`: 8.0–13.7 ms) and late frames (0 %).

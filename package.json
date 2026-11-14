@@ -4,10 +4,12 @@
   "version": "0.1.0",
   "type": "module",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.15"
   },
   "scripts": {
+    "predev": "npm run textures",
     "dev": "vite",
+    "prebuild": "npm run textures",
     "build": "vite build",
     "preview": "vite preview",
     "assets": "node tools/build-assets.mjs",
@@ -26,6 +28,7 @@
     "signs:typeset": "python3 tools/textures/build_advertising.py",
     "signs:designs": "python3 tools/textures/build_sign_designs.py && npm run layouts",
     "interiors": "node tools/build-interiors.mjs",
+    "textures": "node tools/build-ktx2.mjs",
     "next:signs": "python3 next/tools/build_signs.py",
     "next:dev": "vite --config next/vite.config.ts --open",
     "next:build": "vite build --config next/vite.config.ts",
@@ -43,7 +46,9 @@
     "@playwright/test": "1.63.0",
     "@types/node": "26.6.2",
     "@types/three": "0.187.0",
+    "ktx2-encoder": "0.6.0",
     "meshoptimizer": "1.2.0",
+    "sharp": "0.35.4",
     "typescript": "7.0.2",
     "vite": "8.3.1",
     "vitest": "5.0.2"

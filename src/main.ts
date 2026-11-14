@@ -135,7 +135,7 @@ async function main() {
     if (missing.length) problems.push(`Layout references unbuilt assets: ${missing.join(', ')}`);
   }
   let signMap: THREE.Texture | null = null;
-  const signArt = await loadSignArt(Math.min(8, renderer.capabilities.getMaxAnisotropy()));
+  const signArt = await loadSignArt(renderer, Math.min(8, renderer.capabilities.getMaxAnisotropy()));
   facadeUniforms.uScreens.value = signArt.screens;
   const signUniforms = {
     uTime: clock.uniform, uAtlas: { value: null as THREE.Texture | null }, uSignGain: { value: 1 },

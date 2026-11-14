@@ -27,6 +27,10 @@ binary in `public/` is regenerated from them.
 - `npm run layouts` regenerates layouts and manifest only (no Blender).
 - `npm run signs:designs` rebuilds the typeset sign designs from `art/signs/designs.def.json`
   (Python 3 with Pillow and numpy), then the layouts. Preview: `build/previews/signs/designs.png`.
+- `npm run textures` encodes the large textures listed in `art/textures/ktx2.def.json` to
+  GPU-compressed KTX2 in `public/textures/` (a few minutes the first time, then only what
+  changed). `npm run dev`, `npm run build` and the Playwright runs call it first. The outputs
+  are not committed.
 - `npm run dev` starts the app. URL params: `?layout=<id>`, `?viewpoint=<name>`,
   `?seed=<int>` (regenerates the layout in the browser with that seed), `?quality=` and
   `?grade=default|filmic` (the final colour grade; filmic is the default, `?grade=default`
@@ -38,7 +42,7 @@ binary in `public/` is regenerated from them.
 - `npm run smoke` (~1 min, real GPU): every viewpoint, no screenshots — fails only on browser
   errors or scene budgets; `SMOKE=canyon,glass` picks some. The cheap gate; use `shots` when you
   actually need to look at a frame.
-- `npm run perf` (~30 s) measures real GPU and CPU time per frame and GPU memory at 1440×900 @2x,
+- `npm run perf` (~40 s) measures real GPU and CPU time per frame, late frames and GPU memory at 1440×900 @2x,
   high quality, for 5 viewpoints; writes `build/perf/report.json`. `PERF_VIEWS`, `PERF_DPR`,
   `PERF_QUALITY` override. Run it after changes that add geometry, passes or shader work.
   It fixes the device pixel ratio (`?dynres=0`), so it measures the preset, not adaptive
@@ -53,7 +57,8 @@ binary in `public/` is regenerated from them.
   every GLB: coplanar overlapping faces flicker as the camera moves). Must pass before every commit.
 
 ## Never hand-edit (generated)
-`public/assets/**`, `public/layouts/**`, `src/assets/manifest.gen.ts`, `build/**`.
+`public/assets/**`, `public/layouts/**`, `public/textures/**`, `public/basis/**`,
+`src/assets/manifest.gen.ts`, `build/**`.
 Change the generator, def, or layout def, then rebuild.
 
 ## Where things go
@@ -93,6 +98,11 @@ Change the generator, def, or layout def, then rebuild.
   meter-scale facade UVs must undo this.
 - Vertex data for custom shaders: the active color attribute exports as COLOR_0,
   custom attributes named `_name` export as `_NAME`. The optimizer keeps them.
+- `flat` varyings take their value from a triangle's FIRST vertex here, not GL's default last
+  (`createRenderer` in `src/scene/environment.ts`; it saves 600-860 MB of GPU memory on Metal).
+  Keep `flat` data constant over each triangle.
+- A texture loaded with `loadKtx2` is flipped at encode time and carries its own mips; add new
+  large textures to `art/textures/ktx2.def.json` rather than loading WebP or PNG directly.
 - Texcoords outside [0,1] are not quantized (the optimizer logs a skip warning; expected).
 
 ## Commits
@@ -102,5 +112,6 @@ Keep commits scoped to one asset family or one feature.
 ## Environment
 - Blender: version pinned in `pipeline.config.json`. Binary from `BLENDER_BIN`, then
   config `blender.path`, then the macOS default, then `blender` on PATH.
-- Node 22+. No Git LFS: generated GLBs and screenshots are small and committed as regular files.
+- Node 22.15+. No Git LFS: generated GLBs and screenshots are small and committed as regular files.
+  The KTX2 textures (~50 MB) are the exception: generated locally, ignored by git.
 - Blender is transient: generators run headless and export GLB; `.blend` files are never saved or committed.

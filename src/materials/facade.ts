@@ -35,9 +35,9 @@ export interface FacadeUniforms {
   /** Overall window emission multiplier (debug tuning). */
   uWindowGain: { value: number };
   /** Tower bundles, one array layer each (src/materials/textures.ts). */
-  uTowerDiff: { value: THREE.DataArrayTexture | null };
-  uTowerEmit: { value: THREE.DataArrayTexture | null };
-  uTowerNorm: { value: THREE.DataArrayTexture | null };
+  uTowerDiff: { value: THREE.Texture | null };
+  uTowerEmit: { value: THREE.Texture | null };
+  uTowerNorm: { value: THREE.Texture | null };
   uWalls: { value: THREE.Texture | null };
   /** Top-down colored sign glow (same rect as the lamp map). */
   uSignMap: { value: THREE.Texture | null };

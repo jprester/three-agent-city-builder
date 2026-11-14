@@ -53,5 +53,5 @@ export default defineConfig({
   // The fresh slice (next/) is its own page on its own port; only its project needs that server.
   webServer: process.env.NEXT
     ? { command: `npx vite --config next/vite.config.ts --port ${NEXT_PORT} --strictPort`, url: `http://localhost:${NEXT_PORT}`, reuseExistingServer: !process.env.CI }
-    : { command: `npx vite --port ${PORT} --strictPort`, url: `http://localhost:${PORT}`, reuseExistingServer: !process.env.CI },
+    : { command: `node tools/build-ktx2.mjs && npx vite --port ${PORT} --strictPort`, url: `http://localhost:${PORT}`, reuseExistingServer: !process.env.CI },
 });

@@ -31,6 +31,6 @@
     "maxTriangles": 3000000,
     "maxPrograms": 25,
     "maxFrameMs": 50,
-    "maxGpuProcessMB": 2100
+    "maxGpuProcessMB": 920
   }
 }

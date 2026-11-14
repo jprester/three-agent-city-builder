@@ -1,15 +1,5 @@
 import * as THREE from 'three';
-import osakaDiff from '../../art/external/textures/osaka/diffuse_rough.webp?url';
-import osakaEmit from '../../art/external/textures/osaka/emissive.webp?url';
-import osakaNorm from '../../art/external/textures/osaka/normal.webp?url';
-import glassDiff from '../../art/external/textures/real_glass/diffuse_rough.webp?url';
-import glassEmit from '../../art/external/textures/real_glass/emissive.webp?url';
-import glassNorm from '../../art/external/textures/real_glass/normal.webp?url';
-import skyDiff from '../../art/external/textures/glass_sky/diffuse_rough.webp?url';
-import skyEmit from '../../art/external/textures/glass_sky/emissive.webp?url';
-import skyNorm from '../../art/external/textures/glass_sky/normal.webp?url';
-import walls from '../../art/external/textures/walls.webp?url';
-import interiors from '../../art/textures/interiors/interiors.webp?url';
+import { loadKtx2 } from './ktx2';
 import osaka from '../../art/external/textures/osaka.json';
 import realGlass from '../../art/external/textures/real_glass.json';
 import glassSky from '../../art/external/textures/glass_sky.json';
@@ -19,9 +9,9 @@ export const TOWER_BUNDLES = [osaka, realGlass, glassSky];
 
 export interface FacadeTextures {
   /** One layer per bundle: diffuse (sRGB RGB) + roughness (A). */
-  diffuse: THREE.DataArrayTexture;
-  emissive: THREE.DataArrayTexture;
-  normal: THREE.DataArrayTexture;
+  diffuse: THREE.Texture;
+  emissive: THREE.Texture;
+  normal: THREE.Texture;
   /** Wall materials, 4×2 cells: diffuse + roughness (A). */
   walls: THREE.Texture;
   /** Room cards behind lit windows (npm run interiors; tiles in interiors.json). */
@@ -29,75 +19,19 @@ export interface FacadeTextures {
 }
 
 /**
- * The tower bundles of one kind as a texture array, one layer per bundle. Three separate
- * textures per kind pushed the facade shader past 16 texture units (Apple GPUs), where the
- * extra samplers silently read nothing. three.js allocates the storage (format, mip chain,
- * filtering); the layers are uploaded straight from ImageBitmaps decoded without alpha
- * premultiplication, so roughness in A cannot damage RGB, and flipped at decode to keep the
- * shader's flipY = true convention (WebGL forbids UNPACK_FLIP_Y for 3D uploads).
+ * Load every facade texture before rendering. All are GPU-compressed (./ktx2.ts; sources
+ * imported by tools/textures/import_highrise.py, encoded by `npm run textures`).
  *
- * The layers exist only on the GPU (no CPU copy is kept), so after a WebGL context loss they
- * are decoded and uploaded again when the context is restored.
+ * The tower bundles of one kind share a texture array, one layer per bundle: three separate
+ * textures per kind pushed the facade shader past 16 texture units (Apple GPUs), where the
+ * extra samplers silently read nothing.
  */
-async function loadArray(renderer: THREE.WebGLRenderer, urls: string[], srgb: boolean, anisotropy: number) {
-  const bitmaps = await decodeLayers(urls);
-  const tex = new THREE.DataArrayTexture(null, bitmaps[0].width, bitmaps[0].height, bitmaps.length);
-  tex.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
-  tex.format = THREE.RGBAFormat;
-  tex.type = THREE.UnsignedByteType;
-  tex.magFilter = THREE.LinearFilter;
-  tex.minFilter = THREE.LinearMipmapLinearFilter;
-  tex.generateMipmaps = true;
-  tex.anisotropy = anisotropy;
-  tex.source.dataReady = false;   // allocate only; the layers are uploaded separately
-  uploadLayers(renderer, tex, urls, bitmaps);
-  // Registered after three.js's own handler (WebGLRenderer constructor), so its state is fresh.
-  renderer.domElement.addEventListener('webglcontextrestored', () => {
-    decodeLayers(urls).then((b) => uploadLayers(renderer, tex, urls, b)).catch((err) => console.error('Tower textures not restored:', err));
-  });
-  return tex;
-}
-
-function decodeLayers(urls: string[]) {
-  return Promise.all(urls.map(async (url) => createImageBitmap(await (await fetch(url)).blob(),
-    { imageOrientation: 'flipY', premultiplyAlpha: 'none', colorSpaceConversion: 'none' })));
-}
-
-/** Allocate `tex` in the current context and fill its layers from `bitmaps` (closed after). */
-function uploadLayers(renderer: THREE.WebGLRenderer, tex: THREE.DataArrayTexture, urls: string[], bitmaps: ImageBitmap[]) {
-  const { width, height } = tex.image;
-  tex.needsUpdate = true;
-  renderer.initTexture(tex);
-  const gl = renderer.getContext() as WebGL2RenderingContext;
-  gl.bindTexture(gl.TEXTURE_2D_ARRAY, (renderer.properties.get(tex) as { __webglTexture: WebGLTexture }).__webglTexture);
-  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
-  gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
-  bitmaps.forEach((b, layer) => {
-    if (b.width !== width || b.height !== height) throw new Error(`Tower texture ${urls[layer]} is ${b.width}x${b.height}, expected ${width}x${height}`);
-    gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, layer, width, height, 1, gl.RGBA, gl.UNSIGNED_BYTE, b);
-    b.close();
-  });
-  gl.generateMipmap(gl.TEXTURE_2D_ARRAY);
-  renderer.resetState();   // raw GL calls above: drop three's cached bindings
-}
-
-/** Load every facade texture (imported by tools/textures/import_highrise.py) before rendering. */
 export async function loadFacadeTextures(renderer: THREE.WebGLRenderer, anisotropy: number): Promise<FacadeTextures> {
-  const loader = new THREE.TextureLoader();
-  const load = async (url: string, srgb: boolean, repeat = false) => {
-    const t = await loader.loadAsync(url);
-    t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
-    t.anisotropy = anisotropy;
-    if (repeat) t.wrapS = t.wrapT = THREE.RepeatWrapping;
-    return t;
-  };
-  const [diffuse, emissive, normal, wallTex, interiorTex] = await Promise.all([
-    loadArray(renderer, [osakaDiff, glassDiff, skyDiff], true, anisotropy),
-    loadArray(renderer, [osakaEmit, glassEmit, skyEmit], true, anisotropy),
-    loadArray(renderer, [osakaNorm, glassNorm, skyNorm], false, anisotropy),
-    load(walls, true),
-    load(interiors, true),
+  const towers = (kind: string) => loadKtx2(renderer, ['osaka', 'real_glass', 'glass_sky'].map((b) => `tower_${b}_${kind}`), anisotropy);
+  const [diffuse, emissive, normal, walls, interiors] = await Promise.all([
+    towers('diffuse'), towers('emissive'), towers('normal'),
+    loadKtx2(renderer, 'walls', anisotropy),
+    loadKtx2(renderer, 'interiors', anisotropy),
   ]);
-  return { diffuse, emissive, normal, walls: wallTex, interiors: interiorTex };
+  return { diffuse, emissive, normal, walls, interiors };
 }

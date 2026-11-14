@@ -4,9 +4,17 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 
 /**
  * Performance report on the real GPU at a Retina laptop resolution (1440×900 @2x): GPU time per
- * frame (WebGL timer queries around each animation frame), CPU time per frame, JS heap, and on
- * macOS the GPU process's memory footprint. Fails when the median GPU frame no longer fits
- * 60 fps, or (macOS, default resolution and quality only) when the GPU process exceeds
+ * frame (WebGL timer queries around each animation frame), CPU time per frame, late frames, JS
+ * heap, and on macOS the GPU process's memory footprint.
+ *
+ * Reading the GPU time: the query measures elapsed time, and the GPU slows its clock when a
+ * frame leaves slack, so the same frame reads as its true cost on some frames and as almost a
+ * whole display interval on others (aerial: 10 ms or 17 ms). `fast` (10th percentile) is the
+ * cost at full clock; p50 and p95 mostly show the clock stretching. Whether frames arrive on
+ * time is the `late` figure: the share of frame intervals over 1.5 display intervals.
+ *
+ * Fails when the GPU at full clock no longer fits 60 fps, when more than 5 % of frames are
+ * late, or (macOS, default resolution and quality only) when the GPU process exceeds
  * `scene.maxGpuProcessMB` in pipeline.config.json. `npm run perf`; PERF_VIEWS=canyon,aerial
  * picks viewpoints, PERF_DPR / PERF_QUALITY below.
  */
@@ -26,8 +34,9 @@ test.use({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: DPR });
 test.beforeEach(async ({ page }) => {
   // Time every animation frame on the GPU, without hooks in the app.
   await page.addInitScript(() => {
-    const w = window as unknown as { __gl?: WebGL2RenderingContext; __gpu: number[]; __cpu: number[] };
-    w.__gpu = []; w.__cpu = [];
+    const w = window as unknown as { __gl?: WebGL2RenderingContext; __gpu: number[]; __cpu: number[]; __dt: number[] };
+    w.__gpu = []; w.__cpu = []; w.__dt = [];
+    let last = 0;
     const getContext = HTMLCanvasElement.prototype.getContext;
     HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, type: string, ...rest: unknown[]) {
       const ctx = (getContext as (...a: unknown[]) => unknown).call(this, type, ...rest);
@@ -40,6 +49,8 @@ test.beforeEach(async ({ page }) => {
       const gl = w.__gl, ext = gl?.getExtension('EXT_disjoint_timer_query_webgl2');
       let q: WebGLQuery | null = null;
       if (gl && ext) { q = gl.createQuery(); gl.beginQuery(ext.TIME_ELAPSED_EXT, q!); }
+      if (last) w.__dt.push(t - last);
+      last = t;
       const t0 = performance.now();
       cb(t);
       w.__cpu.push(performance.now() - t0);
@@ -58,7 +69,7 @@ test.beforeEach(async ({ page }) => {
 
 const stats = (xs: number[]) => {
   const s = [...xs].sort((a, b) => a - b), at = (f: number) => s[Math.min(s.length - 1, Math.floor(s.length * f))];
-  return { p50: +at(0.5).toFixed(2), p95: +at(0.95).toFixed(2), n: s.length };
+  return { fast: +at(0.1).toFixed(2), p50: +at(0.5).toFixed(2), p95: +at(0.95).toFixed(2), n: s.length };
 };
 
 /** GPU process memory footprint (macOS `footprint`), MB; null elsewhere. */
@@ -85,19 +96,24 @@ for (const view of VIEWS) {
     // Warm up: a cold first page (shader compiles, uploads, the dev server's first transforms)
     // measured up to 4× slower than steady state.
     await page.waitForTimeout(5000);
-    await page.evaluate(() => { const w = window as unknown as { __gpu: number[]; __cpu: number[] }; w.__gpu.length = 0; w.__cpu.length = 0; });
-    await page.waitForFunction((n) => (window as unknown as { __gpu: number[] }).__gpu.length >= n, FRAMES, { timeout: 60_000 });
-    const { gpu, cpu, heap } = await page.evaluate(() => {
-      const w = window as unknown as { __gpu: number[]; __cpu: number[] };
+    await page.evaluate(() => { const w = window as unknown as { __gpu: number[]; __cpu: number[]; __dt: number[] }; w.__gpu.length = 0; w.__cpu.length = 0; w.__dt.length = 0; });
+    // Poll on a timer: Playwright's default polls in animation frames, and each poll would be
+    // counted here as a frame with no GPU work.
+    await page.waitForFunction((n) => (window as unknown as { __gpu: number[] }).__gpu.length >= n, FRAMES, { timeout: 60_000, polling: 200 });
+    const { gpu, cpu, dt, heap } = await page.evaluate(() => {
+      const w = window as unknown as { __gpu: number[]; __cpu: number[]; __dt: number[] };
       const mem = (performance as unknown as { memory?: { usedJSHeapSize: number } }).memory;
-      return { gpu: w.__gpu.slice(), cpu: w.__cpu.slice(), heap: mem ? Math.round(mem.usedJSHeapSize / 1e6) : null };
+      return { gpu: w.__gpu.slice(), cpu: w.__cpu.slice(), dt: w.__dt.slice(), heap: mem ? Math.round(mem.usedJSHeapSize / 1e6) : null };
     });
-    const r = { gpuMs: stats(gpu), cpuMs: stats(cpu), heapMB: heap, gpuProcessMB: gpuFootprint() };
+    const interval = stats(dt).p50;
+    const latePct = +(100 * dt.filter((d) => d > interval * 1.5).length / dt.length).toFixed(1);
+    const r = { gpuMs: stats(gpu), cpuMs: stats(cpu), latePct, heapMB: heap, gpuProcessMB: gpuFootprint() };
     report[view] = r;
-    console.log(`${view.padEnd(12)} GPU ${r.gpuMs.p50} ms (p95 ${r.gpuMs.p95})  CPU ${r.cpuMs.p50} ms (p95 ${r.cpuMs.p95})  heap ${heap} MB  GPU process ${r.gpuProcessMB ?? '?'} MB`);
+    console.log(`${view.padEnd(12)} GPU ${r.gpuMs.fast} ms fast (p50 ${r.gpuMs.p50}, p95 ${r.gpuMs.p95})  late ${latePct} %  CPU ${r.cpuMs.p50} ms (p95 ${r.cpuMs.p95})  heap ${heap} MB  GPU process ${r.gpuProcessMB ?? '?'} MB`);
     mkdirSync('build/perf', { recursive: true });
     writeFileSync('build/perf/report.json', JSON.stringify({ resolution: `1440x900@${DPR}x`, quality: QUALITY, views: report }, null, 2) + '\n');
-    expect.soft(r.gpuMs.p50, `${view}: median GPU frame over the 60 fps budget`).toBeLessThan(16.7);
+    expect.soft(r.gpuMs.fast, `${view}: GPU frame at full clock over the 60 fps budget`).toBeLessThan(16.7);
+    expect.soft(latePct, `${view}: more than 5 % of frames arrived late`).toBeLessThanOrEqual(5);
     if (MAX_GPU_PROCESS_MB !== undefined && r.gpuProcessMB !== null) {
       expect.soft(r.gpuProcessMB, `${view}: GPU process memory over scene.maxGpuProcessMB`).toBeLessThanOrEqual(MAX_GPU_PROCESS_MB);
     }

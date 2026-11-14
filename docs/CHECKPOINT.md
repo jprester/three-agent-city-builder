@@ -1,3 +1,53 @@
+# Checkpoint A — main app performance (2026-11-14)
+
+Brief: `docs/PERF-MONORAIL-PLAN.md`, Part A. Detail: `docs/NOTES.md` (A0–A5).
+Measured with `npm run perf` ×3, 1440×900 @2x, high quality, Apple M5, idle GPU.
+
+| | Before | After | Target |
+|---|---|---|---|
+| GPU process memory | 1,736–2,037 MB | 784–797 MB | under 1,200 MB: met |
+| Late frames | not measured | 0 % in all five views | — |
+| GPU time at full clock (`fast`) | about 7.7–10.7 ms | 8.0–13.7 ms | — |
+| GPU time, 95th percentile | 13.5–25.9 ms | 13.8–24.0 ms | under 14 ms: not met, see below |
+| Draw calls, worst view | 230 | 230 | 20 under the 250 budget: met, exactly |
+
+Per perf view (draw calls and triangles are unchanged by this work):
+
+| View | Draw calls | Triangles | GPU `fast` / p50 / p95 after (ms) | GPU process after (MB) |
+|---|---|---|---|---|
+| canyon | 222 | 1.52 M | 9.4–10.0 / 15.0–15.6 / 17.5–18.3 | 784–797 |
+| storefront | 228 | 1.64 M | 9.0–9.7 / 14.1–14.5 / 16.4–18.5 | 792–794 |
+| aerial | 172 | 1.35 M | 10.8–13.7 / 17.0–18.2 / 20.1–22.7 | 788–790 |
+| harbor | 172 | 1.41 M | 8.0–8.3 / 12.3–12.5 / 13.8–14.7 | 788–790 |
+| fly-75 | 172 | 1.38 M | 10.0–10.4 / 16.3 / 17.9–24.0 | 788–791 |
+
+The "before" timings are not comparable row for row: the perf test counted an empty frame per
+real one until this checkpoint, which made its median read close to the minimum. Rendering
+cost did not change; only memory did.
+
+What changed:
+- **Compressed textures (A1)**: tower, wall, interior and sign art textures are KTX2. About
+  370 MB saved.
+- **Flat varyings (A5)**: the unexplained 600–860 MB was Chrome's Metal backend rewriting an
+  index buffer per draw for shaders with `flat` varyings. One WebGL extension call removes it.
+- **A2, A3**: no change needed; the main app already did what the slice does.
+- **Gates (A4)**: `npm run perf` fails over 920 MB of GPU memory, over 5 % late frames, or a
+  full-clock GPU frame over 16.7 ms.
+
+Look at first: `docs/progress/perf-A/` — `tower-detail`, `storefront` and `fly-50`, before and
+after. These are the views where the texture change shows most. Everything visible: far
+facades are very slightly softer (different mip filter); mean difference 0.04–0.52 of 255
+across all 20 viewpoints. The flat-varying fix changes 18 pixels by 1/255 in five views.
+
+Not met or open:
+- The 95th-percentile target. The slow readings look like the GPU clocking down, not load: the
+  same static picture reads 10 or 17 ms and no frame is late. Not proven. See QUESTIONS.md.
+- Draw-call headroom is exactly 20; Part B's monorail may add up to 8.
+- Only Chrome on Apple silicon was measured.
+- `maxFrameMs` (50) is unchanged; the proposal for 33 is still in QUESTIONS.md.
+
+Next: Part B (monorail) after review.
+
 # Phase 6 — performance and polish (final)
 
 `docs/SUMMARY.md` covers what was achieved, the shortfalls and the next steps. The shots are in

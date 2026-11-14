@@ -17,7 +17,27 @@ export function createRenderer(maxPixelRatio: number): THREE.WebGLRenderer {
   // renderer.info counts every pass of a frame; main resets it once per frame.
   renderer.info.autoReset = false;
   document.body.appendChild(renderer.domElement);
+  firstVertexProvokes(renderer);
+  // Registered after three.js's own handler (WebGLRenderer constructor); context state is lost with the context.
+  renderer.domElement.addEventListener('webglcontextrestored', () => firstVertexProvokes(renderer));
   return renderer;
+}
+
+/**
+ * Take `flat` varyings from a triangle's first vertex instead of GL's default, the last.
+ * Metal only knows the first-vertex rule, so under the default Chrome's Metal backend keeps a
+ * rewritten copy of the index buffer for every draw of a shader with `flat` varyings: about
+ * 1.3 MB of GPU memory each, 600-860 MB for this scene (docs/NOTES.md, perf A5).
+ *
+ * The picture does not change: every `flat` varying here is constant over its triangle
+ * (per-face surface codes on unshared vertices, per-instance seeds). A shader that relies on
+ * WHICH vertex provokes would have to account for this. Where the extension is missing,
+ * nothing changes.
+ */
+function firstVertexProvokes(renderer: THREE.WebGLRenderer) {
+  const ext = renderer.getContext().getExtension('WEBGL_provoking_vertex') as
+    { provokingVertexWEBGL(mode: number): void; FIRST_VERTEX_CONVENTION_WEBGL: number } | null;
+  ext?.provokingVertexWEBGL(ext.FIRST_VERTEX_CONVENTION_WEBGL);
 }
 
 /**
