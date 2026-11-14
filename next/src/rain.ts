@@ -55,7 +55,7 @@ function createHeightMap(roofs: Roof[], rect: THREE.Vector4): THREE.DataTexture 
 /**
  * Rain as a GPU simulation. Each drop is a particle with a position and a state in a storage
  * buffer; a compute pass moves it every frame, wraps it around the camera, and tests it against
- * the roof-height map. A drop that reaches a roof, the viaduct or the street stops there as a
+ * the roof-height map. A drop that reaches a roof, the monorail or the street stops there as a
  * splash for a moment, then falls again from the top of the box: it is dry under the tracks
  * and the canopies, and surfaces near the camera sparkle where rain lands.
  */

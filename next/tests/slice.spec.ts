@@ -8,7 +8,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
  * Frozen clock for the screenshots, then a running clock for the frame time, so the compute
  * passes (traffic, rain) are measured too. `npm run next:shots`.
  */
-const VIEWS = ['corner', 'under', 'platform', 'deck', 'above', 'skyline'];
+const VIEWS = ['corner', 'under', 'line', 'platform', 'deck', 'above', 'skyline'];
 const BUDGET = JSON.parse(readFileSync('next/budgets.json', 'utf8')) as { maxDrawCalls: number; maxTriangles: number; maxFrameMs: number; maxGpuProcessMB: number };
 const OUT = 'build/shots/next';
 const report: Record<string, unknown> = {};

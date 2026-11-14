@@ -20,14 +20,15 @@ import { FOG_DENSITY, P, fog, heightFog, paletteColor, positionWorld, uniform } 
  * no light objects for the practical lights, signage as a system, and motion from day one.
  * WebGPU with node materials throughout; traffic and rain are compute passes.
  *
- * URL: ?view=corner|platform|deck|above|skyline, ?t=<seconds> freezes the clock, ?seed=<int>,
+ * URL: ?view=corner|under|line|platform|deck|above|skyline, ?t=<seconds> freezes the clock, ?seed=<int>,
  * ?rain=<count> (0 = off).
  */
 const VIEWS: Record<string, { position: [number, number, number]; target: [number, number, number] }> = {
   corner: { position: [-58, 1.7, -8.8], target: [30, 8.5, -1] },
   under: { position: [-33, 1.7, 10.4], target: [20, 6, -4] },
-  platform: { position: [-30, 12.4, 6.6], target: [30, 11.6, -1] },
-  deck: { position: [36, 7.3, 11.4], target: [-30, 6.5, 2] },
+  platform: { position: [-30, 9.75, 6.4], target: [30, 9.3, -1] },
+  line: { position: [-92, 4.2, -7.5], target: [-20, 10.5, 1] },
+  deck: { position: [30.5, 7.3, 12.1], target: [-30, 8, 2] },
   above: { position: [-150, 105, 150], target: [-10, 6, -4] },
   skyline: { position: [-640, 330, 560], target: [0, 60, 0] },
 };

@@ -9,12 +9,12 @@ with it: the palette (`art/style/palette.json`), the typeset sign atlas
     npm run next:shots      # every viewpoint: screenshots, budgets, frame time, GPU memory
     npm run next:build
 
-URL parameters: `?view=corner|under|platform|deck|above|skyline`, `?t=<seconds>` (freeze the
+URL parameters: `?view=corner|under|line|platform|deck|above|skyline`, `?t=<seconds>` (freeze the
 clock), `?seed=<int>`, `?rain=<count>` (0 = off). WebGPU only (Chromium).
 
 ## What it is
 
-One main street with an elevated railway and a station over its median, four cross streets,
+One main street with a suspended monorail and a station over its median, four cross streets,
 two back streets, 170 buildings around them and 520 more out to the horizon. Trains run and
 stop, cars queue at signals, rain falls and splashes, signs flicker. About 2,000 lines.
 
@@ -40,14 +40,14 @@ structure costs, not that the slice looks as good.
    (`src/facade.ts`, `ground.ts`, `signs.ts`, `sky.ts`), post-processing as nodes
    (`post.ts`), and two compute passes (`traffic.ts`, `rain.ts`).
 3. **Streets first, with vertical layers.** `src/plan.ts` starts from the roads, cuts blocks
-   and lots, then places buildings. The railway, the station, the pedestrian deck and the
+   and lots, then places buildings. The monorail, the station, the pedestrian deck and the
    skybridges are part of the plan, not additions: lamps, stairs, stop lines and the rain's
    height map all come from the same data.
 4. **Three distance tiers, deliberately.** Every building, street to horizon, is one mesh of
    bare walls and one material that picks the tier per pixel: a recessed window with a room
    behind it, then one light per window, then the facade's mean. The near tier adds the kit:
-   5,900 boxes (balconies, AC units, awnings, pipes, parapets, tanks, lamps, the whole
-   railway) in one instanced draw.
+   about 6,000 boxes (balconies, AC units, awnings, pipes, parapets, tanks, lamps, the
+   whole monorail) in one instanced draw.
 5. **Fake the lighting.** No light objects for anything practical. Lamps and signs are drawn
    once into two top-down maps (`lightmaps.ts`) that the ground, walls, kit, cars, rain and
    haze all read. Windows, signs and lamps are emission with bloom; the wet road is a
@@ -75,8 +75,8 @@ structure costs, not that the slice looks as good.
 - Floors under the tubes are lit and the ceilings stay dark, which gives the covered
   sidewalk and the platform some shape. Unlit stretches remain dark, and the flat concrete
   needs surface detail.
-- The kit is honest but crude: cars and trains are boxes, the station has no detail at eye
-  level, stairs are solid blocks.
+- The kit is honest but crude: cars and trains are boxes, the station is frames and slabs,
+  stairs are solid blocks.
 - Glass towers light in a regular tenant pattern that reads as a barcode from above.
 - Shop interiors are one procedural room with noise for goods; up close it is the weakest
   surface in the frame.
@@ -109,15 +109,40 @@ Gate on 2026-11-14: 32 calls, 259,355 triangles, GPU process about 575 MB. Media
 by about 1.5 ms on this machine, so the two extra samples cost somewhere between nothing and
 1 ms; both are far inside the 16.7 ms budget.
 
-Next: the railway. The human wants a suspended monorail in the Chiba style instead of the
-current viaduct with box trains, so the station and vehicle work should start from that
-design rather than polish what is here. The tower barcode and the shop interiors stay open.
+## Monorail (2026-11-14)
+
+The railway is a suspended monorail in the Chiba style, as the human asked: one straight line
+down the main street, no curves or branches.
+
+- **Track:** two box girders at 11.7 m, one per direction, on T-shaped piers in the median
+  every 30 m (none in the junctions). A cool light line runs under each girder, a lit collar
+  round each pier, red beacons on the arms.
+- **Trains:** three cars hanging from the girder by their bogie struts, white hull, a dark
+  window band with lit panes, a cyan line along the skirt, tapered ends with a lamp bar. Same
+  timetable as before: one train per direction, half a cycle apart, a 12 s stop.
+- **Station:** side platforms slung at car-floor height (8 m) under a roof on five portal
+  frames that stand on the sidewalks and span the street. Glass screens with a lit rail at the
+  platform edge, a glass balustrade at the back, suspended tubes that light the floor.
+- **Access:** the pedestrian deck (5.6 m) and a short flight up to the north platform; one
+  long flight from the sidewalk to the south platform.
+
+`plan.ts` holds it as `monorail`; `build.ts` and `train.ts` build it from boxes, so it is the
+right silhouette and still a blockout. New viewpoint: `line`, along the track from the street.
+Images in `docs/progress/fresh-slice-monorail/`.
+
+Gate on 2026-11-14: 7/7 viewpoints, 32 calls, 261,203 triangles, GPU process about 580 MB.
+Frame time could not be judged in that session: another Chrome was using the GPU, and both
+this commit and the one before it read 12–16 ms where an idle machine gave 7–9 ms.
+
+Next: the cars have no door openings or interior, the south stair is a solid ramp of blocks,
+piers and girders are plain boxes with no joints. Then vehicles on the road, the tower
+barcode and the shop interiors.
 
 ## Files
 
 | File | Role |
 |---|---|
-| `src/plan.ts` | Roads, blocks, lots, buildings, railway, deck, bridges, lanes, signals |
+| `src/plan.ts` | Roads, blocks, lots, buildings, monorail, deck, bridges, lanes, signals |
 | `src/build.ts` | Plan to geometry: the building shell, the box kit, the signs |
 | `src/facade.ts` | The facade material with its three tiers; the kit material |
 | `src/lightmaps.ts` | Top-down lamp/sign maps and height-sampled fixture spill |

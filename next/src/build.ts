@@ -195,63 +195,85 @@ export function assemble(plan: Plan, boxes: Boxes, signs: Signs): Roof[] {
     boxes.add(x + dx * 1.8, 7.8, z + dz * 1.8, dx ? 0.7 : 0.3, 0.1, dz ? 0.7 : 0.3, sodium, 7);
   }
 
-  // --- the elevated railway ---
-  const v = plan.viaduct, vLen = v.x1 - v.x0, vMid = (v.x0 + v.x1) / 2;
-  boxes.add(vMid, 0.11, 0, vLen, 0.22, 2, dark);                                   // median
-  boxes.add(vMid, v.y - 0.45, 0, vLen, 0.9, v.half * 2, concrete);                 // deck
-  for (const s of [-1, 1]) boxes.add(vMid, v.y + 0.55, s * (v.half - 0.12), vLen, 1.1, 0.24, concrete);   // parapets
-  for (const z of [-2.9, -1.5, 1.5, 2.9]) boxes.add(vMid, v.y + 0.09, z, vLen, 0.14, 0.08, steel);        // rails
-  for (const x of v.columns) {
-    boxes.add(x, (v.y - 1.9) / 2, 0, 1.5, v.y - 1.9, 1.3, concrete);
-    boxes.add(x, v.y - 1.4, 0, 1.9, 1, v.half * 2 - 0.6, concrete);                // crossbeam
-    boxes.tube(x + 12.5, v.y - 0.93, 0, 1.2, 0.9, 0.14);                 // light under the deck
-    // Catenary: a mast on each side, a span across, the wires along.
-    for (const s of [-1, 1]) boxes.add(x, v.y + 3.4, s * (v.half - 0.4), 0.16, 5.8, 0.16, metal);
-    boxes.add(x, v.y + 6.1, 0, 0.12, 0.12, v.half * 2 - 0.6, metal);
-  }
-  for (const z of [-2.2, 2.2]) boxes.add(vMid, v.y + 5.4, z, vLen, 0.03, 0.03, metal);
-  roofs.push({ x0: v.x0, x1: v.x1, z0: -v.half, z1: v.half, h: v.y });
-
-  // Station: side platforms, a canopy with strip lights, stairs down to the pedestrian deck.
-  const [s0, s1] = v.station, sMid = (s0 + s1) / 2, sLen = s1 - s0;
-  const platY = v.y + 1.05, canopyY = v.y + 5.2;
+  // --- the suspended monorail: piers, twin box girders with a light line, the station ---
+  const m = plan.monorail, mLen = m.x1 - m.x0, mMid = (m.x0 + m.x1) / 2;
+  const BEAM_W = 1.5, BEAM_H = 1.7, beamTop = m.beamY + BEAM_H;
+  const hull = col('car_silver', 0.5), glass = col('glass_dark', 2.2), trim = col('fluorescent').lerp(col('sign_cyan'), 0.35);
+  boxes.add(mMid, 0.11, 0, mLen, 0.22, 2, dark);                                     // median
   for (const s of [-1, 1]) {
-    const zc = s * (v.half + v.platformHalf) / 2, w = v.platformHalf - v.half;
-    boxes.add(sMid, v.y + 0.3, zc, sLen, 1.5, w, concrete);
-    boxes.add(sMid, platY + 0.012, s * (v.half + 0.35), sLen, 0.02, 0.3, col('car_yellow', 1.3));     // platform edge
-    boxes.add(sMid, canopyY, s * (v.platformHalf - 1.7), sLen - 4, 0.22, 5.2, dark);
-    for (let x = s0 + 6; x < s1 - 5; x += 4) boxes.tube(x, canopyY - 0.15, s * (v.platformHalf - 1.6), 2.4, 1.5);   // canopy tubes
-    boxes.add(sMid, platY + 0.6, s * (v.platformHalf - 0.08), sLen, 1.2, 0.12, steel);                // back railing
-    for (let x = s0 + 4; x <= s1 - 4; x += 8) boxes.add(x, (platY + canopyY) / 2, s * (v.platformHalf - 0.5), 0.2, canopyY - platY, 0.2, metal);
-    for (let x = s0 + 9; x < s1 - 6; x += 16) {
-      boxes.add(x, platY + 0.9, s * (v.platformHalf - 0.75), 1.1, 1.8, 0.7, col('car_navy'), 0);                    // vending machine
-      boxes.add(x, platY + 1.05, s * (v.platformHalf - 1.11), 0.9, 1.3, 0.03, fluor, 0.8);
-      boxes.add(x + 5, platY + 0.45, s * (v.platformHalf - 0.9), 2.2, 0.08, 0.5, col('interior_wood'));             // bench
-    }
+    boxes.add(mMid, m.beamY + BEAM_H / 2, s * m.trackZ, mLen, BEAM_H, BEAM_W, hull);                  // girder
+    boxes.add(mMid, m.beamY + 0.03, s * (m.trackZ + BEAM_W / 2 + 0.03), mLen, 0.05, 0.05, trim, 1.3);  // light line
+    roofs.push({ x0: m.x0, x1: m.x1, z0: s * m.trackZ - BEAM_W / 2, z1: s * m.trackZ + BEAM_W / 2, h: beamTop });
   }
-  roofs.push({ x0: s0, x1: s1, z0: -v.platformHalf, z1: v.platformHalf, h: canopyY });
+  for (const x of m.piers) {
+    // T pier: a shaft that narrows above a plinth, an arm across both girders, a lit collar.
+    boxes.add(x, 1.4, 0, 1.7, 2.8, 1.5, concrete);
+    boxes.add(x, (beamTop + 2.8) / 2, 0, 1.15, beamTop - 2.8, 1.0, hull);
+    boxes.add(x, beamTop + 0.5, 0, 1.5, 1.0, 2 * m.trackZ + BEAM_W + 0.8, hull);
+    boxes.add(x, 2.86, 0, 1.2, 0.05, 1.05, trim, 1.1);
+    for (const s of [-1, 1]) boxes.add(x, beamTop + 1.05, s * (m.trackZ + BEAM_W / 2 + 0.2), 0.3, 0.12, 0.3, red, 5, 3 + (Math.abs(x) % 5));
+  }
+
+  // Station: side platforms slung at car-floor height under a roof on portal frames that
+  // stand on the sidewalks and span the whole street. Glass screens at the platform edge.
+  const [s0, s1] = m.station, sMid = (s0 + s1) / 2, sLen = s1 - s0;
+  const [pIn, pOut] = m.platform, pMid = (pIn + pOut) / 2, pW = pOut - pIn;
+  const platY = m.floorY, roofHalf = pOut + 0.8, legZ = plan.main.half + 0.9;
+  boxes.add(sMid, m.roofY + 0.12, 0, sLen + 3, 0.24, roofHalf * 2, hull);
+  for (const e of [-1, 1]) boxes.add(sMid, m.roofY + 0.12, e * (roofHalf + 0.03), sLen + 3, 0.07, 0.05, trim, 1.2);   // roof edge lines
+  roofs.push({ x0: s0 - 1.5, x1: s1 + 1.5, z0: -roofHalf, z1: roofHalf, h: m.roofY + 0.24 });
+  for (let x = s0; x <= s1 + 0.1; x += sLen / 4) {
+    for (const s of [-1, 1]) boxes.add(x, m.roofY / 2, s * legZ, 0.8, m.roofY, 0.65, hull);
+    boxes.add(x, m.roofY + 0.7, 0, 0.9, 0.95, legZ * 2 + 0.65, hull);
+  }
+  for (const s of [-1, 1]) {
+    boxes.add(sMid, platY - 0.18, s * pMid, sLen, 0.36, pW, concrete);                              // platform
+    boxes.add(sMid, platY + 0.012, s * (pIn + 0.5), sLen, 0.02, 0.22, col('car_yellow', 1.3));     // tactile strip
+    boxes.add(sMid, platY - 0.34, s * (pIn + 0.06), sLen, 0.05, 0.06, trim, 0.9);                   // underside line
+    // Platform screens: glass to waist height with a lit rail, in panels between door gaps.
+    for (let x = s0 + 2.4; x < s1 - 2; x += 4.8) {
+      boxes.add(x, platY + 0.62, s * (pIn + 0.05), 3.4, 1.24, 0.05, glass);
+      boxes.add(x, platY + 1.27, s * (pIn + 0.05), 3.4, 0.05, 0.07, trim, 1.2);
+    }
+    // Outer edge: a glass balustrade with a rail, between the hangers that carry the platform from the roof.
+    boxes.add(sMid, platY + 0.6, s * (pOut - 0.04), sLen, 1.2, 0.05, glass);
+    boxes.add(sMid, platY + 1.23, s * (pOut - 0.04), sLen, 0.05, 0.07, hull);
+    for (let x = s0 + 3; x <= s1 - 3; x += 6.2) boxes.add(x, (platY + m.roofY) / 2, s * (pOut - 0.1), 0.12, m.roofY - platY, 0.12, hull);
+    for (let x = s0 + 5; x < s1 - 4; x += 4) boxes.tube(x, platY + 2.85, s * (pMid + 0.5), 2.4, 1.5);                   // platform lights
+    for (let x = s0 + 9; x < s1 - 6; x += 16) {
+      boxes.add(x, platY + 0.9, s * (pOut - 0.5), 1.1, 1.8, 0.7, col('car_navy'));                                      // vending machine
+      boxes.add(x, platY + 1.05, s * (pOut - 0.86), 0.9, 1.3, 0.03, fluor, 0.8);
+      boxes.add(x + 5, platY + 0.45, s * (pOut - 0.55), 2.2, 0.08, 0.5, col('interior_wood'));                          // bench
+    }
+    roofs.push({ x0: s0, x1: s1, z0: Math.min(s * pIn, s * pOut), z1: Math.max(s * pIn, s * pOut), h: platY });
+  }
   const dk = plan.deck, dMidZ = (dk.z0 + dk.z1) / 2, dW = dk.z1 - dk.z0;
   boxes.add((dk.x0 + dk.x1) / 2, dk.y - 0.2, dMidZ, dk.x1 - dk.x0, 0.4, dW, concrete);
   boxes.add((dk.x0 + dk.x1) / 2, dk.y + 0.55, dk.z0 + 0.06, dk.x1 - dk.x0, 1.1, 0.08, steel);
   for (let x = dk.x0 + 5; x < dk.x1 - 3; x += 6) boxes.tube(x, dk.y - 0.43, dMidZ, 2.4, 1.3);
-  for (let x = dk.x0 + 3; x <= dk.x1 - 3; x += 10) boxes.add(x, (dk.y - 0.4) / 2, dk.z0 + 0.4, 0.3, dk.y - 0.4, 0.3, metal);
+  for (let x = dk.x0 + 3; x <= dk.x1 - 3; x += 10) boxes.add(x, (dk.y - 0.4) / 2, dk.z1 - 0.4, 0.3, dk.y - 0.4, 0.3, metal);
   roofs.push({ x0: dk.x0, x1: dk.x1, z0: dk.z0, z1: dk.z1, h: dk.y });
-  // A flight of steps from (x, z) at `y0`, rising toward `dir` along `axis` until `y1`.
-  const stairs = (x: number, z: number, y0: number, y1: number, axis: 'x' | 'z', dir: number, width: number) => {
+  // A flight of steps from (x, z) at `y0`, rising toward `dir` along x until `y1`.
+  const stairs = (x: number, z: number, y0: number, y1: number, dir: number, width: number) => {
     const steps = Math.round((y1 - y0) / 0.18);
     for (let i = 0; i < steps; i++) {
-      const t = (i + 0.5) * 0.3 * dir, top = y0 + (i + 1) * 0.18;
-      // Each step is a block down to the flight's underside, so the stair reads as a solid.
-      const h = Math.min(top - y0, 0.7);
-      boxes.add(x + (axis === 'x' ? t : 0), top - h / 2, z + (axis === 'z' ? t : 0), axis === 'x' ? 0.3 : width, h, axis === 'z' ? 0.3 : width, dark);
+      const top = y0 + (i + 1) * 0.18, h = Math.min(top - y0, 0.7);   // blocks down to the flight's underside
+      boxes.add(x + (i + 0.5) * 0.3 * dir, top - h / 2, z, 0.3, h, width, dark);
     }
-    return steps * 0.3;
   };
+  const runOf = (rise: number) => Math.round(rise / 0.18) * 0.3;
   for (const s of [-1, 1]) {
-    const run = Math.round((dk.y - 0.15) / 0.18) * 0.3, rise = Math.round((platY - dk.y) / 0.18) * 0.3;
-    stairs((s < 0 ? dk.x0 : dk.x1) + s * run, dMidZ, 0.15, dk.y, 'x', -s, dW - 0.4);      // sidewalk up to the deck
-    stairs(s * (20 + rise), v.platformHalf + 0.95, dk.y, platY, 'x', -s, 1.7);          // deck up to the platform
-    boxes.add(s * 17, platY - 0.1, v.platformHalf + 0.95, 6, 0.2, 1.7, concrete);           // landing
+    // Sidewalk up to the deck at both of its ends.
+    stairs((s < 0 ? dk.x0 : dk.x1) + s * runOf(dk.y - 0.15), dMidZ, 0.15, dk.y, -s, dW - 0.4);
+    // Deck up to the north platform: a flight in the gap between them, with a landing at each end.
+    const zGap = (pOut + dk.z0) / 2 + 0.1, run = runOf(platY - dk.y);
+    stairs(s * (14 + run), zGap, dk.y, platY, -s, 1.4);
+    boxes.add(s * (15.5 + run), dk.y - 0.1, zGap, 3, 0.2, dk.z0 - pOut + 0.3, concrete);
+    boxes.add(s * 12.5, platY - 0.1, zGap, 3, 0.2, dk.z0 - pOut + 0.3, concrete);
+    // South platform: one long flight from the sidewalk, and a landing across to the platform.
+    const zS = -(legZ + 1.0), runS = runOf(platY - 0.15);
+    stairs(s * (9 + runS), zS, 0.15, platY, -s, 1.3);
+    boxes.add(s * 7.5, platY - 0.1, (zS - 0.65 - pOut) / 2, 3, 0.2, zS - 0.65 + pOut < 0 ? -(zS - 0.65 + pOut) : 0.1, concrete);
   }
 
   // --- skybridges over the cross streets ---

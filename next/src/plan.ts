@@ -3,7 +3,7 @@ import { mulberry32 } from '../../art/layouts/lib/rng.mjs';
 /**
  * The city as data, streets first. A small road graph (one main street, four cross streets,
  * two back streets) defines the blocks; blocks are cut into lots; lots get buildings. The
- * vertical layers are part of the plan from the start: an elevated railway with a station
+ * vertical layers are part of the plan from the start: a suspended monorail with a station
  * over the main street, a pedestrian deck beside it, and skybridges over the cross streets.
  * Everything is axis-aligned and deterministic from the seed. Units are meters, +y up.
  */
@@ -41,7 +41,16 @@ export interface Plan {
   skyline: Building[];
   /** Street lamps: pole x, z and the direction the arm points (unit x, z). */
   lamps: [number, number, number, number][];
-  viaduct: { y: number; half: number; x0: number; x1: number; columns: number[]; station: [number, number]; platformHalf: number };
+  /**
+   * Suspended monorail down the median (Chiba style): two box-girder tracks at z = ±trackZ
+   * carried by T-shaped piers, cars hanging beneath. `beamY` is the underside of the girders,
+   * `floorY` the car floor and platform level, `roofY` the station roof.
+   */
+  monorail: {
+    x0: number; x1: number; piers: number[]; trackZ: number; beamY: number; floorY: number; roofY: number;
+    /** Station extent along x, and its side platforms' inner and outer edge (|z|). */
+    station: [number, number]; platform: [number, number];
+  };
   /** Pedestrian deck beside the station: x0, x1, z0, z1, y. */
   deck: { x0: number; x1: number; z0: number; z1: number; y: number };
   /** Skybridges over cross streets: x0, x1, z, y (enclosed, 3.2 m tall, 4 m wide). */
@@ -147,10 +156,12 @@ export function createPlan(seed = 7): Plan {
     }
   }
 
-  // Elevated railway down the median, with a station between the two middle cross streets.
-  const columns: number[] = [];
-  for (let x = -size.x - 12.5; x <= size.x + 13; x += 25) columns.push(x);
-  const viaduct = { y: 9.5, half: 4.4, x0: -size.x - 20, x1: size.x + 20, columns, station: [-34, 34] as [number, number], platformHalf: 8.2 };
+  // Suspended monorail down the median, with a station between the two middle cross streets.
+  // Piers every 30 m, kept clear of the junctions.
+  const piers: number[] = [];
+  for (let x = -size.x - 15; x <= size.x + 16; x += 30) if (!cross.xs.some((c) => Math.abs(x - c) < cross.half + 2)) piers.push(x);
+  const beamY = 11.7, floorY = beamY - 0.75 - 2.9;
+  const monorail = { x0: -size.x - 20, x1: size.x + 20, piers, trackZ: 2.6, beamY, floorY, roofY: 14.3, station: [-34, 34] as [number, number], platform: [4.05, 7.8] as [number, number] };
   const deck = { x0: -38, x1: 38, z0: main.half + 0.3, z1: mainEdge - 0.2, y: 5.6 };
 
   const bridges: Plan['bridges'] = [];
@@ -172,7 +183,7 @@ export function createPlan(seed = 7): Plan {
     for (const d of [-1, 1]) lanes.push({ x: cx - d * 2.3, z: -d * Lz / 2, dx: 0, dz: d, length: Lz, phase: 1, cars: 6, speed: 7 + rng() * 2 });
   }
 
-  return { seed, size, main, cross, back, blocks, buildings, skyline, lamps, viaduct, deck, bridges, lanes, signal: { period: 44, green: 18, amber: 3 } };
+  return { seed, size, main, cross, back, blocks, buildings, skyline, lamps, monorail, deck, bridges, lanes, signal: { period: 44, green: 18, amber: 3 } };
 }
 
 export const FLOOR_HEIGHT = FLOOR;

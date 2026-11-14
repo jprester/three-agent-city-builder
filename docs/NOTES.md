@@ -1258,3 +1258,12 @@ Start with `skyline-hero.png`, then `storefront.png` and `canyon.png`.
 - Weak: the pools are soft discs with no shadow of columns, railings or people; on the platform the train's side stays dark because the tubes are over the platform, not the track. The deck's walking surface is now lit only by the street lamps and reads dim.
 - Weak: still no occlusion between layers, so a faint canopy glow reaches the road.
 - Cost: median frame 6.7–10.4 ms over three gate runs, 6.0–7.3 ms for the previous version in one run. Run-to-run spread is about 1.5 ms, so the extra two samples cost between nothing and 1 ms. The figure of 6.6–8.2 ms in commit 79d91b0's message was written before the run and is wrong.
+
+### Fresh slice — suspended monorail, 2026-11-14
+
+- Checked `line`, `platform`, `deck`, `under`, `corner`, `above`, `skyline` (docs/progress/fresh-slice-monorail/).
+- Works: the twin girders with their light lines are the strongest shape in the street now and read at once as a suspended line; `line` with cars queued under it is the best frame the slice has. Hanging cars with a lit window band and a skirt line look like a vehicle of this city rather than a commuter train on a bridge.
+- Weak: everything is still a box. Girders and piers have no joints, brackets or cable trays; the cars have no doors, no visible interior, and the taper is three steps. The platform is a slab with dark glass and one vending machine every 16 m.
+- Weak: the south stair is a 13 m solid ramp of blocks on the sidewalk, and the portal legs pass through the pedestrian deck.
+- Weak: on the platform the train's side is unlit; the window panes are flat white cards.
+- Frame time not judged this session (GPU shared with another Chrome; the previous commit read the same 12–16 ms).
