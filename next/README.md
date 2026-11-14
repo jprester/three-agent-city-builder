@@ -5,11 +5,14 @@ recommends, to see what that order buys. It lives beside the app and shares only
 with it: the palette (`art/style/palette.json`), the typeset sign atlas
 (`art/textures/signs/`) and the seeded random helper.
 
-    npm run next:dev        # http://localhost:5183/?view=corner
+    npm run next:dev        # opens http://localhost:5183/ (not the main app's port 5173)
     npm run next:shots      # every viewpoint: screenshots, budgets, frame time, GPU memory
     npm run next:build
 
-URL parameters: `?view=corner|under|line|platform|deck|above|skyline`, `?t=<seconds>` (freeze the
+The page opens on a flyover: a 90 s loop along the monorail, out on one side of the street and
+back on the other. `F` returns to it; keys `1`-`7` jump to the fixed views, which you can orbit.
+
+URL parameters: `?view=flyover|corner|under|line|platform|deck|above|skyline`, `?t=<seconds>` (freeze the
 clock), `?seed=<int>`, `?rain=<count>` (0 = off). WebGPU only (Chromium).
 
 ## What it is

@@ -13,7 +13,7 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') console.log(`[${m.type()}]`, m.text().slice(0, 900)); });
 page.on('pageerror', (e) => console.log('[pageerror]', e.message.slice(0, 900)));
 for (const view of views.length ? views : ['corner']) {
-  await page.goto(`http://localhost:5183/?view=${view}${live ? '' : '&t=20'}${extra ? `&${extra}` : ''}`);
+  await page.goto(`http://localhost:5183/?view=${view}${live || extra.includes('t=') ? '' : '&t=20'}${extra ? `&${extra}` : ''}`);
   await page.waitForFunction(() => window.__READY === true, undefined, { timeout: 90_000 });
   await page.waitForTimeout(live ? 6000 : 800);
   await page.screenshot({ path: `build/shots/next/${view}${live ? '-live' : ''}.png` });

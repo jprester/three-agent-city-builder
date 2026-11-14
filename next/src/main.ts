@@ -20,7 +20,7 @@ import { FOG_DENSITY, P, fog, heightFog, paletteColor, positionWorld, uniform } 
  * no light objects for the practical lights, signage as a system, and motion from day one.
  * WebGPU with node materials throughout; traffic and rain are compute passes.
  *
- * URL: ?view=corner|under|line|platform|deck|above|skyline, ?t=<seconds> freezes the clock, ?seed=<int>,
+ * URL: ?view=flyover (a loop along the monorail) or corner|under|line|platform|deck|above|skyline, ?t=<seconds> freezes the clock, ?seed=<int>,
  * ?rain=<count> (0 = off).
  */
 const VIEWS: Record<string, { position: [number, number, number]; target: [number, number, number] }> = {
@@ -33,6 +33,27 @@ const VIEWS: Record<string, { position: [number, number, number]; target: [numbe
   skyline: { position: [-640, 330, 560], target: [0, 60, 0] },
 };
 const READY_FRAME = 3;
+/** Seconds for one lap of the flyover. */
+const FLYOVER_LAP = 90;
+
+/**
+ * Flyover: a long oval around the monorail, out along one side of the street and back along
+ * the other, a little above the girders, always looking at the track some way ahead. It
+ * climbs over the station roof, whose frames span the whole street.
+ */
+function flyover(plan: ReturnType<typeof createPlan>, time: number, position: THREE.Vector3, target: THREE.Vector3) {
+  const m = plan.monorail, reach = plan.size.x - 25;
+  const at = (u: number) => {
+    const a = 2 * Math.PI * u;
+    const x = reach * Math.cos(a);
+    const nearStation = Math.exp(-((x / 60) ** 2));
+    return new THREE.Vector3(x, m.beamY + 5 + (m.roofY + 5.5 - m.beamY - 5) * nearStation, (plan.main.half + 1.2) * Math.sin(a));
+  };
+  const u = time / FLYOVER_LAP;
+  position.copy(at(u));
+  const ahead = at(u + 0.07);
+  target.set(ahead.x, m.beamY - 1.5, ahead.z * 0.25);
+}
 
 declare global {
   interface Window {
@@ -43,7 +64,10 @@ declare global {
 
 async function main() {
   const params = new URLSearchParams(location.search);
-  const view = VIEWS[params.get('view') ?? 'corner'] ?? VIEWS.corner;
+  // The page opens on the flyover; a named view or key 1-7 gives a fixed camera with orbit controls.
+  const viewNames = Object.keys(VIEWS);
+  let flying = !VIEWS[params.get('view') ?? 'flyover'];
+  const view = VIEWS[params.get('view') ?? ''] ?? VIEWS.line;
   const frozen = params.has('t') ? Number.parseFloat(params.get('t')!) : null;
   const plan = createPlan(Number.parseInt(params.get('seed') ?? '7', 10) || 7);
 
@@ -59,7 +83,22 @@ async function main() {
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(...view.target);
   controls.enableDamping = !params.has('view');
+  controls.enabled = !flying;
   controls.update();
+  const hint = document.getElementById('status');
+  const showMode = (name: string) => { if (hint && !navigator.webdriver) hint.textContent = `${name}  ·  F flyover  ·  1-${viewNames.length} fixed views (drag to orbit)`; };
+  showMode(flying ? 'flyover' : params.get('view') ?? 'line');
+  window.addEventListener('keydown', (e) => {
+    const index = Number.parseInt(e.key, 10) - 1;
+    if (e.code === 'KeyF') flying = true;
+    else if (index >= 0 && index < viewNames.length) {
+      flying = false;
+      camera.position.set(...VIEWS[viewNames[index]].position);
+      controls.target.set(...VIEWS[viewNames[index]].target);
+    } else return;
+    controls.enabled = !flying;
+    showMode(flying ? 'flyover' : viewNames[index]);
+  });
 
   const uTime = uniform(frozen ?? 0), uRain = uniform(1), uFog = uniform(FOG_DENSITY);
   const scene = new THREE.Scene();
@@ -123,7 +162,7 @@ async function main() {
     const now = frozen ?? (performance.now() - start) / 1000;
     const dt = now - last;
     last = now;
-    controls.update();
+    if (flying) { flyover(plan, now, camera.position, controls.target); camera.lookAt(controls.target); } else controls.update();
     uTime.value = now;
     // Rain comes in slow waves; the fog breathes a little.
     const wave = 0.5 + 0.5 * Math.cos((2 * Math.PI * now) / 180);
