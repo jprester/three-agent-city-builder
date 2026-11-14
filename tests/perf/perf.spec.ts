@@ -1,18 +1,24 @@
 import { expect, test } from '@playwright/test';
 import { execSync } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 
 /**
  * Performance report on the real GPU at a Retina laptop resolution (1440×900 @2x): GPU time per
  * frame (WebGL timer queries around each animation frame), CPU time per frame, JS heap, and on
- * macOS the GPU process's memory footprint. Fails only when the median GPU frame no longer fits
- * 60 fps. `npm run perf`; PERF_VIEWS=canyon,aerial picks viewpoints, PERF_DPR / PERF_QUALITY below.
+ * macOS the GPU process's memory footprint. Fails when the median GPU frame no longer fits
+ * 60 fps, or (macOS, default resolution and quality only) when the GPU process exceeds
+ * `scene.maxGpuProcessMB` in pipeline.config.json. `npm run perf`; PERF_VIEWS=canyon,aerial
+ * picks viewpoints, PERF_DPR / PERF_QUALITY below.
  */
 const VIEWS = process.env.PERF_VIEWS?.split(',') ?? ['canyon', 'storefront', 'aerial', 'harbor', 'fly-75'];
 /** PERF_DPR: device pixel ratio (default 2, Retina); PERF_QUALITY: low | med | high. */
 const DPR = Number(process.env.PERF_DPR ?? 2);
 const QUALITY = process.env.PERF_QUALITY ?? 'high';
 const FRAMES = 120;
+/** The memory budget is set for the default measurement (2x, high); other settings only report. */
+const MAX_GPU_PROCESS_MB: number | undefined = DPR === 2 && QUALITY === 'high'
+  ? JSON.parse(readFileSync('pipeline.config.json', 'utf8')).scene.maxGpuProcessMB
+  : undefined;
 const report: Record<string, unknown> = {};
 
 test.use({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: DPR });
@@ -91,6 +97,9 @@ for (const view of VIEWS) {
     console.log(`${view.padEnd(12)} GPU ${r.gpuMs.p50} ms (p95 ${r.gpuMs.p95})  CPU ${r.cpuMs.p50} ms (p95 ${r.cpuMs.p95})  heap ${heap} MB  GPU process ${r.gpuProcessMB ?? '?'} MB`);
     mkdirSync('build/perf', { recursive: true });
     writeFileSync('build/perf/report.json', JSON.stringify({ resolution: `1440x900@${DPR}x`, quality: QUALITY, views: report }, null, 2) + '\n');
-    expect(r.gpuMs.p50, `${view}: median GPU frame over the 60 fps budget`).toBeLessThan(16.7);
+    expect.soft(r.gpuMs.p50, `${view}: median GPU frame over the 60 fps budget`).toBeLessThan(16.7);
+    if (MAX_GPU_PROCESS_MB !== undefined && r.gpuProcessMB !== null) {
+      expect.soft(r.gpuProcessMB, `${view}: GPU process memory over scene.maxGpuProcessMB`).toBeLessThanOrEqual(MAX_GPU_PROCESS_MB);
+    }
   });
 }

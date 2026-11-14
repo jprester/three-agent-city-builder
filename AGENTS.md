@@ -44,6 +44,8 @@ binary in `public/` is regenerated from them.
   It fixes the device pixel ratio (`?dynres=0`), so it measures the preset, not adaptive
   resolution, and it is only meaningful on an idle GPU: close any other tab running the scene
   first, or every viewpoint reads ~3x slower and looks like a regression.
+  On macOS at the default settings it also fails when the GPU process exceeds
+  `scene.maxGpuProcessMB` in `pipeline.config.json`.
 - `npm run next:dev` / `next:shots` / `next:build`: the fresh slice in `next/` (a small city
   built from scratch on WebGPU; see `next/README.md`). `next:shots` is its gate: every
   viewpoint, screenshots in `build/shots/next/`, budgets from `next/budgets.json`.

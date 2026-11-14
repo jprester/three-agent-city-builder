@@ -1389,3 +1389,23 @@ are drawn. Facts established:
 Textures are still the largest share that can be cut with a known technique, so the step
 order stays A1 → A4. The 1.3 MB buffers are logged as an open question; at 600–860 MB they
 decide whether the 1.2 GB target is reachable.
+
+### Main app performance — A2, A3, A4, 2026-11-14
+
+- **A2, road reflection: no change.** `src/scene/reflection.ts` already renders at quarter
+  resolution on every preset, and main passes the reflection a 0.25 LOD bias, so street
+  furniture leaves the reflection at 55 m (the slice's limit is 90 m), vehicles and building
+  LODs scale the same way, and lamps and signals stay because they emit light. The one part
+  never culled is the merged street-prop and park-tree mesh (~120k triangles, one draw).
+  Leaving it out of the reflection made no measurable difference (canyon, storefront, aerial;
+  two A/B rounds; deltas within ±0.4 ms run noise), so it stays.
+- **A3, distance cut-offs: no change.** Facade instances are already culled per instance on
+  the CPU against the frustum, with per-asset distance limits (street furniture 220 m ×
+  quality LOD scale, vehicles at ~250 × their radius, buildings through their LOD ladders).
+  Lamps, signals and park trees are kept at any distance on purpose. That matches the slice's
+  idea and is finer-grained than its 250 m chunks. Triangles do not limit GPU time here (see A2).
+- **A4, gate:** `scene.maxGpuProcessMB` = 2100 in `pipeline.config.json`, enforced by
+  `npm run perf` on macOS at 2x/high. It is set above today's 1,736–2,037 MB so the gate
+  starts green; lower it to ~15 % above the measured result once A1 lands.
+- The p95 spikes (13.5–25.9 ms against a 7.7–10.7 ms median) are not explained by geometry.
+  They are the next thing to profile after A1.
