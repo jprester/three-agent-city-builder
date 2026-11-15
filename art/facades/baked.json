@@ -1,14 +1,153 @@
 {
-  "$comment": "Tower facade styles modelled and baked in Blender (npm run facades:bake): tools/blender/bake_facades.py renders each style straight on, one emission-only render per map; tools/textures/pack_facades.py packs art/textures/facades/baked/. Meters; colors are palette names. One bay = pier + window opening; one floor = spandrel + window. Grid lines run through pier and spandrel centres, so the runtime's whole floors and bays start and end on wall.",
+  "$comment": "Tower facade styles modelled and baked in Blender (npm run facades:bake): tools/blender/bake_facades.py renders each style straight on, one emission-only render per map; tools/textures/pack_facades.py packs art/textures/facades/baked/. Meters; colors are palette names. One bay = pier + window opening; one floor = spandrel + window. Grid lines run through pier and spandrel centres, so the runtime's whole floors and bays start and end on wall. ac / balconies: share of windows with an air-conditioning unit on the sill / a balcony (slab and railing) in front. rooms: which interiors set (art/textures/interiors) lights the windows, office by default.",
   "pixels_per_meter": 24,
-  "cell": [464, 976],
+  "cell": [
+    464,
+    976
+  ],
   "styles": [
-    { "id": "brick_red", "wall": "brick", "colors": ["brick_red", "brick_red_alt", "mortar"], "floor": 3.6, "bay": 4.8, "pier": 0.9, "spandrel": 1.15, "panes": 3, "transom": 0.45, "frame": "frame_dark", "sill": "sill_stone", "blinds": 0.4, "seed": 11 },
-    { "id": "brick_brown", "wall": "brick", "colors": ["brick_brown", "brick_brown_alt", "mortar"], "floor": 3.6, "bay": 3.6, "pier": 0.75, "spandrel": 1.0, "panes": 2, "transom": 0.0, "frame": "frame_dark", "sill": "sill_stone", "blinds": 0.3, "seed": 12 },
-    { "id": "tile_punched", "wall": "tile", "colors": ["tile_white", "tile_white_alt", "tile_grout"], "floor": 3.3, "bay": 3.3, "pier": 1.6, "spandrel": 1.4, "panes": 2, "transom": 0.0, "frame": "frame_silver", "sill": "sill_stone", "blinds": 0.5, "seed": 13 },
-    { "id": "concrete_grid", "wall": "concrete", "colors": ["concrete_facade", "concrete_facade_alt", "concrete_facade"], "floor": 3.8, "bay": 2.4, "pier": 0.45, "spandrel": 1.2, "panes": 1, "transom": 0.5, "frame": "frame_dark", "sill": "concrete_facade", "blinds": 0.45, "seed": 14 },
-    { "id": "concrete_ribbon", "wall": "concrete", "colors": ["concrete_facade", "concrete_facade_alt", "concrete_facade"], "floor": 3.6, "bay": 4.8, "pier": 0.3, "spandrel": 1.3, "panes": 4, "transom": 0.0, "frame": "frame_silver", "sill": "concrete_facade", "blinds": 0.35, "seed": 15 },
-    { "id": "brick_wide", "wall": "brick", "colors": ["brick_red", "brick_brown_alt", "mortar"], "floor": 3.6, "bay": 6.0, "pier": 1.2, "spandrel": 1.1, "panes": 4, "transom": 0.4, "frame": "frame_silver", "sill": "sill_stone", "blinds": 0.35, "seed": 16 },
-    { "id": "tile_grid", "wall": "tile", "colors": ["tile_white_alt", "tile_white", "tile_grout"], "floor": 3.4, "bay": 1.7, "pier": 0.35, "spandrel": 1.1, "panes": 1, "transom": 0.0, "frame": "frame_dark", "sill": "tile_white", "blinds": 0.4, "seed": 17 }
+    {
+      "id": "brick_red",
+      "wall": "brick",
+      "colors": [
+        "brick_red",
+        "brick_red_alt",
+        "mortar"
+      ],
+      "floor": 3.6,
+      "bay": 4.8,
+      "pier": 0.9,
+      "spandrel": 1.15,
+      "panes": 3,
+      "transom": 0.45,
+      "frame": "frame_dark",
+      "sill": "sill_stone",
+      "blinds": 0.4,
+      "seed": 11,
+      "ac": 0.15
+    },
+    {
+      "id": "brick_brown",
+      "wall": "brick",
+      "colors": [
+        "brick_brown",
+        "brick_brown_alt",
+        "mortar"
+      ],
+      "floor": 3.6,
+      "bay": 3.6,
+      "pier": 0.75,
+      "spandrel": 1.0,
+      "panes": 2,
+      "transom": 0.0,
+      "frame": "frame_dark",
+      "sill": "sill_stone",
+      "blinds": 0.3,
+      "seed": 12,
+      "ac": 0.2
+    },
+    {
+      "id": "tile_punched",
+      "wall": "tile",
+      "colors": [
+        "tile_white",
+        "tile_white_alt",
+        "tile_grout"
+      ],
+      "floor": 3.3,
+      "bay": 3.3,
+      "pier": 1.6,
+      "spandrel": 1.4,
+      "panes": 2,
+      "transom": 0.0,
+      "frame": "frame_silver",
+      "sill": "sill_stone",
+      "blinds": 0.5,
+      "seed": 13,
+      "ac": 0.25,
+      "rooms": "residential"
+    },
+    {
+      "id": "concrete_grid",
+      "wall": "concrete",
+      "colors": [
+        "concrete_facade",
+        "concrete_facade_alt",
+        "concrete_facade"
+      ],
+      "floor": 3.8,
+      "bay": 2.4,
+      "pier": 0.45,
+      "spandrel": 1.2,
+      "panes": 1,
+      "transom": 0.5,
+      "frame": "frame_dark",
+      "sill": "concrete_facade",
+      "blinds": 0.45,
+      "seed": 14,
+      "ac": 0.1
+    },
+    {
+      "id": "curtain_glass",
+      "wall": "panel",
+      "colors": [
+        "panel_glass",
+        "panel_glass",
+        "mullion_alu"
+      ],
+      "floor": 3.8,
+      "bay": 1.6,
+      "pier": 0.12,
+      "spandrel": 1.1,
+      "panes": 1,
+      "transom": 0.0,
+      "frame": "mullion_alu",
+      "sill": "mullion_alu",
+      "blinds": 0.3,
+      "ac": 0.0,
+      "seed": 15
+    },
+    {
+      "id": "brick_wide",
+      "wall": "brick",
+      "colors": [
+        "brick_red",
+        "brick_brown_alt",
+        "mortar"
+      ],
+      "floor": 3.6,
+      "bay": 6.0,
+      "pier": 1.2,
+      "spandrel": 1.1,
+      "panes": 4,
+      "transom": 0.4,
+      "frame": "frame_silver",
+      "sill": "sill_stone",
+      "blinds": 0.35,
+      "seed": 16,
+      "ac": 0.1
+    },
+    {
+      "id": "tile_balcony",
+      "wall": "tile",
+      "colors": [
+        "tile_white",
+        "tile_white_alt",
+        "tile_grout"
+      ],
+      "floor": 3.0,
+      "bay": 3.2,
+      "pier": 0.8,
+      "spandrel": 1.0,
+      "panes": 2,
+      "transom": 0.0,
+      "frame": "frame_silver",
+      "sill": "tile_white",
+      "blinds": 0.45,
+      "ac": 0.3,
+      "balconies": 0.6,
+      "seed": 17,
+      "rooms": "residential"
+    }
   ]
 }

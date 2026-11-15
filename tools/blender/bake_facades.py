@@ -34,6 +34,10 @@ ROOT = Path(__file__).resolve().parents[2]
 PALETTE = json.loads((ROOT / "art" / "style" / "palette.json").read_text())
 PASSES = ("albedo", "rough", "normal", "glass", "blind", "ao")
 RECESS = 0.25          # m: glass plane behind the wall's face
+# Glass tints (multiplier on glass_facade, hue shift toward green or blue); one per window.
+GLASS = ("glass_a", "glass_b", "glass_c", "glass_d", "glass_e", "glass_f")
+GLASS_TINT = {"glass_a": (1.0, 1.0, 1.0), "glass_b": (1.3, 1.3, 1.25), "glass_c": (0.75, 0.75, 0.8),
+              "glass_d": (0.9, 1.1, 1.0), "glass_e": (1.0, 1.05, 1.25), "glass_f": (1.6, 1.55, 1.5)}
 FRAME = 0.06           # m: frame bar width
 MULLION = 0.05
 
@@ -67,7 +71,8 @@ def plane_y(bm, x0, x1, y, z0, z1):
 
 def build(style, rng):
     """Geometry per material kind, plus the windows' openings (meters, grid coordinates)."""
-    meshes = {k: bmesh.new() for k in ("wall", "frame", "glass", "glass_b", "glass_c", "sill", "blind", "interior")}
+    meshes = {k: bmesh.new() for k in ("wall", "frame", "sill", "blind", "blind_b", "curtain", "curtain_b", "ac", "grille",
+                                       "interior", *GLASS)}
     floor, bay, pier, sp = style["floor"], style["bay"], style["pier"], style["spandrel"]
     bays, floors = style["_bays"], style["_floors"]
     windows = []
@@ -93,13 +98,34 @@ def build(style, rng):
             if style["transom"] > 0:
                 z = oz1 - style["transom"]
                 box(f, ox0, ox1, RECESS - 0.08, RECESS + 0.02, z - MULLION / 2, z + MULLION / 2)
-            glass = rng.choice(("glass", "glass", "glass_b", "glass_c"))
-            plane_y(meshes[glass], ox0, ox1, RECESS, oz0, oz1)
+            plane_y(meshes[rng.choice(GLASS)], ox0, ox1, RECESS, oz0, oz1)
             box(meshes["sill"], ox0 - 0.04, ox1 + 0.04, -0.07, RECESS - 0.1, oz0 - 0.06, oz0 + 0.01)
             blind = 0.0
-            if rng.random() < style["blinds"]:
-                blind = rng.uniform(0.25, 0.95)
-                plane_y(meshes["blind"], ox0 + 0.02, ox1 - 0.02, RECESS + 0.08, oz1 - blind * (oz1 - oz0), oz1 - 0.02)
+            r = rng.random()
+            if r < style["blinds"]:
+                # Venetian blinds at some height, or curtains drawn from one side.
+                if rng.random() < 0.7:
+                    blind = rng.uniform(0.25, 0.95)
+                    plane_y(meshes[rng.choice(("blind", "blind", "blind_b"))], ox0 + 0.02, ox1 - 0.02, RECESS + 0.08,
+                            oz1 - blind * (oz1 - oz0), oz1 - 0.02)
+                else:
+                    blind = 1.0
+                    share = rng.uniform(0.25, 0.6) * (ox1 - ox0)
+                    a, b = (ox0, ox0 + share) if rng.random() < 0.5 else (ox1 - share, ox1)
+                    plane_y(meshes[rng.choice(("curtain", "curtain_b"))], a + 0.02, b - 0.02, RECESS + 0.1, oz0 + 0.02, oz1 - 0.02)
+            if rng.random() < style.get("ac", 0.0):
+                # Air-conditioning unit on the sill, its grille facing out.
+                aw = 0.78
+                ax = rng.uniform(ox0 + 0.1, max(ox0 + 0.1, ox1 - aw - 0.1))
+                box(meshes["ac"], ax, ax + aw, -0.42, -0.02, oz0 + 0.01, oz0 + 0.55)
+                box(meshes["grille"], ax + 0.06, ax + aw - 0.24, -0.43, -0.41, oz0 + 0.07, oz0 + 0.49)
+            if rng.random() < style.get("balconies", 0.0):
+                # Balcony: a slab under the window and a bar railing in front of its lower part.
+                box(meshes["sill"], ox0 - 0.15, ox1 + 0.15, -1.25, 0.0, oz0 - 0.18, oz0)
+                for k in range(int((ox1 - ox0 + 0.3) / 0.13) + 1):
+                    x = ox0 - 0.15 + k * 0.13
+                    box(meshes["frame"], x, x + 0.025, -1.22, -1.19, oz0, oz0 + 1.0)
+                box(meshes["frame"], ox0 - 0.15, ox1 + 0.15, -1.24, -1.18, oz0 + 0.98, oz0 + 1.05)
             if 0 <= i < floors and 0 <= j < bays:
                 windows.append({"floor": i, "bay": j, "x": [ox0, ox1], "z": [oz0, oz1], "blind": blind})
     plane_y(meshes["interior"], -3 * bay, (bays + 3) * bay, RECESS + 3.0, -3 * floor, (floors + 3) * floor)
@@ -135,6 +161,10 @@ def wall_nodes(nt, style):
         course = floor / round(floor / 0.11)
         tex.offset = 0.0
         mortar_size, rough, strength = 0.004, 0.45, 0.35
+    elif kind == "panel":  # curtain wall: spandrel glass panels between aluminium caps
+        length, course = bay, floor / 2
+        tex.offset = 0.0
+        mortar_size, rough, strength = 0.03, 0.15, 0.2
     else:  # concrete: formwork panels, a joint every floor and every half bay
         length, course = bay / 2, floor
         tex.offset = 0.0
@@ -166,18 +196,22 @@ def material(name, kind, style, pass_name):
     emit = nt.nodes.new("ShaderNodeEmission")
     emit.inputs["Strength"].default_value = 1.0
     shader = emit.outputs[0]
-    glass_tint = {"glass": 1.0, "glass_b": 1.25, "glass_c": 0.8}
     flat = {"frame": (color(style["frame"]), 0.35), "sill": (color(style["sill"]), 0.75),
-            "blind": (color("blind_beige"), 0.9), "interior": (color("interior_dark"), 0.95)}
+            "blind": (color("blind_beige"), 0.9), "blind_b": (color("blind_white"), 0.9),
+            "curtain": (color("curtain_rose"), 0.95), "curtain_b": (color("curtain_grey"), 0.95),
+            "ac": (color("ac_grey"), 0.6), "grille": (color("ac_grille"), 0.7),
+            "interior": (color("interior_dark"), 0.95)}
     if kind == "wall":
         col, normal, rough = wall_nodes(nt, style)
-    elif kind in glass_tint:
-        col, normal, rough = color("glass_facade", glass_tint[kind]), None, 0.05
+    elif kind in GLASS_TINT:
+        base, t = color("glass_facade"), GLASS_TINT[kind]
+        col, normal, rough = (base[0] * t[0], base[1] * t[1], base[2] * t[2], 1.0), None, 0.05
     else:
         col, normal, rough = flat[kind][0], None, flat[kind][1]
     if normal is None:
         normal = nt.nodes.new("ShaderNodeNewGeometry").outputs["Normal"]
-    is_glass = kind in glass_tint
+    is_glass = kind in GLASS_TINT
+    is_blind = kind.startswith("blind") or kind.startswith("curtain")
 
     def value(v):
         emit.inputs["Color"].default_value = (v, v, v, 1.0)
@@ -208,7 +242,7 @@ def material(name, kind, style, pass_name):
     elif pass_name == "blind":
         if is_glass:
             shader = nt.nodes.new("ShaderNodeBsdfTransparent").outputs[0]
-        value(1.0 if kind == "blind" else 0.0)
+        value(1.0 if is_blind else 0.0)
     elif pass_name == "ao":
         ao = nt.nodes.new("ShaderNodeAmbientOcclusion")
         ao.samples = 16

@@ -72,8 +72,8 @@ const C = facade.cells;
 // edges on floor/bay lines; tools/textures/facade_grid.py) and
 // (floor height, bay width, wrap width, wrap height) in atlas UV units.
 const towerFacades = TOWER_BUNDLES.flatMap((b) => b.facades);
-/** Bundles the city picks from by seed (the baked bundle is on trial: inspect only). */
-const TOWER_CITY_BUNDLES = 3;
+/** Bundles the city picks from by seed: the three photo bundles and the baked one. */
+const TOWER_CITY_BUNDLES = 4;
 /** Texels across a tower bundle texture (tools/textures/import_highrise.py SIZE; KTX2 keeps it). */
 const ATLAS_SIZE = 2048;
 const TF_COUNT = towerFacades.length;

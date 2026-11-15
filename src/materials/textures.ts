@@ -6,8 +6,8 @@ import glassSky from '../../art/external/textures/glass_sky.json';
 import baked from '../../art/textures/facades/baked.json';
 
 /** Tower facade bundles, in the order the facade shader indexes them (bundle * 7 + facade).
- * `baked` is modelled and baked in Blender (npm run facades:bake); on trial, the city still
- * picks among the first three (TOWER_CITY_BUNDLES in facade.ts) and only ?inspect= shows it. */
+ * `baked` is modelled and baked in Blender (npm run facades:bake); the city picks among all four
+ * by seed (TOWER_CITY_BUNDLES in facade.ts). */
 export const TOWER_BUNDLES: { facades: TowerFacade[] }[] = [osaka, realGlass, glassSky, baked];
 
 /** What the facade shader reads of a tower facade (atlas UV units; grid in image space, y down). */

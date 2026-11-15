@@ -1741,3 +1741,23 @@ Images: `docs/progress/baked-facades/` (rows: os5 brick photo, bk0, bk4, re5, bk
   setbacks in the modules yet. Some room cards are bright and still bloom at night.
 - Not done: the city does not use the bundle (TOWER_CITY_BUNDLES = 3); `npm run perf` not run
   (one more 2048² layer per kind, ~5 MB compressed, ~16 MB GPU with mips).
+
+## Baked facades, round 2 and in the city (2026-11-15)
+
+Realism pass, then the bundle joined the city's rotation (TOWER_CITY_BUNDLES = 4: a quarter of the
+towers wear a baked facade). Images: `docs/progress/baked-facades-2/`.
+- Modelling: air-conditioning units on sills, balconies (slab and bar railing), six glass tints,
+  venetian blinds in two colours and side curtains in two; a curtain-wall style (reflective
+  spandrel glass between aluminium caps) and a tiled residential style with balconies replace the
+  two weakest styles. Packing: faint rooms behind unlit glass by day, repaired patches on the walls
+  (wrapping on the grid), room cards capped so white rooms do not bloom, residential cards for the
+  residential styles.
+- Works: at night the balconies' railings silhouette against lit rooms, blinds glow in slats,
+  the curtain wall reads as an office tower. In the city the baked towers sit among the photo ones
+  without standing out as CG; by day a brick and two tiled towers add colour the photo bundles lack.
+- Weak: the white tile styles are still a little pale by overcast day; the glass is reflective
+  everywhere (no clear-glass windows showing their rooms by day beyond the faint card); all seven
+  styles are mid-rise façades scaled up, no tower-specific details (setback terraces, crowns).
+Budgets: `npm run perf` (idle): canyon 9.8, storefront 9.4, aerial 10.5, harbor 8.1, fly-75 9.9 ms
+`fast`, 0 % late, GPU process 815-823 MB (was 803-811: +~12 MB for the fourth texture layer of each
+kind; gate 920). Draw calls and programs unchanged.

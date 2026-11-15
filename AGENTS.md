@@ -34,8 +34,8 @@ binary in `public/` is regenerated from them.
 - `npm run facades:bake [-- <style id>]` models the tower facade styles of
   `art/facades/baked.json` in Blender and renders their maps straight on (Cycles, ~1.5 min for 7),
   then packs `art/textures/facades/baked/` + `baked.json` (exact grids, nothing measured); then
-  `npm run textures`. On trial: only `?inspect=` shows it (facades 21-27), the city still uses the
-  photo bundles.
+  `npm run textures`. The city picks it for a quarter of its towers; `?inspect=` shows it as
+  facades 21-27.
 - `npm run inspect -- <asset id>` renders a contact sheet of one asset with the real facade
   shader, by day: every tower facade photo (rows) × cameras at its band junctions (columns), to
   `build/inspect/`. Options: `--overlay` (the shader's floor lines red, bay/cell lines cyan,

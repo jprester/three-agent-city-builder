@@ -76,9 +76,56 @@ def grime(rng, layout, style):
 
 
 def room_cards():
+    """Room cards by interiors set (office, residential, ...)."""
     spec = json.loads((ROOT / "art" / "textures" / "interiors" / "interiors.json").read_text())
     img = Image.open(ROOT / "art" / "textures" / "interiors" / "interiors.webp").convert("RGB")
-    return [img.crop(tuple(t)) for t in spec["sets"]["office"]["tiles"]]
+    return {name: [img.crop(tuple(t)) for t in s["tiles"]] for name, s in spec["sets"].items()}
+
+
+def fit_card(card, w, h):
+    """A room card cropped to a w x h window's aspect around its centre and resized (linear RGB),
+    its brightest 2 % at most 0.75 so a white room does not blow out under bloom."""
+    cw, chh = card.size
+    aspect = w / h
+    if cw / chh > aspect:
+        nw = int(chh * aspect)
+        card = card.crop(((cw - nw) // 2, 0, (cw - nw) // 2 + nw, chh))
+    else:
+        nh = int(cw / aspect)
+        card = card.crop((0, (chh - nh) // 2, cw, (chh - nh) // 2 + nh))
+    room = lin(np.asarray(card.resize((w, h), Image.LANCZOS), dtype=np.float32) / 255.0)
+    return room * min(1.0, 0.75 / max(float(np.percentile(room.mean(axis=2), 98)), 1e-3))
+
+
+def interiors_by_day(rng, layout, glass, blind, cards):
+    """What daylight shows through the glass of every window: the room, faint (linear RGB, added to
+    the albedo), not where a blind or curtain covers it."""
+    ch_, cw_ = layout["cell"][1], layout["cell"][0]
+    out = np.zeros((ch_, cw_, 3), dtype=np.float32)
+    for w in layout["windows"]:
+        x0, y0, x1, y1 = (int(round(v)) for v in w["px"])
+        if x1 - x0 < 2 or y1 - y0 < 2:
+            continue
+        out[y0:y1, x0:x1] = fit_card(cards[rng.integers(len(cards))], x1 - x0, y1 - y0) * rng.uniform(0.05, 0.12)
+    return out * glass[..., :1] * (1 - blind[..., :1])
+
+
+def patches(rng, layout, h, w):
+    """Repaired or re-pointed patches of wall: soft rectangles of slightly different tone, placed
+    on the grid so they wrap with it (a multiplier, 1 = untouched)."""
+    gx0, gy0, gx1, gy1 = layout["grid"]
+    gw, gh = int(round(gx1 - gx0)), int(round(gy1 - gy0))
+    tone = np.ones((gh, gw, 3), dtype=np.float32)
+    for _ in range(int(gw * gh / 9000) + 3):
+        pw, ph = int(rng.uniform(12, 60)), int(rng.uniform(10, 50))
+        px, py = rng.integers(gw), rng.integers(gh)
+        t = rng.uniform(0.86, 1.08) * np.array([1.0, rng.uniform(0.97, 1.02), rng.uniform(0.95, 1.03)])
+        ys = (np.arange(py, py + ph) % gh)[:, None]
+        xs = (np.arange(px, px + pw) % gw)[None, :]
+        tone[ys, xs] = tone[ys, xs] * t
+    ys = (np.arange(h) - int(round(gy0))) % gh
+    xs = (np.arange(w) - int(round(gx0))) % gw
+    return tone[ys[:, None], xs[None, :]]
 
 
 def emissive(rng, layout, glass, blind, cards):
@@ -92,17 +139,7 @@ def emissive(rng, layout, glass, blind, cards):
         x0, y0, x1, y1 = (int(round(v)) for v in w["px"])
         if x1 - x0 < 2 or y1 - y0 < 2:
             continue
-        card = cards[rng.integers(len(cards))]
-        # Crop the card to the window's aspect around its centre, then fit it.
-        cw, chh = card.size
-        aspect = (x1 - x0) / (y1 - y0)
-        if cw / chh > aspect:
-            nw = int(chh * aspect)
-            card = card.crop(((cw - nw) // 2, 0, (cw - nw) // 2 + nw, chh))
-        else:
-            nh = int(cw / aspect)
-            card = card.crop((0, (chh - nh) // 2, cw, (chh - nh) // 2 + nh))
-        room = lin(np.asarray(card.resize((x1 - x0, y1 - y0), Image.LANCZOS), dtype=np.float32) / 255.0)
+        room = fit_card(cards[rng.integers(len(cards))], x1 - x0, y1 - y0)
         tint = warm if rng.random() < 0.55 else cool
         # The shader lifts emission ~2x and bloom takes the rest: the rendered rooms are bright.
         gain = rng.uniform(0.4, 0.75)
@@ -122,12 +159,13 @@ def main(def_path, bake_dir, name="baked"):
     norm = np.zeros((SIZE, SIZE, 3), dtype=np.float32)
     norm[...] = (0.5, 0.5, 1.0)
     emit = np.zeros((SIZE, SIZE, 3), dtype=np.float32)
-    cards = room_cards()
+    sets = room_cards()
     facades = []
     for i, style in enumerate(cfg["styles"]):
         src = bake / style["id"]
         layout = json.loads((src / "layout.json").read_text())
         rng = np.random.default_rng(style["seed"])
+        cards = sets[style.get("rooms", "office")]
         cw_, ch_ = layout["cell"]
         x0, y0 = (i % 4) * 512 + 24, (i // 4) * 1024 + 24
         albedo = lin(load(src / "albedo.png"))
@@ -140,7 +178,10 @@ def main(def_path, bake_dir, name="baked"):
         tangent = np.stack([n[..., 0], n[..., 2], -n[..., 1]], axis=2)
 
         g = grime(rng, layout, style)[..., None]
-        diff[y0:y0 + ch_, x0:x0 + cw_, :3] = srgb(albedo * ao ** 0.8 * g)
+        wall = ((glass[..., :1] < 0.5) & (blind[..., :1] < 0.5)).astype(np.float32)
+        tone = 1.0 + (patches(rng, layout, ch_, cw_) - 1.0) * wall
+        base = albedo * tone + interiors_by_day(rng, layout, glass, blind, cards)
+        diff[y0:y0 + ch_, x0:x0 + cw_, :3] = srgb(base * ao ** 0.8 * g)
         diff[y0:y0 + ch_, x0:x0 + cw_, 3] = rough
         norm[y0:y0 + ch_, x0:x0 + cw_] = tangent * 0.5 + 0.5
         emit[y0:y0 + ch_, x0:x0 + cw_] = srgb(emissive(rng, layout, glass, blind, cards))
