@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { AssetLoader, hasAnyAssets, layoutUrl } from './assets/registry';
 import { createDebugGui } from './debug/gui';
+import { runInspect } from './debug/inspect';
 import { applyViewpoint } from './debug/viewpoints';
 import { createFacadeMaterial, createFacadeUniforms } from './materials/facade';
 import { loadFacadeTextures } from './materials/textures';
@@ -26,6 +27,7 @@ import type { FacadeLod } from './systems/buildings';
 import { buildInstances } from './systems/instancing';
 import type { VehicleMotion } from './systems/vehicles';
 import { nightAt } from './scene/night';
+import { applyDaylight, isLightName } from './scene/daylight';
 import { createCityAudio } from './systems/audio';
 import { fetchLayout, generateLayout, type Layout } from './systems/layout';
 import { isQualityName, QUALITY_PRESETS } from './systems/quality';
@@ -61,6 +63,8 @@ const REFLECTION_LOD_BIAS = 0.25;
 
 async function main() {
   const params = new URLSearchParams(location.search);
+  // ?inspect=<asset>: one asset under controlled light and cameras (src/debug/inspect.ts).
+  if (params.has('inspect')) return runInspect(params);
   const layoutId = params.get('layout') ?? 'city';
   // ?camera=walk without a viewpoint starts at the hero storefront, not the aerial anchor.
   const cameraParam = params.get('camera') ?? 'orbit';
@@ -71,8 +75,13 @@ async function main() {
   if (!isQualityName(qualityParam)) problems.push(`?quality= must be low, med or high, got "${qualityParam}"; using high.`);
   const quality = QUALITY_PRESETS[isQualityName(qualityParam) ? qualityParam : 'high'];
 
-  const gradeParam = params.get('grade') ?? 'filmic';
-  if (!isGradeName(gradeParam)) problems.push(`?grade= must be default or filmic, got "${gradeParam}"; using filmic.`);
+  // ?light=night|day. Day exists to read surfaces honestly (and as a look of its own).
+  const lightParam = params.get('light') ?? 'night';
+  if (!isLightName(lightParam)) problems.push(`?light= must be night or day, got "${lightParam}"; using night.`);
+  const day = lightParam === 'day';
+
+  const gradeParam = params.get('grade') ?? (day ? 'day' : 'filmic');
+  if (!isGradeName(gradeParam)) problems.push(`?grade= must be default, filmic or day, got "${gradeParam}"; using filmic.`);
   const grade = isGradeName(gradeParam) ? gradeParam : 'filmic';
 
   let frozenAt = parseFrozenTime(params.get('t'));
@@ -109,10 +118,13 @@ async function main() {
 
   // Shared inputs of the city's shaders: one clock, one seed, one street-light map.
   const scene = createScene(clock.uniform, layout);
+  if (day) applyDaylight(scene);
   const lamps = layout ? createLampMap(layout) : null;
   const facadeTextures = await loadFacadeTextures(renderer, Math.min(8, renderer.capabilities.getMaxAnisotropy()));
   const facadeUniforms = createFacadeUniforms(clock.uniform, layout?.seed ?? 0, facadeTextures);
   const groundUniforms = createGroundUniforms(facadeUniforms.uLampRect);
+  facadeUniforms.uDay.value = day ? 1 : 0;
+  groundUniforms.uDay.value = day ? 1 : 0;
   groundUniforms.uTime = clock.uniform;
   const reflection = new PlanarReflection(quality.reflectionScale);
   groundUniforms.uReflection.value = reflection.target.texture;
@@ -142,6 +154,8 @@ async function main() {
     uNeonV: { value: signArt.atlases[0] }, uNeonH: { value: signArt.atlases[1] },
     uPosterP: { value: signArt.atlases[2] }, uPosterL: { value: signArt.atlases[3] },
   };
+  // Signs stay lit by day, dimmer against it.
+  if (day) signUniforms.uSignGain.value = 0.6;
   if (layout) {
     const atlas = await loadSignAtlas();
     signUniforms.uAtlas.value = atlas.texture;
@@ -158,7 +172,7 @@ async function main() {
   }
   const streets = createStreets(layout, groundUniforms);
   scene.add(streets);
-  const rain = lamps && params.get('rain') !== '0'
+  const rain = lamps && params.get('rain') !== '0' && !day
     ? createRain({ count: quality.rainCount, time: clock.uniform, lampMap: lamps.texture, signMap, lampRect: lamps.rect })
     : null;
   if (rain) scene.add(rain);
@@ -185,10 +199,11 @@ async function main() {
   facadeUniforms.uGlassEnv.value = captureGlassEnvironment(renderer, scene, layout, [streets, ...(rain ? [rain] : [])]);
   facadeUniforms.uGlassOn.value = 1;
 
-  const haze = lamps ? new CityHazeEffect(camera, lamps.texture, signMap, lamps.rect, clock.uniform, quality.hazeSteps) : undefined;
+  const haze = lamps && !day ? new CityHazeEffect(camera, lamps.texture, signMap, lamps.rect, clock.uniform, quality.hazeSteps) : undefined;
   const post = createPost(renderer, scene, camera, quality, haze, grade);
   const size = renderer.getDrawingBufferSize(new THREE.Vector2());
   reflection.setSize(size.x, size.y);
+  if (day) post.bloom.intensity = 0.35;
   await post.ready;
   const debug = params.get('debug') === '1' ? await createDebugGui(renderer, scene, clock, { post, facade: facadeUniforms, ground: groundUniforms }) : null;
 
@@ -240,11 +255,15 @@ async function main() {
     if (rain) (rain.material as THREE.ShaderMaterial).uniforms.uViewportH.value = renderer.domElement.height;
     // Slow changes over the night: windows and shops switch off, rain comes in waves, fog breathes.
     const n = nightAt(now);
-    facadeUniforms.uNight.value = n.night;
-    groundUniforms.uRain.value = n.rain;
-    if (rain) (rain.material as THREE.ShaderMaterial).uniforms.uAmount.value = n.rain;
-    (scene.fog as THREE.FogExp2).density = FOG_DENSITY * n.fog;
-    audio.update({ time: now, camera, rain: n.rain, cars: groundUniforms.uCars.value });
+    if (!day) {
+      facadeUniforms.uNight.value = n.night;
+      groundUniforms.uRain.value = n.rain;
+      if (rain) (rain.material as THREE.ShaderMaterial).uniforms.uAmount.value = n.rain;
+      (scene.fog as THREE.FogExp2).density = FOG_DENSITY * n.fog;
+    } else {
+      groundUniforms.uRain.value = 0;
+    }
+    audio.update({ time: now, camera, rain: day ? 0 : n.rain, cars: groundUniforms.uCars.value });
     renderer.info.reset();
     // The reflection is half resolution and smeared: simplified buildings from 1/4 the distance.
     facadeLod?.update(camera, REFLECTION_LOD_BIAS * quality.lodDistanceScale, true);

@@ -1679,3 +1679,26 @@ the piers' middles.
 Weak: the bundles' ribbon facades (no column rhythm) still wrap at the grid's full width, so a
 corner can land mid-pane on those; ribbons hide it. glass_sky 6 includes a louvre panel at its
 right edge in that width.
+
+## Daylight and the inspect view (2026-11-15)
+
+Images: `docs/progress/daylight/` (every view by day), `docs/progress/inspect/` (sheets).
+
+Daylight (`?light=day`): works as a technical light and is a fair first look. Streets, the
+monorail platform and tower close-ups read cleanly; glass reflects the day sky (the startup
+captures run under day light); the harbor reflects the skyline; signs and screens stay lit,
+dimmer; street lamps are off; the road dries but keeps a faint sheen.
+Weak, if day becomes a look and not just a tool:
+- No shadows: form reads from the sun's direction only. Buildings look matte and a little flat.
+- The mainland hills and the water are flat grey-blue; hills need vegetation colour, water a
+  sky-reflecting surface.
+- Interiors behind photo windows are still the night's lit offices at 6 %; by day offices are
+  lit too, and the dimming reads as smoked glass on some towers.
+- Clouds are the night noise recoloured; a day sky wants higher, more structured cloud.
+
+Inspect: `npm run inspect -- buildings/tower_c --overlay --scale=0.75,1.3,0.75` renders all 21
+facade photos at the podium top, each tier's foot and top: red floor lines sit on spandrels, yellow
+band edges start each band, the podium's shop bays show as cyan cells. One command, ~3 s.
+
+Night: pixel-identical to before on canyon, aerial, tower-base, storefront. `npm run perf` not
+measured cleanly (another tab rendering: ~42 ms everywhere).

@@ -31,14 +31,23 @@ binary in `public/` is regenerated from them.
   GPU-compressed KTX2 in `public/textures/` (a few minutes the first time, then only what
   changed). `npm run dev`, `npm run build` and the Playwright runs call it first. The outputs
   are committed, like the GLBs.
-- `npm run dev` starts the app. URL params: `?layout=<id>`, `?viewpoint=<name>`,
+- `npm run inspect -- <asset id>` renders a contact sheet of one asset with the real facade
+  shader, by day: every tower facade photo (rows) × cameras at its band junctions (columns), to
+  `build/inspect/`. Options: `--overlay` (the shader's floor lines red, bay/cell lines cyan,
+  band edges yellow), `--night`, `--facades=0-6`, `--views=podium,tier1-foot`,
+  `--scale=0.75,1.3,0.75` (the layout's tower scale), `--tile=WxH`. Interactive:
+  `?inspect=<asset>` in the dev app (`[` `]` facade, `O` overlay, `V` view). Use it before and
+  after any facade or generator change; it reproduces what the city only shows by chance.
+- `npm run dev` starts the app. URL params: `?light=night|day` (day: sun, sky, dry streets,
+  painted night light off), `?layout=<id>`, `?viewpoint=<name>`,
   `?seed=<int>` (regenerates the layout in the browser with that seed), `?quality=` and
   `?grade=default|filmic` (the final colour grade; filmic is the default, `?grade=default`
   restores the earlier, shallower look).
 - `npm run shots` smoke test (~15 s, real GPU): loads 3 viewpoints, saves screenshots to
   `build/shots/`, fails only on browser errors, a blank frame, scene budgets or frame time.
   `npm run shots:all` (~1 min) covers every viewpoint; `SHOTS=canyon,glass` picks some;
-  `SWIFTSHADER=1` uses software WebGL on machines without a GPU. There are no pixel baselines.
+  `SWIFTSHADER=1` uses software WebGL on machines without a GPU; `LIGHT=day` shoots by day into
+  `build/shots/<layout>-day/`. There are no pixel baselines.
 - `npm run smoke` (~1 min, real GPU): every viewpoint, no screenshots — fails only on browser
   errors or scene budgets; `SMOKE=canyon,glass` picks some. The cheap gate; use `shots` when you
   actually need to look at a frame.

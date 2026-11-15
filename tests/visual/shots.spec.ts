@@ -9,6 +9,7 @@ import type { SceneStats } from '../../src/main';
  * the screenshots in build/shots/ are for looking at, not for diffing.
  *   SHOTS=all          every viewpoint in src/debug/viewpoints.json (default: SMOKE below)
  *   SHOTS=canyon,glass  just these
+ *   LIGHT=day           daylight (?light=day), into build/shots/<layout>-day/
  */
 const ALL: Viewpoint[] = JSON.parse(readFileSync('src/debug/viewpoints.json', 'utf8'));
 const SMOKE = ['canyon', 'aerial', 'skyline-hero'];
@@ -18,9 +19,10 @@ const BUDGET: { maxDrawCalls: number; maxTriangles: number; maxPrograms: number;
   JSON.parse(readFileSync('pipeline.config.json', 'utf8')).scene;
 
 const LAYOUT = process.env.LAYOUT ?? 'city';
+const LIGHT = process.env.LIGHT ?? 'night';
 /** Shots freeze the shared clock here, so animated scenes are comparable between runs. */
 const FROZEN_TIME = 12;
-const OUT_DIR = `build/shots/${LAYOUT}`;
+const OUT_DIR = `build/shots/${LAYOUT}${LIGHT === 'night' ? '' : `-${LIGHT}`}`;
 const INFO_FILE = `${OUT_DIR}/info.json`;
 
 type Shot = SceneStats & { frameMs: { avg: number; p95: number } };
@@ -51,7 +53,7 @@ for (const vp of VIEWPOINTS) {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
-    await page.goto(`/?layout=${LAYOUT}&viewpoint=${vp.name}&t=${FROZEN_TIME}&dynres=0`);
+    await page.goto(`/?layout=${LAYOUT}&viewpoint=${vp.name}&t=${FROZEN_TIME}&dynres=0&light=${LIGHT}`);
     await page.waitForFunction(() => window.__READY === true, undefined, { timeout: 90_000 });
 
     // Frame time over ~1.5 s of the running loop (a rough GPU-load signal, vsync-capped).

@@ -34,6 +34,12 @@ export interface FacadeUniforms {
   uLampRect: { value: THREE.Vector4 };
   /** Overall window emission multiplier (debug tuning). */
   uWindowGain: { value: number };
+  /** 1 by day (src/scene/daylight.ts): painted night light fades, walls get their albedo back. */
+  uDay: { value: number };
+  /** Inspect (?inspect=): force tower facade photo n (bundle * 7 + facade); -1 = by seed. */
+  uFacadePick: { value: number };
+  /** Inspect: 1 draws the shader's floor (red), bay / cell (cyan) and module (yellow) lines. */
+  uGridOverlay: { value: number };
   /** Tower bundles, one array layer each (src/materials/textures.ts). */
   uTowerDiff: { value: THREE.Texture | null };
   uTowerEmit: { value: THREE.Texture | null };
@@ -214,6 +220,9 @@ uniform float uNight;
 uniform sampler2D uLampMap;
 uniform vec4 uLampRect;
 uniform float uWindowGain;
+uniform float uDay;
+uniform int uFacadePick;
+uniform float uGridOverlay;
 uniform highp sampler2DArray uTowerDiff, uTowerEmit, uTowerNorm;
 uniform sampler2D uWalls;
 uniform sampler2D uInteriors;
@@ -662,6 +671,8 @@ vec2 fUv = vFacadeUv;
 vec2 fCellFit = fType == T_OFFICE ? CELL_OFFICE : fType == T_CURTAIN ? CELL_CURTAIN
               : (fType == T_RES || fType == T_CAGE) ? CELL_RES : fType == T_PODIUM ? CELL_PODIUM : vec2(0.0);
 if (fCellFit.x > 0.0) fUv *= fWholeFit(vFace, fCellFit);
+// Inspect overlay: grid coordinate in cells (x: bays or cells across, y: floors); -1 = none.
+vec2 fGridUv = fCellFit.x > 0.0 ? fUv / fCellFit : vec2(-1.0);
 vec2 fFw = max(fwidth(fUv), vec2(1e-4));
 float fSeed = vInstSeed;
 fNormalW = normalize(vFNormal);
@@ -726,6 +737,7 @@ if (fType == T_ATLAS) {
   // Photographic tower facade: bundle and facade per building, offset by whole bays/floors.
   int bundle = int(fract(fSeed * 3.17) * 3.0);
   int fi = bundle * 7 + int(fract(fSeed * 11.3) * 7.0);
+  if (uFacadePick >= 0) { fi = uFacadePick; bundle = fi / 7; }
   // R: the facade's grid (tools/textures/facade_grid.py), whose edges are floor lines (middle of
   // a spandrel) and bay lines (middle of a pier), holding whole floors and bays; Dm.zw its size.
   vec4 R = TF_RECT[fi];
@@ -739,6 +751,7 @@ if (fType == T_ATLAS) {
   vec2 L = fUv * fit * perM + vec2(floor(fract(fSeed * 5.1) * 9.0) * Dm.y, floor(fract(fSeed * 7.9) * 9.0) * Dm.x);
   vec2 Lw = mod(L, Dm.zw);
   vec2 auv = vec2(R.x + Lw.x, 1.0 - R.w + Lw.y);
+  fGridUv = vec2(hasBays ? L.x / Dm.y : -1.0, L.y / Dm.x);
   vec4 dr; vec3 em, nm;
   towerSample(bundle, auv, dFdx(L), dFdy(L), dr, em, nm);
   fBase = dr.rgb * 0.5;
@@ -1027,6 +1040,33 @@ fEmit += fBase * fSign * 0.6 * exp(-max(vFWorld.y - 14.0, 0.0) / 8.0) * smoothst
 
 if (fType != T_FIXTURE && fType != T_SCREEN) fEmit += fBase * fWallLight;
 fEmit *= fType == T_FIXTURE || fType == T_SOFFIT || fType == T_SCREEN || fType == T_DECK ? 1.0 : uWindowGain;
+// Daylight (src/scene/daylight.ts): the sun and sky light the city. The night's painted light
+// (street and sign spill, city bounce, sky rim) and most lit interiors fade; screens and fixtures
+// stay on, dimmer against the day; walls get back the albedo the night took (x0.3-0.6 above).
+if (uDay > 0.0) {
+  bool fLit = fType == T_FIXTURE || fType == T_SCREEN;
+  // Sodium fixtures are the street lamps: off by day.
+  bool fStreetLamp = fType == T_FIXTURE && fFill < 0.125 && fTint < 0.15;
+  fEmit *= mix(1.0, fStreetLamp ? 0.03 : fLit ? 0.45 : 0.06, uDay);
+  bool fWallType = fType == T_RES || fType == T_OFFICE || fType == T_CURTAIN || fType == T_PODIUM || fType == T_ROOF
+                || fType == T_TRIM || fType == T_CAGE || fType == T_ATLAS || fType == T_SOFFIT || fType == T_DECK;
+  fBase *= mix(1.0, fWallType ? 1.9 : 1.0, uDay);
+}
+// Inspect overlay: floor lines red, bay / cell lines cyan, the module's edges yellow, ~1.5 px.
+if (uGridOverlay > 0.5) {
+  vec3 fLine = vec3(0.0);
+  if (fGridUv.y > -0.5) {
+    vec2 g = abs(fract(fGridUv + 0.5) - 0.5) / max(fwidth(fGridUv), vec2(1e-5));
+    fLine += vec3(1.0, 0.1, 0.1) * (1.0 - smoothstep(0.75, 1.5, g.y));
+    if (fGridUv.x > -0.5) fLine += vec3(0.1, 0.9, 1.0) * (1.0 - smoothstep(0.75, 1.5, g.x));
+  }
+  if (vFace.y > 0.0) {
+    // Bottom and top of the module (the band whose whole floors the fit counts).
+    float mv = vFacadeUv.y / vFace.y, w = max(fwidth(mv), 1e-5);
+    fLine = mix(fLine, vec3(1.0, 0.85, 0.0), 1.0 - smoothstep(1.0, 2.0, min(abs(mv), abs(mv - 1.0)) / w));
+  }
+  fEmit = mix(fEmit, fLine * 2.0, step(0.01, dot(fLine, vec3(1.0))));
+}
 diffuseColor.rgb = fBase;
 `;
 
@@ -1049,7 +1089,7 @@ export function createFacadeMaterial(uniforms: FacadeUniforms): THREE.MeshStanda
       .replace('#include <normal_fragment_maps>', 'normal = normalize((viewMatrix * vec4(fNormalW, 0.0)).xyz);')
       .replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance = fEmit;');
   };
-  material.customProgramCacheKey = () => 'facade-v13';
+  material.customProgramCacheKey = () => 'facade-v14';
   return material;
 }
 
@@ -1062,6 +1102,9 @@ export function createFacadeUniforms(time: { value: number }, seed: number, text
     uLampMap: { value: null },
     uLampRect: { value: new THREE.Vector4(0, 0, 1, 1) },
     uWindowGain: { value: 1 },
+    uDay: { value: 0 },
+    uFacadePick: { value: -1 },
+    uGridOverlay: { value: 0 },
     uTowerDiff: { value: t?.diffuse ?? null },
     uTowerEmit: { value: t?.emissive ?? null },
     uTowerNorm: { value: t?.normal ?? null },

@@ -16,6 +16,8 @@ export interface GroundUniforms {
   uCars: { value: THREE.Vector4[] };
   /** Rain strength (src/scene/night.ts): puddle ripples follow it. */
   uRain: { value: number };
+  /** 1 by day (src/scene/daylight.ts): night light on the ground fades, the road dries. */
+  uDay: { value: number };
 }
 
 /** Vehicles whose headlights light the road (nearest to the camera; see src/systems/vehicles.ts). */
@@ -54,6 +56,7 @@ uniform sampler2D uSignMap;
 uniform float uTime;
 uniform vec4 uCars[${CAR_LIGHTS}];
 uniform float uRain;
+uniform float uDay;
 varying vec3 vGWorld;
 float gHash(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 float gNoise(vec2 p) {
@@ -65,12 +68,15 @@ float gPuddle = smoothstep(0.55, 0.66, gNoise(vGWorld.xz * 0.12) * 0.65 + gNoise
 // Far away the puddle pattern is sub-pixel: fade to its mean coverage instead of mottling.
 gPuddle = mix(gPuddle, 0.25, smoothstep(0.03, 0.15, length(fwidth(vGWorld.xz * 0.12))));
 ${water ? 'gPuddle = 1.0;' : ''}
-// Wet asphalt is darker, puddles darkest.
-diffuseColor.rgb *= mix(0.8, 0.45, gPuddle);
+// Wet asphalt is darker, puddles darkest (by day it has mostly dried).
+diffuseColor.rgb *= mix(mix(0.8, 0.45, gPuddle), 1.0, 0.6 * uDay);
 ${sprawl ? `diffuseColor.rgb = mix(diffuseColor.rgb, ${v3(new THREE.Color(palette.ridge))}, smoothstep(2.0, 35.0, vGWorld.y));` : ''}`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
 roughnessFactor = mix(roughnessFactor, 0.08, gPuddle);`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+// Everything below is night light (lamps, signs, wet reflections, car lights); by day a
+// quarter of it remains (src/scene/daylight.ts).
+vec3 gEmitBefore = totalEmissiveRadiance;
 float gLamp = texture2D(uLampMap, (vGWorld.xz - uLampRect.xy) * uLampRect.zw).r;
 totalEmissiveRadiance += diffuseColor.rgb * ${v3(sodium)} * gLamp * gLamp * ${(6 * pool).toFixed(2)};
 totalEmissiveRadiance += diffuseColor.rgb * texture2D(uSignMap, (vGWorld.xz - uLampRect.xy) * uLampRect.zw).rgb * ${(3 * pool).toFixed(2)};
@@ -140,7 +146,8 @@ gTail *= 1.0 - smoothstep(0.3, 2.0, vGWorld.y);
 totalEmissiveRadiance += diffuseColor.rgb * (vec3(1.0, 0.95, 0.85) * gHead * 7.0 + ${v3(signRed)} * gTail * 4.0) * ${pool.toFixed(2)};
 float gGlare = mix(0.25, 1.0, gPuddle) * (0.3 + 0.7 * gFresnel) * ${wet.toFixed(2)} * (1.0 - smoothstep(0.3, 2.0, vGWorld.y));
 totalEmissiveRadiance += (vec3(1.0, 0.95, 0.85) * gHeadGlare * 0.9 + ${v3(signRed)} * gTailGlare * 0.7) * gGlare;`}
-${sprawl ? SPRAWL : ''}`);
+${sprawl ? SPRAWL : ''}
+totalEmissiveRadiance = gEmitBefore + (totalEmissiveRadiance - gEmitBefore) * (1.0 - 0.75 * uDay);`);
   };
   material.customProgramCacheKey = () => `ground-${pool}-${wet}-${sprawl}-${water}`;
   return material;
@@ -157,6 +164,7 @@ export function createGroundUniforms(lampRect: { value: THREE.Vector4 }): Ground
     uTime: { value: 0 },
     uCars: { value: Array.from({ length: CAR_LIGHTS }, () => new THREE.Vector4()) },
     uRain: { value: 1 },
+    uDay: { value: 0 },
   };
 }
 

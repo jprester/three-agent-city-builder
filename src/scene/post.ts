@@ -51,7 +51,18 @@ const FILMIC_GRADE: GradeSettings = {
   highCurve: 0.92,
 };
 
-export const GRADE_PRESETS = { default: DEFAULT_GRADE, filmic: FILMIC_GRADE };
+/** Daylight (?light=day): a neutral curve, no night tints, so surfaces read as they are. */
+const DAY_GRADE: GradeSettings = {
+  exposure: 0.9,
+  saturation: 1.0,
+  contrast: 1.0,
+  highlightDesat: 0.05,
+  lift: 0.0,
+  shadowCurve: 1.0,
+  highCurve: 1.0,
+};
+
+export const GRADE_PRESETS = { default: DEFAULT_GRADE, filmic: FILMIC_GRADE, day: DAY_GRADE };
 export type GradeName = keyof typeof GRADE_PRESETS;
 export const isGradeName = (value: string): value is GradeName => value in GRADE_PRESETS;
 

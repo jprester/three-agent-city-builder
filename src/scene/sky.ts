@@ -36,6 +36,10 @@ export function createSky(fogColor: THREE.Color, time: { value: number }, layout
       uCloudGain: { value: 0.32 },
       // Lightning (src/scene/lightning.ts), set every frame by the scene's update.
       uFlash: { value: 0 },
+      // Day branch (src/scene/daylight.ts): a blue sky, white cloud, hazy ridges, the sun.
+      uDay: { value: 0 },
+      uSunDir: { value: new THREE.Vector3(0, 1, 0) },
+      uSunColor: { value: new THREE.Color(1, 1, 1) },
       uFlashDir: { value: new THREE.Vector2(1, 0) },
     },
     vertexShader: /* glsl */ `
@@ -52,6 +56,8 @@ export function createSky(fogColor: THREE.Color, time: { value: number }, layout
       uniform float uCloudGain;
       uniform float uFlash;
       uniform vec2 uFlashDir;
+      uniform float uDay;
+      uniform vec3 uSunDir, uSunColor;
       varying vec3 vDir;
       float hash(vec3 p) { p = fract(p * 0.1031); p += dot(p, p.yzx + 33.33); return fract((p.x + p.y) * p.z); }
       float noise(vec3 p) {
@@ -154,6 +160,15 @@ export function createSky(fogColor: THREE.Color, time: { value: number }, layout
           float lit = uFlash * (0.08 + 0.92 * toward * exp(-y * 1.5));
           col += vec3(0.72, 0.78, 1.0) * lit * (deck * 1.1 + edge * 3.0 + 0.12 * exp(-y * 2.5)) * 0.42;
         }
+        if (uDay > 0.5) {
+          // Day: zenith blue down to the haze, white cloud lit by the sun on its sunward side,
+          // a soft glow around the sun. The night's city glow and lightning do not apply.
+          col = mix(uHorizon, uZenith, smoothstep(0.0, 0.55, pow(y, 0.6)));
+          float sunward = 0.5 + 0.5 * dot(d, uSunDir);
+          vec3 cloudCol = mix(uHorizon * 0.92, vec3(1.0), 0.55 + 0.35 * sunward);
+          col = mix(col, cloudCol, deck * 0.75);
+          col += uSunColor * (pow(max(dot(d, uSunDir), 0.0), 600.0) * 6.0 + pow(max(dot(d, uSunDir), 0.0), 8.0) * 0.25);
+        }
         if (d.y < 0.0) col = uHorizon;
         // Ridges: silhouettes against the lit cloud, the far one hazier, both lifted toward the
         // haze at their foot (the city's light in the air in front of them).
@@ -164,7 +179,7 @@ export function createSky(fogColor: THREE.Color, time: { value: number }, layout
         vec2 rh = abs(e) < 0.13 ? ridges(atan(d.z, d.x)) : vec2(0.0);
         float farM = (1.0 - smoothstep(rh.y - aa, rh.y + aa, e)) * step(0.0, e);
         float nearM = (1.0 - smoothstep(rh.x - aa, rh.x + aa, e)) * step(0.0, e);
-        vec3 foot = mix(uHorizon, uCloudGlow * 0.35, 0.35);
+        vec3 foot = mix(uHorizon, uCloudGlow * 0.35, 0.35 * (1.0 - uDay));
         // max(e, 0): below the horizon exp(-e * k) overflows to infinity, and infinity * 0 in the
         // masked mix below is NaN.
         float ep = max(e, 0.0);
@@ -176,9 +191,9 @@ export function createSky(fogColor: THREE.Color, time: { value: number }, layout
         farCol = mix(uHorizon, farCol, aboveFog);
         nearCol = mix(uHorizon, nearCol, aboveFog);
         col = mix(col, farCol, farM);
-        col += distantLights(d, 0.004 + rh.y * 0.32, 0.0);
+        col += distantLights(d, 0.004 + rh.y * 0.32, 0.0) * (1.0 - uDay);
         col = mix(col, nearCol, nearM);
-        col += distantLights(d, 0.002 + rh.x * 0.22, 1.0);
+        col += distantLights(d, 0.002 + rh.x * 0.22, 1.0) * (1.0 - uDay);
         gl_FragColor = vec4(col, 1.0);
         #include <colorspace_fragment>
       }`,

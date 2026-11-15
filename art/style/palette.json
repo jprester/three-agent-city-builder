@@ -47,5 +47,10 @@
   "warm_interior": "#FFC98A",
   "neon_amber": "#FFB347",
   "neon_cyan": "#3DE0E8",
-  "neon_magenta": "#FF3B30"
+  "neon_magenta": "#FF3B30",
+  "day_zenith": "#5E86B8",
+  "day_horizon": "#C9D3DC",
+  "day_sun": "#FFF2DD",
+  "day_ridge": "#7F8E9C",
+  "day_bounce": "#8C857A"
 }

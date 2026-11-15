@@ -101,7 +101,8 @@ def generate(ctx):
                              ctx.p("crane_height", 22.0), ctx.p("crane_jib", 34.0), ctx.p("crane_angle", 0.6)))
     mb.finish()
     # base: top of the office base (storefront zone below it) for the layout's sign zones.
-    ctx.meta.update(footprint=[W, D], height=top, family="tower", scalable=ctx.p("scalable", True), shader="facade", tiers=tier_meta, base=base_top,
+    # podium: top of the street-level shops, where a flush first tier's photo band starts.
+    ctx.meta.update(footprint=[W, D], height=top, family="tower", scalable=ctx.p("scalable", True), shader="facade", tiers=tier_meta, base=base_top, podium=ph,
                     screen=bool(ctx.p("screen", 0)), landmark=bool(ctx.p("landmark", False)),
                     crownSigns=bool(ctx.p("crown_signs", True)))
 

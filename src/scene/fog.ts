@@ -42,7 +42,10 @@ export function installHeightFog() {
     float b = ${FOG_FALLOFF.toFixed(6)};
     float k = rd.y * b;
     float optical = density * exp(-max(cameraPosition.y, 0.0) * b) * (abs(k) < 1e-5 ? t : (1.0 - exp(-t * k)) / k);
-    return 1.0 - exp(-optical - t * ${FOG_FLOOR.toFixed(6)});
+    // The floor haze is the night's; a thinner day fog (density under 0.001: daylight.ts)
+    // thins it in proportion. Night densities (0.0013-0.0019) keep it exactly.
+    float floorK = density >= 0.001 ? 1.0 : density / 0.0016;
+    return 1.0 - exp(-optical - t * ${FOG_FLOOR.toFixed(6)} * floorK);
   }
 #endif`;
   THREE.ShaderChunk.fog_fragment = /* glsl */ `
