@@ -1,3 +1,37 @@
+# Checkpoint B — the monorail (2026-11-15)
+
+Brief: `docs/PERF-MONORAIL-PLAN.md`, Part B. Critique: `docs/NOTES.md`. Choices: `docs/DECISIONS.md`.
+
+Look at first (`docs/progress/monorail/`, or `npm run dev` then `?viewpoint=`):
+`monorail-platform` (train standing at t = 12), `monorail-line` (station and line toward the
+towers), `monorail-under` (pier, girders, a train arriving). `glass` and `glass-before` show
+the only pre-existing view that changed.
+
+| | Before (A) | After | Limit |
+|---|---|---|---|
+| Draw calls, worst view | 230 | 234 (`monorail-platform`) | +8, 250 total |
+| Extra draw calls per view | — | +2 to +6 | 8 |
+| Extra triangles per view | — | +35k to +42k | 80k |
+| Shader programs | 25 | 25 | no new program |
+| GPU process memory | 784–797 MB | 795–828 MB | 920 |
+| GPU frame time | see A | **not measured** | — |
+
+Frame time: the perf runs ran with the machine locked or asleep and read 44–60 ms in every view,
+3–5x slower than A, including views where the monorail is nowhere in sight. The one run
+that looked normal read canyon 14.1, storefront 10.8, aerial 11.9, harbor 8.0 ms (`fast`). Please
+run `npm run perf` on an awake, idle machine before accepting.
+
+How it is built:
+- Layout: `art/layouts/lib/monorail.mjs`, run last in `art/layouts/city.mjs`. The rest of the city
+  is identical apart from what the line displaces (this seed: 4 lamps, 12 props, 3 signals, 5 signs).
+- Assets: `art/generators/props/monorail.py` (13 pieces) and `art/generators/vehicles/monorail_car.py`
+  (end car 968 tris, middle 568), all within the props and vehicles budgets.
+- Runtime: static pieces as one merged draw; cars in the vehicle batch, moved by `trainCars()`.
+- Tests: `tests/unit/monorail.test.ts` (straight route, piers clear of junctions, station on
+  sidewalks, nothing in the envelope, flythrough clear, timetable pure and in range), 3 seeds.
+
+Open: frame time; the nose and the station name (NOTES); rain under the roof.
+
 # Checkpoint A — main app performance (2026-11-14)
 
 Brief: `docs/PERF-MONORAIL-PLAN.md`, Part A. Detail: `docs/NOTES.md` (A0–A5).

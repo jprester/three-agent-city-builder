@@ -76,6 +76,9 @@ export async function buildInstances(layout: Layout, loader: AssetLoader, facade
   }
   const mergedProps = await buildMergedStatic(merged, loader, facadeMaterial);
   if (mergedProps) group.add(mergedProps);
+  // The monorail's piers, girders and station: one more merged draw (about 25k triangles).
+  const monorail = await buildMergedStatic((layout.monorail?.parts ?? []).filter((p) => getAsset(p.asset)), loader, facadeMaterial, 'monorail');
+  if (monorail) group.add(monorail);
 
   await Promise.all(
     [...byAsset].map(async ([id, list]) => {

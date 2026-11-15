@@ -1,0 +1,5 @@
+{
+  "generator": "props/monorail",
+  "seed": 1,
+  "params": { "piece": "screens", "side": -1 }
+}

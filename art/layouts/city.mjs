@@ -18,6 +18,7 @@ import { parkedVehicles } from './lib/outskirts.mjs';
 import { buildIsland } from './lib/island.mjs';
 import { buildFlythrough, buildSkyLanes, instanceBox, liftClear, sampleFlythrough } from './lib/paths.mjs';
 import { buildBridges } from './lib/bridges.mjs';
+import { buildMonorail, hitsEnvelope, hitsGround } from './lib/monorail.mjs';
 import { placeProps, plantParks } from './lib/street.mjs';
 import { centroidOf, globToRegex, r3 } from './lib/util.mjs';
 import { mulberry32, weightedChoice } from './lib/rng.mjs';
@@ -66,6 +67,8 @@ const DEFAULTS = {
     terrain: { plain: 1.4, start: 40, rise: 1100, height: 220 },
   },
   landmarks: { count: 3, spacing: 80 },
+  // Suspended monorail down one arterial (lib/monorail.mjs, MONORAIL_DEFAULTS); {} = defaults.
+  monorail: {},
   // Pedestrians: a loop down the middle of each downtown block's sidewalk (`inset` × the
   // edge's sidewalk width from the curb), one walker per `spacing` meters by district.
   walkers: { inset: 0.5, spacing: { core: 5, towers: 8 } },
@@ -126,7 +129,7 @@ const EDGE_PRIORITY = { hero: 0, arterial: 1, secondary: 2, edge: 3, alley: 4 };
 export function generate({ params, seed, assets = {}, art = [], designs = [] }) {
   const P = { ...DEFAULTS, ...params };
   // Nested option groups merge with their defaults instead of replacing them.
-  for (const k of ['roads', 'sidewalks', 'lampSpacing', 'flythrough', 'signs', 'bridges', 'props', 'fringe', 'landmarks', 'parking', 'island', 'walkers']) P[k] = { ...DEFAULTS[k], ...(params[k] ?? {}) };
+  for (const k of ['roads', 'sidewalks', 'lampSpacing', 'flythrough', 'signs', 'bridges', 'props', 'fringe', 'landmarks', 'parking', 'island', 'walkers', 'monorail']) P[k] = { ...DEFAULTS[k], ...(params[k] ?? {}) };
   const D = {};
   for (const k of Object.keys(DISTRICT_DEFAULTS)) D[k] = { ...DISTRICT_DEFAULTS[k], ...(params.districts?.[k] ?? {}) };
   const rng = mulberry32(seed);
@@ -790,6 +793,25 @@ export function generate({ params, seed, assets = {}, art = [], designs = [] }) 
     if (cfg) streetSigns(inst, instances.length + index, cfg, false, inst.scale);
   });
 
+  // ---- monorail (after everything that draws random numbers, so the city comes out the same):
+  // the line, its station and pieces, then whatever stands in its way is removed.
+  const monorail = buildMonorail(P.monorail, roads, blocks, districtAt, P.towers.center, assets);
+  if (monorail) {
+    const fp = (i) => i.fp ?? (assets[i.asset]?.meta?.footprint ?? [1, 1]).map((v) => v / 2);
+    const onGround = (i) => hitsGround(monorail, i.position[0], i.position[2], i.rotationY, ...fp(i));
+    const drop = (list, hit) => { const keep = list.filter((x) => !hit(x)); list.length = 0; list.push(...keep); };
+    drop(lamps, ([x, z]) => hitsGround(monorail, x, z, 0, 0.4, 0.4));
+    drop(props, onGround);
+    drop(trees, onGround);
+    drop(parked, onGround);
+    drop(signals, ([x, z]) => hitsGround(monorail, x, z, 0, 0.3, 0.3));
+    drop(signs, (s) => hitsEnvelope(monorail, s.position, s.rotationY, [s.size[0] + 2 * (s.arm ?? 0) + 0.3, s.size[1] + (s.legs ?? 0) * 2, s.size[2] + 0.3]));
+    drop(bridges, (b) => {
+      const d = G.sub(b.b, b.a), c = G.lerp(b.a, b.b, 0.5);
+      return hitsEnvelope(monorail, [c[0], b.y + b.depth / 2, c[1]], Math.atan2(-d[1], d[0]), [G.len(d), b.depth, b.width]);
+    });
+  }
+
 
   // ---- anchors: named frames for viewpoints ({ origin, x }: x is the frame's forward axis on the ground)
   const coreCenter = centroidOf(blocks.filter((b) => b.district === 'core').map((b) => G.centroid(b.pts))) ?? [0, 0];
@@ -801,6 +823,10 @@ export function generate({ params, seed, assets = {}, art = [], designs = [] }) 
     towers: { origin: [P.towers.center[0], 0, P.towers.center[1]], x: G.norm(G.sub(P.towers.center, coreCenter)).map(r3) },
     port: { origin: [portOrigin[0], 0, portOrigin[1]], x: G.norm(G.sub(P.towers.center, portOrigin)).map(r3) },
   };
+  if (monorail) {
+    const st = G.add(monorail.origin, G.mul(monorail.dir, monorail.station.s));
+    anchors.monorail = { origin: [r3(st[0]), 0, r3(st[1])], x: monorail.dir.map((c) => r3(c * monorail.station.flip)) };
+  }
   if (parked.length) anchors.delivery = { origin: parked[0].position, x: [Math.sin(parked[0].rotationY), Math.cos(parked[0].rotationY)] };
 
   return {
@@ -827,5 +853,6 @@ export function generate({ params, seed, assets = {}, art = [], designs = [] }) 
     signals,
     walkways,
     skyLanes,
+    monorail,
   };
 }

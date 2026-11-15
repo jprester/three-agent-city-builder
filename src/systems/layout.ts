@@ -120,8 +120,34 @@ export interface Layout {
   /** Enclosed bridges: centerline a→b on the ground plane, floor at y, `depth` tall. */
   bridges?: { kind: 'sky' | 'foot'; a: Vec2; b: Vec2; y: number; width: number; depth: number }[];
   anchors?: Record<string, LayoutAnchor>;
+  /** Suspended monorail (art/layouts/lib/monorail.mjs): static pieces, lamp-map lights, timetable. */
+  monorail?: Monorail | null;
   /** Camera path for the cinematic flythrough; `look` holds a look-at target per control point. */
   flythrough?: { points: Vec3[]; look?: Vec3[]; closed?: boolean };
+}
+
+/** The monorail as the layout writes it (art/layouts/lib/monorail.mjs buildMonorail). */
+export interface Monorail {
+  road: number;
+  /** Route start (x, z), unit direction and the rotationY that turns +x along it. */
+  origin: Vec2; dir: Vec2; angle: number; length: number;
+  beamY: number; floorY: number; roofY: number; trackV: number;
+  piers: number[];
+  medians: [number, number][];
+  station: { s: number; flip: number; length: number; legs: number[]; platform: [number, number]; deckY: number; deckV: [number, number]; legV: number };
+  /** Static pieces, drawn as one merged facade-shaded mesh. */
+  parts: LayoutInstance[];
+  /** Lamp-map contributions: [x, z, radius, strength]. */
+  lights: [number, number, number, number][];
+  envelope: { s: [number, number]; v: [number, number]; y: [number, number] }[];
+  ground: { s: [number, number]; v: [number, number] }[];
+  trains: {
+    ends: [number, number];
+    car: { length: number; gap: number; count: number; nose: number; halfWidth: number };
+    cruise: number; accel: number; dwell: number; turn: number; frozenStop: number;
+    /** Car assets of one train, first to last. */
+    assets: string[];
+  };
 }
 
 export async function fetchLayout(url: string): Promise<Layout> {

@@ -187,7 +187,7 @@ export async function buildFacadeBatch(
  * per-instance culling (~120k triangles always submitted) and one shared instance seed (the
  * seed-driven tint varies by position only through the world-space noise).
  */
-export async function buildMergedStatic(instances: LayoutInstance[], loader: AssetLoader, material: THREE.Material): Promise<THREE.InstancedMesh | null> {
+export async function buildMergedStatic(instances: LayoutInstance[], loader: AssetLoader, material: THREE.Material, name = 'merged-props'): Promise<THREE.InstancedMesh | null> {
   if (!instances.length) return null;
   const ids = [...new Set(instances.map((i) => i.asset))];
   const geometries = new Map<string, THREE.BufferGeometry>();
@@ -198,7 +198,7 @@ export async function buildMergedStatic(instances: LayoutInstance[], loader: Ass
   merged.computeBoundingSphere();
   const mesh = new THREE.InstancedMesh(merged, material, 1);
   mesh.setMatrixAt(0, new THREE.Matrix4());
-  mesh.name = 'merged-props';
+  mesh.name = name;
   return mesh;
 }
 

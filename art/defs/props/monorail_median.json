@@ -1,0 +1,5 @@
+{
+  "generator": "props/monorail",
+  "seed": 1,
+  "params": { "piece": "median", "width": 2.4, "height": 0.18 }
+}

@@ -1,0 +1,5 @@
+{
+  "generator": "props/monorail",
+  "seed": 1,
+  "params": { "piece": "girder", "span": 30.0, "rib_every": 7.5 }
+}

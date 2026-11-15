@@ -1442,3 +1442,33 @@ no late frames in any view. Draw calls and triangles are unchanged (max 230 of 2
   (aerial 10 or 17 ms, harbor 8 or 12 ms) and none arrive late, which fits the GPU clocking
   down when it has slack. So the brief's "p95 under 14 ms" cannot be judged with a timer query;
   the test now reports the full-clock cost (`fast`: 8.0–13.7 ms) and late frames (0 %).
+
+## Monorail, Part B (2026-11-15)
+
+Brief: `docs/PERF-MONORAIL-PLAN.md` Part B. Images: `docs/progress/monorail/`.
+
+What exists: a 534 m line of 18 T-piers on a raised median down road 1, twin box girders with
+ribs, cable tray, walkway rail and a cyan light line underneath; a station at s = 129 m with
+side platforms, platform screen doors aligned to the car doors, a roof on five portal frames,
+a deck over the north sidewalk, open stairs to both platforms; two three-car trains that
+shuttle between the end piers and stop at the station (train 0 stands there at t = 12).
+
+Harsh critique:
+- **Nose.** Better than the slice's block, still the weakest part. The glazed mask is one flat
+  black: no cab, no reflection, no wiper or frame line. From the platform it reads as a hole.
+- **Car hull** reads warm beige, not white: the scene's light is sodium. Correct for the light,
+  but the cars lose the "clean white machine" contrast with the grimy street.
+- **Girders** are near-black from the street except their light line; ribs and joints barely show.
+- **Station from the street** (`monorail-line`) reads well: portal, roof soffit tubes, stairs.
+  From above (aerial) the line is close to invisible: no roof-level light marks it.
+- **No station name.** Boards are lit blanks; the sign system could put real text on them.
+- **Deck** butts against shop fronts with nothing on it; it needs people and a sign or two.
+- **Rain falls through the station roof**: the rain is a camera-relative box with no occluders
+  (`src/scene/rain.ts`). Left as the brief says.
+- **Walkers** pass close to stair stringers (0.3 m) but do not intersect them; nobody uses the stairs.
+- **`glass` viewpoint** now has the girder across its upper left: it stands under the line's
+  east end. Every other pre-existing view is pixel-identical (mean diff ≤ 0.02/255).
+
+Budgets (shots, 1280×720): +2 to +6 draw calls per view (limit 8), worst 234 of 250 on
+`monorail-platform`; +35k to +42k triangles (limit 80k); programs 25 (unchanged). GPU process
+795–828 MB (gate 920). Frame time not measured: see CHECKPOINT.md.

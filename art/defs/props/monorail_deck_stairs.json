@@ -1,0 +1,5 @@
+{
+  "generator": "props/monorail",
+  "seed": 1,
+  "params": { "piece": "deck_stairs", "width": 1.3, "deck_bays": 2 }
+}

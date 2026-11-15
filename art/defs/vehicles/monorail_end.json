@@ -1,0 +1,5 @@
+{
+  "generator": "vehicles/monorail_car",
+  "seed": 11,
+  "params": { "end": true }
+}

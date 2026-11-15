@@ -48,6 +48,17 @@ export function createLampMap(layout: Layout): LampMap {
     g.fillStyle = grad;
     g.fillRect(cx - r, cz - r, 2 * r, 2 * r);
   }
+  // Monorail: the light line under each girder, the pier collars, the station's platform
+  // tubes and the deck's underside (art/layouts/lib/monorail.mjs), as softer pools.
+  for (const [x, z, radius, strength] of layout.monorail?.lights ?? []) {
+    const cx = (x - minX) * scale, cz = (z - minZ) * scale, r = radius * scale;
+    const grad = g.createRadialGradient(cx, cz, 0, cx, cz, r);
+    grad.addColorStop(0, `rgba(255,255,255,${strength})`);
+    grad.addColorStop(0.45, `rgba(255,255,255,${(strength * 0.45).toFixed(3)})`);
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = grad;
+    g.fillRect(cx - r, cz - r, 2 * r, 2 * r);
+  }
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.NoColorSpace;
   texture.flipY = false;

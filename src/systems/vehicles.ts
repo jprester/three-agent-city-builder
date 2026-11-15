@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mulberry32, weightedChoice } from '../../art/layouts/lib/rng.mjs';
 import { createTrafficSim, trafficPose } from '../../art/layouts/lib/traffic.mjs';
+import { trainCars } from '../../art/layouts/lib/monorail.mjs';
 import type { Layout } from './layout';
 import type { DynamicInstances } from './buildings';
 
@@ -45,8 +46,11 @@ export function planVehicles(layout: Layout, density: number) {
       paints: Array.from({ length: count }, () => 0.001 + 0.998 * wrng()),
     };
   });
-  const assets = [...ground.flatMap((g) => g.assets), ...sky.flatMap((s) => s.assets), ...walk.flatMap((w) => w.assets)];
-  return { ground, sky, walk, assets };
+  // Monorail trains: one per girder, at full strength on every quality preset.
+  const monorail = layout.monorail ?? null;
+  const trains = monorail ? [0, 1].map((k) => ({ k, assets: monorail.trains.assets })) : [];
+  const assets = [...ground.flatMap((g) => g.assets), ...sky.flatMap((s) => s.assets), ...walk.flatMap((w) => w.assets), ...trains.flatMap((t) => t.assets)];
+  return { ground, sky, walk, monorail, trains, assets };
 }
 
 /**
@@ -97,6 +101,14 @@ export function createVehicleMotion(batch: DynamicInstances, ids: number[], plan
           pos.set(p.x, 0.15 + 0.035 * Math.abs(Math.sin(time * w.speeds[i] * 2.8 + i * 1.7)), p.z);
           q.setFromAxisAngle(up, p.angle + (w.dirs[i] < 0 ? Math.PI : 0));
           batch.setMatrixAt(ids[k++], m.compose(pos, q, scale.set(1, 1 + w.paints[i] / 64, 1)));
+        }
+      }
+      // Monorail cars: a pure function of time (art/layouts/lib/monorail.mjs trainAt).
+      for (const t of plan.trains) {
+        for (const [x, y, z, angle] of trainCars(plan.monorail!, t.k, time)) {
+          pos.set(x, y, z);
+          q.setFromAxisAngle(up, angle);
+          batch.setMatrixAt(ids[k++], m.compose(pos, q, scale.setScalar(1)));
         }
       }
     },

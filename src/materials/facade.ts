@@ -140,6 +140,7 @@ const vec3 P_PAINT[4] = vec3[4](${glslColor('paint_mint')}, ${glslColor('paint_s
 // random choice toward the white / black / grey / silver of a real street.
 const vec3 P_CAR[12] = vec3[12](${glslColor('car_white')}, ${glslColor('car_black')}, ${glslColor('car_grey')}, ${glslColor('car_silver')}, ${glslColor('car_navy')}, ${glslColor('car_red')}, ${glslColor('car_green')}, ${glslColor('car_beige')}, ${glslColor('car_yellow')}, ${glslColor('car_orange')}, ${glslColor('paint_mint')}, ${glslColor('paint_blue')});
 const int CAR_PICK[16] = int[16](0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 7, 11, 10);
+const vec3 P_INTERIOR[4] = vec3[4](${glslColor('interior_white')}, ${glslColor('interior_fabric')}, ${glslColor('interior_carpet')}, ${glslColor('interior_wood')});
 const vec3 P_CLAD[3] = vec3[3](${glslColor('clad_terracotta')}, ${glslColor('clad_cream')}, ${glslColor('clad_charcoal')});
 const vec4 TF_RECT[${TF_COUNT}] = vec4[${TF_COUNT}](
   ${TF_RECT});
@@ -843,6 +844,13 @@ if (fType == T_ATLAS) {
     int pick = fFill < 0.25 ? CAR_PICK[min(int(vInstPaint * 16.0), 15)] : min(int(fTint * 12.0), 11);
     fBase = P_CAR[pick] * roadDirt * mix(0.9, 1.0, fNoise(fUv * 6.0));
     fRough = 0.32; fMetal = 0.25;
+  } else if (fFill > 0.05 && fFill < 0.15) {
+    // Fill 0.1: a lit interior surface (monorail cars and station fittings). Tint packs the
+    // finish (integer part of tint * 4: white panel, fabric, carpet, wood) and its glow (fraction).
+    float k = fTint * 4.0;
+    vec3 ic = P_INTERIOR[min(int(k), 3)];
+    fBase = ic * 0.25; fRough = 0.8; fMetal = 0.0;
+    fEmit = ic * fract(k);
   } else if (fFill > 0.35 && fFill < 0.65) {
     fBase = P_GLASS; fRough = 0.12; fMetal = 0.65;
   } else if (fFill > 0.65) {
