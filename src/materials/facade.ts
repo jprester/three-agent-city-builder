@@ -72,6 +72,8 @@ const C = facade.cells;
 // edges on floor/bay lines; tools/textures/facade_grid.py) and
 // (floor height, bay width, wrap width, wrap height) in atlas UV units.
 const towerFacades = TOWER_BUNDLES.flatMap((b) => b.facades);
+/** Texels across a tower bundle texture (tools/textures/import_highrise.py SIZE; KTX2 keeps it). */
+const ATLAS_SIZE = 2048;
 const TF_COUNT = towerFacades.length;
 const TF_RECT = towerFacades.map((t) => `vec4(${t.grid.map(f).join(', ')})`).join(',\n  ');
 // A ribbon facade (no column rhythm) stores its bay negated: the shader fits no bays across it.
@@ -784,14 +786,25 @@ if (fType == T_ATLAS) {
   floorLit *= mix(group, 0.78, smoothstep(0.35, 0.9, fFw.y / floorM));
   fEmit = em * 2.1 * floorLit * bayVar;
   // Spill: the emissive map blurred over ~a bay lights the frames and spandrels around windows.
-  vec4 drB; vec3 emB, nmB;
-  towerSample(bundle, auv, dFdx(L) + vec2(Dm.y * 0.8, 0.0), dFdy(L) + vec2(0.0, Dm.x * 0.8), drB, emB, nmB);
+  // One isotropic lookup in a mip about a bay across (never finer than the pixel's own): a
+  // gradient footprint that long and thin made the anisotropic filter take a few discrete taps
+  // along it instead of blurring, which left shifted copies of the lit rooms (ghost outlines,
+  // light below the sill) on spandrels and dark panes.
+  float spillTexels = 0.8 * max(Dm.y, Dm.x) * ${ATLAS_SIZE}.0;
+  float pixelTexels = max(length(dFdx(L)), length(dFdy(L))) * ${ATLAS_SIZE}.0;
+  vec3 emB = textureLod(uTowerEmit, vec3(auv, float(bundle)), log2(max(spillTexels, pixelTexels))).rgb;
   fWallLight += emB * floorLit * 0.6;
   vec3 n = nm * 2.0 - 1.0;
-  fNormalW = normalize(fT * n.x + fB * n.y + normalize(vFNormal) * max(n.z, 0.2));
+  // At a third of the map's strength: the generated normal maps model frames and sills, but also
+  // carry the interiors' outlines as bumps, which lit as pale blobs on dark panes.
+  fNormalW = normalize((fT * n.x + fB * n.y) * 0.35 + normalize(vFNormal) * max(n.z, 0.2));
   // Glass reflects the city, rippled by the pane normals (see glassReflection).
   float glassAmt = 1.0 - smoothstep(0.3, 0.6, dr.a);
-  fRefl = glassAmt * glassReflection(fV, fNormalW, fVt.z, fRough, fEmit, 0.18, vFWorld, 0.0);
+  // The reflection takes only a hint of the photo's normal map: the generated maps carry the
+  // interior's outlines (desks, people) as bumps, and a fully rippled reflection drew them as
+  // ghost contours on dark panes.
+  vec3 fReflN = normalize(mix(normalize(vFNormal), fNormalW, 0.2));
+  fRefl = glassAmt * glassReflection(fV, fReflN, fVt.z, fRough, fEmit, 0.18, vFWorld, 0.0);
   fEmit += fRefl;
 } else if (fType == T_RES || fType == T_OFFICE || fType == T_CURTAIN || fType == T_CAGE) {
   vec3 wEmit, filteredEmit, avgEmit, wSpill, wAvgSpill; float wMask, wFrame, wFrac, wAround, filteredMask;
@@ -1099,7 +1112,7 @@ export function createFacadeMaterial(uniforms: FacadeUniforms): THREE.MeshStanda
       .replace('#include <normal_fragment_maps>', 'normal = normalize((viewMatrix * vec4(fNormalW, 0.0)).xyz);')
       .replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance = fEmit;');
   };
-  material.customProgramCacheKey = () => 'facade-v15';
+  material.customProgramCacheKey = () => 'facade-v18';
   return material;
 }
 

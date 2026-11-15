@@ -73,6 +73,9 @@ binary in `public/` is regenerated from them.
   measurement. Floor periods are curated in `art/external/textures/facade_periods.json` (the
   generated photos fold almost as well at half or double a floor); after changing a photo,
   confirm its period by eye on the overlay before trusting the grid.
+- `python3 tools/textures/fix_emissive.py` rebuilds the tower emissive (and osaka's roughness)
+  where the generated maps do not depict the photo's building (`<bundle>/*_fixed.webp`, read by
+  the KTX2 build); then `npm run textures`. Run after the grids change.
 
 ## Never hand-edit (generated)
 `public/assets/**`, `public/layouts/**`, `public/textures/**`, `public/basis/**`,

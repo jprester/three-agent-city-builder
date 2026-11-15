@@ -48,6 +48,8 @@ export function inspectViews(meta: AssetMeta, scale: [number, number, number]): 
   // Close on a corner at mid-height of the first tier: where a bay is cut horizontally.
   const mid = tiers0(meta) ?? H * 0.3;
   v('edge', [W / 2 + 14, mid, D / 2 + 14], [W / 2 - 4, mid, D / 2 - 4]);
+  // Close and square on the front: window-scale detail (emissive, frames, relief).
+  v('close', [W * 0.1, mid, D / 2 + 12], [W * 0.1, mid + 1, D / 2]);
   // A level view at every band junction: where a cut row would show.
   const edges: { name: string; z: number; face: number }[] = [];
   if (typeof meta.podium === 'number') edges.push({ name: 'podium', z: meta.podium, face: D / 2 });

@@ -1711,3 +1711,17 @@ said ribbon glazing), so they wrapped at the photo's full width. Their bays were
 and measured like the others. Found and verified with `npm run inspect -- buildings/tower_c
 --overlay --views=edge` (new close corner view): every facade's bay lines now meet both faces at
 the corner (`docs/progress/facade-grid-4/`).
+
+## Facade emissive (2026-11-15)
+
+Reported: lit rooms misaligned with windows, light below sills, ghost outlines on spandrels.
+Measured before fixing: emissive vs window mask aligned (95-100 % of lit texels on mask glass),
+but emissive vs the diffuse photo not: for osaka the mask and emissive are another building (lit
+rooms on piers and spandrels, os3's mask unrelated to its photo); real_glass matches; glass_sky
+matches but lights its white piers. Three faults, each confirmed in the inspect view (`close`
+view added): the osaka maps, the spill's anisotropic taps, and the normal / roughness maps' interior
+blobs lighting and reflecting on walls.
+Fix: tools/textures/fix_emissive.py (osaka emissive + roughness from the photo's own windows on
+its grid; glass_sky piers masked), one isotropic spill lookup, normal maps at 35 %.
+Weak: rebuilt osaka rooms are clean but generic (ceiling glow, desk band, warm/cool) next to
+real_glass's photographed interiors; glass_sky rooms keep their ragged generated edges.
