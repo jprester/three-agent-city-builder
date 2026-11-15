@@ -7,6 +7,9 @@ Per bundle it writes (2048², WebP):
   <name>/diffuse_rough.webp   RGB diffuse (sRGB) + A roughness (linear)
   <name>/emissive.webp        emissive A (sRGB), clipped to windows by the source
   <name>/normal.webp          OpenGL normal (linear)
+  <name>/window_mask.webp     the source's window mask (L, lossless): glass 1, wall 0. Not
+                              loaded at runtime; tools/textures/facade_grid.py finds the
+                              floor and bay lines in it
   <name>.json                 facade rects (0..1, image y down) and, detected from the
                               window mask, each facade's floor and bay period in texels;
                               then tools/textures/facade_grid.py refines them and adds each
@@ -24,6 +27,7 @@ import numpy as np
 from PIL import Image
 
 OUT = Path(__file__).resolve().parents[2] / "art" / "external" / "textures"
+DEFAULT_SRC = "/Users/jankoprester/Projects/3d-modeling/blender/textures/generated-textures/generated-texture-atlas"
 SIZE = 2048
 
 # Documented floors per facade cell (bundle READMEs); detected counts are folded into range.
@@ -57,6 +61,13 @@ def period(profile, lo, hi):
 
 def load(path, mode):
     return Image.open(path).convert(mode)
+
+
+def export_mask(src, name):
+    """<name>/window_mask.webp from the source bundle's 4K window mask (area-averaged to 2048²)."""
+    folder, stem, _, _ = BUNDLES[name]
+    mask = load(Path(src) / folder / f"{stem}_window-mask_4K.png", "L").resize((SIZE, SIZE), Image.BOX)
+    mask.save(OUT / name / "window_mask.webp", lossless=True, method=6)
 
 
 def main(src):
@@ -104,6 +115,7 @@ def main(src):
         Image.merge("RGBA", (*diff.split(), rough)).save(out / "diffuse_rough.webp", quality=88, method=6, exact=True)
         load(d / f"{stem}_{emissive}.png", "RGB").resize((SIZE, SIZE), Image.LANCZOS).save(out / "emissive.webp", quality=90, method=6)
         load(d / f"{stem}_normal-OpenGL_4K.png", "RGB").resize((SIZE, SIZE), Image.LANCZOS).save(out / "normal.webp", quality=92, method=6)
+        export_mask(src, name)
         (OUT / f"{name}.json").write_text(json.dumps({"source": f"{folder}/{stem}", "facades": info}, indent=2) + "\n")
         print(name, [(round(f["floors"], 1), round(f["bay"] * W)) for f in info])
 
@@ -132,4 +144,10 @@ def main(src):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1] if len(sys.argv) > 1 else "/Users/jankoprester/Projects/3d-modeling/blender/textures/generated-textures/generated-texture-atlas")
+    if "--masks-only" in sys.argv:
+        # Only the window masks (the other outputs are committed and need no re-encode).
+        src = next((a for a in sys.argv[1:] if not a.startswith("--")), None) or DEFAULT_SRC
+        for bundle in BUNDLES:
+            export_mask(src, bundle)
+        sys.exit(0)
+    main(sys.argv[1] if len(sys.argv) > 1 else DEFAULT_SRC)

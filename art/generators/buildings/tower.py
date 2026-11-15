@@ -44,38 +44,54 @@ def generate(ctx):
 
     base_top = ph + ctx.p("base_floors", 2) * oh
     walls(mb, ctx, W, D, 0.0, ph, 0.0, [("podium", 1.0, tint), ("podium", 0.7, tint), ("podium", 0.5, tint), ("podium", 0.7, tint)])
-    walls(mb, ctx, W, D, ph, base_top, ph, [("office", "grid", tint)] * 4)
+    # The office floors above the podium wear the tower's own photo facade: a procedural band of
+    # small punched windows under full-size photographed glazing read as two buildings. A flush
+    # first tier continues it in one module from the podium up; a set-back one leaves it as its
+    # own band on the full footprint.
+    tiers = ctx.p("tiers", [[0.6, 1], [0.28, 3], [0.12, 5]])
+    if tiers[0][1] > 0:
+        walls(mb, ctx, W, D, ph, base_top, ph, [("atlas", 1.0, tint)] * 4)
 
     z = base_top
     w, d = W, D
     shaft = height - base_top - 6.0
-    tiers = ctx.p("tiers", [[0.6, 1], [0.28, 3], [0.12, 5]])
     tier_meta = []
+    prev_inset = 0
+    band = 1.2 if ctx.p("bands", True) else 0.0
+    ribs = not ctx.p("exoskeleton", False) and ctx.p("structural_ribs", False)
     for ti, (frac, inset) in enumerate(tiers):
         flat_roof(mb, ctx, w, d, z, tint, parapet=0.6)   # ledge left by the previous tier
         w, d = W - 2 * inset * cw, D - 2 * inset * cw
         h = max(ch, round(frac * shaft / ch) * ch)
+        # A set-back tier starts with the dark mechanical band: seen from the street the ledge's
+        # edge and parapet hide the foot of a set-back wall, so they hide the band, not a window row.
+        if inset > prev_inset and band:
+            walls(mb, ctx, w, d, z, z + band, z, [("metal", 0.0, tint)] * 4)
+            z += band
+        prev_inset = inset
+        start = ph if ti == 0 and inset == 0 else z      # where this tier's photo band starts
         # [z0, z1, setback of this tier's walls from the footprint edge] for sign placement.
         tier_meta.append([round(z, 3), round(z + h, 3), round(inset * cw, 3)])
-        ribs = not ctx.p("exoskeleton", False) and ctx.p("structural_ribs", False)
-        walls(mb, ctx, w, d, z, z + h, z, [("atlas", 1.0, tint)] * 4, rhythm=rib_rhythm(ctx) if ribs else None)
+        accent = ctx.p("accent", None) if ti == len(tiers) - 1 or not ctx.p("accent_top_only", False) else None
+        # Ribs and LED stripes stand on bay lines: the photo's module is their pitch.
+        rhythm = rib_rhythm(ctx) if ribs else (lambda fw: (fw / 3, 0.0)) if accent == "stripes" else None
+        walls(mb, ctx, w, d, start, z + h, start, [("atlas", 1.0, tint)] * 4, rhythm=rhythm)
         if ctx.p("exoskeleton", False):
             tower_exoskeleton(mb, ctx, w, d, z, z + h, tint)
-        elif ctx.p("structural_ribs", False):
-            tower_structure(mb, ctx, w, d, z, z + h, tint)
-        accent = ctx.p("accent", None) if ti == len(tiers) - 1 or not ctx.p("accent_top_only", False) else None
+        elif ribs:
+            tower_structure(mb, ctx, w, d, start, z + h, tint)
         if accent == "corners":
-            corner_strips(mb, ctx, w, d, z, z + h, ctx.p("accent_color", "white"))
+            corner_strips(mb, ctx, w, d, start, z + h, ctx.p("accent_color", "white"))
         elif accent == "stripes":
-            face_stripes(mb, ctx, w, d, z, z + h, ctx.p("accent_color", "white"))
+            face_stripes(mb, ctx, w, d, start, z + h, ctx.p("accent_color", "white"))
         if ctx.p("screen", 0) and frac == tiers[0][0]:
             sh = min(h * 0.45, w * ctx.p("screen", 0.6) * 1.5)
             screen(mb, ctx, w, d, z + h - sh - 6.0, z + h - 6.0, ctx.p("screen", 0.6))
         z += h
-        # A dark mechanical band between tiers hides the facade texture's vertical wrap.
-        if ctx.p("bands", True):
-            walls(mb, ctx, w, d, z, z + 1.2, z, [("metal", 0.0, tint)] * 4)
-            z += 1.2
+    # The crown sits on the same dark band.
+    if band:
+        walls(mb, ctx, w, d, z, z + band, z, [("metal", 0.0, tint)] * 4)
+        z += band
 
     aviation_lights(mb, ctx, w, d, z)
     top = _crown(mb, ctx, crown, w, d, z, tint)

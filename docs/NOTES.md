@@ -1620,3 +1620,36 @@ Critique:
 Budgets: draw calls, triangles and programs unchanged in all 26 shots views. `npm run perf`
 (idle): canyon 9.7, storefront 9.5, aerial 10.4, harbor 8.0, fly-75 10.0 ms `fast`, 0 % late,
 GPU process 803-811 MB (789-799 MB before: +~12 MB for the module attribute; gate 920).
+
+## Facade rows and ribs, round 2 (2026-11-15)
+
+Reported after round 1: rows still cut where tower tiers meet their base (five screenshots), and
+photo windows much bigger than the procedural windows below them. Images:
+`docs/progress/facade-grid-2/` (left the report, right now), `photo-grid-edges.jpg` (every
+facade's grid top and base edge). New views `tower-flush` (tower_e) and `tower-setback` (tower_f).
+
+Causes:
+- **Grid edges on sills and frames.** Round 1 found floor lines from roughness and luminance;
+  the strip sheet showed about half the facades put a window row right on a tier's base
+  (os0, os3, re0, re2, re4, gl2). Now from the source window mask, both edges snapped to a real
+  band, period derived between them. All 21 checked on the strip sheet.
+- **Two window scales.** The photos are at true scale (3.8 m floors, 1.6-9 m bays, panes 1.5-2.5 m),
+  but the office band under every tower used procedural punched windows of 1.0-1.5 m at 3.6 m
+  floors. Not a scale bug; two systems meeting at a line. The photo now runs down to the podium.
+- **Set-back tiers.** The ledge's edge and parapet hide the foot of a set-back wall from the street,
+  whatever the UVs do; the dark band now sits there instead of a window row.
+- Stripe accents crossed windows; now on bay lines.
+
+Critique:
+- Works: `tower-flush` is one facade from the podium to the first setback, no junction; the sign
+  that hung on the office band now hangs on the photo, which reads right.
+- Works: `tower-setback` shows parapet, dark band, slab line, then whole rows.
+- Weak: a short base band (2 floors) on a strongly stretched tower rounds coarsely: tower_f at
+  1.28 gets 2 base floors of 4.6 m under 3.8 m tier floors. Reads as a lobby level; a layout
+  that scaled only the shaft would avoid it.
+- Weak: the podium storey is still procedural shopfronts at 4.8 m, a different scale again, but
+  that is a different use at street level and reads as one.
+
+Budgets (shots): draw calls and programs unchanged in all 30 views; triangles ~650 fewer per view
+(no separate office band). `npm run perf` not measured cleanly: another Chrome tab was rendering
+the scene (every view ~39 ms); GPU process 752 MB under that load.

@@ -58,8 +58,10 @@ binary in `public/` is regenerated from them.
   (every window and photo-facade face carries a facade module and meter-scale upright UVs; every
   tower photo has a grid of whole floors and bays). Must pass before every commit.
 - `python3 tools/textures/facade_grid.py` re-measures the floor and bay lines of the tower facade
-  photos into `art/external/textures/<bundle>.json` and draws overlays to
-  `build/previews/facade-grid/`; `--check` verifies the JSONs against a fresh measurement.
+  photos (from each bundle's `window_mask.webp`) into `art/external/textures/<bundle>.json`, and
+  draws `build/previews/facade-grid/<bundle>.png` (lines) and `seams.png` (what a tier's base and
+  a wrap seam show: no window may be cut there); `--check` verifies the JSONs against a fresh
+  measurement.
 
 ## Never hand-edit (generated)
 `public/assets/**`, `public/layouts/**`, `public/textures/**`, `public/basis/**`,
