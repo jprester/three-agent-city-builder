@@ -30,15 +30,25 @@ ROOT = Path(__file__).resolve().parents[2]
 TEX = ROOT / "art" / "external" / "textures"
 BUNDLES = ("osaka", "real_glass", "glass_sky")
 PREVIEW = ROOT / "build" / "previews" / "facade-grid"
-# A rhythm must fold this much sharper than noise to be trusted (contrast of the folded
-# profile over the profile's own spread).
-MIN_CONTRAST = 0.35
+PERIODS = TEX / "facade_periods.json"
+# A column rhythm must reach this autocorrelation peak to be trusted; below it the facade is
+# treated as ribbon glazing (one bay as wide as the grid).
+MIN_CONTRAST = 0.3
 BINS = 96
 
 
-def _signal(mask, axis):
-    """Window coverage along `axis` (0: rows, 1: columns): 1 on glass, 0 on piers and spandrels."""
-    return mask.mean(axis=1 - axis)
+def _signal(mask, rgba, axis):
+    """Window-ness along `axis` (0: rows, 1: columns): high on glass, low on piers and spandrels.
+    The window mask's coverage; where the mask has no rhythm along this axis (it marks some
+    curtain walls' slab bands as glass) the photo's: smooth and dark is glass."""
+    p = mask.mean(axis=1 - axis)
+    if float(p.max() - p.min()) > 0.2:
+        return p
+    out = []
+    for ch in (rgba[..., 3], rgba[..., :3].mean(axis=2)):
+        q = ch.mean(axis=1 - axis)
+        out.append(1.0 - (q - q.min()) / max(float(q.max() - q.min()), 1e-6))
+    return np.mean(out, axis=0)
 
 
 def _fold(p, period):
@@ -52,16 +62,23 @@ def _contrast(p, period):
 
 
 def _period(p, guess, lo, hi):
-    """Best period near `guess` (px), searched finely over [lo, hi]; harmonics of a true
-    period fold almost as sharply, so prefer the smallest period within 90 % of the best."""
-    cands = np.arange(lo, hi, 0.02)
-    scores = np.array([_contrast(p, c) for c in cands])
-    best = scores.max()
-    ok = cands[scores >= 0.9 * best]
-    # Near `guess` first: the importer's count comes from the bundle README or a coarse pass.
-    near = ok[np.abs(ok - guess) <= 0.08 * guess]
-    pick = near[np.argmax([_contrast(p, c) for c in near])] if len(near) else ok.min()
-    return float(pick), float(_contrast(p, pick))
+    """Period (px) of the profile's rhythm: the strongest autocorrelation peak in [lo, hi],
+    refined to a fraction of a pixel by a parabola through the peak and its neighbours. (The
+    fold-contrast search used before read periods 3-5 px short, enough to drift the lines a
+    whole window across a facade.) Returns (period, peak height)."""
+    q = p - p.mean()
+    ac = np.correlate(q, q, mode="full")[len(q) - 1:]
+    if ac[0] <= 0:
+        return guess, 0.0
+    ac = ac / ac[0]
+    a, b = max(2, int(np.floor(lo))), min(len(ac) - 2, int(np.ceil(hi)))
+    peaks = [i for i in range(a, b + 1) if ac[i] >= ac[i - 1] and ac[i] >= ac[i + 1]]
+    if not peaks:
+        return guess, 0.0
+    i = max(peaks, key=lambda i: ac[i])
+    den = ac[i - 1] - 2 * ac[i] + ac[i + 1]
+    off = 0.5 * (ac[i - 1] - ac[i + 1]) / den if den < 0 else 0.0
+    return float(i + off), float(ac[i])
 
 
 def _phase(p, period):
@@ -85,40 +102,44 @@ def _phase(p, period):
 
 
 def _snap(p, at, period):
-    """Centre of the wall band (a run of the profile below a third of its range) nearest `at`,
-    within 0.35 of a period, or None: the grid's edges sit on real bands even where a slightly
-    off period would drift over many floors. A run touching either end of the profile is a
-    frame or blend at the source's edge, not a band, and is skipped."""
-    lo = p.min() + (p.max() - p.min()) / 3
-    a, b = max(0, int(at - 0.35 * period)), min(len(p), int(at + 0.35 * period) + 1)
-    best = None
-    i = a
-    while i < b:
-        if p[i] <= lo:
-            j = i
-            while j < len(p) and p[j] <= lo:
-                j += 1
-            k = i
-            while k > 0 and p[k - 1] <= lo:
-                k -= 1
-            mid = (k + j - 1) / 2
-            if k > 0 and j < len(p) and (best is None or abs(mid - at) < abs(best - at)):
-                best = mid
-            i = j
-        else:
-            i += 1
-    return best
+    """Centre of the wall band nearest `at`, within 0.35 of a period, or None. The profile is
+    smoothed over ~15 % of a period (a wide spandrel outweighs a thin transom inside a window);
+    the band is its deepest point there, if that sits at least 15 % of the local range below the
+    local top, centred on the stretch within 10 % of the dip. Dips at the profile's ends are the
+    source's frame, not bands."""
+    k = max(3, int(round(0.15 * period)) | 1)
+    q = np.convolve(np.pad(p, k // 2, mode="edge"), np.ones(k) / k, mode="valid")
+    a, b = max(1, int(round(at - 0.35 * period))), min(len(q) - 1, int(round(at + 0.35 * period)) + 1)
+    if b - a < 3:
+        return None
+    w = q[a:b]
+    lo, hi = float(w.min()), float(w.max())
+    if hi - lo < 0.15 * max(abs(hi), 1e-6) or hi - lo < 0.02:
+        return None
+    m = a + int(np.argmin(w))
+    cut = lo + 0.1 * (hi - lo)
+    i = j = m
+    while i > a and q[i - 1] <= cut:
+        i -= 1
+    while j < b - 1 and q[j + 1] <= cut:
+        j += 1
+    if i <= 1 or j >= len(q) - 2:
+        return None
+    return (i + j) / 2
 
 
-def _edges(p, period, phase):
-    """First and last grid line inside the profile, each snapped to its band (stepping inward
-    where an edge line finds no band), and the exact period between them (whole periods)."""
-    lines = _lines(0, len(p), period, phase)
-    snapped = [(_snap(p, y, period), y) for y in lines]
-    found = [s for s, _ in snapped if s is not None]
-    first, last = (found[0], found[-1]) if len(found) >= 2 else (lines[0], lines[-1])
-    n = max(1, round((last - first) / period))
-    return first, last, (last - first) / n, n
+def _fit(p, period, phase):
+    """Evenly spaced lines anchored on a measured band: the last expected line near the end of
+    the profile that finds its band (_snap) is the anchor; the others are whole periods from it,
+    so a grid between two of them holds exactly whole periods. Returns (lines inside the
+    profile, period, share of the lines that land within 0.15 of a period of a band)."""
+    guesses = _lines(0, len(p), period, phase)
+    anchor = next((s for s in (_snap(p, y, period) for y in reversed(guesses[-3:])) if s is not None), guesses[-1])
+    k0 = int(np.floor((anchor - 2) / period))
+    lines = [anchor - k * period for k in range(k0, -1, -1)]
+    hits = [(_snap(p, y, period)) for y in lines]
+    on = sum(1 for y, h in zip(lines, hits) if h is not None and abs(h - y) <= 0.15 * period)
+    return lines, period, on / max(len(lines), 1)
 
 
 def _lines(start, end, period, phase):
@@ -132,39 +153,35 @@ def measure(name):
     mask = np.asarray(Image.open(TEX / name / "window_mask.webp").convert("L"), dtype=np.float32) / 255.0
     H, W = rgba.shape[:2]
     spec = json.loads((TEX / f"{name}.json").read_text())
+    periods = json.loads(PERIODS.read_text())[name]
     out = []
-    for f in spec["facades"]:
+    for f, fp in zip(spec["facades"], periods):
         hint = f.get("hint") or [f["floor"], f["bay"]]
         x0, y0, x1, y1 = (round(f["rect"][0] * W), round(f["rect"][1] * H), round(f["rect"][2] * W), round(f["rect"][3] * H))
         # A few texels in from the rect: the source edges carry a frame or a blend.
         m = 3
-        crop = mask[y0 + m:y1 - m, x0 + m:x1 - m]
-        rows, cols = _signal(crop, 0), _signal(crop, 1)
-        g_floor = hint[0] * H
-        floor, fc = _period(rows, g_floor, g_floor * 0.8, g_floor * 1.25)
-        t, bt, floor, nfloors = _edges(rows, floor, _phase(rows, floor))
-        gy0, gy1 = y0 + m + t, y0 + m + bt
-        gx0, gx1 = x0 + m, x1 - m
-        bay, bc = None, 0.0
+        crop, photo = mask[y0 + m:y1 - m, x0 + m:x1 - m], rgba[y0 + m:y1 - m, x0 + m:x1 - m]
+        rows, cols = _signal(crop, photo, 0), _signal(crop, photo, 1)
+        floor, fc = _period(rows, fp, fp * 0.97, fp * 1.03)
+        ys, floor, yhit = _fit(rows, floor, _phase(rows, floor))
+        ys = [y0 + m + y for y in ys]
+        xs, xhit, bc = [x0 + m, x1 - m], 1.0, 0.0
         g_bay = hint[1] * W
         if g_bay < 0.5 * (x1 - x0):
-            bay, bc = _period(cols, g_bay, max(8.0, g_bay * 0.8), g_bay * 1.25)
+            bay, bc = _period(cols, g_bay, max(8.0, g_bay * 0.85), g_bay * 1.15)
             if bc >= MIN_CONTRAST:
-                lft, rgt, bay, _ = _edges(cols, bay, _phase(cols, bay))
-                gx0, gx1 = x0 + m + lft, x0 + m + rgt
-            else:
-                bay = None
-        if bay is None:
-            bay = gx1 - gx0
+                lines, bay, xhit = _fit(cols, bay, _phase(cols, bay))
+                if len(lines) >= 2:
+                    xs = [x0 + m + x for x in lines]
         out.append({
             "rect": f["rect"],
             "hint": hint,
-            "floor": floor / H,
-            "bay": bay / W,
-            "grid": [gx0 / W, gy0 / H, gx1 / W, gy1 / H],
-            "wrap": [(gx1 - gx0) / W, (gy1 - gy0) / H],
-            "floors": nfloors,
-            "bays": round((gx1 - gx0) / bay),
+            "floor": (ys[-1] - ys[0]) / (len(ys) - 1) / H,
+            "bay": (xs[-1] - xs[0]) / (len(xs) - 1) / W,
+            "grid": [xs[0] / W, ys[0] / H, xs[-1] / W, ys[-1] / H],
+            "wrap": [(xs[-1] - xs[0]) / W, (ys[-1] - ys[0]) / H],
+            "floors": len(ys) - 1,
+            "bays": len(xs) - 1,
             "contrast": [round(fc, 2), round(bc, 2)],
         })
     return spec, out, rgba
@@ -191,9 +208,10 @@ def overlay(name, rgba, facades):
 
 def seams(facades_by_bundle):
     """build/previews/facade-grid/seams.png: per facade, what the runtime shows at a band's edges.
-    Top strip: the grid's top 1.5 floors (the top of a wrap); a thin red line; then the grid's
-    bottom 1.5 floors, sitting on a thick red bar (a tier's base, and the floors a wrap continues
-    with). A row must not be cut at the bar or the thin line."""
+    Upper panel, the wrap seam: going up past the grid's top line the shader continues from its
+    bottom line, so the bottom 1.5 floors sit on a thin red line over the top 1.5 floors. Lower
+    panel, a tier's base: the bottom 1.5 floors on a thick red bar. No window may be cut at
+    either line."""
     tiles = []
     for name, facades in facades_by_bundle:
         img = Image.open(TEX / name / "diffuse_rough.webp").convert("RGB")
@@ -203,9 +221,13 @@ def seams(facades_by_bundle):
             fl, w = f["floor"] * H, min(gx1 - gx0, 200)
             top = img.crop((int(gx0), int(round(gy0)), int(gx0 + w), int(round(gy0 + 1.5 * fl))))
             bot = img.crop((int(gx0), int(round(gy1 - 1.5 * fl)), int(gx0 + w), int(round(gy1))))
-            t = Image.new("RGB", (int(w), top.height + bot.height + 12), (255, 0, 0))
-            t.paste(top, (0, 0))
-            t.paste(bot, (0, top.height + 2))
+            t = Image.new("RGB", (int(w), 2 * bot.height + top.height + 18), (40, 40, 40))
+            t.paste(bot, (0, 0))
+            ImageDraw.Draw(t).line([(0, bot.height), (w, bot.height)], fill=(255, 0, 0), width=1)
+            t.paste(top, (0, bot.height + 1))
+            y = bot.height + top.height + 8
+            t.paste(bot, (0, y))
+            ImageDraw.Draw(t).rectangle([0, y + bot.height, w, y + bot.height + 6], fill=(255, 0, 0))
             ImageDraw.Draw(t).text((2, 2), f"{name[:2]}{i}", fill=(255, 255, 0))
             tiles.append(t.resize((t.width * 2, t.height * 2)))
     cw, ch = max(t.width for t in tiles), max(t.height for t in tiles)

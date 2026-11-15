@@ -1653,3 +1653,29 @@ Critique:
 Budgets (shots): draw calls and programs unchanged in all 30 views; triangles ~650 fewer per view
 (no separate office band). `npm run perf` not measured cleanly: another Chrome tab was rendering
 the scene (every view ~39 ms); GPU process 752 MB under that load.
+
+## Facade rows, round 3 (2026-11-15)
+
+Reported: five more cut rows (ribbed tower over its podium, set-back tiers seen from above,
+the photo meeting the podium). Images: `docs/progress/facade-grid-3/`.
+
+Cause: wrong periods. Round 2 snapped the grid's two edges to real bands, but the lines between
+them used auto-detected periods that were wrong on many facades (osaka 0: 27 px for 33; real
+glass 0: 73 for 55; bays 3-5 px short). The shader offsets each building by whole floors and fits
+whole floors per tier, so bases and tops land on intermediate lines, and those had drifted into
+the windows. Per-floor lighting switched on the same wrong lines (the "torn" lit windows) and ribs
+stood on wrong bay lines.
+
+Tried and dropped: per-floor line tables, a greedy band walk, a dynamic-programming band chain, a
+run-length split, a per-column gap signal. Each misread transoms or half/double floors on some
+photos. The photos turned out to be evenly spaced; only the periods were wrong.
+
+Fix: floor periods curated per facade (autocorrelation fundamentals, confirmed by eye), periods
+for floors and bays read from autocorrelation peaks at sub-pixel, the grid anchored on a measured
+band at its bottom with its top whole floors above. Verified on the overlays (every floor and bay
+line, full height) and the seam sheet (every base and wrap seam). `tower-base` now has its ribs in
+the piers' middles.
+
+Weak: the bundles' ribbon facades (no column rhythm) still wrap at the grid's full width, so a
+corner can land mid-pane on those; ribbons hide it. glass_sky 6 includes a louvre panel at its
+right edge in that width.

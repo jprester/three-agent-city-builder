@@ -61,7 +61,9 @@ binary in `public/` is regenerated from them.
   photos (from each bundle's `window_mask.webp`) into `art/external/textures/<bundle>.json`, and
   draws `build/previews/facade-grid/<bundle>.png` (lines) and `seams.png` (what a tier's base and
   a wrap seam show: no window may be cut there); `--check` verifies the JSONs against a fresh
-  measurement.
+  measurement. Floor periods are curated in `art/external/textures/facade_periods.json` (the
+  generated photos fold almost as well at half or double a floor); after changing a photo,
+  confirm its period by eye on the overlay before trusting the grid.
 
 ## Never hand-edit (generated)
 `public/assets/**`, `public/layouts/**`, `public/textures/**`, `public/basis/**`,
