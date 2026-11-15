@@ -3,9 +3,24 @@ import { loadKtx2 } from './ktx2';
 import osaka from '../../art/external/textures/osaka.json';
 import realGlass from '../../art/external/textures/real_glass.json';
 import glassSky from '../../art/external/textures/glass_sky.json';
+import baked from '../../art/textures/facades/baked.json';
 
-/** Tower facade bundles, in the order the facade shader indexes them (bundle * 7 + facade). */
-export const TOWER_BUNDLES = [osaka, realGlass, glassSky];
+/** Tower facade bundles, in the order the facade shader indexes them (bundle * 7 + facade).
+ * `baked` is modelled and baked in Blender (npm run facades:bake); on trial, the city still
+ * picks among the first three (TOWER_CITY_BUNDLES in facade.ts) and only ?inspect= shows it. */
+export const TOWER_BUNDLES: { facades: TowerFacade[] }[] = [osaka, realGlass, glassSky, baked];
+
+/** What the facade shader reads of a tower facade (atlas UV units; grid in image space, y down). */
+export interface TowerFacade {
+  rect: number[];
+  grid: number[];
+  floor: number;
+  bay: number;
+  wrap: number[];
+  /** No column rhythm: no whole bays are fitted across. */
+  ribbon?: boolean;
+}
+export const TOWER_BUNDLE_NAMES = ['osaka', 'real_glass', 'glass_sky', 'baked'];
 
 export interface FacadeTextures {
   /** One layer per bundle: diffuse (sRGB RGB) + roughness (A). */
@@ -27,7 +42,7 @@ export interface FacadeTextures {
  * extra samplers silently read nothing.
  */
 export async function loadFacadeTextures(renderer: THREE.WebGLRenderer, anisotropy: number): Promise<FacadeTextures> {
-  const towers = (kind: string) => loadKtx2(renderer, ['osaka', 'real_glass', 'glass_sky'].map((b) => `tower_${b}_${kind}`), anisotropy);
+  const towers = (kind: string) => loadKtx2(renderer, TOWER_BUNDLE_NAMES.map((b) => `tower_${b}_${kind}`), anisotropy);
   const [diffuse, emissive, normal, walls, interiors] = await Promise.all([
     towers('diffuse'), towers('emissive'), towers('normal'),
     loadKtx2(renderer, 'walls', anisotropy),

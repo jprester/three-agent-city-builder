@@ -52,5 +52,21 @@
   "day_horizon": "#C9D3DC",
   "day_sun": "#FFF2DD",
   "day_ridge": "#7F8E9C",
-  "day_bounce": "#8C857A"
+  "day_bounce": "#8C857A",
+  "brick_red": "#7A3B2A",
+  "brick_red_alt": "#8E4A34",
+  "brick_brown": "#5A4334",
+  "brick_brown_alt": "#6B5241",
+  "mortar": "#A39A8E",
+  "tile_white": "#C9C6BE",
+  "tile_white_alt": "#B9B6AE",
+  "tile_grout": "#8F8C86",
+  "concrete_facade": "#8C8A85",
+  "concrete_facade_alt": "#7E7C77",
+  "frame_dark": "#1E2226",
+  "frame_silver": "#8A9096",
+  "glass_facade": "#1C2731",
+  "sill_stone": "#A8A49B",
+  "blind_beige": "#CDBFA6",
+  "interior_dark": "#0B0D10"
 }

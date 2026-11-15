@@ -31,6 +31,11 @@ binary in `public/` is regenerated from them.
   GPU-compressed KTX2 in `public/textures/` (a few minutes the first time, then only what
   changed). `npm run dev`, `npm run build` and the Playwright runs call it first. The outputs
   are committed, like the GLBs.
+- `npm run facades:bake [-- <style id>]` models the tower facade styles of
+  `art/facades/baked.json` in Blender and renders their maps straight on (Cycles, ~1.5 min for 7),
+  then packs `art/textures/facades/baked/` + `baked.json` (exact grids, nothing measured); then
+  `npm run textures`. On trial: only `?inspect=` shows it (facades 21-27), the city still uses the
+  photo bundles.
 - `npm run inspect -- <asset id>` renders a contact sheet of one asset with the real facade
   shader, by day: every tower facade photo (rows) × cameras at its band junctions (columns), to
   `build/inspect/`. Options: `--overlay` (the shader's floor lines red, bay/cell lines cyan,

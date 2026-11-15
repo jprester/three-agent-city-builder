@@ -26,6 +26,7 @@
     "coplanar": "node tools/check-coplanar.mjs",
     "facades": "node tools/check-facades.mjs",
     "inspect": "node tools/inspect.mjs",
+    "facades:bake": "node tools/build-facades.mjs",
     "signs": "python3 tools/textures/import_ads.py && npm run layouts",
     "signs:typeset": "python3 tools/textures/build_advertising.py",
     "signs:designs": "python3 tools/textures/build_sign_designs.py && npm run layouts",

@@ -17,7 +17,7 @@ import { setStatus } from '../ui/status';
  * Inspect one asset (`?inspect=<asset id>`): the city's own facade rendering for a single
  * building on a neutral ground, by day unless `light=night`. Everything the runtime varies by
  * chance can be pinned, so a defect can be reproduced on purpose:
- *   facade=<n>       tower facade photo n (0-20: osaka 0-6, real_glass 7-13, glass_sky 14-20)
+ *   facade=<n>       tower facade n (0-27: osaka 0-6, real_glass 7-13, glass_sky 14-20, baked 21-27)
  *   scale=sx,sy,sz   the layout's instance scale (towers: 0.7-1.0 across, 0.6-1.35 up)
  *   view=<name>      a camera from inspectViews(); overlay=1 draws the shader's floor (red),
  *                    bay / cell (cyan) and module (yellow) lines
@@ -28,7 +28,7 @@ import { setStatus } from '../ui/status';
 
 export interface InspectView { name: string; position: THREE.Vector3; target: THREE.Vector3 }
 
-const FACADE_NAMES = TOWER_BUNDLES.flatMap((_, b) => Array.from({ length: 7 }, (_, i) => `${['os', 're', 'gl'][b]}${i}`));
+const FACADE_NAMES = TOWER_BUNDLES.flatMap((_, b) => Array.from({ length: 7 }, (_, i) => `${['os', 're', 'gl', 'bk'][b]}${i}`));
 
 /** Cameras from the asset's own data (building local frame, front at +Z, scaled). */
 export function inspectViews(meta: AssetMeta, scale: [number, number, number]): InspectView[] {

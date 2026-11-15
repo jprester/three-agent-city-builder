@@ -39,10 +39,11 @@ const errors = [];
 const warnings = [];
 
 // --- Tower facade photos: grids of whole floors and bays inside each facade rect.
-for (const bundle of ['osaka', 'real_glass', 'glass_sky']) {
-  const spec = JSON.parse(readFileSync(`art/external/textures/${bundle}.json`, 'utf8'));
+for (const [bundle, file] of [['osaka', 'art/external/textures/osaka.json'], ['real_glass', 'art/external/textures/real_glass.json'],
+  ['glass_sky', 'art/external/textures/glass_sky.json'], ['baked', 'art/textures/facades/baked.json']]) {
+  const spec = JSON.parse(readFileSync(file, 'utf8'));
   spec.facades.forEach((f, i) => {
-    const where = `art/external/textures/${bundle}.json facade ${i}`;
+    const where = `${file} facade ${i}`;
     if (!f.grid) { errors.push(`${where}: no grid (python3 tools/textures/facade_grid.py)`); return; }
     const [x0, y0, x1, y1] = f.grid, r = f.rect;
     if (!(r[0] <= x0 && x0 < x1 && x1 <= r[2] && r[1] <= y0 && y0 < y1 && y1 <= r[3])) errors.push(`${where}: grid outside its rect`);

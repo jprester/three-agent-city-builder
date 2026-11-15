@@ -1725,3 +1725,19 @@ Fix: tools/textures/fix_emissive.py (osaka emissive + roughness from the photo's
 its grid; glass_sky piers masked), one isotropic spill lookup, normal maps at 35 %.
 Weak: rebuilt osaka rooms are clean but generic (ceiling glow, desk band, warm/cool) next to
 real_glass's photographed interiors; glass_sky rooms keep their ragged generated edges.
+
+## Baked facades, trial (2026-11-15)
+
+Seven styles (brick red / brown / wide, white tile punched / grid, concrete grid / ribbon) baked
+in ~83 s, packed in ~5 s; deterministic (pixels identical across bakes; packed files byte-identical).
+Images: `docs/progress/baked-facades/` (rows: os5 brick photo, bk0, bk4, re5, bk1).
+- Works: alignment is exact by construction: lit rooms sit in the windows, glass is glossy only on
+  glass, grids tile on pier and spandrel centres. At night the lit windows are the best in the city:
+  real rendered offices (ceiling lights, desks, depth) from the interiors atlas. By day the brick is
+  crisper than the brick photo at every distance.
+- Weak: clean, CG-like walls next to the photos: little weathering beyond grime and streaks, no
+  stains, patches or repairs; glass is three flat tints (the shader's reflections do most of the
+  work); pale tile and concrete styles read flat in overcast day light; no balconies, AC units or
+  setbacks in the modules yet. Some room cards are bright and still bloom at night.
+- Not done: the city does not use the bundle (TOWER_CITY_BUNDLES = 3); `npm run perf` not run
+  (one more 2048² layer per kind, ~5 MB compressed, ~16 MB GPU with mips).
