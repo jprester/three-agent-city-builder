@@ -98,3 +98,127 @@ New in this research:
 - Opus 5.5 vs Sol in Blender: https://betterstack.com/community/guides/ai/opus-55-vs-gpt6-blender/
 - Kimi K3 + Blender MCP: https://youmind.com/ru-RU/landing/x-viral-articles/kimi-k3-blender-mcp-workflow
 - fal stealth-game guide: https://fal.ai/learn/tools/how-to-build-a-game-with-gpt-6-astra
+
+---
+
+# Assessment against this repo (2026-11-15)
+
+Written in a Claude Code session with the repo open. It weighs the research above, plus the
+human's own notes on Polyfork, sand3d, Scenario, Tesseract, vork, Rocketbox and the 3D Asset
+Server, against the current state of the project. Tool descriptions come from those notes and
+from web searches, mostly the vendors' own pages; nothing about the tools themselves was
+tested. What was tested is marked.
+
+## Already done or already true
+
+- **Blender is pinned to 5.3** (commit `b07f521`). Tested: all 142 assets rebuild
+  byte-identical to the committed GLBs, and Workbench previews are pixel-identical for the one
+  asset compared. Not tested: `npm run interiors` (Cycles room cards). Blender 5.3 bundles
+  Python 3.13.
+- **three.js is pinned at 0.187.0**, newer than the r185 the research calls current. The main
+  app (`src/`) is WebGL with pmndrs `postprocessing`. The fresh slice (`next/`) is WebGPU and
+  already uses `RenderPipeline`.
+- **The native splat renderer is installed** (`three/examples/jsm/objects/GaussianSplat.js`,
+  SPZ/PLY/KSPLAT loaders). It imports from `three/webgpu`, so it works in `next/` only; the
+  main app would need Spark 2.0.
+
+## Verdicts
+
+| Item | Verdict | Reason |
+|---|---|---|
+| Poly Haven / Megascans surface textures | **Try (task 1)** | The notes keep recording flat, untextured concrete and platforms. CC0, fits `art/external/` + KTX2. |
+| sand3d | **Try (task 2)** | Built on `bpy`, deterministic, has fillets. The most repeated complaint is planar facets on cars and the train nose. |
+| Splat skyline (Marble, Chisel) | Later, `next/` only | The human removed the far field once for cohesion; megastructures are out of scope. Needs a paid splat source. |
+| Lit EEVEE night preview for assets | Later, small | Workbench previews do not show emissives at night. `tools/blender/previews.py` already has an `eevee` switch. |
+| Image-to-3D (TRELLIS.2, Meshy, Tripo) | Later, one hero prop at most | Outputs are 200k–400k faces against a 1,500-triangle vehicle budget, with no facade-shader data. |
+| Scenario skills | Later, hero props only | Seamless PBR and `patina-retexture` are relevant but paid per generation; Poly Haven covers tiling surfaces free. |
+| 3D Asset Server MCP | When external assets start | One search across 23 sites with licence info, which `art/external/manifest.json` requires. |
+| Rocketbox avatars | Later | Could replace box passengers as static posed figures. Moving walkers would need a new animation system. |
+| build123d | Fallback for sand3d | Mature and gives true rounded solids, but not built on Blender's Python. |
+| Polyfork | No | Free tier requires their CDN and forbids re-hosting; the plan forbids runtime network requests. Flat-shaded look. |
+| Blender MCP | No | No `.blend` files; generators run headless and the preview loop already closes the visual loop. |
+| BatchedMesh per-instance opacity | No | The main app dropped BatchedMesh for buildings (see `src/systems/buildings.ts`). |
+| vork, Tesseract | No | Offline renderers. vork has no fog or volumes. Possible marketing stills later. |
+| Text-to-motion, Three-Live, model comparisons, self-hosted loop, pixel-art city, Dimension9 | No | Different projects or no need here. |
+
+# Brief for the next session: two trials
+
+Both are trials. The goal of each is a yes or no with evidence, not a migration. `AGENTS.md`
+is binding: the verification loop, `npm run check`, `docs/DECISIONS.md`, `docs/NOTES.md`,
+generator rules, never hand-edit generated files. The two tasks are independent; do task 1
+first and commit it separately.
+
+Stop and report after each task. Do not roll either change out past the scope given here.
+
+## Task 1: surface detail on the monorail station and viaduct
+
+**Problem.** `docs/NOTES.md` on the monorail: platforms "look like brown plastic", "big blank
+viaduct planes", girders and piers near-black so their detail does not read. Some of these
+lines were written about the slice in `next/`; check which still hold in the main app by
+looking at `npm run shots:all` output before changing anything.
+
+**What exists.** The facade shader (`src/materials/facade.ts`, `wallSample`) already samples
+an 8-tile wall atlas (`art/external/textures/walls.webp`, cells in `walls.json`: three
+concretes, tile, panels, two ribbed metals, slate) with luminance relief. Surface types are
+in `art/style/facade.json` and written to `COLOR_0` by `art/generators/lib/surface.py`. The
+ground (`src/materials/ground.ts`) is procedural noise with no image texture.
+
+**Steps.**
+1. Find which surface types the monorail assets use (`art/generators/props/monorail.py`,
+   defs `art/defs/props/monorail_*.json`) and whether those types reach `wallSample`.
+2. If the station and viaduct surfaces do not use the wall atlas, route them to a fitting
+   existing tile first. That may be the whole fix, with no new texture.
+3. Only if the existing tiles are not good enough, add Poly Haven CC0 sets (concrete for
+   piers and girders, a floor or paving set for platforms). Fetch through
+   `api.polyhaven.com`, at 1k or 2k. Record each file in `art/external/manifest.json` before
+   use, add it to `art/textures/ktx2.def.json`, run `npm run textures`.
+4. Leave the photographic tower facades alone, and paint no shader light over them (the
+   human rejected that on 2026-11-03).
+
+**Scope.** Monorail station, girders, piers and deck in the main app. Not the ground, not
+buildings, not `next/`.
+
+**Done when.** Before and after screenshots of the monorail viewpoints are in
+`docs/progress/`, the critique is in `docs/NOTES.md`, and these hold: `npm run check`,
+`npm run shots:all`, and `npm run perf` on an idle GPU, with programs still at most 25 and GPU
+process memory under `scene.maxGpuProcessMB` (920 MB; the measured peak was about 797 MB, so
+new textures have about 120 MB of room). Report draw calls, frame time and GPU memory before
+and after.
+
+## Task 2: sand3d trial on one rounded asset
+
+**Problem.** `docs/NOTES.md`: cars are "planar facets", "low-poly game props from 2000", with
+no rounding at bonnet, roof or wheel arches; the monorail nose shows its slices as a
+staircase.
+
+**What sand3d claims** (https://github.com/Sandflow-ai/sand3d, docs
+https://sand3d.sandflow.ai/, Apache-2.0, v1.6.2, very young): a Python DSL over `bpy` with
+profiles, solids, fillets and named parts, deterministic output, GLB export. Read its docs
+before writing anything; do not write its API from memory.
+
+**Steps, in the scratchpad first, not in the repo.**
+1. Install: find out whether sand3d runs inside Blender 5.3's bundled Python 3.13 headless
+   (`--background --factory-startup`). Install into a directory in the scratchpad and add it
+   to `sys.path`; do not modify `/Applications/Blender.app`. If it cannot run there, stop and
+   report: that is a valid result.
+2. Build one asset with it: `vehicles/monorail_end` (current: 968 triangles, 26.5 KB) or one
+   car (`vehicles/car_a`, 914 triangles). Match the current dimensions from the def.
+3. Measure against the current asset:
+   - triangle count against the vehicle budget (1,500 triangles, 64 KB in
+     `pipeline.config.json`). Do not raise the budget for the trial; report what count the
+     rounding needs;
+   - whether the mesh can carry what the facade shader needs: surface codes in `COLOR_0`,
+     metre-scale UVs, any custom `_NAME` attributes the current generator writes;
+   - determinism: two runs give byte-identical GLBs;
+   - coplanar faces (`npm run coplanar` logic) and shading normals after export.
+4. Render both versions with the same preview cameras (`tools/blender/previews.py`) and
+   compare side by side.
+
+**Only if all of step 3 passes:** propose, in the report, how it would enter the pipeline
+(vendored under `art/generators/lib/` or a pinned install step, since the cache key must
+trace it and a fresh clone must build). Do not wire it into `npm run assets` in this trial.
+
+**Done when.** A section in `docs/NOTES.md` gives the answers to step 3 with numbers, the
+side-by-side images are in `docs/progress/`, and a line in `docs/DECISIONS.md` records
+adopt, reject or fall back to build123d, with the reason. No generated file in `public/`
+changes in this task.
