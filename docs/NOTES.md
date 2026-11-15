@@ -1512,6 +1512,16 @@ Budgets (shots, 1280×720): draw calls, triangles and programs unchanged on ever
 identical to before. `npm run perf`: the first after-run (canyon 9.9, storefront 9.7, aerial 11.0,
 harbor 7.8 ms `fast`, 0 % late, GPU process 788–818 MB) sits inside checkpoint A's idle ranges.
 Then the machine went busy (another Chrome tab rendering): fly-75 and every view of the
-before-run read 35–42 ms. So a clean before/after A/B was not possible this session. The
-change adds no texture, mesh or program, so memory is unchanged by construction; its only cost
-is three extra atlas fetches on structural-steel pixels.
+before-run read 35–42 ms. Rerun on an idle GPU (the parent commit's shader and GLBs against
+this one; all pass, 0 % late everywhere), GPU `fast` / p50 ms and GPU process MB:
+
+| View | Before | After (two runs) | GPU MB before / after |
+|---|---|---|---|
+| canyon | 13.0 / 17.8 | 14.8 / 15.0, 13.3 / 18.2 | 789 / 734–789 |
+| storefront | 10.5 / 16.7 | 9.3 / 14.2, 9.9 / 15.6 | 799 / 741–798 |
+| aerial | 12.9 / 18.6 | 13.2 / 18.5, 11.6 / 19.1 | 795 / 787–794 |
+| harbor | 9.2 / 14.0 | 9.9 / 13.0, 8.5 / 13.3 | 795 / 768–795 |
+| fly-75 | 12.5 / 19.4 | 10.9 / 16.9, 10.5 / 17.1 | 795 / 782–795 |
+
+No measurable cost: the differences are within run-to-run noise and go both ways. Memory is
+unchanged, as expected with no new texture, mesh or program.
