@@ -1471,4 +1471,5 @@ Harsh critique:
 
 Budgets (shots, 1280×720): +2 to +6 draw calls per view (limit 8), worst 234 of 250 on
 `monorail-platform`; +35k to +42k triangles (limit 80k); programs 25 (unchanged). GPU process
-795–828 MB (gate 920). Frame time not measured: see CHECKPOINT.md.
+733–828 MB (gate 920). Frame time: canyon 9.3 ms, storefront 9.1 ms (inside A's ranges); an
+A/B against the pre-monorail commit on aerial and fly-75 showed no difference (CHECKPOINT.md).

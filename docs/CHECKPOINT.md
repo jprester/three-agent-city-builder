@@ -14,12 +14,13 @@ the only pre-existing view that changed.
 | Extra triangles per view | — | +35k to +42k | 80k |
 | Shader programs | 25 | 25 | no new program |
 | GPU process memory | 784–797 MB | 795–828 MB | 920 |
-| GPU frame time | see A | **not measured** | — |
+| GPU frame time (`fast`) | canyon 9.4–10.0, storefront 9.0–9.7 | canyon 9.3, storefront 9.1 | 16.7 |
 
-Frame time: the perf runs ran with the machine locked or asleep and read 44–60 ms in every view,
-3–5x slower than A, including views where the monorail is nowhere in sight. The one run
-that looked normal read canyon 14.1, storefront 10.8, aerial 11.9, harbor 8.0 ms (`fast`). Please
-run `npm run perf` on an awake, idle machine before accepting.
+Frame time, 2026-11-15: canyon and storefront are inside checkpoint A's ranges. Aerial, harbor and
+fly-75 read 18–39 ms in the same session, so I ran aerial and fly-75 back to back on this
+commit and on the commit before the monorail: 38.2 / 34.3 ms with it, 39.3 / 36.4 ms without.
+The machine was slow, not the monorail; within noise, the line costs nothing measurable. A clean
+×3 run on an idle machine is still worth doing before accepting.
 
 How it is built:
 - Layout: `art/layouts/lib/monorail.mjs`, run last in `art/layouts/city.mjs`. The rest of the city
