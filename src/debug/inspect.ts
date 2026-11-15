@@ -7,7 +7,7 @@ import { createFacadeMaterial, createFacadeUniforms } from '../materials/facade'
 import { loadFacadeTextures, TOWER_BUNDLES } from '../materials/textures';
 import { applyDaylight, isLightName } from '../scene/daylight';
 import { createRenderer, createScene } from '../scene/environment';
-import { captureCityEnvironment } from '../scene/environment-map';
+import { captureCityEnvironment, captureGlassEnvironment } from '../scene/environment-map';
 import { createPost } from '../scene/post';
 import { buildFacadeBatch } from '../systems/buildings';
 import { QUALITY_PRESETS } from '../systems/quality';
@@ -108,6 +108,9 @@ export async function runInspect(params: URLSearchParams) {
   scene.add(batch);
   lod.showAll();
   captureCityEnvironment(renderer, scene, null);
+  // Glass reflects a capture taken away from the building (the probe avoids its footprint).
+  uniforms.uGlassEnv.value = captureGlassEnvironment(renderer, scene, null, [ground]);
+  uniforms.uGlassOn.value = 1;
 
   const post = createPost(renderer, scene, camera, QUALITY_PRESETS.high, undefined, day ? 'day' : 'filmic');
   if (day) post.bloom.intensity = 0.35;

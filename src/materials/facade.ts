@@ -481,7 +481,8 @@ vec3 glassReflection(vec3 v, vec3 n, float vtz, float rough, vec3 emit, float f0
     envC = textureLod(uGlassEnv, look, lod).rgb;
   }
   float fres = f0 + (1.0 - f0) * pow(1.0 - clamp(vtz, 0.0, 1.0), 4.0);
-  float roomLit = clamp(dot(emit, vec3(0.3, 0.5, 0.2)) * 1.5, 0.0, 1.0);
+  // A lit room behind the pane outshines its reflection at night; by day it does not.
+  float roomLit = clamp(dot(emit, vec3(0.3, 0.5, 0.2)) * 1.5, 0.0, 1.0) * (1.0 - uDay);
   return envC * fres * (1.0 - 0.75 * roomLit) * uGlassGain;
 }
 
@@ -727,6 +728,9 @@ if (fType == T_RES) {
 }
 fBase *= mix(1.0, fGrime, 0.65);
 vec3 fEmit = vec3(0.0);
+// The share of fEmit that is glass reflecting the city and sky (not light from inside): the
+// day block keeps it while it dims the painted night light.
+vec3 fRefl = vec3(0.0);
 // Light arriving on opaque wall surfaces (added as fBase * fWallLight at the end).
 vec3 fWallLight = vec3(0.0);
 float fRough = mix(0.75, 0.97, fWall.a);
@@ -787,7 +791,8 @@ if (fType == T_ATLAS) {
   fNormalW = normalize(fT * n.x + fB * n.y + normalize(vFNormal) * max(n.z, 0.2));
   // Glass reflects the city, rippled by the pane normals (see glassReflection).
   float glassAmt = 1.0 - smoothstep(0.3, 0.6, dr.a);
-  fEmit += glassAmt * glassReflection(fV, fNormalW, fVt.z, fRough, fEmit, 0.18, vFWorld, 0.0);
+  fRefl = glassAmt * glassReflection(fV, fNormalW, fVt.z, fRough, fEmit, 0.18, vFWorld, 0.0);
+  fEmit += fRefl;
 } else if (fType == T_RES || fType == T_OFFICE || fType == T_CURTAIN || fType == T_CAGE) {
   vec3 wEmit, filteredEmit, avgEmit, wSpill, wAvgSpill; float wMask, wFrame, wFrac, wAround, filteredMask;
   windowLayer(fType == T_CAGE ? T_RES : fType, fUv, fFw, fType == T_CAGE ? OPEN_GRID : fFill, fSeed, fVt,
@@ -817,7 +822,8 @@ if (fType == T_ATLAS) {
     vec2 tilt = (vec2(fHash(pane + fSeed * 7.0), fHash(pane + fSeed * 7.0 + 3.7)) - 0.5) * 0.08 * detail;
     vec3 pn = normalize(fNormalW + fT * tilt.x + fB * tilt.y);
     vec3 r = glassReflection(fV, pn, fVt.z, fRough, e, 0.4, vFWorld, 28.0);
-    fEmit += (1.0 - wFrame * detail) * mix(0.45, 1.0, m) * r;
+    fRefl = (1.0 - wFrame * detail) * mix(0.45, 1.0, m) * r;
+    fEmit += fRefl;
   }
   // Window light on the surrounding wall (lights the wall's own albedo).
   fWallLight += mix(wSpill, wAvgSpill, toAvg);
@@ -1049,7 +1055,9 @@ if (uDay > 0.0) {
   bool fLit = fType == T_FIXTURE || fType == T_SCREEN;
   // Sodium fixtures are the street lamps: off by day.
   bool fStreetLamp = fType == T_FIXTURE && fFill < 0.125 && fTint < 0.15;
-  fEmit *= mix(1.0, fStreetLamp ? 0.03 : fLit ? 0.45 : 0.06, uDay);
+  // Glass reflections stay at full strength (fRefl went through the window gain like the rest).
+  vec3 fReflOut = fRefl * uWindowGain;
+  fEmit = (fEmit - fReflOut) * mix(1.0, fStreetLamp ? 0.03 : fLit ? 0.45 : 0.06, uDay) + fReflOut;
   bool fWallType = fType == T_RES || fType == T_OFFICE || fType == T_CURTAIN || fType == T_PODIUM || fType == T_ROOF
                 || fType == T_TRIM || fType == T_CAGE || fType == T_ATLAS || fType == T_SOFFIT || fType == T_DECK;
   fBase *= mix(1.0, fWallType ? 1.9 : 1.0, uDay);
@@ -1091,7 +1099,7 @@ export function createFacadeMaterial(uniforms: FacadeUniforms): THREE.MeshStanda
       .replace('#include <normal_fragment_maps>', 'normal = normalize((viewMatrix * vec4(fNormalW, 0.0)).xyz);')
       .replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance = fEmit;');
   };
-  material.customProgramCacheKey = () => 'facade-v14';
+  material.customProgramCacheKey = () => 'facade-v15';
   return material;
 }
 
