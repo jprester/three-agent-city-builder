@@ -61,9 +61,14 @@ def _uv(L, u0, vbase):
 
 
 def _shell(mb, ctx, pts, z0, z1, vbase, kind, fill, tint):
-    for L, xf, u0 in _edges(pts):
+    # Cells run on around the curve, so the module is the whole perimeter: the runtime fits a
+    # whole number of cells into the closed loop, and none is cut where it closes.
+    edges = _edges(pts)
+    perimeter = sum(L for L, _, _ in edges)
+    for L, xf, u0 in edges:
         m, s = surf(ctx, kind, fill, tint)
-        mb.quad([(-L / 2, 0, z0), (L / 2, 0, z0), (L / 2, 0, z1), (-L / 2, 0, z1)], m, xf, s, _uv(L, u0, vbase))
+        mb.quad([(-L / 2, 0, z0), (L / 2, 0, z0), (L / 2, 0, z1), (-L / 2, 0, z1)], m, xf, s, _uv(L, u0, vbase),
+                module=(perimeter, z1 - vbase))
 
 
 def _roof(mb, ctx, pts, z, tint, parapet):

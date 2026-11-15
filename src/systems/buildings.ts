@@ -6,8 +6,10 @@ import type { AssetMeta } from '../assets/types';
 import { instanceMatrix } from './instancing';
 import type { LayoutInstance } from './layout';
 
-/** Attributes the facade material reads; everything else is dropped. */
-const ATTRIBUTES = { position: 3, normal: 3, uv: 2, color: 3 } as const;
+/** Attributes the facade material reads, and the glTF attribute each comes from; everything
+ * else is dropped. `face`: the facade module (lib.mesh MeshBuilder), exported as `_FACE`. */
+const ATTRIBUTES = { position: 3, normal: 3, uv: 2, color: 3, face: 3 } as const;
+const SOURCE: Record<string, string> = { face: '_face' };
 
 /** Runtime level-of-detail and visibility control for the facade instances. */
 export interface FacadeLod {
@@ -211,7 +213,7 @@ function flatten(root: THREE.Object3D): THREE.BufferGeometry {
     const src = mesh.geometry;
     const g = new THREE.BufferGeometry();
     for (const [name, size] of Object.entries(ATTRIBUTES)) {
-      const a = src.getAttribute(name);
+      const a = src.getAttribute(SOURCE[name] ?? name);
       const n = src.getAttribute('position').count;
       const out = new Float32Array(n * size);
       if (a) for (let i = 0; i < n; i++) for (let k = 0; k < size; k++) out[i * size + k] = a.getComponent(i, k);

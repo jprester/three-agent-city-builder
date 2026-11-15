@@ -37,6 +37,8 @@ _PREVIEW = {
 
 ATTRIBUTE = "Surface"
 PREVIEW_ATTRIBUTE = "Preview"
+# Per-corner facade module (meters): lib.mesh.MeshBuilder `module`, exported as _FACE.
+MODULE_ATTRIBUTE = "_face"
 
 
 WINDOW_KINDS = ("residential", "office", "curtain", "tower_res", "glass")
@@ -109,13 +111,14 @@ def cols_of(ctx, kind, width):
     return max(1, int(round(width / cell["w"]))) if cell else 1
 
 
-def facade_uv(fw, vbase):
+def facade_uv(fw, vbase, u0=0.0):
     """UVs for faces built in a facade-local frame (lib.transforms.facade_xf): the wall
-    plane is y' = 0 with the outside at y' < 0, u runs -fw/2..fw/2 along it."""
+    plane is y' = 0 with the outside at y' < 0, u runs -fw/2..fw/2 along it; `u0` (meters
+    from the left edge) is where u = 0, e.g. the first rib of a ribbed facade."""
     def uvf(pts, n):
         ax, ay, az = abs(n[0]), abs(n[1]), abs(n[2])
         if ay >= ax and ay >= az:      # parallel to the wall: same cells as the wall
-            return [(x + fw / 2, z - vbase) for x, y, z in pts]
+            return [(x + fw / 2 - u0, z - vbase) for x, y, z in pts]
         if ax >= az:                   # side of a protrusion: u = distance out from the wall
             return [(-y, z - vbase) for x, y, z in pts]
         return [(x + fw / 2, -y) for x, y, z in pts]   # top/bottom of a protrusion

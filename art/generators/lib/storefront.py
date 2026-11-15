@@ -23,7 +23,7 @@ def build_shopfront(mb, ctx, W, D, height, kinds):
 
         def wall(x0, x1, z0, z1, y=0.0):
             if x1 > x0 and z1 > z0:
-                mb.quad([(x0, y, z0), (x1, y, z0), (x1, y, z1), (x0, y, z1)], m, xf, s, uvf)
+                mb.quad([(x0, y, z0), (x1, y, z0), (x1, y, z1), (x0, y, z1)], m, xf, s, uvf, module=(fw, height, side == 0 and depth > 0))
 
         if side != 0 or depth <= 0:
             wall(-fw / 2, fw / 2, 0.0, height)

@@ -8,7 +8,13 @@ Faces can carry runtime-shader data (see lib/surface.py):
         ((r, g, b), preview rgb) that also fills the "Preview" attribute used by previews
   uvf   callable(local_corners, local_normal) -> [(u, v), ...] written to the UV map
         (exported as TEXCOORD_0). It sees coordinates *before* `xf`, so facade-local
-        frames give facade-local UVs."""
+        frames give facade-local UVs.
+  module (width, height[, locked]) in meters: the facade band the face belongs to, from its UV
+        origin, which the runtime fills with whole cells (floors and bays) at any layout scale
+        (src/materials/facade.ts fWholeFit). locked=True: real geometry sits on this face's
+        cells (recessed openings, shopfront jambs), so the runtime must not move them. Written
+        to the "_face" attribute (exported as _FACE: width, height, 1 if locked); 0 means none.
+        Window and atlas faces must carry one (npm run check)."""
 import bmesh
 import bpy
 
@@ -29,6 +35,7 @@ class MeshBuilder:
         self._uv = None
         self._col = None
         self._preview = None
+        self._modules = []   # (face, module): written in finish(), only if any face has one
 
     def _slot(self, mat) -> int:
         if mat.name not in self._slots:
@@ -39,7 +46,7 @@ class MeshBuilder:
     def _verts(self, points, xf):
         return [self.bm.verts.new(xf(*p) if xf else p) for p in points]
 
-    def _face(self, local_pts, xf, mat, surf=None, uvf=None):
+    def _face(self, local_pts, xf, mat, surf=None, uvf=None, module=None):
         f = self.bm.faces.new(self._verts(local_pts, xf))
         f.material_index = self._slot(mat)
         if surf is not None or uvf is not None:
@@ -55,16 +62,20 @@ class MeshBuilder:
                 loop[self._uv].uv = uv
                 loop[self._col] = color
                 loop[self._preview] = pcolor
+            if module:
+                locked = len(module) > 2 and module[2]
+                self._modules.append((f, (float(module[0]), float(module[1]), 1.0 if locked else 0.0)))
         return f
 
-    def quad(self, corners, mat, xf=None, surf=None, uvf=None):
+    def quad(self, corners, mat, xf=None, surf=None, uvf=None, module=None):
         """Four corners, counter-clockwise when viewed from the side the face points to."""
-        return self._face(list(corners), xf, mat, surf, uvf)
+        return self._face(list(corners), xf, mat, surf, uvf, module)
 
-    def box(self, x0, x1, y0, y1, z0, z1, mat, xf=None, skip=(), surf=None, uvf=None, faces=None):
+    def box(self, x0, x1, y0, y1, z0, z1, mat, xf=None, skip=(), surf=None, uvf=None, faces=None, module=None):
         """Axis-aligned box in local space. `skip` omits faces by name:
         'bottom', 'top', 'front' (-y), 'right' (+x), 'back' (+y), 'left' (-x).
-        `faces` maps a face name to (mat, surf) overriding the defaults for that face."""
+        `faces` maps a face name to (mat, surf) overriding the defaults for that face.
+        `module` (see the module docs) goes on every face; only window faces use it."""
         p = [
             (x0, y0, z0), (x1, y0, z0), (x1, y1, z0), (x0, y1, z0),
             (x0, y0, z1), (x1, y0, z1), (x1, y1, z1), (x0, y1, z1),
@@ -81,7 +92,7 @@ class MeshBuilder:
             if name in skip:
                 continue
             m, s = (faces or {}).get(name, (mat, surf))
-            self._face([p[i] for i in ids], xf, m, s, uvf)
+            self._face([p[i] for i in ids], xf, m, s, uvf, module)
 
     def discard(self):
         """Drop everything built so far (a sink for detail that a coarse LOD leaves out while
@@ -89,6 +100,12 @@ class MeshBuilder:
         self.bm.free()
 
     def finish(self):
+        if self._modules:
+            # Added last: a new bmesh layer invalidates the other layer handles.
+            layer = self.bm.loops.layers.float_vector.new("_face")  # lib.surface.MODULE_ATTRIBUTE
+            for f, mod in self._modules:
+                for loop in f.loops:
+                    loop[layer] = mod
         bmesh.ops.remove_doubles(self.bm, verts=self.bm.verts, dist=1e-5)
         self.bm.normal_update()
         mesh = bpy.data.meshes.new(self.name)

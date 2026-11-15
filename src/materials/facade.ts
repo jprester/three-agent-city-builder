@@ -62,11 +62,12 @@ const f = (v: number) => v.toFixed(6);
 const T = facade.types;
 const C = facade.cells;
 
-// Tower facade table: rect (u0, v0, u1, v1 in image space, y down) and
+// Tower facade table: grid (u0, v0, u1, v1 in image space, y down; whole floors and bays,
+// edges on floor/bay lines; tools/textures/facade_grid.py) and
 // (floor height, bay width, wrap width, wrap height) in atlas UV units.
 const towerFacades = TOWER_BUNDLES.flatMap((b) => b.facades);
 const TF_COUNT = towerFacades.length;
-const TF_RECT = towerFacades.map((t) => `vec4(${t.rect.map(f).join(', ')})`).join(',\n  ');
+const TF_RECT = towerFacades.map((t) => `vec4(${t.grid.map(f).join(', ')})`).join(',\n  ');
 const TF_DIM = towerFacades.map((t) => `vec4(${f(t.floor)}, ${f(t.bay)}, ${f(t.wrap[0])}, ${f(t.wrap[1])})`).join(',\n  ');
 
 // Room cards (art/textures/interiors, npm run interiors): room box (W, H, D, camera distance)
@@ -150,6 +151,11 @@ const vec4 TF_DIM[${TF_COUNT}] = vec4[${TF_COUNT}](
 
 const VERTEX_PARS = /* glsl */ `
 uniform float uSeed;
+// Facade module (lib.mesh MeshBuilder module): the band a face belongs to, in meters before
+// the layout's scale, which must hold whole cells (floors and bays). 0: no module.
+attribute vec3 face;
+// xy: the module at this instance's scale; z: 1 if geometry sits on its cells (locked).
+flat varying vec3 vFace;
 varying vec2 vFacadeUv;
 // Discrete face data and random seeds must not acquire interpolation rounding noise.
 flat varying vec3 vSurf;
@@ -179,6 +185,7 @@ bool fAlongX = abs(normal.z) >= abs(normal.x);
 float fSu = fAlongX ? fScale.x : fScale.z;
 float fSv = abs(normal.y) > 0.7 ? (fAlongX ? fScale.z : fScale.x) : fScale.y;
 vFacadeUv = vec2(uv.x * fSu, (1.0 - uv.y) * fSv);   // glTF stores 1 - v
+vFace = vec3(face.xy * vec2(fSu, fSv), face.z);
 vSurf = color.rgb;
 vRawUv = vec2(uv.x, 1.0 - uv.y);
 vInstSeed = fract(sin(dot(fInst[3].xz, vec2(12.9898, 78.233)) + uSeed * 0.0137) * 43758.5453);
@@ -214,6 +221,7 @@ uniform sampler2D uSignMap;
 uniform sampler2D uScreens;
 uniform samplerCube uGlassEnv;
 uniform float uGlassOn, uGlassGain;
+flat varying vec3 vFace;
 varying vec2 vFacadeUv;
 // Discrete face data and random seeds must not acquire interpolation rounding noise.
 flat varying vec3 vSurf;
@@ -262,6 +270,17 @@ float windowCoverage(vec2 p, vec4 rect, vec2 footprint) {
 vec3 skyRefl(vec3 r) {
   float y = max(r.y, 0.0);
   return mix(P_HAZE * 1.6 + P_SODIUM * 0.03, P_SKY, smoothstep(0.0, 0.5, y));
+}
+
+// Scale for coordinates in a module (vFace: xy in meters at this instance's scale, 0 = none)
+// so it holds a whole number of cells of size cell (per axis; cell 0 = leave that axis). The
+// cells stretch by at most half a cell over the module. A locked module (vFace.z: real
+// geometry sits on its cells, e.g. recessed openings, shopfront jambs) is left as built.
+vec2 fWholeFit(vec3 m, vec2 cell) {
+  vec2 c = max(cell, vec2(1e-3));
+  vec2 ok = step(1e-3, m.xy) * step(1e-3, cell) * (1.0 - step(0.5, m.z));
+  vec2 n = max(floor(m.xy / c + 0.5), vec2(1.0));
+  return mix(vec2(1.0), n * cell / max(m.xy, vec2(1e-3)), ok);
 }
 
 void towerSample(int bundle, vec2 uv, vec2 dx, vec2 dy, out vec4 dr, out vec3 em, out vec3 nm) {
@@ -637,6 +656,12 @@ if (fGlass) {
 float fFill = vSurf.g;
 float fTint = vSurf.b;
 vec2 fUv = vFacadeUv;
+// Whole cells per facade module: the layout scales buildings (0.6-1.35), so a band built as
+// whole floors and bays no longer is; stretch the cells slightly so it is again, and no row
+// or column is cut at a band's edge. The atlas fits its own floor and bay below.
+vec2 fCellFit = fType == T_OFFICE ? CELL_OFFICE : fType == T_CURTAIN ? CELL_CURTAIN
+              : (fType == T_RES || fType == T_CAGE) ? CELL_RES : fType == T_PODIUM ? CELL_PODIUM : vec2(0.0);
+if (fCellFit.x > 0.0) fUv *= fWholeFit(vFace, fCellFit);
 vec2 fFw = max(fwidth(fUv), vec2(1e-4));
 float fSeed = vInstSeed;
 fNormalW = normalize(vFNormal);
@@ -701,10 +726,17 @@ if (fType == T_ATLAS) {
   // Photographic tower facade: bundle and facade per building, offset by whole bays/floors.
   int bundle = int(fract(fSeed * 3.17) * 3.0);
   int fi = bundle * 7 + int(fract(fSeed * 11.3) * 7.0);
+  // R: the facade's grid (tools/textures/facade_grid.py), whose edges are floor lines (middle of
+  // a spandrel) and bay lines (middle of a pier), holding whole floors and bays; Dm.zw its size.
   vec4 R = TF_RECT[fi];
   vec4 Dm = TF_DIM[fi];
   float perM = Dm.x / CELL_CURTAIN.y;
-  vec2 L = fUv * perM + vec2(floor(fract(fSeed * 5.1) * 9.0) * Dm.y, floor(fract(fSeed * 7.9) * 9.0) * Dm.x);
+  // Whole floors up each module, and whole bays across it where the facade has a column
+  // rhythm (ribbon glazing has none: its bay is the whole grid), so a tier starts and ends on
+  // a floor line and a corner or rib on a bay line.
+  bool hasBays = Dm.y < Dm.z * 0.75;
+  vec2 fit = fWholeFit(vFace, vec2(hasBays ? Dm.y / perM : 0.0, CELL_CURTAIN.y));
+  vec2 L = fUv * fit * perM + vec2(floor(fract(fSeed * 5.1) * 9.0) * Dm.y, floor(fract(fSeed * 7.9) * 9.0) * Dm.x);
   vec2 Lw = mod(L, Dm.zw);
   vec2 auv = vec2(R.x + Lw.x, 1.0 - R.w + Lw.y);
   vec4 dr; vec3 em, nm;
@@ -1017,7 +1049,7 @@ export function createFacadeMaterial(uniforms: FacadeUniforms): THREE.MeshStanda
       .replace('#include <normal_fragment_maps>', 'normal = normalize((viewMatrix * vec4(fNormalW, 0.0)).xyz);')
       .replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance = fEmit;');
   };
-  material.customProgramCacheKey = () => 'facade-v12';
+  material.customProgramCacheKey = () => 'facade-v13';
   return material;
 }
 

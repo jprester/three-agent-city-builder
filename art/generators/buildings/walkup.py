@@ -42,7 +42,8 @@ def generate(ctx):
         z = ph + f * ch
         if rng.random() < ctx.p("enclosed", 0.5):
             # Enclosed veranda: a box whose front face carries windows.
-            dmb.box(-fw / 2, fw / 2, -vd, 0.0, z, z + ch, tm, xf, ("back",), ts, uvf, faces={"front": (rm, rs)})
+            dmb.box(-fw / 2, fw / 2, -vd, 0.0, z, z + ch, tm, xf, ("back",), ts, uvf, faces={"front": (rm, rs)},
+                    module=(fw, floors * ch))
         else:
             dmb.box(-fw / 2, fw / 2, -vd, 0.0, z, z + 0.18, tm, xf, ("back",), ts, uvf)
             rail = mm if rng.random() < 0.5 else tm

@@ -23,14 +23,20 @@ def side_frame(side, W, D, cx=0.0, cy=0.0):
     return facade_width(side, W, D), offset(facade_xf(side, W, D), cx, cy)
 
 
-def walls(mb, ctx, W, D, z0, z1, vbase, kinds, cx=0.0, cy=0.0):
+def walls(mb, ctx, W, D, z0, z1, vbase, kinds, cx=0.0, cy=0.0, rhythm=None):
     """Four walls of a W×D box between z0 and z1. kinds[side] = (kind, fill, tint); for
-    window kinds `fill` is an opening pattern (lib.surface.window_code)."""
+    window kinds `fill` is an opening pattern (lib.surface.window_code).
+
+    Each wall's module (lib.mesh) is its band: the full face width, from `vbase` to z1, so the
+    runtime fills it with whole floors and bays. `rhythm(fw) -> (module width, u0)` splits a
+    face into narrower modules starting u0 from its left edge (ribs, mullions in front of it)."""
     for side in range(4):
         fw, xf = side_frame(side, W, D, cx, cy)
         kind, fill, tint = kinds[side]
         m, s = surf(ctx, kind, fill, tint, cols_of(ctx, kind, fw))
-        mb.quad([(-fw / 2, 0, z0), (fw / 2, 0, z0), (fw / 2, 0, z1), (-fw / 2, 0, z1)], m, xf, s, facade_uv(fw, vbase))
+        mw, u0 = rhythm(fw) if rhythm else (fw, 0.0)
+        mb.quad([(-fw / 2, 0, z0), (fw / 2, 0, z0), (fw / 2, 0, z1), (-fw / 2, 0, z1)], m, xf, s,
+                facade_uv(fw, vbase, u0), module=(mw, z1 - vbase))
 
 
 PARAPET_INSET = 0.05

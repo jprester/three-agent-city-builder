@@ -8,9 +8,11 @@ Per bundle it writes (2048², WebP):
   <name>/emissive.webp        emissive A (sRGB), clipped to windows by the source
   <name>/normal.webp          OpenGL normal (linear)
   <name>.json                 facade rects (0..1, image y down) and, detected from the
-                              window mask, each facade's floor and bay period in texels,
-                              so the shader can map meters to texels and wrap on whole
-                              floors/bays (source edges are not seamless)
+                              window mask, each facade's floor and bay period in texels;
+                              then tools/textures/facade_grid.py refines them and adds each
+                              facade's grid (whole floors and bays, edges on floor and bay
+                              lines), which the shader wraps inside (source edges are not
+                              seamless and cut windows)
 and one wall-material atlas from the bundles' opaque tiles:
   walls.webp / walls.json     4×2 cells of 512², RGB diffuse + A roughness
 """
@@ -121,6 +123,12 @@ def main(src):
     atlas.save(OUT / "walls.webp", quality=88, method=6, exact=True)
     (OUT / "walls.json").write_text(json.dumps({"grid": [4, 2], "cells": names}, indent=2) + "\n")
     print("walls", names)
+
+    # Floor and bay lines from the textures just written (refines the periods above).
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import facade_grid
+    if facade_grid.main():
+        sys.exit("facade_grid: problems above")
 
 
 if __name__ == "__main__":

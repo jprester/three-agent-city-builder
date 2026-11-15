@@ -1580,3 +1580,43 @@ same way and adds a second runtime, so it is no better a fallback. Cheaper next 
 car.py's loft itself rounder. Add two or three points at the shoulder and roof edges of
 `_ring`, and give paint faces smooth normals with sharp edges only at glass, rubber and the
 shoulder. That rounds the corners for roughly +200 tris and needs no dependency.
+
+## Facade rows and ribs (2026-11-15)
+
+Reported: tower facade photos cut by other models and materials (a half window row at the base,
+ribs crossing windows). Images: `docs/progress/facade-grid/` (left before, right after), new
+viewpoints `tower-base`, `tower-corner`, `tower-ribs` on the ribbed tower_c by the hero street.
+
+Causes, all confirmed:
+- **Tier base and wrap seams.** The atlas started every tier at its photo rect's bottom edge,
+  which cuts through a window row on every facade (osaka mid-window, real_glass mid-pane). The
+  importer measured floor periods but never where the floor lines fall, and several periods were
+  wrong (osaka 0, glass_sky 1, real_glass 1, 3), so rows also drifted off the wrap.
+- **Layout scale.** Towers are the only scaled assets (0.59-1.35 vertically, 0.70-1.0 across) and
+  every facade shader cancelled the scale to keep cells at real meters, so a tier built as whole
+  floors ended mid-row under its band, and an office base or podium mid-cell.
+- **Ribs.** `tower_structure` ribs were `trim` (per building that can be the ceramic tile, a light
+  ladder on a 16 cm fin) on a 6-8 m pitch with no relation to the bays: they crossed windows.
+- Checked, not a cause: UVs. A new scan of every window and atlas face in all 142 assets found no
+  stretched or sideways mapping. The "giant blurred window" in the second report is most likely
+  the glass reflecting a neighbouring tower (uGlassEnv); not changed.
+
+Fix: the photo grids (`tools/textures/facade_grid.py`, overlays verified on all 21 facades),
+facade modules on every window and atlas face with a whole-cell fit in the shader, ribs as metal
+on bay lines, the slant crown's glass on face-local UVs. `npm run facades` enforces it.
+
+Critique:
+- Works: `tower-base` now shows a full window row sitting on a half spandrel above the office base,
+  where it showed half a row; ribs read as dark fins standing on the piers between bays.
+- Works: corners end on a bay line on both faces (`tower-corner`).
+- Weak: the scaled towers' podiums are squashed (4.8 m storey to 2.8 m at 0.59): the fit keeps it
+  whole, so the shopfront is a squat single storey. That is the layout's vertical scale acting on
+  the base; scaling only the shaft would fix it.
+- Weak: 8 warnings remain where a narrow face is drawn with stretched cells (walkup_b's 6.4 m
+  podium as one 6.4 m shop, walkup_d's 4.8 m side as two 2.4 m windows, commercial_e's 4.8 m glass
+  lobby as one tall floor). Honest, visible on close look; fix in those generators if it matters.
+- Not touched: exoskeleton braces are still `trim` (tile possible on a diagonal brace).
+
+Budgets: draw calls, triangles and programs unchanged in all 26 shots views. `npm run perf`
+(idle): canyon 9.7, storefront 9.5, aerial 10.4, harbor 8.0, fly-75 10.0 ms `fast`, 0 % late,
+GPU process 803-811 MB (789-799 MB before: +~12 MB for the module attribute; gate 920).

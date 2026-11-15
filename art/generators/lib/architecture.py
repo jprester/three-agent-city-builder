@@ -15,7 +15,7 @@ def recessed_front(mb, ctx, W, D, z0, z1, vbase, kinds, cell_size, rect, depth):
         tm, ts = surf(ctx, "trim", 0.0, tint)
         def front(x0, x1, low, high, y=0.0):
             if x1 > x0 and high > low:
-                mb.quad([(x0, y, low), (x1, y, low), (x1, y, high), (x0, y, high)], m, xf, s, uvf)
+                mb.quad([(x0, y, low), (x1, y, low), (x1, y, high), (x0, y, high)], m, xf, s, uvf, module=(fw, z1 - vbase, side == 0))
         if side != 0:
             front(-fw / 2, fw / 2, z0, z1)
             continue
@@ -66,20 +66,35 @@ def service_details(mb, ctx, W, D, ph, top, tint):
             mb.box(u - radius * 1.8, u + radius * 1.8, -radius * 3.4, 0, z, z + radius, m, xf, ("back",), s, uvf)
 
 
-def tower_structure(mb, ctx, W, D, z0, z1, tint):
-    """Structural ribs and louvred belt, deliberately much coarser than window bays."""
-    m, s = surf(ctx, "metal", 0.0, tint)
-    tm, ts = surf(ctx, "trim", 0.0, tint)
+def rib_rhythm(ctx):
+    """Rib layout of tower_structure as a walls() rhythm: fw -> (rib spacing, first rib's
+    centre from the left edge). The tier's walls use it as their module, so the runtime puts a
+    whole number of window bays between ribs and every rib lands on a bay line."""
     spacing = ctx.p("rib_spacing", 6.0)
+    width = ctx.p("rib_width", 0.16)
+
+    def rhythm(fw):
+        n = max(1, int(fw / spacing))
+        return (fw - width) / n, width / 2
+    return rhythm
+
+
+def tower_structure(mb, ctx, W, D, z0, z1, tint):
+    """Structural ribs and louvred belt, coarser than window bays but on bay lines: the tier's
+    walls take rib_rhythm as their module. Ribs are plain metal: a wall material's tiles or
+    panels would read as a ladder on a 16 cm fin."""
+    m, s = surf(ctx, "metal", 0.0, tint)
     depth = ctx.p("rib_depth", 0.32)
     width = ctx.p("rib_width", 0.16)
+    rhythm = rib_rhythm(ctx)
     for side in range(4):
         fw, xf = side_frame(side, W, D)
         uvf = facade_uv(fw, z0)
-        n = max(1, int(fw / spacing))
+        pitch, first = rhythm(fw)
+        n = int(round((fw - width) / pitch))
         for k in range(n + 1):
-            u = -fw / 2 + width / 2 + k * (fw - width) / n
-            mb.box(u - width / 2, u + width / 2, -depth, 0, z0, z1, tm, xf, ("back",), ts, uvf)
+            u = -fw / 2 + first + k * pitch
+            mb.box(u - width / 2, u + width / 2, -depth, 0, z0, z1, m, xf, ("back",), s, uvf)
         belt = ctx.p("mechanical_belt_height", 1.8)
         for k in range(ctx.p("louvre_count", 4)):
             z = z1 - belt + k * belt / ctx.p("louvre_count", 4)

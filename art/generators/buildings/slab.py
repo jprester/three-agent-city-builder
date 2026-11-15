@@ -84,7 +84,7 @@ def generate(ctx):
         f0 = rng.randint(0, max(0, front_floors // 3))
         f1 = front_floors - rng.randint(0, 2)
         dmb.box(u0 + 0.15, u0 + cw - 0.15, -bw, 0.0, ph + f0 * ch, ph + f1 * ch, tm, xf, ("back",), ts, uvf,
-               faces={"front": (rm, rs)})
+               faces={"front": (rm, rs)}, module=(fw, front_floors * ch))
     if ctx.p("ledges", False):
         for f in range(1, front_floors):
             z = ph + f * ch
@@ -105,7 +105,8 @@ def generate(ctx):
                 continue
             r = rng.random()
             if r < ctx.p("cage_ratio", 0.12):
-                dmb.box(u0 + 0.55, u0 + cw - 0.55, -0.45, 0.0, z + 0.7, z + 2.5, cm, xf, ("back",), cs, uvf)
+                dmb.box(u0 + 0.55, u0 + cw - 0.55, -0.45, 0.0, z + 0.7, z + 2.5, cm, xf, ("back",), cs, uvf,
+                        module=(fw, front_floors * ch))
             elif r < ctx.p("cage_ratio", 0.12) + ctx.p("ac_ratio", 0.35):
                 ax = u0 + cw / 2 + rng.choice((-0.75, 0.75))
                 dmb.box(ax - 0.4, ax + 0.4, -0.55, 0.0, z + 0.2, z + 0.75, am, xf, ("back",), as_, uvf)

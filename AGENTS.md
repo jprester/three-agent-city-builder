@@ -53,8 +53,13 @@ binary in `public/` is regenerated from them.
 - `npm run next:dev` / `next:shots` / `next:build`: the fresh slice in `next/` (a small city
   built from scratch on WebGPU; see `next/README.md`). `next:shots` is its gate: every
   viewpoint, screenshots in `build/shots/next/`, budgets from `next/budgets.json`.
-- `npm run check` typechecks, enforces budgets and runs `npm run coplanar` (z-fighting scan of
-  every GLB: coplanar overlapping faces flicker as the camera moves). Must pass before every commit.
+- `npm run check` typechecks, enforces budgets, runs `npm run coplanar` (z-fighting scan of
+  every GLB: coplanar overlapping faces flicker as the camera moves) and `npm run facades`
+  (every window and photo-facade face carries a facade module and meter-scale upright UVs; every
+  tower photo has a grid of whole floors and bays). Must pass before every commit.
+- `python3 tools/textures/facade_grid.py` re-measures the floor and bay lines of the tower facade
+  photos into `art/external/textures/<bundle>.json` and draws overlays to
+  `build/previews/facade-grid/`; `--check` verifies the JSONs against a fresh measurement.
 
 ## Never hand-edit (generated)
 `public/assets/**`, `public/layouts/**`, `public/textures/**`, `public/basis/**`,
@@ -71,6 +76,15 @@ Change the generator, def, or layout def, then rebuild.
 - Bought or downloaded assets: `art/external/` plus an entry in
   `art/external/manifest.json` (source URL, license, attribution) BEFORE use.
 - Colors: add to `art/style/palette.json` and reference by name. No hex literals in generators.
+
+## Facade modules (no cut window rows)
+Window and photo-facade faces must carry a module: `MeshBuilder.quad/box(..., module=(w, h))`,
+the band the face belongs to, in meters from its UV origin. `walls()` sets it for you (pass
+`rhythm=` when ribs or mullions stand in front of the wall). The runtime fills every module with
+whole floors and bays at whatever scale the layout gives the building, so a band never starts or
+ends mid-row. Pass `module=(w, h, True)` (locked) only when real geometry sits on the face's
+cells (recessed openings, shopfront jambs); the runtime then leaves its cells where they are.
+`npm run facades` fails on a window face without a module or with stretched UVs.
 
 ## Generator rules
 - All randomness from `ctx.rng` (Python) or `mulberry32(seed)` (layouts). Output must be

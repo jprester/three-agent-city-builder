@@ -16,7 +16,10 @@ def generate(ctx):
     sm, ss = surf(ctx, "soffit", 0.0, 0.0)
     mm, ms = surf(ctx, "metal", 0.0, 0.3)
     # Body: shop-front shading on the street side, plain panels elsewhere.
-    mb.box(-W / 2, W / 2, -D / 2, D / 2, 0.0, H, bm, None, ("bottom",), bs, plan_uv, faces={"front": (pm, ps)})
+    # Locked to one podium cell: a kiosk shows a fragment of a shop bay, never fitted.
+    cell = ctx.facade["cells"]["podium"]
+    mb.box(-W / 2, W / 2, -D / 2, D / 2, 0.0, H, bm, None, ("bottom",), bs, plan_uv, faces={"front": (pm, ps)},
+           module=(cell["w"], cell["h"], True))
     # Canopy over the counter.
     xf = facade_xf(0, W, D)
     cd = ctx.p("canopy", 0.9)

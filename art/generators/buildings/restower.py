@@ -122,7 +122,8 @@ def generate(ctx):
             uvf = facade_uv(w, base)
             pattern = ctx.p("slot_pattern", "stair") if kind == "slot" else "grid"
             m, s = surf(ctx, "tower_res", pattern, tint, round(w / cw))
-            mb.quad([(-w / 2, 0, base), (w / 2, 0, base), (w / 2, 0, top), (-w / 2, 0, top)], m, wxf, s, uvf)
+            mb.quad([(-w / 2, 0, base), (w / 2, 0, base), (w / 2, 0, top), (-w / 2, 0, top)], m, wxf, s, uvf,
+                    module=(w, top - base))
             if kind == "slot":
                 continue
             # Pale fins on the run ends: the vertical edges that outline each wing.
@@ -145,7 +146,8 @@ def generate(ctx):
                         ax = u0 + cw / 2 + rng.choice((-0.8, 0.8))
                         dmb.box(ax - 0.4, ax + 0.4, -0.55, 0.0, z + 0.2, z + 0.75, am, wxf, ("back",), as_, uvf)
                     elif r < ctx.p("ac_ratio", 0.22) + ctx.p("cage_ratio", 0.03) and f < floors // 3:
-                        dmb.box(u0 + 0.55, u0 + cw - 0.55, -0.4, 0.0, z + 0.7, z + 2.5, cm, wxf, ("back",), cs, uvf)
+                        dmb.box(u0 + 0.55, u0 + cw - 0.55, -0.4, 0.0, z + 0.7, z + 2.5, cm, wxf, ("back",), cs, uvf,
+                                module=(w, top - base))
 
     # Roof of the shaft: one slab per occupied cell row run, parapets on the outer outline.
     x0, y0 = -W / 2, -D / 2
