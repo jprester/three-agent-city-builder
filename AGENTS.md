@@ -31,11 +31,11 @@ binary in `public/` is regenerated from them.
   GPU-compressed KTX2 in `public/textures/` (a few minutes the first time, then only what
   changed). `npm run dev`, `npm run build` and the Playwright runs call it first. The outputs
   are committed, like the GLBs.
-- `npm run facades:bake [-- <style id>]` models the tower facade styles of
-  `art/facades/baked.json` in Blender and renders their maps straight on (Cycles, ~1.5 min for 7),
-  then packs `art/textures/facades/baked/` + `baked.json` (exact grids, nothing measured); then
-  `npm run textures`. The city picks it for a quarter of its towers; `?inspect=` shows it as
-  facades 21-27.
+- `npm run facades:bake [-- <bundle> [<style id>]]` models the tower facade styles of each
+  `art/facades/<bundle>.json` (baked, baked_osaka) in Blender and renders their maps straight on (Cycles, ~1.5 min for 7),
+  then packs `art/textures/facades/<bundle>/` + `<bundle>.json` (exact grids, nothing measured);
+  then `npm run textures`. Of the city's four tower bundles two are baked (baked_osaka 0-6,
+  baked 21-27 in `?inspect=`) and two are photo sets (real_glass, glass_sky).
 - `npm run inspect -- <asset id>` renders a contact sheet of one asset with the real facade
   shader, by day: every tower facade photo (rows) × cameras at its band junctions (columns), to
   `build/inspect/`. Options: `--overlay` (the shader's floor lines red, bay/cell lines cyan,
@@ -78,8 +78,8 @@ binary in `public/` is regenerated from them.
   measurement. Floor periods are curated in `art/external/textures/facade_periods.json` (the
   generated photos fold almost as well at half or double a floor); after changing a photo,
   confirm its period by eye on the overlay before trusting the grid.
-- `python3 tools/textures/fix_emissive.py` rebuilds the tower emissive (and osaka's roughness)
-  where the generated maps do not depict the photo's building (`<bundle>/*_fixed.webp`, read by
+- `python3 tools/textures/fix_emissive.py` repairs photo-bundle maps that do not depict their
+  photo (now only glass_sky's lit piers) (`<bundle>/*_fixed.webp`, read by
   the KTX2 build); then `npm run textures`. Run after the grids change.
 
 ## Never hand-edit (generated)

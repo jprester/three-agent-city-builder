@@ -1,14 +1,15 @@
 import * as THREE from 'three';
 import { loadKtx2 } from './ktx2';
-import osaka from '../../art/external/textures/osaka.json';
+import bakedOsaka from '../../art/textures/facades/baked_osaka.json';
 import realGlass from '../../art/external/textures/real_glass.json';
 import glassSky from '../../art/external/textures/glass_sky.json';
 import baked from '../../art/textures/facades/baked.json';
 
 /** Tower facade bundles, in the order the facade shader indexes them (bundle * 7 + facade).
+ * `baked_osaka` took the osaka photo set's place (its generated maps did not depict its photo).
  * `baked` is modelled and baked in Blender (npm run facades:bake); the city picks among all four
  * by seed (TOWER_CITY_BUNDLES in facade.ts). */
-export const TOWER_BUNDLES: { facades: TowerFacade[] }[] = [osaka, realGlass, glassSky, baked];
+export const TOWER_BUNDLES: { facades: TowerFacade[] }[] = [bakedOsaka, realGlass, glassSky, baked];
 
 /** What the facade shader reads of a tower facade (atlas UV units; grid in image space, y down). */
 export interface TowerFacade {
@@ -20,7 +21,7 @@ export interface TowerFacade {
   /** No column rhythm: no whole bays are fitted across. */
   ribbon?: boolean;
 }
-export const TOWER_BUNDLE_NAMES = ['osaka', 'real_glass', 'glass_sky', 'baked'];
+export const TOWER_BUNDLE_NAMES = ['baked_osaka', 'real_glass', 'glass_sky', 'baked'];
 
 export interface FacadeTextures {
   /** One layer per bundle: diffuse (sRGB RGB) + roughness (A). */

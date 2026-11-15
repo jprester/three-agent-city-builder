@@ -1,0 +1,153 @@
+{
+  "$comment": "Second baked tower bundle, after the osaka photo set it replaces (its generated maps did not depict its own photo; docs/NOTES.md, 'Facade emissive'). Same format and rules as art/facades/baked.json.",
+  "pixels_per_meter": 24,
+  "cell": [
+    464,
+    976
+  ],
+  "styles": [
+    {
+      "id": "tile_punched_small",
+      "wall": "tile",
+      "colors": [
+        "tile_white",
+        "tile_white_alt",
+        "tile_grout"
+      ],
+      "floor": 3.2,
+      "bay": 2.0,
+      "pier": 0.85,
+      "spandrel": 1.55,
+      "panes": 2,
+      "transom": 0.0,
+      "frame": "frame_dark",
+      "sill": "tile_white",
+      "blinds": 0.45,
+      "ac": 0.2,
+      "rooms": "residential",
+      "seed": 21
+    },
+    {
+      "id": "beige_ribbon",
+      "wall": "concrete",
+      "colors": [
+        "concrete_beige",
+        "concrete_beige_alt",
+        "concrete_beige"
+      ],
+      "floor": 3.4,
+      "bay": 6.0,
+      "pier": 0.35,
+      "spandrel": 1.5,
+      "panes": 6,
+      "transom": 0.0,
+      "frame": "frame_dark",
+      "sill": "concrete_beige",
+      "blinds": 0.35,
+      "ac": 0.1,
+      "seed": 22
+    },
+    {
+      "id": "light_grid",
+      "wall": "panel",
+      "colors": [
+        "panel_light",
+        "panel_light",
+        "mullion_alu"
+      ],
+      "floor": 3.6,
+      "bay": 1.5,
+      "pier": 0.16,
+      "spandrel": 1.2,
+      "panes": 1,
+      "transom": 0.0,
+      "frame": "mullion_alu",
+      "sill": "mullion_alu",
+      "blinds": 0.35,
+      "ac": 0.0,
+      "seed": 23
+    },
+    {
+      "id": "charcoal_toplight",
+      "wall": "concrete",
+      "colors": [
+        "concrete_charcoal",
+        "concrete_charcoal_alt",
+        "concrete_charcoal"
+      ],
+      "floor": 3.5,
+      "bay": 3.6,
+      "pier": 0.6,
+      "spandrel": 0.95,
+      "panes": 2,
+      "transom": 0.55,
+      "frame": "frame_silver",
+      "sill": "concrete_charcoal",
+      "blinds": 0.35,
+      "ac": 0.05,
+      "seed": 24
+    },
+    {
+      "id": "tile_balcony_wide",
+      "wall": "tile",
+      "colors": [
+        "tile_white",
+        "tile_white_alt",
+        "tile_grout"
+      ],
+      "floor": 3.2,
+      "bay": 3.6,
+      "pier": 0.9,
+      "spandrel": 1.0,
+      "panes": 3,
+      "transom": 0.0,
+      "frame": "frame_silver",
+      "sill": "tile_white",
+      "blinds": 0.4,
+      "ac": 0.25,
+      "balconies": 0.5,
+      "rooms": "residential",
+      "seed": 25
+    },
+    {
+      "id": "brick_grouped",
+      "wall": "brick",
+      "colors": [
+        "brick_red",
+        "brick_red_alt",
+        "mortar"
+      ],
+      "floor": 3.6,
+      "bay": 5.0,
+      "pier": 1.0,
+      "spandrel": 1.1,
+      "panes": 3,
+      "transom": 0.35,
+      "frame": "frame_dark",
+      "sill": "sill_stone",
+      "blinds": 0.4,
+      "ac": 0.15,
+      "seed": 26
+    },
+    {
+      "id": "blue_bands",
+      "wall": "panel",
+      "colors": [
+        "panel_blue",
+        "panel_blue",
+        "mullion_alu"
+      ],
+      "floor": 3.6,
+      "bay": 3.0,
+      "pier": 0.1,
+      "spandrel": 0.95,
+      "panes": 2,
+      "transom": 0.0,
+      "frame": "mullion_alu",
+      "sill": "mullion_alu",
+      "blinds": 0.3,
+      "ac": 0.0,
+      "seed": 27
+    }
+  ]
+}

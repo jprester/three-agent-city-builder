@@ -4,7 +4,7 @@
     {
       "files": "art/external/textures/osaka/*, osaka.json",
       "source": "local: /Users/jankoprester/Projects/3d-modeling/blender/textures/generated-textures/generated-texture-atlas/High-Rise_Atlas4/highrise-atlas-v1_osaka-modern-02_bundle",
-      "notes": "High-Rise Atlas v1 'Osaka Modern 02'; emissive from B_fixed (A is a truncated PNG in the source). emissive_fixed.webp and diffuse_rough_fixed.webp (roughness only) are rebuilt from the photo by tools/textures/fix_emissive.py: B's emissive shows other windows. window_mask.webp is the source window-mask_4K at 2048 (tools only: floor and bay lines).",
+      "notes": "High-Rise Atlas v1 'Osaka Modern 02'; emissive from B_fixed (A is a truncated PNG in the source). No longer used at runtime (2026-11-15): replaced by baked facades, art/facades/baked_osaka.json; kept as reference. window_mask.webp is the source window-mask_4K at 2048 (tools only: floor and bay lines).",
       "license": "Owned by the project author (generated artwork), provided for this project on 2026-09-25",
       "attribution": "Project author",
       "importer": "tools/textures/import_highrise.py"

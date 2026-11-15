@@ -1,9 +1,9 @@
-"""Pack baked facade maps (tools/blender/bake_facades.py, build/facades/<style>/) into a tower
+"""Pack baked facade maps (tools/blender/bake_facades.py, build/facades/<bundle>/<style>/) into a tower
 bundle in the same format as the photo bundles: art/textures/facades/<name>/{diffuse_rough,
 emissive,normal}.webp at 2048², and art/textures/facades/<name>.json (rect, grid, floor, bay,
 wrap per facade, exact: nothing is measured).
 
-  python3 tools/textures/pack_facades.py art/facades/baked.json build/facades
+  python3 tools/textures/pack_facades.py art/facades/<bundle>.json build/facades/<bundle> <bundle>
 
 Per style, in its cell of the 4x2 atlas (as the photo bundles: 464x976 rects at +24 px):
   diffuse_rough  albedo x ambient occlusion x grime, roughness in alpha (linear)
@@ -208,4 +208,4 @@ def main(def_path, bake_dir, name="baked"):
 
 
 if __name__ == "__main__":
-    sys.exit(main(*sys.argv[1:3]))
+    sys.exit(main(*sys.argv[1:4]))

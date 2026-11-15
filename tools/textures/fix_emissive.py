@@ -122,7 +122,9 @@ def clean_piers(name):
 
 
 def main():
-    for name, fix in (("osaka", rebuild), ("glass_sky", clean_piers)):
+    # osaka was replaced by baked facades (art/facades/baked_osaka.json); rebuild() stays for
+    # any future photo bundle whose maps do not depict its photo.
+    for name, fix in (("glass_sky", clean_piers),):
         out = fix(name)
         img = Image.fromarray((np.clip(out, 0, 1) * 255 + 0.5).astype(np.uint8), "RGB")
         img.save(TEX / name / "emissive_fixed.webp", quality=90, method=6)

@@ -1,7 +1,7 @@
-// npm run facades:bake [-- <style id>]
-// art/facades/baked.json -> build/facades/<style>/*.png (tools/blender/bake_facades.py, Cycles,
-// one straight-on render per map) -> art/textures/facades/baked/*.webp + baked.json
-// (tools/textures/pack_facades.py). Then `npm run textures` for the KTX2 copies.
+// npm run facades:bake [-- <bundle> [<style id>]]
+// Each art/facades/<bundle>.json -> build/facades/<bundle>/<style>/*.png (tools/blender/
+// bake_facades.py, Cycles, one straight-on render per map) -> art/textures/facades/<bundle>/*.webp
+// + <bundle>.json (tools/textures/pack_facades.py). Then `npm run textures` for the KTX2 copies.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -19,10 +19,14 @@ if (!blender) {
   console.error('Blender not found. Set BLENDER_BIN or "blender.path" in pipeline.config.json.');
   process.exit(1);
 }
-const def = path.join(ROOT, 'art', 'facades', 'baked.json');
-const out = path.join(ROOT, 'build', 'facades');
-const only = process.argv[2];
-execFileSync(blender, ['--background', '--factory-startup', '--python-exit-code', '1',
-  '--python', path.join(ROOT, 'tools', 'blender', 'bake_facades.py'), '--', '--def', def, '--out', out,
-  ...(only ? ['--only', only] : [])], { stdio: ['ignore', 'inherit', 'inherit'] });
-execFileSync('python3', [path.join(ROOT, 'tools', 'textures', 'pack_facades.py'), def, out], { stdio: 'inherit' });
+const [onlyBundle, onlyStyle] = process.argv.slice(2);
+const bundles = fs.readdirSync(path.join(ROOT, 'art', 'facades')).filter((f) => f.endsWith('.json')).map((f) => f.slice(0, -5))
+  .filter((b) => !onlyBundle || b === onlyBundle);
+for (const bundle of bundles) {
+  const def = path.join(ROOT, 'art', 'facades', `${bundle}.json`);
+  const out = path.join(ROOT, 'build', 'facades', bundle);
+  execFileSync(blender, ['--background', '--factory-startup', '--python-exit-code', '1',
+    '--python', path.join(ROOT, 'tools', 'blender', 'bake_facades.py'), '--', '--def', def, '--out', out,
+    ...(onlyStyle ? ['--only', onlyStyle] : [])], { stdio: ['ignore', 'ignore', 'inherit'] });
+  execFileSync('python3', [path.join(ROOT, 'tools', 'textures', 'pack_facades.py'), def, out, bundle], { stdio: 'inherit' });
+}

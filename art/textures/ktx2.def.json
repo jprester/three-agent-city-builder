@@ -4,9 +4,9 @@
   "zstd": true,
   "maxEncodePixels": 12000000,
   "textures": [
-    { "id": "tower_osaka_diffuse", "src": "art/external/textures/osaka/diffuse_rough_fixed.webp", "kind": "color" },
-    { "id": "tower_osaka_emissive", "src": "art/external/textures/osaka/emissive_fixed.webp", "kind": "color" },
-    { "id": "tower_osaka_normal", "src": "art/external/textures/osaka/normal.webp", "kind": "normal" },
+    { "id": "tower_baked_osaka_diffuse", "src": "art/textures/facades/baked_osaka/diffuse_rough.webp", "kind": "color" },
+    { "id": "tower_baked_osaka_emissive", "src": "art/textures/facades/baked_osaka/emissive.webp", "kind": "color" },
+    { "id": "tower_baked_osaka_normal", "src": "art/textures/facades/baked_osaka/normal.webp", "kind": "normal" },
     { "id": "tower_real_glass_diffuse", "src": "art/external/textures/real_glass/diffuse_rough.webp", "kind": "color" },
     { "id": "tower_real_glass_emissive", "src": "art/external/textures/real_glass/emissive.webp", "kind": "color" },
     { "id": "tower_real_glass_normal", "src": "art/external/textures/real_glass/normal.webp", "kind": "normal" },

@@ -75,5 +75,12 @@
   "curtain_rose": "#A88E86",
   "curtain_grey": "#8E9093",
   "panel_glass": "#22303B",
-  "mullion_alu": "#9AA0A6"
+  "mullion_alu": "#9AA0A6",
+  "concrete_beige": "#A2977F",
+  "concrete_beige_alt": "#958A73",
+  "concrete_charcoal": "#45474A",
+  "concrete_charcoal_alt": "#3C3E41",
+  "panel_light": "#9DA5A8",
+  "panel_blue": "#41556A",
+  "glass_light": "#3A4A55"
 }

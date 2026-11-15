@@ -1761,3 +1761,16 @@ towers wear a baked facade). Images: `docs/progress/baked-facades-2/`.
 Budgets: `npm run perf` (idle): canyon 9.8, storefront 9.4, aerial 10.5, harbor 8.1, fly-75 9.9 ms
 `fast`, 0 % late, GPU process 815-823 MB (was 803-811: +~12 MB for the fourth texture layer of each
 kind; gate 920). Draw calls and programs unchanged.
+
+## Osaka set replaced by baked facades (2026-11-15)
+
+Reported: lit windows on osaka towers covered only the top part of each window. The emissive
+rebuilt from the photo picked each floor's window band from edge density, which on several facades
+caught the top lights only. Rather than refine that, the set was replaced: seven baked styles after
+the osaka photos (small punched windows in white tile, beige concrete ribbon, light aluminium grid,
+charcoal concrete with top lights, tiled balconies, grouped brick, blue banded glass). Every lit
+room now fills its window (`docs/progress/baked-osaka/`). Two of four tower bundles are baked.
+Note: the bake of this bundle took 18 min once because the machine paused mid-render (one 10 s
+render took 15 min); normally both bundles bake in ~3 min.
+`npm run perf` not measured cleanly (another tab rendering, ~44 ms everywhere); the change swaps one
+texture layer for another of the same size and adds no geometry or shader work.

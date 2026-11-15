@@ -39,7 +39,7 @@ const errors = [];
 const warnings = [];
 
 // --- Tower facade photos: grids of whole floors and bays inside each facade rect.
-for (const [bundle, file] of [['osaka', 'art/external/textures/osaka.json'], ['real_glass', 'art/external/textures/real_glass.json'],
+for (const [bundle, file] of [['baked_osaka', 'art/textures/facades/baked_osaka.json'], ['real_glass', 'art/external/textures/real_glass.json'],
   ['glass_sky', 'art/external/textures/glass_sky.json'], ['baked', 'art/textures/facades/baked.json']]) {
   const spec = JSON.parse(readFileSync(file, 'utf8'));
   spec.facades.forEach((f, i) => {
