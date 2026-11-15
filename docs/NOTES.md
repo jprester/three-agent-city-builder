@@ -1525,3 +1525,58 @@ this one; all pass, 0 % late everywhere), GPU `fast` / p50 ms and GPU process MB
 
 No measurable cost: the differences are within run-to-run noise and go both ways. Memory is
 unchanged, as expected with no new texture, mesh or program.
+
+## sand3d trial (2026-11-15)
+
+Brief: `docs/3d-tooling-research-2026-11.md`, task 2. Images: `docs/progress/sand3d-trial/`
+(rows: current `car_a`, then sand3d at default resolution, then 24, 16 and 12 sides per section).
+Trial code lived in the session scratchpad, so nothing in `public/` changed.
+
+Setup: sand3d 1.6.3 (PyPI wheel, sha256 `ea9f7199…aa58aa8`, pure Python, needs only `bpy`,
+`bmesh` and `mathutils`). Its metadata pins `bpy >=5.2,<5.3`. I unpacked it into a scratchpad
+directory on `sys.path` without the dependency, and it runs in Blender 5.3.0 (bundled Python
+3.13.13, `--background --factory-startup`). At exit Blender logs `ERROR incorrect subclassing
+of SRNA 'Object'` from sand3d's `atexit` cleanup of the methods it adds to `bpy.types.Object`,
+but the exit code is still 0. No network, subprocess or telemetry code in the package.
+
+Asset: `vehicles/car_a` (sedan, 4.6 × 1.8 m, 914 tris, 24.0 KB). Lower body and greenhouse are
+two `s3d.body` solids built from car.py's own sedan keyframes (plan width, beltline, roof,
+sill), joined; the wheel arches are cylinders cut out, then filleted. The mesh then goes through
+the repo's `MeshBuilder` for surface codes and plan UVs, and car.py's own wheels and lamps are
+added. The repo's `GenContext`, `export_glb`, `previews` and `optimize` are used unchanged.
+
+Step 3 answers:
+- **Triangles: fails.** sand3d tessellates for CAD in millimetres: a fixed 0.05 mm chord
+  tolerance, at least 24 segments per circle, 96 sides per superellipse section, 48 extra
+  sections along a curved body. None of these are parameters. At default the car is 13,978
+  tris (body 11,768 faces), 167 KB, 9× the 1,500 budget. It only fits after patching the
+  private module constants (`profile.SUPERELLIPSE_SIDES`, `solids.BODY_SECTIONS`,
+  `_core.TURN_MIN/MAX`): 24 sides is 1,602 tris (over budget), 16 sides 1,170 tris and 24.2 KB,
+  12 sides 888.
+- **Look at budget: fails.** At 16 and 12 sides, smooth normals over such coarse superellipse
+  sections shade as lumps and dents on the bonnet and flanks, worse than the current flat
+  facets. Only from about 32 sides up (2,405 tris) is the surface clean. Even at default the
+  shape is a soap bar: superellipse sections round everything, so there is no crisp shoulder
+  line, flat bonnet or boot edge, and those are what make a car read as a car. A sharp-shouldered
+  car needs more solids and booleans, so more triangles.
+- **Shader data: passes, but only via MeshBuilder.** The optimized GLB has `COLOR_0`,
+  metre-scale `TEXCOORD_0` and `NORMAL`, with the same 6 surface codes as car_a; car_a has no
+  `_NAME` attributes. sand3d's own `export` writes glTF materials, not these codes, so every
+  sand3d asset would need this conversion step. Classifying glass per face gave a jagged border
+  in this trial; splitting at the beltline would fix that.
+- **Determinism: passes.** Two runs give byte-identical GLBs, raw and optimized, at default and
+  at 16 sides.
+- **Coplanar: passes.** The repo's scan (run on a scratchpad copy) finds no overlaps over
+  0.05 m² in any trial version.
+- **Normals after export: pass as built.** Smooth faces with sharp edges where the surface code
+  changes or faces meet above 50°, and they export as such. The problem is the coarse
+  tessellation under them, not the export.
+
+Not tested: the monorail nose; it would hit the same density limit.
+
+Verdict: reject. The repo needs low-poly surfaces with designed rounding, and sand3d's
+smoothness comes from CAD density it does not let you set. build123d (OCCT) tessellates the
+same way and adds a second runtime, so it is no better a fallback. Cheaper next step: make
+car.py's loft itself rounder. Add two or three points at the shoulder and roof edges of
+`_ring`, and give paint faces smooth normals with sharp edges only at glass, rubber and the
+shoulder. That rounds the corners for roughly +200 tris and needs no dependency.
