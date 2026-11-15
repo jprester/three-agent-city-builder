@@ -26,6 +26,7 @@
       ],
       "floors": 16,
       "bays": 13,
+      "ribbon": false,
       "contrast": [
         0.76,
         0.81
@@ -56,6 +57,7 @@
       ],
       "floors": 14,
       "bays": 6,
+      "ribbon": false,
       "contrast": [
         0.77,
         0.83
@@ -86,6 +88,7 @@
       ],
       "floors": 16,
       "bays": 8,
+      "ribbon": false,
       "contrast": [
         0.72,
         0.82
@@ -116,6 +119,7 @@
       ],
       "floors": 16,
       "bays": 9,
+      "ribbon": false,
       "contrast": [
         0.75,
         0.8
@@ -146,6 +150,7 @@
       ],
       "floors": 16,
       "bays": 13,
+      "ribbon": false,
       "contrast": [
         0.74,
         0.75
@@ -176,6 +181,7 @@
       ],
       "floors": 14,
       "bays": 6,
+      "ribbon": false,
       "contrast": [
         0.69,
         0.82
@@ -206,6 +212,7 @@
       ],
       "floors": 13,
       "bays": 12,
+      "ribbon": false,
       "contrast": [
         0.59,
         0.64

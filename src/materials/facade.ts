@@ -74,7 +74,8 @@ const C = facade.cells;
 const towerFacades = TOWER_BUNDLES.flatMap((b) => b.facades);
 const TF_COUNT = towerFacades.length;
 const TF_RECT = towerFacades.map((t) => `vec4(${t.grid.map(f).join(', ')})`).join(',\n  ');
-const TF_DIM = towerFacades.map((t) => `vec4(${f(t.floor)}, ${f(t.bay)}, ${f(t.wrap[0])}, ${f(t.wrap[1])})`).join(',\n  ');
+// A ribbon facade (no column rhythm) stores its bay negated: the shader fits no bays across it.
+const TF_DIM = towerFacades.map((t) => `vec4(${f(t.floor)}, ${f(t.ribbon ? -t.bay : t.bay)}, ${f(t.wrap[0])}, ${f(t.wrap[1])})`).join(',\n  ');
 
 // Room cards (art/textures/interiors, npm run interiors): room box (W, H, D, camera distance)
 // and tile rects in texture UVs (u0, v0, u1, v1; the texture loads flipped, so v0 is the
@@ -746,7 +747,8 @@ if (fType == T_ATLAS) {
   // Whole floors up each module, and whole bays across it where the facade has a column
   // rhythm (ribbon glazing has none: its bay is the whole grid), so a tier starts and ends on
   // a floor line and a corner or rib on a bay line.
-  bool hasBays = Dm.y < Dm.z * 0.75;
+  bool hasBays = Dm.y > 0.0;
+  Dm.y = abs(Dm.y);
   vec2 fit = fWholeFit(vFace, vec2(hasBays ? Dm.y / perM : 0.0, CELL_CURTAIN.y));
   vec2 L = fUv * fit * perM + vec2(floor(fract(fSeed * 5.1) * 9.0) * Dm.y, floor(fract(fSeed * 7.9) * 9.0) * Dm.x);
   vec2 Lw = mod(L, Dm.zw);

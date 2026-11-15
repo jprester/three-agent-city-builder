@@ -153,9 +153,10 @@ def measure(name):
     mask = np.asarray(Image.open(TEX / name / "window_mask.webp").convert("L"), dtype=np.float32) / 255.0
     H, W = rgba.shape[:2]
     spec = json.loads((TEX / f"{name}.json").read_text())
-    periods = json.loads(PERIODS.read_text())[name]
+    curated = json.loads(PERIODS.read_text())
+    periods, bays = curated[name], curated.get(f"bays_{name}", [None] * len(curated[name]))
     out = []
-    for f, fp in zip(spec["facades"], periods):
+    for f, fp, bp in zip(spec["facades"], periods, bays):
         hint = f.get("hint") or [f["floor"], f["bay"]]
         x0, y0, x1, y1 = (round(f["rect"][0] * W), round(f["rect"][1] * H), round(f["rect"][2] * W), round(f["rect"][3] * H))
         # A few texels in from the rect: the source edges carry a frame or a blend.
@@ -165,14 +166,15 @@ def measure(name):
         floor, fc = _period(rows, fp, fp * 0.97, fp * 1.03)
         ys, floor, yhit = _fit(rows, floor, _phase(rows, floor))
         ys = [y0 + m + y for y in ys]
-        xs, xhit, bc = [x0 + m, x1 - m], 1.0, 0.0
-        g_bay = hint[1] * W
+        xs, xhit, bc, ribbon = [x0 + m, x1 - m], 1.0, 0.0, True
+        g_bay = bp if bp else hint[1] * W
         if g_bay < 0.5 * (x1 - x0):
-            bay, bc = _period(cols, g_bay, max(8.0, g_bay * 0.85), g_bay * 1.15)
-            if bc >= MIN_CONTRAST:
+            spread = 0.1 if bp else 0.15
+            bay, bc = _period(cols, g_bay, max(8.0, g_bay * (1 - spread)), g_bay * (1 + spread))
+            if bp or bc >= MIN_CONTRAST:
                 lines, bay, xhit = _fit(cols, bay, _phase(cols, bay))
                 if len(lines) >= 2:
-                    xs = [x0 + m + x for x in lines]
+                    xs, ribbon = [x0 + m + x for x in lines], False
         out.append({
             "rect": f["rect"],
             "hint": hint,
@@ -182,6 +184,8 @@ def measure(name):
             "wrap": [(xs[-1] - xs[0]) / W, (ys[-1] - ys[0]) / H],
             "floors": len(ys) - 1,
             "bays": len(xs) - 1,
+            # No column rhythm (ribbon glazing): the runtime fits no bays across.
+            "ribbon": ribbon,
             "contrast": [round(fc, 2), round(bc, 2)],
         })
     return spec, out, rgba

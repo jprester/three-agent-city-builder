@@ -45,6 +45,9 @@ export function inspectViews(meta: AssetMeta, scale: [number, number, number]): 
   v('front', [0, H / 2, D / 2 + fit], [0, H / 2, 0]);
   v('corner', [(D / 2 + fit) * 0.7, H * 0.4, (D / 2 + fit) * 0.7], [0, H * 0.4, 0]);
   v('street', [W * 0.15, 1.7 / scale[1], D / 2 + 22], [0, Math.min(H, 40), D / 2]);
+  // Close on a corner at mid-height of the first tier: where a bay is cut horizontally.
+  const mid = tiers0(meta) ?? H * 0.3;
+  v('edge', [W / 2 + 14, mid, D / 2 + 14], [W / 2 - 4, mid, D / 2 - 4]);
   // A level view at every band junction: where a cut row would show.
   const edges: { name: string; z: number; face: number }[] = [];
   if (typeof meta.podium === 'number') edges.push({ name: 'podium', z: meta.podium, face: D / 2 });
@@ -57,6 +60,12 @@ export function inspectViews(meta: AssetMeta, scale: [number, number, number]): 
   for (const e of edges) v(e.name, [W * 0.2, e.z + 1.5, e.face + 24], [0, e.z + 1.5, e.face]);
   v('crown', [W * 0.4, H + 12, D / 2 + 45], [0, H - 8, 0]);
   return views;
+}
+
+/** Mid-height of the first tier band, if the asset declares tiers. */
+function tiers0(meta: AssetMeta): number | undefined {
+  const t = (meta.tiers as [number, number, number][] | undefined)?.[0];
+  return t ? (t[0] + t[1]) / 2 : undefined;
 }
 
 function parseList(spec: string | null, all: number): number[] {

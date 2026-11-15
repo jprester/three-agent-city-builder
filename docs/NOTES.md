@@ -1702,3 +1702,12 @@ band edges start each band, the podium's shop bays show as cyan cells. One comma
 
 Night: pixel-identical to before on canyon, aerial, tower-base, storefront. `npm run perf` not
 measured cleanly (another tab rendering: ~42 ms everywhere).
+
+## Facade bays (2026-11-15)
+
+Reported: horizontal misalignment on brick (osaka 5) and curtain-wall towers: windows cut at the
+corners, ribs over glass. Cause: seven facades had no measured column rhythm (the importer's hint
+said ribbon glazing), so they wrapped at the photo's full width. Their bays were confirmed by eye
+and measured like the others. Found and verified with `npm run inspect -- buildings/tower_c
+--overlay --views=edge` (new close corner view): every facade's bay lines now meet both faces at
+the corner (`docs/progress/facade-grid-4/`).
