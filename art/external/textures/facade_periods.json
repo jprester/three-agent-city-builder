@@ -1,5 +1,5 @@
 {
-  "$comment": "Floor period (px of the 2048 atlas) of each tower facade, per bundle in facade order. The generated photos have no reliable automatic period: their masks and photos fold almost as sharply at twice or half the true floor (a window split by a transom, two floors per autocorrelation peak). Each value is the fundamental autocorrelation peak of the facade's window mask, confirmed by eye: lines at this period on the facade hold one window row each (2026-11-15). tools/textures/facade_grid.py refines it within 6 % and measures every floor line from it. `bays_<bundle>`: the bay period the same way; null = from the importer's hint, a number = confirmed by eye (the importer read these facades as ribbon glazing with no column rhythm; their piers and mullions do repeat).",
+  "$comment": "Floor period (px of the 2048 atlas) of each tower facade, per bundle in facade order. The generated photos have no reliable automatic period: their masks and photos fold almost as sharply at twice or half the true floor (a window split by a transom, two floors per autocorrelation peak). Each value is the fundamental autocorrelation peak of the facade's window mask, confirmed by eye: lines at this period on the facade hold one window row each (2026-11-15). tools/textures/facade_grid.py refines it within 6 % and measures every floor line from it. `bays_<bundle>`: the bay period the same way; null = from the importer's hint, a number = confirmed by eye (the importer read these facades as ribbon glazing with no column rhythm; their piers and mullions do repeat). `crop_<bundle>`: [left, right] share of the facade's width to measure and repeat, null = all; set where the photo ends in a feature that must not repeat (real_glass 6 and glass_sky 6 end in a full-height louvre panel).",
   "osaka": [
     33,
     33,
@@ -53,5 +53,38 @@
     null,
     null,
     77
+  ],
+  "crop_osaka": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+  ],
+  "crop_real_glass": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    [
+      0.0,
+      0.765
+    ]
+  ],
+  "crop_glass_sky": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    [
+      0.0,
+      0.808
+    ]
   ]
 }

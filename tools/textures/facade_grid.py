@@ -155,10 +155,15 @@ def measure(name):
     spec = json.loads((TEX / f"{name}.json").read_text())
     curated = json.loads(PERIODS.read_text())
     periods, bays = curated[name], curated.get(f"bays_{name}", [None] * len(curated[name]))
+    crops = curated.get(f"crop_{name}", [None] * len(curated[name]))
     out = []
-    for f, fp, bp in zip(spec["facades"], periods, bays):
+    for f, fp, bp, crop in zip(spec["facades"], periods, bays, crops):
         hint = f.get("hint") or [f["floor"], f["bay"]]
         x0, y0, x1, y1 = (round(f["rect"][0] * W), round(f["rect"][1] * H), round(f["rect"][2] * W), round(f["rect"][3] * H))
+        if crop:
+            # Only this share of the width is measured and repeated (a louvre panel at the
+            # photo's edge must not repeat across the facade).
+            x0, x1 = x0 + round(crop[0] * (x1 - x0)), x0 + round(crop[1] * (x1 - x0))
         # A few texels in from the rect: the source edges carry a frame or a blend.
         m = 3
         crop, photo = mask[y0 + m:y1 - m, x0 + m:x1 - m], rgba[y0 + m:y1 - m, x0 + m:x1 - m]
