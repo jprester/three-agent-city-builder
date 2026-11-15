@@ -24,6 +24,11 @@ def _paint(ctx, name):
     return surf(ctx, "metal", 0.3, (CAR_PAINTS.index(name) + 0.5) / 12)
 
 
+def _structural(ctx, name):
+    """Painted structural steel (metal fill 0.4): the paint over plated, bolted, streaked steel."""
+    return surf(ctx, "metal", 0.4, (CAR_PAINTS.index(name) + 0.5) / 12)
+
+
 def _lit(ctx, kind, glow):
     """Lit interior surface (metal fill 0.1): kind 0 white panel, 1 fabric, 2 carpet, 3 wood."""
     return surf(ctx, "metal", 0.1, (kind + glow) / 4)
@@ -41,6 +46,11 @@ class Kit:
         self.rubber = surf(ctx, "metal", 0.8, 0.0)
         self.steel = surf(ctx, "metal", 0.0, 0.5)
         self.concrete = surf(ctx, "roof", 0.0, ctx.p("concrete_tint", 0.6))
+        # Station floors: roof fill 1 is the tiled floor (src/materials/facade.ts).
+        self.floor = surf(ctx, "roof", 1.0, ctx.p("floor_tint", 0.7))
+        # Light paint so the plates, ribs and joints still read under the night fill.
+        self.structure = _structural(ctx, ctx.p("structure_paint", "car_white"))
+        self.structure_dark = _structural(ctx, ctx.p("structure_paint_dark", "car_silver"))
         self.soffit = surf(ctx, "soffit", 0.0, 0.0)
         self.tube = fixture(ctx, "white", strip=True)
         self.line = fixture(ctx, "cyan", strip=True)
@@ -101,7 +111,7 @@ def _open_stair(R, k, d, u0, v, y0, y1, direction, width):
             a = at + direction * i * d["tread"]
             R.box(a, a + direction * (d["tread"] + 0.03), v - width / 2, v + width / 2, y + (i + 1) * r - 0.06, y + (i + 1) * r, k.concrete)
         for sv in sides:
-            R.strut((at, sv, y - 0.12), (at + direction * run, sv, y + rise - 0.12), 0.08, 0.3, k.grey)
+            R.strut((at, sv, y - 0.12), (at + direction * run, sv, y + rise - 0.12), 0.08, 0.3, k.structure_dark)
             R.strut((at, sv, y + 0.95), (at + direction * run, sv, y + rise + 0.95), 0.05, 0.05, k.silver)
             for j in (1, 2, 3):
                 pu, py = at + direction * run * j / 4, y + rise * j / 4
@@ -114,7 +124,7 @@ def _open_stair(R, k, d, u0, v, y0, y1, direction, width):
             for sv in sides:
                 R.box(at, b, sv - 0.025, sv + 0.025, y + 0.92, y + 0.97, k.silver)
                 cu = b - direction * 0.15
-                R.box(cu - 0.07, cu + 0.07, sv - 0.07, sv + 0.07, 0.0, y - 0.2, k.grey, skip=("bottom", "top"))
+                R.box(cu - 0.07, cu + 0.07, sv - 0.07, sv + 0.07, 0.0, y - 0.2, k.structure_dark, skip=("bottom", "top"))
             at = b
     return at
 
@@ -133,24 +143,24 @@ def pier(ctx, mb, R, k, d):
     tv, gw = d["track_v"], d["girder_w"]
     R.box(-1.2, 1.2, -1.0, 1.0, 0.0, 0.32, k.concrete, skip=("bottom",))                        # footing
     R.box(-0.85, 0.85, -0.75, 0.75, 0.32, 2.8, k.concrete, skip=("bottom",))                    # plinth
-    R.box(-0.93, 0.93, -0.83, 0.83, 2.8, 2.92, k.silver)                                        # cap
+    R.box(-0.93, 0.93, -0.83, 0.83, 2.8, 2.92, k.structure)                                        # cap
     for s in (-1, 1):
         R.side(-0.3, 0.3, s * 0.756, 0.6, 1.95, s, k.steel)                                    # access doors
     R.box(-0.66, 0.66, -0.6, 0.6, 2.92, 3.0, k.line, skip=("bottom",))                          # lit collar
-    R.column(0.0, 0.0, 0.58, 3.0, beam_top, k.silver, sides=8, caps=(False, False))             # shaft
+    R.column(0.0, 0.0, 0.58, 3.0, beam_top, k.structure, sides=8, caps=(False, False))             # shaft
     # Arm across both girders, its ends tapering underneath.
     reach = tv + gw / 2 + 0.4
     y0, y1 = beam_top, beam_top + 1.0
     prism_x(mb, [(-reach + 0.55, y0), (reach - 0.55, y0), (reach, y0 + 0.5), (reach, y1), (-reach, y1), (-reach, y0 + 0.5)],
-            -0.75, 0.75, k.silver)
+            -0.75, 0.75, k.structure)
     for s in (-1, 1):
         gv = s * tv
         # Bearing plates down the girder's flanks under the arm, a beacon on each arm end.
         for f in (-1, 1):
-            R.box(-0.6, 0.6, gv + f * (gw / 2 + 0.01), gv + f * (gw / 2 + 0.06), beam_top - 1.0, beam_top, k.grey, skip=("top",))
+            R.box(-0.6, 0.6, gv + f * (gw / 2 + 0.01), gv + f * (gw / 2 + 0.06), beam_top - 1.0, beam_top, k.structure_dark, skip=("top",))
         R.box(-0.15, 0.15, s * (reach - 0.35) - 0.15, s * (reach - 0.35) + 0.15, y1, y1 + 0.12, k.beacon, skip=("bottom",))
         # Knee brace from the shaft up under the arm, inside the inner girder.
-        R.strut((0.0, s * 0.45, beam_top - 1.7), (0.0, s * (tv - gw / 2 - 0.2), beam_top + 0.02), 0.45, 0.24, k.silver)
+        R.strut((0.0, s * 0.45, beam_top - 1.7), (0.0, s * (tv - gw / 2 - 0.2), beam_top + 0.02), 0.45, 0.24, k.structure)
     mb.finish()
     ctx.meta.update(height=y1 + 0.12, footprint=[2.4, 2 * reach], shader="facade", family="monorail")
 
@@ -166,7 +176,7 @@ def girder(ctx, mb, R, k, d):
         # Box girder with chamfered lower edges (profile in Blender y = -v).
         by = -gv
         prism_x(mb, [(by - w + 0.14, y0), (by + w - 0.14, y0), (by + w, y0 + 0.14), (by + w, y1), (by - w, y1), (by - w, y0 + 0.14)],
-                -h, h, k.silver)
+                -h, h, k.structure)
         R.down(-h, h, gv - 0.17, gv + 0.17, y0 - 0.01, k.rubber)                               # hanger slot
         outer = gv + s * (w - 0.3)
         R.box(-h + 0.1, h - 0.1, outer - 0.04, outer + 0.04, y0 - 0.06, y0 - 0.005, k.line)    # light line
@@ -174,7 +184,7 @@ def girder(ctx, mb, R, k, d):
         while u < span / 2:
             for f in (-1, 1):
                 fv = gv + f * w
-                R.box(u - 0.06, u + 0.06, fv, fv + f * 0.045, y0 + 0.16, y1 - 0.06, k.grey, skip=("v-" if f > 0 else "v+",))
+                R.box(u - 0.06, u + 0.06, fv, fv + f * 0.045, y0 + 0.16, y1 - 0.06, k.structure_dark, skip=("v-" if f > 0 else "v+",))
             u += ribs
         inner = gv - s * (w - 0.22)
         R.box(-h, h, inner - 0.17, inner + 0.17, y1, y1 + 0.16, k.steel, skip=("bottom",))      # cable tray
@@ -201,11 +211,11 @@ def portal(ctx, mb, R, k, d):
     lv, top = d["leg_v"], d["roof_top"]
     for s in (-1, 1):
         v = s * lv
-        R.box(-0.55, 0.55, v - 0.45, v + 0.45, 0.0, 0.15, k.grey, skip=("bottom",))
-        R.column(0.0, v, 0.38, 0.15, top, k.silver, sides=8, caps=(False, False))
+        R.box(-0.55, 0.55, v - 0.45, v + 0.45, 0.0, 0.15, k.structure_dark, skip=("bottom",))
+        R.column(0.0, v, 0.38, 0.15, top, k.structure, sides=8, caps=(False, False))
         # Haunch under the beam.
-        R.strut((0.0, v - s * 0.3, top - 1.6), (0.0, v - s * 2.4, top + 0.02), 0.35, 0.3, k.silver)
-    R.box(-0.45, 0.45, -lv - 0.4, lv + 0.4, top, top + 0.95, k.silver)
+        R.strut((0.0, v - s * 0.3, top - 1.6), (0.0, v - s * 2.4, top + 0.02), 0.35, 0.3, k.structure)
+    R.box(-0.45, 0.45, -lv - 0.4, lv + 0.4, top, top + 0.95, k.structure)
     mb.finish()
     ctx.meta.update(height=top + 0.95, footprint=[1.1, 2 * lv + 0.9], shader="facade", family="monorail",
                     ground=[[-0.55, 0.55, -lv - 0.45, -lv + 0.45], [-0.55, 0.55, lv - 0.45, lv + 0.45]])
@@ -213,10 +223,10 @@ def portal(ctx, mb, R, k, d):
 
 def roof(ctx, mb, R, k, d):
     hu, hv, y = d["bay"] / 2, ctx.p("roof_half", 8.6), d["roof_y"]
-    R.box(-hu, hu, -hv, hv, y, y + 0.24, k.silver, faces={"bottom": k.soffit, "top": k.concrete})
+    R.box(-hu, hu, -hv, hv, y, y + 0.24, k.structure, faces={"bottom": k.soffit, "top": k.concrete})
     for s in (-1, 1):
         # Fascia along each edge with a light line under its lip.
-        R.box(-hu, hu, s * hv, s * (hv + 0.1), y - 0.25, y + 0.42, k.silver, skip=("v-" if s > 0 else "v+",))
+        R.box(-hu, hu, s * hv, s * (hv + 0.1), y - 0.25, y + 0.42, k.structure, skip=("v-" if s > 0 else "v+",))
         R.box(-hu + 0.05, hu - 0.05, s * (hv + 0.02) - 0.03, s * (hv + 0.02) + 0.03, y - 0.31, y - 0.25, k.line, skip=("top",))
     mb.finish()
     ctx.meta.update(height=y + 0.42, footprint=[2 * hu, 2 * hv + 0.2], shader="facade", family="monorail")
@@ -227,10 +237,10 @@ def deck(ctx, mb, R, k, d):
     steel edge beams, lit from underneath."""
     hu, y, (v0, v1), lv = d["bay"] / 2, d["deck_y"], d["deck_v"], d["leg_v"]
     notch = lv + 0.4
-    R.box(-hu, hu, notch, v1, y - 0.3, y, k.grey, faces={"top": k.concrete})
-    R.box(-hu + 0.5, hu - 0.5, v0, notch, y - 0.3, y, k.grey, skip=("v+",), faces={"top": k.concrete})
+    R.box(-hu, hu, notch, v1, y - 0.3, y, k.concrete, faces={"top": k.floor})
+    R.box(-hu + 0.5, hu - 0.5, v0, notch, y - 0.3, y, k.concrete, skip=("v+",), faces={"top": k.floor})
     for bv in (notch + 0.05, v1 - 0.25):
-        R.box(-hu + 0.45, hu - 0.45, bv - 0.15, bv + 0.15, y - 0.75, y - 0.3, k.silver, skip=("top",))
+        R.box(-hu + 0.45, hu - 0.45, bv - 0.15, bv + 0.15, y - 0.75, y - 0.3, k.structure, skip=("top",))
     for u in (-hu / 2, hu / 2):
         R.box(u - 1.6, u + 1.6, (notch + v1) / 2 - 0.05, (notch + v1) / 2 + 0.05, y - 0.36, y - 0.3, k.tube, skip=("top",))
     mb.finish()
@@ -244,7 +254,7 @@ def platform(ctx, mb, R, k, d):
     v = lambda x: s * x
     opening = ctx.p("opening", [6.0, 9.0])
     holes = [(-opening[1], -opening[0]), (opening[0], opening[1])]
-    R.box(-L, L, v(p0), v(p1), y - 0.36, y, k.grey, faces={"top": k.concrete})
+    R.box(-L, L, v(p0), v(p1), y - 0.36, y, k.concrete, faces={"top": k.floor})
     R.up(-L + 0.1, L - 0.1, v(p0 + 0.4), v(p0 + 0.62), y + 0.006, k.yellow)                      # tactile strip
     R.box(-L + 0.2, L - 0.2, v(p0 + 0.08) - 0.03, v(p0 + 0.08) + 0.03, y - 0.42, y - 0.36, k.line, skip=("top",))
     for a, b in _solid(-L, L, holes):
@@ -255,7 +265,7 @@ def platform(ctx, mb, R, k, d):
     u = -L + 3.0
     while u <= L - 2.9:
         if not any(a - 0.4 < u < b + 0.4 for a, b in holes):
-            R.box(u - 0.06, u + 0.06, v(p1 - 0.12) - 0.06, v(p1 - 0.12) + 0.06, y + 1.18, ry, k.silver, skip=("bottom", "top"))
+            R.box(u - 0.06, u + 0.06, v(p1 - 0.12) - 0.06, v(p1 - 0.12) + 0.06, y + 1.18, ry, k.structure, skip=("bottom", "top"))
         u += 6.2
     # Tube lights hung over the platform's middle.
     pm = (p0 + p1) / 2 + 0.4
@@ -337,10 +347,10 @@ def access_n(ctx, mb, R, k, d):
     for e in (-1, 1):
         _open_stair(R, k, d, e * low[0], gv, dy, fy, -e, width)
         # Landing off the deck (hung from it) and onto the platform, with outer rails.
-        R.box(e * low[0], e * low[1], gv - width / 2 - 0.2, v0, dy - 0.2, dy, k.grey, faces={"top": k.concrete})
+        R.box(e * low[0], e * low[1], gv - width / 2 - 0.2, v0, dy - 0.2, dy, k.concrete, faces={"top": k.floor})
         _rail(R, k, e * low[0], e * low[1], gv - width / 2 - 0.15, dy)
         R.box(e * low[1] - 0.03, e * low[1] + 0.03, gv - width / 2 - 0.2, v0, dy, dy + 1.12, k.frosted, skip=("bottom",))
-        R.box(e * (top_u - 3.0), e * top_u, p1, gv + width / 2 + 0.2, fy - 0.2, fy, k.grey, faces={"top": k.concrete})
+        R.box(e * (top_u - 3.0), e * top_u, p1, gv + width / 2 + 0.2, fy - 0.2, fy, k.concrete, faces={"top": k.floor})
         _rail(R, k, e * (top_u - 3.0), e * top_u, gv + width / 2 + 0.15, fy)
         # Across the far end, and beside the stair head down to the platform's edge.
         for u, a, b in ((e * (top_u - 3.0), p1 + 0.05, gv + width / 2 + 0.2), (e * top_u, p1 + 0.05, gv - width / 2 - 0.1)):
@@ -370,7 +380,7 @@ def access_s(ctx, mb, R, k, d):
     for e in (-1, 1):
         _open_stair(R, k, d, e * u0, sv, base, fy, e, width)
         a, b = e * top, e * (top + 3.0)
-        R.box(a, b, sv - width / 2 - 0.1, -p1, fy - 0.2, fy, k.grey, faces={"top": k.concrete})
+        R.box(a, b, sv - width / 2 - 0.1, -p1, fy - 0.2, fy, k.concrete, faces={"top": k.floor})
         _rail(R, k, a, b, sv - width / 2 - 0.05, fy)
         R.box(b - 0.025, b + 0.025, sv - width / 2 - 0.1, -p1 - 0.05, fy, fy + 1.12, k.frosted, skip=("bottom",))
         R.box(b - 0.035, b + 0.035, sv - width / 2 - 0.1, -p1 - 0.05, fy + 1.12, fy + 1.18, k.silver)

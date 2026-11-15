@@ -1473,3 +1473,45 @@ Budgets (shots, 1280×720): +2 to +6 draw calls per view (limit 8), worst 234 of
 `monorail-platform`; +35k to +42k triangles (limit 80k); programs 25 (unchanged). GPU process
 733–828 MB (gate 920). Frame time: canyon 9.3 ms, storefront 9.1 ms (inside A's ranges); an
 A/B against the pre-monorail commit on aerial and fly-75 showed no difference (CHECKPOINT.md).
+
+## Monorail surfaces (2026-11-15)
+
+Brief: `docs/3d-tooling-research-2026-11.md`, task 1. Images: `docs/progress/monorail-surfaces/`
+(`<view>-before.jpg`, `<view>-after.jpg`).
+
+Before, in the main app (not the slice): the platform floor was the dark weathered concrete the
+plinths use, smooth and brown from the platform view. Girders, pier shafts and arms, portals and
+deck beams were plain car paint, with no atlas and no relief, so each was one flat dark plane;
+from the street only the girders' light lines read. The pier plinths and footings already had
+the concrete atlas and were fine.
+
+Change: no new texture. The girders, pier shaft, cap, arm and brace, the portals, the roof edge and
+the deck beams use a new painted-steel surface (light grey paint over the atlas's bolted slate
+plates, with rain streaks and relief). The stair stringers, landing columns, bearing plates and
+ribs use the same surface in silver. Platform, deck and landing tops are a 30 cm tiled floor, and
+slab sides are concrete.
+
+Critique:
+- Works: from `monorail-line` the girder flanks, ribs, T-arms and portal beams now separate
+  from the night instead of merging into it; the pier shaft shows plate seams and streaks
+  in `monorail-under`; hangers on the platform show bolt rows up close.
+- Works: the platform floor reads as a tiled station floor, with its grid foreshortening
+  toward the train, where before it was a brown slab.
+- Weak: the girder webs are still dark from the street. Paint alone cannot fix that: nothing
+  lights them at 12 m. A grazing wash from the girder's own light line, or uplight from the
+  street, is the next step, and that is lighting, not surface.
+- Weak: the floor tile is warm brown under the sodium-tinted fill and the tubes overhead do not
+  make it any cleaner; a real station floor would read lighter and greyer.
+- Weak: the frosted balustrade and screen-door panels are still luminous beige slabs, the most
+  "plastic" thing on the platform now. Out of scope here (lit-interior surface).
+- Weak: plate seams repeat every 1.5 m by mirroring, regardless of where the ribs are, so up
+  close the seams and the rib geometry do not line up.
+
+Budgets (shots, 1280×720): draw calls, triangles and programs unchanged on every view (worst
+234 on `monorail-platform`, 25 programs). `npm run check` passes; coplanar overlaps are
+identical to before. `npm run perf`: the first after-run (canyon 9.9, storefront 9.7, aerial 11.0,
+harbor 7.8 ms `fast`, 0 % late, GPU process 788–818 MB) sits inside checkpoint A's idle ranges.
+Then the machine went busy (another Chrome tab rendering): fly-75 and every view of the
+before-run read 35–42 ms. So a clean before/after A/B was not possible this session. The
+change adds no texture, mesh or program, so memory is unchanged by construction; its only cost
+is three extra atlas fetches on structural-steel pixels.

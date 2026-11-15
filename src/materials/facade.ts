@@ -650,9 +650,11 @@ vec3 fVt = vec3(dot(fV, fT), dot(fV, fB), dot(fV, fNormalW));
 // office walls to panels, slate and metal.
 float fPick = fract(fSeed * 23.71);
 int fMat = fType == T_OFFICE ? (fPick < 0.3 ? 7 : fPick < 0.55 ? 5 : fPick < 0.75 ? 6 : 1)
-         : fType == T_ROOF ? (fPick < 0.5 ? 3 : 4)
+         : fType == T_ROOF ? (fFill > 0.5 ? 0 : fPick < 0.5 ? 3 : 4)
          : (fPick < 0.38 ? 0 : fPick < 0.58 ? 1 : fPick < 0.74 ? 4 : fPick < 0.88 ? 3 : 5);
-float fMatSize = fMat == 0 ? 2.4 : fMat == 5 ? 3.2 : (fMat == 2 || fMat == 6) ? 2.0 : 3.0;
+// Roof fill 1 is a tiled floor (station platforms): 30 cm tiles instead of wall mosaic.
+float fMatSize = fType == T_ROOF && fFill > 0.5 ? 3.6
+               : fMat == 0 ? 2.4 : fMat == 5 ? 3.2 : (fMat == 2 || fMat == 6) ? 2.0 : 3.0;
 vec2 fGrad;
 vec4 fWall = wallSample(fMat, fUv + vec2(fSeed * 37.0, 0.0), fMatSize, fGrad);
 // Per-building tint (faded paint / dirty tile), then grime streaks running down from
@@ -826,6 +828,8 @@ if (fType == T_ATLAS) {
   fMetal = (1.0 - open) * glassMask * 0.4;
 } else if (fType == T_ROOF) {
   fBase *= 0.7;
+  // Tiled floors: halve the grout contrast so the tiles read as a floor, not a net.
+  if (fFill > 0.5) fBase *= mix(1.0, 0.433 / max(dot(fWall.rgb, vec3(0.333)), 0.05), 0.5);
 } else if (fType == T_TRIM) {
   fBase *= 1.05;
 } else if (fType == T_FOLIAGE) {
@@ -834,6 +838,7 @@ if (fType == T_ATLAS) {
   fBase = P_FOLIAGE * mix(0.55, 1.35, leaf) * mix(0.8, 1.2, fract(fSeed * 19.3)) * mix(0.8, 1.2, fTint);
   fRough = 0.95;
 } else if (fType == T_METAL) {
+  vec2 fSteelRelief = vec2(0.0);
   fBase = P_METAL * mix(0.7, 1.6, fNoise(fUv * 2.0 + fSeed * 9.0));
   fRough = 0.55;
   fMetal = 0.5;
@@ -851,12 +856,22 @@ if (fType == T_ATLAS) {
     vec3 ic = P_INTERIOR[min(int(k), 3)];
     fBase = ic * 0.25; fRough = 0.8; fMetal = 0.0;
     fEmit = ic * fract(k);
-  } else if (fFill > 0.35 && fFill < 0.65) {
+  } else if (fFill > 0.35 && fFill < 0.45) {
+    // Fill 0.4: painted structural steel (monorail girders, piers, portals). The fixed paint
+    // P_CAR[tint * 12] over the plated slate cell (seams, bolt rows, mottling, normalised to
+    // its mean), dirtied by long rain streaks; the cell's relief stays on the normal.
+    vec2 sg;
+    float plate = dot(wallSample(7, fUv, 3.0, sg).rgb, vec3(0.333)) / 0.101;
+    float streak = fNoise(vec2(fUv.x * 1.3 + fSeed * 21.0, fUv.y * 0.12));
+    fBase = P_CAR[min(int(fTint * 12.0), 11)] * mix(1.0, plate, 0.8) * (1.0 - 0.35 * smoothstep(0.3, 0.75, streak));
+    fRough = 0.5; fMetal = 0.3;
+    fSteelRelief = sg;
+  } else if (fFill > 0.45 && fFill < 0.65) {
     fBase = P_GLASS; fRough = 0.12; fMetal = 0.65;
   } else if (fFill > 0.65) {
     fBase = P_METAL * 0.25; fRough = 0.95; fMetal = 0.0;
   }
-  fNormalW = normalize(vFNormal);
+  fNormalW = normalize(vFNormal - (fT * fSteelRelief.x + fB * fSteelRelief.y) * 2.0);
 } else if (fType == T_SOFFIT) {
   float tubes = fBox(fract(fUv.y / 1.1), 0.46, 0.54, fFw.y / 1.1) * fBox(fract(fUv.x / 1.8), 0.08, 0.92, fFw.x / 1.8)
     * step(0.25, fHash(vec2(floor(fUv.x / 1.8), fSeed * 11.0)));
