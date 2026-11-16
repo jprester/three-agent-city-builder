@@ -6,7 +6,8 @@ wrap per facade, exact: nothing is measured).
   python3 tools/textures/pack_facades.py art/facades/<bundle>.json build/facades/<bundle> <bundle>
 
 Per style, in its cell of the 4x2 atlas (as the photo bundles: 464x976 rects at +24 px):
-  diffuse_rough  albedo x ambient occlusion x grime, roughness in alpha (linear)
+  diffuse_rough  albedo x ambient occlusion x grime, roughness in alpha (linear; non-glass
+                 floored to matte, so only the panes reflect)
   normal         the baked world normal turned to tangent space (x right, y up, OpenGL)
   emissive       lit rooms in a share of the windows: office room cards (art/textures/interiors)
                  cropped to the window, warm or cool, under lit blinds where a blind is drawn;
@@ -24,6 +25,7 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[2]
 SIZE = 2048
 LIT_SHARE = 0.38
+WALL_ROUGH_MIN = 0.68   # roughness floor of everything that is not glass (see main)
 
 
 def lin(a):
@@ -182,7 +184,11 @@ def main(def_path, bake_dir, name="baked"):
         tone = 1.0 + (patches(rng, layout, ch_, cw_) - 1.0) * wall
         base = albedo * tone + interiors_by_day(rng, layout, glass, blind, cards)
         diff[y0:y0 + ch_, x0:x0 + cw_, :3] = srgb(base * ao ** 0.8 * g)
-        diff[y0:y0 + ch_, x0:x0 + cw_, 3] = rough
+        # Only glass reflects: the shader reads roughness below ~0.6 as glass (src/materials/facade.ts,
+        # glassAmt), and glazed tile (0.45) or curtain-wall spandrel panels (0.15) mirrored the
+        # sky like the windows. Everything the glass mask does not cover is floored to matte.
+        g1 = glass[..., 0]
+        diff[y0:y0 + ch_, x0:x0 + cw_, 3] = g1 * rough + (1.0 - g1) * np.maximum(rough, WALL_ROUGH_MIN)
         norm[y0:y0 + ch_, x0:x0 + cw_] = tangent * 0.5 + 0.5
         emit[y0:y0 + ch_, x0:x0 + cw_] = srgb(emissive(rng, layout, glass, blind, cards))
 

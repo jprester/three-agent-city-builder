@@ -88,6 +88,10 @@ Rules that keep it clean:
 - **Colours are palette names** (`art/style/palette.json`), never hex.
 - **Brick and tile sizes are derived to divide the bay and floor exactly**, so the texture tiles
   on its grid with no seam.
+- **Only glass reflects.** The shader treats roughness below ~0.6 as glass (sky and city
+  reflection), so the packer floors everything outside the glass mask to matte
+  (`WALL_ROUGH_MIN` = 0.68 in `pack_facades.py`). Glazed tile (0.45) and curtain-wall spandrel
+  panels (0.15) used to mirror the sky like the windows.
 - **The grid starts at a pier centre and a spandrel centre**, so the edges of every repeat lie on
   wall, never through glass.
 - **The runtime shows a facade's floor at the curtain cell height, 3.8 m** (`facade.json`
