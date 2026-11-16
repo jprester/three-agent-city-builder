@@ -24,7 +24,7 @@ export function createHud(initial: boolean) {
     show(mode: CameraMode, hasFlythrough: boolean) {
       if (first && !initial) { first = false; return; }
       first = false;
-      const keys = `1 Orbit · 2 Free-fly${hasFlythrough ? ' · 3 Flythrough' : ''} · 4 Walk · M sound`;
+      const keys = `1 Orbit · 2 Free-fly${hasFlythrough ? ' · 3 Flythrough' : ''} · 4 Walk · M sound · F 60/30 fps`;
       el.innerHTML = `<b>${NAMES[mode]}</b> — ${HELP[mode]}<br><span>${keys}</span>`;
       el.classList.add('on');
       clearTimeout(timer);

@@ -237,11 +237,40 @@ async function main() {
     window.addEventListener('keydown', (e) => { if (e.code === 'KeyM' && !e.repeat) toggle(); });
     document.body.appendChild(button);
   }
+  // Frame cap (?fps=, F toggles 60/30, remembered per browser): the GPU otherwise draws every
+  // display refresh, 120 a second on a ProMotion screen, and runs hot. 0 = uncapped.
+  const FPS_KEY = 'city.fps';
+  const storedFps = (() => { try { return navigator.webdriver ? null : localStorage.getItem(FPS_KEY); } catch { return null; } })();
+  let fps = Math.max(0, Number(params.get('fps') ?? storedFps ?? 60) || 0);
+  const applyFps = () => dynres?.setTarget(fps > 0 ? Math.min(fps, 60) : 60);
+  applyFps();
+  if (!navigator.webdriver) {
+    const button = document.createElement('button');
+    button.id = 'fps';
+    const label = () => { button.textContent = fps > 0 ? `${fps} fps` : 'fps: uncapped'; };
+    const toggle = () => {
+      fps = fps === 30 ? 60 : 30;
+      try { localStorage.setItem(FPS_KEY, String(fps)); } catch { /* private window */ }
+      applyFps();
+      label();
+    };
+    label();
+    button.title = 'Frame cap (F): 30 fps is quieter';
+    button.addEventListener('click', (e) => { e.stopPropagation(); toggle(); button.blur(); });
+    window.addEventListener('keydown', (e) => { if (e.code === 'KeyF' && !e.repeat) toggle(); });
+    document.body.appendChild(button);
+  }
+  let lastDrawn = -Infinity;
   window.__PAUSE_RENDER = () => renderer.setAnimationLoop(null);
   let frames = 0;
   let last = clock.time;
   let lastReal = performance.now();
   renderer.setAnimationLoop(() => {
+    // Skip display refreshes until the next capped frame is due (10 % slack: refreshes come at
+    // whole multiples of the display's interval, which never land exactly on the cap's).
+    const t = performance.now();
+    if (fps > 0 && t - lastDrawn < 900 / fps) return;
+    lastDrawn = t;
     const now = clock.tick();
     const delta = now - last;
     last = now;

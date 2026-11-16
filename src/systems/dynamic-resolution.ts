@@ -35,6 +35,15 @@ export class DynamicResolution {
     this.ratio = options.max;
   }
 
+  /** Frame rate the thresholds are set for (a frame cap): slow under 80 %, fast over 97 %. */
+  setTarget(fps: number) {
+    this.o.slowMs = 1000 / (fps * 0.8);
+    this.o.fastMs = 1000 / (fps * 0.967);
+    this.avg = 0;
+    this.fastSince = -1;
+    this.slowSince = -1;
+  }
+
   /** Call once per frame with the real time (s) and the real frame interval (ms). */
   update(now: number, frameMs: number) {
     const o = this.o;

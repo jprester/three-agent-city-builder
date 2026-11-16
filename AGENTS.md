@@ -55,7 +55,9 @@ binary in `public/` is regenerated from them.
   after any facade or generator change; it reproduces what the city only shows by chance.
 - `npm run dev` starts the app. URL params: `?light=night|day` (day: sun, sky, dry streets,
   painted night light off), `?layout=<id>`, `?viewpoint=<name>`,
-  `?seed=<int>` (regenerates the layout in the browser with that seed), `?quality=` and
+  `?seed=<int>` (regenerates the layout in the browser with that seed), `?fps=` (frame cap,
+  default 60, `0` uncapped; F or the button toggles 60/30 and the browser remembers it; automated
+  runs ignore the remembered value), `?quality=` and
   `?grade=default|filmic` (the final colour grade; filmic is the default, `?grade=default`
   restores the earlier, shallower look).
 - `npm run shots` smoke test (~15 s, real GPU): loads 3 viewpoints, saves screenshots to
