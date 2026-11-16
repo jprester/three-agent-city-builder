@@ -34,6 +34,7 @@ export interface FacadeUniforms {
   uLampRect: { value: THREE.Vector4 };
   /** Overall window emission multiplier (debug tuning). */
   uWindowGain: { value: number };
+  uCityGlow: { value: number };
   /** 1 by day (src/scene/daylight.ts): painted night light fades, walls get their albedo back. */
   uDay: { value: number };
   /** Inspect (?inspect=): force tower facade n (TOWER_FACADES index); -1 = by seed or pin. */
@@ -227,6 +228,7 @@ uniform float uNight;
 uniform sampler2D uLampMap;
 uniform vec4 uLampRect;
 uniform float uWindowGain;
+uniform float uCityGlow;
 uniform float uDay;
 uniform int uFacadePick;
 uniform float uGridOverlay;
@@ -252,7 +254,7 @@ varying vec2 vRawUv;
 // World-space shading normal chosen by the surface code, applied in normal_fragment_maps.
 vec3 fNormalW;
 // Per-building share of lit residential windows (min, max); residential towers raise it.
-vec2 fLitRange = vec2(0.25, 0.55);
+vec2 fLitRange = vec2(0.4, 0.7);
 // Office/curtain lighting: x = curtain lit multiplier, y = share of dark floors, z = share of
 // light pushed to cool office white. Glass commercial blocks raise all three.
 vec3 fOffice = vec3(0.3, 0.45, 0.0);
@@ -452,7 +454,7 @@ float ceilingBand(float q) {
 vec3 cellLight(int type, vec2 cid, float fill, float seed) {
   float s = seed * 97.13;
   if (openCol(fill, cid.x) < 0.5) return vec3(0.0);
-  float litRatio = mix(fLitRange.x, fLitRange.y, fract(seed * 7.31)) * mix(1.0, 0.55, uNight);
+  float litRatio = mix(fLitRange.x, fLitRange.y, fract(seed * 7.31)) * mix(1.0, 0.75, uNight);
   if (type == T_OFFICE || type == T_CURTAIN) {
     litRatio *= type == T_CURTAIN ? fOffice.x : 0.5;
     float floorOn = fHash(vec2(cid.y, floor(cid.x / 7.0) + s + 3.1));
@@ -525,7 +527,7 @@ void windowLayer(int type, vec2 uvm, vec2 fw, float fill, float seed, vec3 vt, o
 
   float s = seed * 97.13;
   float present = openCol(fill, cid.x);
-  float litRatio = mix(fLitRange.x, fLitRange.y, fract(seed * 7.31)) * mix(1.0, 0.55, uNight);
+  float litRatio = mix(fLitRange.x, fLitRange.y, fract(seed * 7.31)) * mix(1.0, 0.75, uNight);
   float baseRatio = litRatio;
   if (type == T_OFFICE || type == T_CURTAIN) {
     litRatio *= type == T_CURTAIN ? fOffice.x : 0.5;
@@ -778,7 +780,7 @@ if (fType == T_ATLAS) {
   // Not every floor is occupied: dark floors, then a slower per-bay variation so a whole
   // facade does not pulse as one sheet. Both fade to their mean before they alias.
   // Late at night (uNight) more floors go dark.
-  float floorLit = mix(0.35, 1.2, fHash(vec2(floorId, fSeed * 31.0))) * step(0.33 + 0.4 * uNight, fHash(vec2(floorId, fSeed * 13.0 + 2.0)));
+  float floorLit = mix(0.35, 1.2, fHash(vec2(floorId, fSeed * 31.0))) * step(0.2 + 0.25 * uNight, fHash(vec2(floorId, fSeed * 13.0 + 2.0)));
   float bayId = floor(L.x / Dm.y);
   float bayVar = mix(0.68, 1.18, fHash(vec2(bayId, fSeed * 23.0 + 7.0)));
   float bayM = max(Dm.y / perM, 0.1);
@@ -788,10 +790,10 @@ if (fType == T_ATLAS) {
   float floorM = max(Dm.x / perM, 0.1);
   float groupSize = mix(4.0, 9.0, fract(fSeed * 9.7 + 0.31));
   float groupId = floor(floorId / groupSize);
-  float groupOn = step(0.22, fHash(vec2(groupId, fSeed * 43.0 + 7.0)));
+  float groupOn = step(0.15, fHash(vec2(groupId, fSeed * 43.0 + 7.0)));
   float group = mix(0.12, 1.0, groupOn);
   floorLit *= mix(group, 0.78, smoothstep(0.35, 0.9, fFw.y / floorM));
-  fEmit = em * 2.1 * floorLit * bayVar;
+  fEmit = em * 2.5 * floorLit * bayVar;
   // Spill: the emissive map blurred over ~a bay lights the frames and spandrels around windows.
   // One isotropic lookup in a mip about a bay across (never finer than the pixel's own): a
   // gradient footprint that long and thin made the anisotropic filter take a few discrete taps
@@ -1056,7 +1058,12 @@ fEmit += fBase * P_SODIUM * fLamp * 1.5 * exp(-max(vFWorld.y - 1.0, 0.0) / 7.0);
 vec2 fWideUv = (vFWorld.xz - uLampRect.xy) * uLampRect.zw;
 vec3 fStreet = P_SODIUM * texture(uLampMap, fWideUv, 4.5).r * 0.5 + texture(uSignMap, fWideUv, 4.5).rgb * 0.35;
 float fUpFacing = fType == T_ROOF ? 0.25 : 1.0;
-fWallLight += fStreet * 0.28 * exp(-max(vFWorld.y, 0.0) / 20.0) * fUpFacing;
+fWallLight += fStreet * 0.45 * exp(-max(vFWorld.y, 0.0) / 30.0) * fUpFacing;
+// City glow: the whole lit city below and the low cloud it lights wash every wall in a warm
+// light, strongest near the ground, never gone at the top, so towers read as material
+// (stone, concrete, glass) rather than black slabs with windows.
+// Pale warm white, not sodium: a sodium wash turned every wall rust-brown.
+fWallLight += vec3(1.0, 0.8, 0.62) * uCityGlow * (0.35 + 0.65 * exp(-max(vFWorld.y, 0.0) / 90.0));
 // City bounce: a faint warm fill from everything lit around, so walls never go fully black.
 fWallLight += mix(P_HAZE * 2.2, P_SODIUM * 0.25, 0.12) * 0.25;
 // Sky rim: grazing faces catch the glowing sky, separating silhouettes in depth.
@@ -1119,7 +1126,7 @@ export function createFacadeMaterial(uniforms: FacadeUniforms): THREE.MeshStanda
       .replace('#include <normal_fragment_maps>', 'normal = normalize((viewMatrix * vec4(fNormalW, 0.0)).xyz);')
       .replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance = fEmit;');
   };
-  material.customProgramCacheKey = () => 'facade-v19';
+  material.customProgramCacheKey = () => 'facade-v20';
   return material;
 }
 
@@ -1132,6 +1139,7 @@ export function createFacadeUniforms(time: { value: number }, seed: number, text
     uLampMap: { value: null },
     uLampRect: { value: new THREE.Vector4(0, 0, 1, 1) },
     uWindowGain: { value: 1 },
+    uCityGlow: { value: 0.07 },
     uDay: { value: 0 },
     uFacadePick: { value: -1 },
     uGridOverlay: { value: 0 },

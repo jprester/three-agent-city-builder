@@ -16,6 +16,7 @@ export async function createDebugGui(renderer: THREE.WebGLRenderer, scene: THREE
   const fog = scene.fog as THREE.FogExp2 | null;
   if (fog && 'density' in fog) look.add(fog, 'density', 0, 0.006, 0.0001).name('fog density');
   look.add(parts.facade.uWindowGain, 'value', 0, 4, 0.01).name('window gain');
+  look.add(parts.facade.uCityGlow, 'value', 0, 0.6, 0.01).name('city glow on walls');
   look.add(parts.ground.uWet, 'value', 0, 3, 0.01).name('wet reflection');
   look.add(parts.post.bloom, 'intensity', 0, 4, 0.01).name('bloom');
   look.add(parts.post.bloom.luminanceMaterial, 'threshold', 0, 3, 0.01).name('bloom threshold');
