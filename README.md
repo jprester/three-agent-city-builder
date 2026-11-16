@@ -20,6 +20,13 @@ npm run shots:all    # the same for every viewpoint (~1 min)
 npm run perf         # GPU/CPU ms per frame and GPU memory at 1440x900@2x (~30 s)
 ```
 
+## Tower facades
+
+Tower facades are **baked**: each style is modelled in Blender and rendered straight on into
+diffuse, roughness, normal and emissive maps that agree pixel for pixel, with an exact floor and
+bay grid. See **[docs/FACADES.md](docs/FACADES.md)** for the method, how to add a style, and how to
+put it on a building (`npm run facades:bake`, `npm run inspect`).
+
 ## Advertising
 
 `npm run signs` rebuilds typeset shop signs, illustrated campaign atlases and their
