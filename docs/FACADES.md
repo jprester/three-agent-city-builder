@@ -80,6 +80,7 @@ Shader index (`TOWER_FACADES`, also the `?inspect=…&facade=<n>` number): 0–2
   "ac": 0.0, "balconies": 0.0,           // share of windows with an AC unit / a balcony
   "fins": 0.35,                          // depth of a vertical fin on every pier (0 = none)
   "rooms": "office",                     // interiors set behind lit windows: office | residential
+  "room_width": [5.0, 14.0],             // optional: room widths in metres (lit as a whole)
   "seed": 18
 }
 ```
@@ -92,6 +93,12 @@ Rules that keep it clean:
   reflection), so the packer floors everything outside the glass mask to matte
   (`WALL_ROUGH_MIN` = 0.68 in `pack_facades.py`). Glazed tile (0.45) and curtain-wall spandrel
   panels (0.15) used to mirror the sky like the windows.
+- **Rooms, not windows, are lit.** The packer splits every floor into rooms several bays wide
+  (`room_width` per style, in metres; default 5–14 m for offices, 3–7 m for `residential`).
+  A lit room shows one light in all its windows: one room card across the room, one tint, and
+  brightness falling off from where the light is. The window next to a lit room shows a dim
+  version of that room (15–25 %, `SPILL`), fading away from the lit side. Lighting single
+  windows looked like isolated boxes on tall-window facades.
 - **The grid starts at a pier centre and a spandrel centre**, so the edges of every repeat lie on
   wall, never through glass.
 - **The runtime shows a facade's floor at the curtain cell height, 3.8 m** (`facade.json`

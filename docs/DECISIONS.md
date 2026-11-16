@@ -382,3 +382,4 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 - 2026-11-16 Landmark spacing 150 -> 130 m: at 150 only three landmark blocks fit and the round tower displaced tower_o.
 - 2026-11-16 Round landmark crown blades removed (human review): thin lit strips and fins flickered on approach; sub-pixel detail that cannot be filtered is not worth keeping.
 - 2026-11-16 Baked facades: roughness outside the glass mask floored to 0.68 at pack time (human review): the shader reads roughness < 0.6 as glass, so glazed tile and spandrel panels reflected the sky like windows.
+- 2026-11-16 Baked facades light rooms, not windows (human review): rooms several bays wide per floor, one light/card/tint across all their windows with falloff, and a dim (15-25 %) version of the room in the next dark window. Packer only; no rebake, no runtime cost.

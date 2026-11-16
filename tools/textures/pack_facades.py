@@ -9,8 +9,8 @@ Per style, in its cell of the 4x2 atlas (as the photo bundles: 464x976 rects at 
   diffuse_rough  albedo x ambient occlusion x grime, roughness in alpha (linear; non-glass
                  floored to matte, so only the panes reflect)
   normal         the baked world normal turned to tangent space (x right, y up, OpenGL)
-  emissive       lit rooms in a share of the windows: office room cards (art/textures/interiors)
-                 cropped to the window, warm or cool, under lit blinds where a blind is drawn;
+  emissive       lit rooms several bays wide (one light shows in all of a room's windows, with
+                 a faint spill next door): office room cards (art/textures/interiors) across the room, warm or cool, under lit blinds where a blind is drawn;
                  only where the glass mask says glass, so nothing lights a frame or a wall
 Grime (soft patches and rain streaks under the sills) is noise that wraps on the facade's grid,
 so the runtime's wrap shows no seam. Deterministic: the style's seed drives everything.
@@ -25,6 +25,7 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[2]
 SIZE = 2048
 LIT_SHARE = 0.38
+SPILL = (0.15, 0.25)    # a dark window next to a lit room: that room's light at this share
 WALL_ROUGH_MIN = 0.68   # roughness floor of everything that is not glass (see main)
 
 
@@ -130,27 +131,74 @@ def patches(rng, layout, h, w):
     return tone[ys[:, None], xs[None, :]]
 
 
-def emissive(rng, layout, glass, blind, cards):
-    """Lit rooms in the cell (linear RGB)."""
+def emissive(rng, layout, glass, blind, cards, room_width):
+    """Lit rooms in the cell (linear RGB). Each floor is split into rooms several bays wide
+    (`room_width`, metres: open-plan offices wider than flats); a room is lit or dark as a whole,
+    so one light source shows in every window of it: one room card across the whole room (the
+    interior continues from window to window), one tint, brightness falling off from where the
+    light is. The windows next to a lit room catch a faint spill from its side. Rooms wrap
+    across the cell's edge like the facade does."""
     ch_, cw_ = layout["cell"][1], layout["cell"][0]
     out = np.zeros((ch_, cw_, 3), dtype=np.float32)
     warm, cool = np.array([1.0, 0.82, 0.62]), np.array([0.9, 0.95, 1.0])
+    bays, bay = layout["bays"], layout["bay"]
+    by_floor = {}
     for w in layout["windows"]:
-        if rng.random() >= LIT_SHARE:
-            continue
-        x0, y0, x1, y1 = (int(round(v)) for v in w["px"])
-        if x1 - x0 < 2 or y1 - y0 < 2:
-            continue
-        room = fit_card(cards[rng.integers(len(cards))], x1 - x0, y1 - y0)
-        tint = warm if rng.random() < 0.55 else cool
-        # The shader lifts emission ~2x and bloom takes the rest: the rendered rooms are bright.
-        gain = rng.uniform(0.4, 0.75)
-        lit = room * tint * gain
-        # A lit blind glows in the room's light, dimmer than the open glass, in slats.
-        b = blind[y0:y1, x0:x1, :1]
-        slats = 0.75 + 0.25 * np.sin(np.arange(y1 - y0) * 1.9)[:, None, None]
-        lit = lit * (1 - b) + b * tint * gain * 0.35 * slats
-        out[y0:y1, x0:x1] = lit
+        by_floor.setdefault(w["floor"], {})[w["bay"]] = w
+    for f in sorted(by_floor):
+        row = by_floor[f]
+        # Rooms: runs of bays from a random start, wrapping round the repeat.
+        start, rooms, k = int(rng.integers(bays)), [], 0
+        while k < bays:
+            n = max(1, min(bays - k, int(round(rng.uniform(*room_width) / bay))))
+            rooms.append([(start + k + i) % bays for i in range(n)])
+            k += n
+        lit = [rng.random() < LIT_SHARE for _ in rooms]
+        # Each lit room's light: tint, gain and room card (dark rooms draw theirs too, unused,
+        # so the stream does not depend on which rooms are lit).
+        light = [(warm if rng.random() < 0.55 else cool, rng.uniform(0.4, 0.75), cards[rng.integers(len(cards))])
+                 for _ in rooms]
+        for r, (members, on) in enumerate(zip(rooms, lit)):
+            wins = [row[j] for j in members if j in row]
+            if not wins:
+                continue
+            if on:
+                tint, gain, card = light[r]
+                # The light sits somewhere along the room; windows further off get less of it.
+                src = rng.uniform(0.2, 0.8) * len(wins)
+                span = fit_card(card, max(2, int(round(sum(w["px"][2] - w["px"][0] for w in wins)))),
+                                max(2, int(round(wins[0]["px"][3] - wins[0]["px"][1]))))
+                sx = 0
+                for i, w in enumerate(wins):
+                    x0, y0, x1, y1 = (int(round(v)) for v in w["px"])
+                    if x1 - x0 < 2 or y1 - y0 < 2:
+                        continue
+                    piece = span[:, sx:sx + (x1 - x0)]
+                    sx += x1 - x0
+                    if piece.shape[1] < x1 - x0 or piece.shape[0] != y1 - y0:
+                        piece = fit_card(card, x1 - x0, y1 - y0)
+                    d = abs(i + 0.5 - src) / max(1.0, len(wins) / 2)
+                    g = gain * (0.55 + 0.45 * np.exp(-2.0 * d * d)) * rng.uniform(0.9, 1.1)
+                    col = piece * tint * g
+                    # A lit blind glows in the room's light, dimmer than the open glass, in slats.
+                    b = blind[y0:y1, x0:x1, :1]
+                    slats = 0.75 + 0.25 * np.sin(np.arange(y1 - y0) * 1.9)[:, None, None]
+                    out[y0:y1, x0:x1] = col * (1 - b) + b * tint * g * 0.35 * slats
+            else:
+                # Spill from a lit neighbour: the window next to it shows its own dark room lit
+                # indirectly by the same light: that room's card, dim, fading away from the lit side.
+                for side, nb in ((-1, r - 1), (1, r + 1)):
+                    if len(rooms) < 2 or not lit[nb % len(rooms)]:
+                        continue
+                    t_, g_, card_ = light[nb % len(rooms)]
+                    w = wins[0] if side < 0 else wins[-1]
+                    x0, y0, x1, y1 = (int(round(v)) for v in w["px"])
+                    if x1 - x0 < 2 or y1 - y0 < 2:
+                        continue
+                    ramp = np.linspace(1.0, 0.3, x1 - x0) if side < 0 else np.linspace(0.3, 1.0, x1 - x0)
+                    dim = fit_card(card_, x1 - x0, y1 - y0) * t_ * g_ * rng.uniform(*SPILL) * ramp[None, :, None]
+                    b = blind[y0:y1, x0:x1, :1]
+                    out[y0:y1, x0:x1] = np.maximum(out[y0:y1, x0:x1], dim * (1 - 0.6 * b))
     return out * glass[..., :1]
 
 
@@ -190,7 +238,8 @@ def main(def_path, bake_dir, name="baked"):
         g1 = glass[..., 0]
         diff[y0:y0 + ch_, x0:x0 + cw_, 3] = g1 * rough + (1.0 - g1) * np.maximum(rough, WALL_ROUGH_MIN)
         norm[y0:y0 + ch_, x0:x0 + cw_] = tangent * 0.5 + 0.5
-        emit[y0:y0 + ch_, x0:x0 + cw_] = srgb(emissive(rng, layout, glass, blind, cards))
+        room_width = style.get("room_width", [3.0, 7.0] if style.get("rooms") == "residential" else [5.0, 14.0])
+        emit[y0:y0 + ch_, x0:x0 + cw_] = srgb(emissive(rng, layout, glass, blind, cards, room_width))
 
         gx0, gy0, gx1, gy1 = layout["grid"]
         rect = [x0 / SIZE, y0 / SIZE, (x0 + cw_) / SIZE, (y0 + ch_) / SIZE]
