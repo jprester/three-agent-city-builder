@@ -4,7 +4,7 @@ import palette from '../../art/style/palette.json';
 import interiors from '../../art/textures/interiors/interiors.json';
 import { GLASS_PROBE_Y } from '../scene/environment-map';
 import { SCREEN_COLS, SCREEN_COUNT, SCREEN_ROWS } from '../scene/screens';
-import { TOWER_BUNDLES, type FacadeTextures } from './textures';
+import { TOWER_FACADES, TOWER_POOL, type FacadeTextures } from './textures';
 import { SIGNAL } from '../../art/layouts/lib/traffic.mjs';
 
 /**
@@ -36,7 +36,7 @@ export interface FacadeUniforms {
   uWindowGain: { value: number };
   /** 1 by day (src/scene/daylight.ts): painted night light fades, walls get their albedo back. */
   uDay: { value: number };
-  /** Inspect (?inspect=): force tower facade photo n (bundle * 7 + facade); -1 = by seed. */
+  /** Inspect (?inspect=): force tower facade n (TOWER_FACADES index); -1 = by seed or pin. */
   uFacadePick: { value: number };
   /** Inspect: 1 draws the shader's floor (red), bay / cell (cyan) and module (yellow) lines. */
   uGridOverlay: { value: number };
@@ -71,7 +71,7 @@ const C = facade.cells;
 // Tower facade table: grid (u0, v0, u1, v1 in image space, y down; whole floors and bays,
 // edges on floor/bay lines; tools/textures/facade_grid.py) and
 // (floor height, bay width, wrap width, wrap height) in atlas UV units.
-const towerFacades = TOWER_BUNDLES.flatMap((b) => b.facades);
+const towerFacades = TOWER_FACADES.map((t) => t.facade);
 /** Bundles the city picks from by seed: the three photo bundles and the baked one. */
 const TOWER_CITY_BUNDLES = 4;
 /** Texels across a tower bundle texture (tools/textures/import_highrise.py SIZE; KTX2 keeps it). */
@@ -79,6 +79,7 @@ const ATLAS_SIZE = 2048;
 const TF_COUNT = towerFacades.length;
 const TF_RECT = towerFacades.map((t) => `vec4(${t.grid.map(f).join(', ')})`).join(',\n  ');
 // A ribbon facade (no column rhythm) stores its bay negated: the shader fits no bays across it.
+const TF_LAYER = TOWER_FACADES.map((t) => t.bundle).join(', ');
 const TF_DIM = towerFacades.map((t) => `vec4(${f(t.floor)}, ${f(t.ribbon ? -t.bay : t.bay)}, ${f(t.wrap[0])}, ${f(t.wrap[1])})`).join(',\n  ');
 
 // Room cards (art/textures/interiors, npm run interiors): room box (W, H, D, camera distance)
@@ -156,6 +157,7 @@ const vec3 P_INTERIOR[4] = vec3[4](${glslColor('interior_white')}, ${glslColor('
 const vec3 P_CLAD[3] = vec3[3](${glslColor('clad_terracotta')}, ${glslColor('clad_cream')}, ${glslColor('clad_charcoal')});
 const vec4 TF_RECT[${TF_COUNT}] = vec4[${TF_COUNT}](
   ${TF_RECT});
+const int TF_LAYER[${TF_COUNT}] = int[${TF_COUNT}](${TF_LAYER});
 const vec4 TF_DIM[${TF_COUNT}] = vec4[${TF_COUNT}](
   ${TF_DIM});
 `;
@@ -744,9 +746,12 @@ fNormalW = normalize(fNormalW - (fT * fGrad.x + fB * fGrad.y) * 2.5);
 
 if (fType == T_ATLAS) {
   // Photographic tower facade: bundle and facade per building, offset by whole bays/floors.
-  int bundle = int(fract(fSeed * 3.17) * ${TOWER_CITY_BUNDLES}.0);
-  int fi = bundle * 7 + int(fract(fSeed * 11.3) * 7.0);
-  if (uFacadePick >= 0) { fi = uFacadePick; bundle = fi / 7; }
+  // By seed from the city's pool, unless the face pins one (fill < 1: lib.surface.atlas_pin,
+  // a landmark's own style) or inspect does.
+  int fi = int(fract(fSeed * 3.17) * ${TOWER_CITY_BUNDLES}.0) * ${TOWER_POOL} + int(fract(fSeed * 11.3) * ${TOWER_POOL}.0);
+  if (fFill < 0.98) fi = min(int(fFill * 64.0), ${TF_COUNT} - 1);
+  if (uFacadePick >= 0) fi = min(uFacadePick, ${TF_COUNT} - 1);
+  int bundle = TF_LAYER[fi];
   // R: the facade's grid (tools/textures/facade_grid.py), whose edges are floor lines (middle of
   // a spandrel) and bay lines (middle of a pier), holding whole floors and bays; Dm.zw its size.
   vec4 R = TF_RECT[fi];
@@ -1114,7 +1119,7 @@ export function createFacadeMaterial(uniforms: FacadeUniforms): THREE.MeshStanda
       .replace('#include <normal_fragment_maps>', 'normal = normalize((viewMatrix * vec4(fNormalW, 0.0)).xyz);')
       .replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance = fEmit;');
   };
-  material.customProgramCacheKey = () => 'facade-v18';
+  material.customProgramCacheKey = () => 'facade-v19';
   return material;
 }
 

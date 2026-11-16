@@ -82,5 +82,8 @@
   "concrete_charcoal_alt": "#3C3E41",
   "panel_light": "#9DA5A8",
   "panel_blue": "#41556A",
-  "glass_light": "#3A4A55"
+  "glass_light": "#3A4A55",
+  "panel_pearl": "#7C8A92",
+  "panel_pearl_alt": "#738189",
+  "mullion_pearl": "#C8CBC8"
 }

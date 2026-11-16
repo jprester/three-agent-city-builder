@@ -126,6 +126,9 @@ def build(style, rng):
                     x = ox0 - 0.15 + k * 0.13
                     box(meshes["frame"], x, x + 0.025, -1.22, -1.19, oz0, oz0 + 1.0)
                 box(meshes["frame"], ox0 - 0.15, ox1 + 0.15, -1.24, -1.18, oz0 + 0.98, oz0 + 1.05)
+            if style.get("fins", 0.0) > 0:
+                # Vertical fin on the pier's centre line (the grid line), standing out of the wall.
+                box(meshes["frame"], x0 - 0.05, x0 + 0.05, -style["fins"], 0.0, z0, z1)
             if 0 <= i < floors and 0 <= j < bays:
                 windows.append({"floor": i, "bay": j, "x": [ox0, ox1], "z": [oz0, oz1], "blind": blind})
     plane_y(meshes["interior"], -3 * bay, (bays + 3) * bay, RECESS + 3.0, -3 * floor, (floors + 3) * floor)

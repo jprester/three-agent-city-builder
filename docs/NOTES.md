@@ -1774,3 +1774,12 @@ Note: the bake of this bundle took 18 min once because the machine paused mid-re
 render took 15 min); normally both bundles bake in ~3 min.
 `npm run perf` not measured cleanly (another tab rendering, ~44 ms everywhere); the change swaps one
 texture layer for another of the same size and adds no geometry or shader work.
+
+## Round landmark (2026-11-16)
+Rounded-square shaft, four tiers growing rounder to a cylinder, blade crown around a glass lantern,
+60 m spire; ~490 m, 2,129 tris, its own baked pearl curtain wall with pier fins. Reads as the
+skyline's centrepiece (docs/progress/landmark-round-*.png). Critique: from the street the dense
+tower district hides it entirely (the `landmark-round` viewpoint had to go above the roofs, 275 m);
+the podium is plain; the crown blades are dark metal and only their edge strips glow, so by night the
+crown reads as a dark comb. A faint coloured vertical streak in the night reflection on tier 1 is the
+env capture, not the facade. Inspect: `?inspect=buildings/landmark_round&facade=28`.

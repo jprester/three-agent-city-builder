@@ -5,7 +5,7 @@ import realGlass from '../../art/external/textures/real_glass.json';
 import glassSky from '../../art/external/textures/glass_sky.json';
 import baked from '../../art/textures/facades/baked.json';
 
-/** Tower facade bundles, in the order the facade shader indexes them (bundle * 7 + facade).
+/** Tower facade bundles, in the order the facade shader indexes them (TOWER_FACADES).
  * `baked_osaka` took the osaka photo set's place (its generated maps did not depict its photo).
  * `baked` is modelled and baked in Blender (npm run facades:bake); the city picks among all four
  * by seed (TOWER_CITY_BUNDLES in facade.ts). */
@@ -22,6 +22,18 @@ export interface TowerFacade {
   ribbon?: boolean;
 }
 export const TOWER_BUNDLE_NAMES = ['baked_osaka', 'real_glass', 'glass_sky', 'baked'];
+
+/** Facades per bundle that the city draws from by seed (bundle * 7 + facade). */
+export const TOWER_POOL = 7;
+/**
+ * Every tower facade in the shader's index order: the city's pool first (TOWER_POOL per
+ * bundle), then each bundle's further facades, which no seed picks; an asset pins one by
+ * index (lib.surface atlas_pin: a landmark's own style). `name` is the inspect label.
+ */
+export const TOWER_FACADES: { bundle: number; slot: number; name: string; facade: TowerFacade }[] = [
+  ...TOWER_BUNDLES.flatMap((b, bundle) => b.facades.slice(0, TOWER_POOL).map((facade, slot) => ({ bundle, slot, facade }))),
+  ...TOWER_BUNDLES.flatMap((b, bundle) => b.facades.slice(TOWER_POOL).map((facade, i) => ({ bundle, slot: TOWER_POOL + i, facade }))),
+].map((t) => ({ ...t, name: `${['b2', 're', 'gl', 'bk'][t.bundle]}${t.slot}` }));
 
 export interface FacadeTextures {
   /** One layer per bundle: diffuse (sRGB RGB) + roughness (A). */

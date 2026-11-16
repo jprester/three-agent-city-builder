@@ -1,5 +1,5 @@
 {
-  "$comment": "Tower facade styles modelled and baked in Blender (npm run facades:bake): tools/blender/bake_facades.py renders each style straight on, one emission-only render per map; tools/textures/pack_facades.py packs art/textures/facades/baked/. Meters; colors are palette names. One bay = pier + window opening; one floor = spandrel + window. Grid lines run through pier and spandrel centres, so the runtime's whole floors and bays start and end on wall. ac / balconies: share of windows with an air-conditioning unit on the sill / a balcony (slab and railing) in front. rooms: which interiors set (art/textures/interiors) lights the windows, office by default.",
+  "$comment": "Tower facade styles modelled and baked in Blender (npm run facades:bake): tools/blender/bake_facades.py renders each style straight on, one emission-only render per map; tools/textures/pack_facades.py packs art/textures/facades/baked/. Meters; colors are palette names. One bay = pier + window opening; one floor = spandrel + window. Grid lines run through pier and spandrel centres, so the runtime's whole floors and bays start and end on wall. ac / balconies: share of windows with an air-conditioning unit on the sill / a balcony (slab and railing) in front. rooms: which interiors set (art/textures/interiors) lights the windows, office by default. fins: depth (m) of a vertical fin on every pier. Styles past the seventh are not in the city's random pool; an asset pins them (lib.surface.atlas_pin).",
   "pixels_per_meter": 24,
   "cell": [
     464,
@@ -148,6 +148,28 @@
       "balconies": 0.6,
       "seed": 17,
       "rooms": "residential"
+    },
+    {
+      "id": "landmark_pearl",
+      "wall": "panel",
+      "colors": [
+        "panel_pearl",
+        "panel_pearl_alt",
+        "mullion_pearl"
+      ],
+      "floor": 3.8,
+      "bay": 1.5,
+      "pier": 0.14,
+      "spandrel": 0.9,
+      "panes": 1,
+      "transom": 0.0,
+      "frame": "mullion_pearl",
+      "sill": "mullion_pearl",
+      "blinds": 0.25,
+      "ac": 0.0,
+      "fins": 0.35,
+      "seed": 18,
+      "$comment": "Slot 7: outside the city's random pool (TOWER_POOL); pinned by the round landmark (art/defs/buildings/landmark_round.json). Floor and bay equal the curtain cell (3.8 x 1.5 m, facade.json), the scale the shader shows a tower facade at, so the tower's facets (whole bays) meet on mullions."
     }
   ]
 }

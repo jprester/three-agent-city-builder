@@ -35,7 +35,9 @@ binary in `public/` is regenerated from them.
   `art/facades/<bundle>.json` (baked, baked_osaka) in Blender and renders their maps straight on (Cycles, ~1.5 min for 7),
   then packs `art/textures/facades/<bundle>/` + `<bundle>.json` (exact grids, nothing measured);
   then `npm run textures`. Of the city's four tower bundles two are baked (baked_osaka 0-6,
-  baked 21-27 in `?inspect=`) and two are photo sets (real_glass, glass_sky).
+  baked 21-27 in `?inspect=`) and two are photo sets (real_glass, glass_sky). Styles past a bundle's
+  seventh are not in the city's random pool; an asset pins one (`lib.surface.atlas_pin`; 28 = baked
+  `landmark_pearl`, worn by the round landmark `buildings/roundtower`).
 - `npm run inspect -- <asset id>` renders a contact sheet of one asset with the real facade
   shader, by day: every tower facade photo (rows) × cameras at its band junctions (columns), to
   `build/inspect/`. Options: `--overlay` (the shader's floor lines red, bay/cell lines cyan,

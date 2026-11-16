@@ -4,7 +4,7 @@ import palette from '../../art/style/palette.json';
 import { AssetLoader, getAsset } from '../assets/registry';
 import type { AssetMeta } from '../assets/types';
 import { createFacadeMaterial, createFacadeUniforms } from '../materials/facade';
-import { loadFacadeTextures, TOWER_BUNDLES } from '../materials/textures';
+import { loadFacadeTextures, TOWER_FACADES } from '../materials/textures';
 import { applyDaylight, isLightName } from '../scene/daylight';
 import { createRenderer, createScene } from '../scene/environment';
 import { captureCityEnvironment, captureGlassEnvironment } from '../scene/environment-map';
@@ -17,7 +17,8 @@ import { setStatus } from '../ui/status';
  * Inspect one asset (`?inspect=<asset id>`): the city's own facade rendering for a single
  * building on a neutral ground, by day unless `light=night`. Everything the runtime varies by
  * chance can be pinned, so a defect can be reproduced on purpose:
- *   facade=<n>       tower facade n (0-27: baked_osaka 0-6, real_glass 7-13, glass_sky 14-20, baked 21-27)
+ *   facade=<n>       tower facade n (0-27: baked_osaka 0-6, real_glass 7-13, glass_sky 14-20, baked 21-27;
+ *                   28+: pinned-only styles, e.g. 28 the landmark's bk7)
  *   scale=sx,sy,sz   the layout's instance scale (towers: 0.7-1.0 across, 0.6-1.35 up)
  *   view=<name>      a camera from inspectViews(); overlay=1 draws the shader's floor (red),
  *                    bay / cell (cyan) and module (yellow) lines
@@ -28,7 +29,7 @@ import { setStatus } from '../ui/status';
 
 export interface InspectView { name: string; position: THREE.Vector3; target: THREE.Vector3 }
 
-const FACADE_NAMES = TOWER_BUNDLES.flatMap((_, b) => Array.from({ length: 7 }, (_, i) => `${['b2', 're', 'gl', 'bk'][b]}${i}`));
+const FACADE_NAMES = TOWER_FACADES.map((t) => t.name);
 
 /** Cameras from the asset's own data (building local frame, front at +Z, scaled). */
 export function inspectViews(meta: AssetMeta, scale: [number, number, number]): InspectView[] {

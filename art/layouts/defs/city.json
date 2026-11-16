@@ -76,7 +76,7 @@
       "count": 4,
       "minArea": 2500,
       "maxArea": 14000,
-      "spacing": 220,
+      "spacing": 130,
       "treeSpacing": 7.5,
       "plaza": 9,
       "plazaLamps": 6,
@@ -88,8 +88,8 @@
       }
     },
     "landmarks": {
-      "count": 3,
-      "spacing": 150
+      "count": 4,
+      "spacing": 130
     }
   }
 }

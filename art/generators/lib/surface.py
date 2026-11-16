@@ -105,6 +105,13 @@ def surf(ctx, kind, fill=1.0, tint=0.0, cols=None):
     return mat, (((code + 0.5) / 16.0, g, float(tint)), ctx.color(_PREVIEW[kind]))
 
 
+def atlas_pin(index):
+    """`fill` for an "atlas" face that wears tower facade `index` (src/materials/textures.ts
+    TOWER_FACADES: 0-27 the city's pool, 28+ the styles no seed picks, e.g. 28 = baked
+    landmark_pearl) instead of one drawn by the building's seed (fill 1)."""
+    return (int(index) + 0.5) / 64.0
+
+
 def cols_of(ctx, kind, width):
     """Face width in whole window cells of `kind` (1 for non-window kinds)."""
     cell = ctx.facade["cells"].get(CELL_OF.get(kind, kind))

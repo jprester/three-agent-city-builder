@@ -1,0 +1,39 @@
+{
+  "generator": "buildings/roundtower",
+  "seed": 417,
+  "params": {
+    "height": 400,
+    "tint": 0.4,
+    "facade": 28,
+    "tiers": [
+      [
+        0.42,
+        12,
+        8,
+        8
+      ],
+      [
+        0.27,
+        6,
+        4,
+        10
+      ],
+      [
+        0.19,
+        2,
+        0,
+        11
+      ],
+      [
+        0.12,
+        0,
+        0,
+        9
+      ]
+    ],
+    "crown_color": "white",
+    "spire": 60,
+    "blade_height": 24,
+    "lantern_facets": 6
+  }
+}
