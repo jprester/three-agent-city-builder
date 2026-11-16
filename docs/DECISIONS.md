@@ -380,3 +380,4 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 - 2026-11-16 Pinned tower facades: TOWER_FACADES lists the city's random pool (7 per bundle, indices 0-27 unchanged) then styles no seed picks (28 = baked `landmark_pearl`); an atlas face pins one with fill < 1 (`lib.surface.atlas_pin`). A landmark wears its own style instead of a random one.
 - 2026-11-16 `landmark_pearl` uses a 3.8 m floor and 1.5 m bay, the curtain cell the shader shows tower facades at, so the generator's facets are whole bays without reading the bake.
 - 2026-11-16 Landmark spacing 150 -> 130 m: at 150 only three landmark blocks fit and the round tower displaced tower_o.
+- 2026-11-16 Round landmark crown blades removed (human review): thin lit strips and fins flickered on approach; sub-pixel detail that cannot be filtered is not worth keeping.

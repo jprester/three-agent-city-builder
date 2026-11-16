@@ -1,6 +1,5 @@
 """Round landmark tower: a rounded-square shaft on a rectangular shop podium, getting rounder
-and slimmer at each setback until the top tier is a cylinder; a crown of radial blades around
-a glass lantern, and a spire.
+and slimmer at each setback until the top tier is a cylinder; a glass lantern crown and a spire.
 
 Every tier's plan is a rounded rectangle whose curved corners are polygons of FACETS one
 curtain-wall bay wide (`facet_bays` x the curtain cell): a corner of n facets has the radius
@@ -171,8 +170,8 @@ def generate(ctx):
 
 
 def _crown(mb, ctx, pts, z, tint, pin, facet, light):
-    """Collar, a ring of radial blades rising higher toward the front and back, a glass lantern
-    inside them with a lit band and a cap, and a spire."""
+    """Collar, a glass lantern with a lit band and a cap, and a spire. (Radial crown blades were
+    tried and removed: their thin lit edges flickered as the camera approached.)"""
     m, s = surf(ctx, "metal", 0.0, tint)
     R = max(math.hypot(x, y) for x, y in pts)
     disc(mb, ctx, pts, z, tint, both=True)
@@ -187,30 +186,12 @@ def _crown(mb, ctx, pts, z, tint, pin, facet, light):
     lh = ctx.p("lantern_height", 15.2)
     _check_wrap(ctx, lpts, facet)
     ring(mb, ctx, lpts, z, z + lh, "atlas", pin, tint, module=True, smooth=True)
-    fm, fs = fixture(ctx, light, strip=True)
     ring(mb, ctx, lpts, z + lh, z + lh + 2.0, "fixture", ctx.facade["fixture_colors"][light], 1.0)
     cap = [(x * 0.82, y * 0.82) for x, y in lpts]
     ring(mb, ctx, cap, z + lh + 2.0, z + lh + 4.4, "metal", 0.0, tint)
     roof = z + lh + 4.4
     disc(mb, ctx, cap, roof, tint, both=True)
     ctx.meta["roof"] = round(roof, 3)
-    # Blades: thin radial fins on every other vertex of the top ring, tallest over the front
-    # and back (a tiara seen from the street), each with a lit edge strip on its outer face.
-    rise = ctx.p("blade_height", 24.0)
-    for k, (x, y) in enumerate(pts):
-        if k % ctx.p("blade_every", 2):
-            continue
-        th = math.atan2(y, x)
-        bh = rise * (0.45 + 0.55 * abs(math.sin(th)) ** 1.5)
-        c, sn = math.cos(th), math.sin(th)
-
-        def xf(px, py, pz, c=c, sn=sn, r=math.hypot(x, y)):
-            # Local y outward along the radius from the wall, x along the tangent (clockwise,
-            # so the frame is a rotation and faces keep their winding).
-            return ((r + py) * c + px * sn, (r + py) * sn - px * c, pz)
-
-        mb.box(-0.14, 0.14, -0.6, 1.1, z - collar, z + bh, m, xf, ("bottom",), s, plan_uv)
-        mb.box(-0.07, 0.07, 1.1, 1.18, z - collar + 4.0, z + bh - 0.5, fm, xf, ("bottom", "top", "front"), fs, plan_uv)
     # Spire: a tapering mast from the lantern cap, a red light on top.
     spire = ctx.p("spire", 60.0)
     sm, ss = surf(ctx, "metal", 0.0, tint)
