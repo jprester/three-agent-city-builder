@@ -11,7 +11,7 @@ Crowns (param "crown"):
   plant     tall louvred mechanical floor
   slant     roof sloping down to one side
   lantern   dark ribbed crown with a warm/white lit band and a tapered cap (IFC-like)
-  lattice   open white/steel lattice cage above the roof (Bank of China-like)
+  prism     sloping glass roof with pale hips and X braces, a lit band, twin masts (Bank of China-like)
 Accents (param "accent"): "corners" (LED strips on every tier's vertical edges) or
 "stripes" (two vertical LED stripes on the front and back faces), in "accent_color"
 (facade.json fixture_colors); "accent_top_only" limits them to the top tier. "screen": a video screen on the lowest tier's front,
@@ -161,8 +161,8 @@ def _crown(mb, ctx, crown, w, d, z, tint):
         return z
     if crown == "lantern":
         return _crown_lantern(mb, ctx, w, d, z, tint)
-    if crown == "lattice":
-        return _crown_lattice(mb, ctx, w, d, z, tint)
+    if crown == "prism":
+        return _crown_prism(mb, ctx, w, d, z, tint)
     if crown == "slant":
         # Roof plane rising from the front edge to the back (pyramid-free wedge).
         rise = ctx.p("slant", 12.0)
@@ -281,26 +281,86 @@ def _crown_lantern(mb, ctx, w, d, z, tint):
     return z + 16.6 + ctx.p("mast", 12.0)
 
 
-def _crown_lattice(mb, ctx, w, d, z, tint):
-    """Open lattice crown: four posts, X braces on each face and a lit top band."""
+def _beam(mb, m, s, p0, p1, wa, wb, side=None):
+    """A straight member of section wa x wb from p0 to p1 (any direction). `side`: a vector
+    the wa edge should lie along (default: horizontal), so beams on a sloped face lie flat on it."""
+    a = [p1[i] - p0[i] for i in range(3)]
+    la = math.sqrt(sum(c * c for c in a))
+    a = [c / la for c in a]
+    side = side or (-a[1], a[0], 0.0)
+    # e1: `side` made perpendicular to the axis; e2 completes the frame.
+    k = sum(side[i] * a[i] for i in range(3))
+    e1 = [side[i] - k * a[i] for i in range(3)]
+    l1 = math.sqrt(sum(c * c for c in e1)) or 1.0
+    e1 = [c / l1 for c in e1]
+    e2 = [a[1] * e1[2] - a[2] * e1[1], a[2] * e1[0] - a[0] * e1[2], a[0] * e1[1] - a[1] * e1[0]]
+    ring = [(-1, -1), (1, -1), (1, 1), (-1, 1)]
+    corner = lambda p, i, j: tuple(p[c] + i * wa / 2 * e1[c] + j * wb / 2 * e2[c] for c in range(3))
+    for q in range(4):
+        (i0, j0), (i1, j1) = ring[q], ring[(q + 1) % 4]
+        mb.quad([corner(p0, i0, j0), corner(p0, i1, j1), corner(p1, i1, j1), corner(p1, i0, j0)][::-1], m, None, s, plan_uv)
+    mb.quad([corner(p1, i, j) for i, j in ring], m, None, s, plan_uv)
+
+
+def _crown_prism(mb, ctx, w, d, z, tint):
+    """Glass prism crown (Bank of China-like): the shaft closes in a sloping glass roof (a
+    truncated pyramid) wearing the tower's own facade, its hips and an X on each face carried
+    on by the exoskeleton's pale members, a lit band round the flat top and twin masts.
+
+    The slopes are below ~72 degrees so their UVs can be true surface metres (u along the
+    base edge, v up the slope) and the facade check treats them as roofs, not walls."""
+    run = ctx.p("prism_run", 9.0)                    # how far each slope steps in
+    tilt = math.radians(ctx.p("prism_tilt", 71.0))
+    h = run * math.tan(tilt)
+    tw, td = w - 2 * run, d - 2 * run
+    zt = z + h
+    base = [(-w / 2, -d / 2), (w / 2, -d / 2), (w / 2, d / 2), (-w / 2, d / 2)]
+    top = [(-tw / 2, -td / 2), (tw / 2, -td / 2), (tw / 2, td / 2), (-tw / 2, td / 2)]
+    am, as_ = surf(ctx, "atlas", 1.0, tint)
+    slope = math.hypot(run, h)
+    for i in range(4):
+        b0, b1 = (*base[i], z), (*base[(i + 1) % 4], z)
+        t0, t1 = (*top[i], zt), (*top[(i + 1) % 4], zt)
+        ex = [b1[c] - b0[c] for c in range(3)]
+        lw = math.hypot(ex[0], ex[1])
+        ex = [c / lw for c in ex]
+        # Up the slope, in the face: from the base edge's midpoint towards the top edge's.
+        mid_b = [(b0[c] + b1[c]) / 2 for c in range(3)]
+        mid_t = [(t0[c] + t1[c]) / 2 for c in range(3)]
+        up = [(mid_t[c] - mid_b[c]) / slope for c in range(3)]
+        uv = lambda pts, n, b0=b0, ex=ex, up=up: [
+            (sum((p[c] - b0[c]) * ex[c] for c in range(3)), sum((p[c] - b0[c]) * up[c] for c in range(3))) for p in pts]
+        mb.quad([b0, b1, t1, t0], am, None, as_, uv, module=(lw, slope))
+    # Pale members as on the shaft (tower_exoskeleton): hips from the corner columns, an X a
+    # little proud of each face. Thick enough (>= 0.5 m) not to flicker at a kilometre.
+    m, s = surf(ctx, "trim", 0.0, max(tint, 0.75))
+    hip = ctx.p("prism_hip", 1.1)
+    for i in range(4):
+        _beam(mb, m, s, (*base[i], z), (*top[i], zt), hip, hip)
+    lift = 0.35
+    for i in range(4):
+        b0, b1 = (*base[i], z), (*base[(i + 1) % 4], z)
+        t0, t1 = (*top[i], zt), (*top[(i + 1) % 4], zt)
+        e = [b1[c] - b0[c] for c in range(3)]
+        g = [t0[c] - b0[c] for c in range(3)]
+        n = [e[1] * g[2] - e[2] * g[1], e[2] * g[0] - e[0] * g[2], e[0] * g[1] - e[1] * g[0]]
+        ln = math.sqrt(sum(c * c for c in n))
+        off = [lift * c / ln for c in n]
+        sh = lambda p: tuple(p[c] + off[c] for c in range(3))
+        for p, q in ((b0, t1), (b1, t0)):
+            _beam(mb, m, s, sh(p), sh(q), 0.6, 0.5, side=n)
+    # The flat top: a lit band (the crown's one light at distance), a metal cap, twin masts.
     fcol = ctx.facade["fixture_colors"][ctx.p("crown_color", "white")]
-    # The crown itself is the lit outline; the body lattice below stays pale metal.
-    fm, fs = fixture(ctx, ctx.p("crown_color", "white"), strip=True)
-    _cap(mb, ctx, w, d, z, tint)
-    h = ctx.p("lattice_crown_height", 18.0)
-    post = 0.55
+    walls(mb, ctx, tw, td, zt, zt + 1.4, zt, [("fixture", fcol, 1.0)] * 4)
+    walls(mb, ctx, tw, td, zt + 1.4, zt + 3.0, zt + 1.4, [("metal", 0.0, tint)] * 4)
+    _cap(mb, ctx, tw, td, zt + 3.0, tint)
+    roof = zt + 3.0
+    aviation_lights(mb, ctx, tw, td, roof)
+    mh = ctx.p("mast", 30.0)
+    mm, ms = surf(ctx, "metal", 0.0, max(tint, 0.75))
     for sx in (-1, 1):
-        for sy in (-1, 1):
-            x, y = sx * w / 2, sy * d / 2
-            mb.box(x - post, x + post, y - post, y + post, z, z + h, fm, None, ("bottom", "top"), fs, plan_uv)
-    for side in range(4):
-        fw, xf = side_frame(side, w, d)
-        _brace(mb, ctx, xf, -fw / 2, z, fw / 2, z + h, fm, fs, 0.4, 0.26)
-        _brace(mb, ctx, xf, -fw / 2, z + h, fw / 2, z, fm, fs, 0.4, 0.26)
-    # Lit perimeter at the top of the frame, then a closed roof cap.
-    walls(mb, ctx, w, d, z + h, z + h + 0.9, z + h, [("fixture", fcol, 1.0)] * 4)
-    _cap(mb, ctx, w, d, z + h + 0.9, tint, thick=0.6)
-    ctx.meta["roof"] = z + h + 0.9
-    aviation_lights(mb, ctx, w, d, z + h + 0.9)
-    mast(mb, ctx, 0.0, 0.0, z + h + 0.9, ctx.p("mast", 10.0), red=True)
-    return z + h + 0.9 + ctx.p("mast", 10.0)
+        x = sx * tw * 0.28
+        mb.box(x - 0.45, x + 0.45, -0.45, 0.45, roof, roof + mh, mm, None, ("bottom",), ms, plan_uv)
+        mast(mb, ctx, x, 0.0, roof + mh, 4.0, red=True)
+    ctx.meta["roof"] = z
+    return roof + mh + 4.3

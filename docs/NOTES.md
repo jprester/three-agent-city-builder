@@ -1783,3 +1783,11 @@ tower district hides it entirely (the `landmark-round` viewpoint had to go above
 the podium is plain. The radial crown blades were removed (human review): their thin lit edge strips
 flickered when walking toward the tower; the crown is now collar, lit lantern band, cap and spire. A faint coloured vertical streak in the night reflection on tier 1 is the
 env capture, not the facade. Inspect: `?inspect=buildings/landmark_round&facade=28`.
+
+### tower_n prism crown (2026-11-16)
+The lit lattice cage (box outline, one X per face) read as scaffolding on top of a finished tower.
+Now a glass prism: the shaft's facade continues up four 71° slopes to a lit band and twin masts;
+the exoskeleton's pale members become the hips and an X on each slope. By day it reads as one
+building to the tip. Weak: at night the hips and braces are unlit and nearly vanish, so the crown is
+only the lit rooms plus the top band; the dark mechanical band at its foot cuts it from the shaft.
+Shots: `landmark-prism` (docs/progress/landmark-prism-{day,night}.png).

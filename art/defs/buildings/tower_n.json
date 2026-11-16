@@ -12,9 +12,8 @@
         0
       ]
     ],
-    "crown": "lattice",
+    "crown": "prism",
     "crown_color": "white",
-    "lattice_crown_height": 20,
     "exoskeleton": true,
     "lattice_spacing": 13,
     "lattice_depth": 0.5,

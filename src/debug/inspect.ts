@@ -61,7 +61,9 @@ export function inspectViews(meta: AssetMeta, scale: [number, number, number]): 
     edges.push({ name: `tier${i}-top`, z: z1, face: D / 2 - setback });
   });
   for (const e of edges) v(e.name, [W * 0.2, e.z + 1.5, e.face + 24], [0, e.z + 1.5, e.face]);
-  v('crown', [W * 0.4, H + 12, D / 2 + 45], [0, H - 8, 0]);
+  // The crown from a little above its foot (meta.roof), not the mast tip (meta.height).
+  const R = typeof meta.roof === 'number' ? meta.roof : H - 8;
+  v('crown', [W * 0.7, R + 26, D / 2 + 60], [0, R + 12, 0]);
   return views;
 }
 
