@@ -140,7 +140,7 @@ def emissive(rng, layout, glass, blind, cards, room_width):
     across the cell's edge like the facade does."""
     ch_, cw_ = layout["cell"][1], layout["cell"][0]
     out = np.zeros((ch_, cw_, 3), dtype=np.float32)
-    warm, cool = np.array([1.0, 0.82, 0.62]), np.array([0.9, 0.95, 1.0])
+    warm, cool = np.array([1.0, 0.74, 0.48]), np.array([0.9, 0.95, 1.0])
     bays, bay = layout["bays"], layout["bay"]
     by_floor = {}
     for w in layout["windows"]:
@@ -156,7 +156,7 @@ def emissive(rng, layout, glass, blind, cards, room_width):
         lit = [rng.random() < LIT_SHARE for _ in rooms]
         # Each lit room's light: tint, gain and room card (dark rooms draw theirs too, unused,
         # so the stream does not depend on which rooms are lit).
-        light = [(warm if rng.random() < 0.55 else cool, rng.uniform(0.4, 0.75), cards[rng.integers(len(cards))])
+        light = [(warm if rng.random() < 0.7 else cool, rng.uniform(0.4, 0.75), cards[rng.integers(len(cards))])
                  for _ in rooms]
         for r, (members, on) in enumerate(zip(rooms, lit)):
             wins = [row[j] for j in members if j in row]

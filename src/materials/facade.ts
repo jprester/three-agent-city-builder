@@ -383,8 +383,11 @@ vec3 interior(vec4 box, vec4 tile, vec2 ro, vec3 vt, float pxPerM, vec2 fw) {
 
 // Shared window colour and brightness keep interior light and wall spill consistent.
 // Warm whites dominate; a TV colours a room faintly rather than becoming a blue panel.
+// Homes: mostly warm lamps from deep amber to pale tungsten, a few neutral, a few cool
+// fluorescent (they make the warm ones read warm), and the odd TV.
 vec3 windowColor(float h) {
-  if (h < 0.85) return mix(P_TUNGSTEN, P_FLUORESCENT, 0.12 + 0.26 * h / 0.85);
+  if (h < 0.62) return mix(P_TUNGSTEN * vec3(1.0, 0.8, 0.56), P_TUNGSTEN * vec3(1.0, 0.95, 0.88), h / 0.62);
+  if (h < 0.85) return mix(P_TUNGSTEN, P_FLUORESCENT, 0.3);
   if (h < 0.98) return mix(P_FLUORESCENT, P_TUNGSTEN, 0.35);
   return mix(P_TV, P_FLUORESCENT, 0.55);
 }
@@ -432,14 +435,15 @@ float officeIntensity(vec2 cid, float s) {
 }
 
 // Light colour of a lit office window. Glass skins pick a tone per floor group (one tenant):
-// mostly cool office white, some warm, some greener fluorescent, some half-dimmed, so distant
+// about half warm, a third office white, some greener fluorescent, some half-dimmed, so distant
 // glass reads as floors of different offices instead of one grey slab.
 vec3 officeColor(vec2 cid, float s, float hTemp) {
   if (!fGlassSkin) return mix(windowColor(hTemp), OFFICE_WHITE, fOffice.z);
   float h = fHash(vec2(cid.y, floor(cid.x / 7.0)) + s + 8.3);
-  if (h < 0.45) return OFFICE_WHITE;
-  if (h < 0.7) return mix(OFFICE_WHITE, P_TUNGSTEN, 0.8);
-  if (h < 0.85) return mix(OFFICE_WHITE, P_FLUORESCENT, 0.85);
+  if (h < 0.3) return OFFICE_WHITE;
+  if (h < 0.58) return mix(OFFICE_WHITE, P_TUNGSTEN, 0.8);
+  if (h < 0.78) return P_TUNGSTEN * vec3(1.0, 0.86, 0.66);
+  if (h < 0.88) return mix(OFFICE_WHITE, P_FLUORESCENT, 0.85);
   return OFFICE_WHITE * 0.4;
 }
 
@@ -1126,7 +1130,7 @@ export function createFacadeMaterial(uniforms: FacadeUniforms): THREE.MeshStanda
       .replace('#include <normal_fragment_maps>', 'normal = normalize((viewMatrix * vec4(fNormalW, 0.0)).xyz);')
       .replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance = fEmit;');
   };
-  material.customProgramCacheKey = () => 'facade-v20';
+  material.customProgramCacheKey = () => 'facade-v21';
   return material;
 }
 
