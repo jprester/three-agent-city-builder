@@ -26,6 +26,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SIZE = 2048
 LIT_SHARE = 0.38
 SPILL = (0.15, 0.25)    # a dark window next to a lit room: that room's light at this share
+PALETTE = json.loads((ROOT / "art" / "style" / "palette.json").read_text())
 WALL_ROUGH_MIN = 0.68   # roughness floor of everything that is not glass (see main)
 
 
@@ -244,13 +245,21 @@ def main(def_path, bake_dir, name="baked"):
         gx0, gy0, gx1, gy1 = layout["grid"]
         rect = [x0 / SIZE, y0 / SIZE, (x0 + cw_) / SIZE, (y0 + ch_) / SIZE]
         grid = [(x0 + gx0) / SIZE, (y0 + gy0) / SIZE, (x0 + gx1) / SIZE, (y0 + gy1) / SIZE]
-        facades.append({
+        entry = {
             "style": style["id"], "rect": rect,
             "hint": [layout["floor"] / SIZE, layout["bay"] / SIZE],
             "floor": layout["floor"] / SIZE, "bay": layout["bay"] / SIZE,
             "grid": grid, "wrap": [grid[2] - grid[0], grid[3] - grid[1]],
             "floors": layout["floors"], "bays": layout["bays"], "ribbon": False,
-        })
+        }
+        if "glass" in style:
+            # Coated glass reflects in its own hue: the glass colour normalised to its brightest
+            # channel, at glass_reflect strength (default 0.5), multiplies the shader's reflection.
+            h = PALETTE[style["glass"]].lstrip("#")
+            c = lin(np.array([int(h[k:k + 2], 16) / 255.0 for k in (0, 2, 4)]))
+            k = style.get("glass_reflect", 0.5)
+            entry["tint"] = [round(float(1.0 + (v / c.max() - 1.0) * k), 4) for v in c]
+        facades.append(entry)
     out = ROOT / "art" / "textures" / "facades" / name
     out.mkdir(parents=True, exist_ok=True)
     to8 = lambda a: (np.clip(a, 0, 1) * 255 + 0.5).astype(np.uint8)

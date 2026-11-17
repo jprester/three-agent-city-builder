@@ -15,8 +15,8 @@ import { SIGNAL } from '../../art/layouts/lib/traffic.mjs';
  *   COLOR_0     r: surface type, g: window opening pattern / type parameter, b: tint
  *   TEXCOORD_0  facade coordinates in meters (u along, v up; glTF-flipped v)
  * Three sources of detail:
- *   - "atlas" faces (tower shafts, office bodies) map photographic facades from the tower
- *     bundles at real scale (art/external/textures, tools/textures/import_highrise.py);
+ *   - "atlas" faces (tower shafts, office bodies) map the baked tower facades (modelled and
+ *     rendered in Blender, docs/FACADES.md) at real scale;
  *   - residential/office windows are interior-mapped rooms with frames, sills and recesses;
  *   - walls sample image materials (tile, concrete, panels, metal) with luminance relief.
  *
@@ -73,7 +73,7 @@ const C = facade.cells;
 // edges on floor/bay lines; tools/textures/facade_grid.py) and
 // (floor height, bay width, wrap width, wrap height) in atlas UV units.
 const towerFacades = TOWER_FACADES.map((t) => t.facade);
-/** Bundles the city picks from by seed: the three photo bundles and the baked one. */
+/** Bundles the city picks from by seed: all four baked bundles (TOWER_BUNDLES). */
 const TOWER_CITY_BUNDLES = 4;
 /** Texels across a tower bundle texture (tools/textures/import_highrise.py SIZE; KTX2 keeps it). */
 const ATLAS_SIZE = 2048;
@@ -81,6 +81,7 @@ const TF_COUNT = towerFacades.length;
 const TF_RECT = towerFacades.map((t) => `vec4(${t.grid.map(f).join(', ')})`).join(',\n  ');
 // A ribbon facade (no column rhythm) stores its bay negated: the shader fits no bays across it.
 const TF_LAYER = TOWER_FACADES.map((t) => t.bundle).join(', ');
+const TF_TINT = towerFacades.map((t) => `vec3(${(t.tint ?? [1, 1, 1]).map(f).join(', ')})`).join(',\n  ');
 const TF_DIM = towerFacades.map((t) => `vec4(${f(t.floor)}, ${f(t.ribbon ? -t.bay : t.bay)}, ${f(t.wrap[0])}, ${f(t.wrap[1])})`).join(',\n  ');
 
 // Room cards (art/textures/interiors, npm run interiors): room box (W, H, D, camera distance)
@@ -161,6 +162,9 @@ const vec4 TF_RECT[${TF_COUNT}] = vec4[${TF_COUNT}](
 const int TF_LAYER[${TF_COUNT}] = int[${TF_COUNT}](${TF_LAYER});
 const vec4 TF_DIM[${TF_COUNT}] = vec4[${TF_COUNT}](
   ${TF_DIM});
+// Coated glass reflects in its own hue (art/facades/<bundle>.json glass, packed as tint).
+const vec3 TF_TINT[${TF_COUNT}] = vec3[${TF_COUNT}](
+  ${TF_TINT});
 `;
 
 const VERTEX_PARS = /* glsl */ `
@@ -751,7 +755,7 @@ float fMetal = (fMat == 2 || fMat == 6) ? 0.35 : 0.0;
 fNormalW = normalize(fNormalW - (fT * fGrad.x + fB * fGrad.y) * 2.5);
 
 if (fType == T_ATLAS) {
-  // Photographic tower facade: bundle and facade per building, offset by whole bays/floors.
+  // Baked tower facade: bundle and facade per building, offset by whole bays/floors.
   // By seed from the city's pool, unless the face pins one (fill < 1: lib.surface.atlas_pin,
   // a landmark's own style) or inspect does.
   int fi = int(fract(fSeed * 3.17) * ${TOWER_CITY_BUNDLES}.0) * ${TOWER_POOL} + int(fract(fSeed * 11.3) * ${TOWER_POOL}.0);
@@ -817,7 +821,7 @@ if (fType == T_ATLAS) {
   // interior's outlines (desks, people) as bumps, and a fully rippled reflection drew them as
   // ghost contours on dark panes.
   vec3 fReflN = normalize(mix(normalize(vFNormal), fNormalW, 0.2));
-  fRefl = glassAmt * glassReflection(fV, fReflN, fVt.z, fRough, fEmit, 0.18, vFWorld, 0.0);
+  fRefl = glassAmt * glassReflection(fV, fReflN, fVt.z, fRough, fEmit, 0.18, vFWorld, 0.0) * TF_TINT[fi];
   fEmit += fRefl;
 } else if (fType == T_RES || fType == T_OFFICE || fType == T_CURTAIN || fType == T_CAGE) {
   vec3 wEmit, filteredEmit, avgEmit, wSpill, wAvgSpill; float wMask, wFrame, wFrac, wAround, filteredMask;

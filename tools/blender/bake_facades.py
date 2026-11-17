@@ -71,8 +71,8 @@ def plane_y(bm, x0, x1, y, z0, z1):
 
 def build(style, rng):
     """Geometry per material kind, plus the windows' openings (meters, grid coordinates)."""
-    meshes = {k: bmesh.new() for k in ("wall", "frame", "sill", "blind", "blind_b", "curtain", "curtain_b", "ac", "grille",
-                                       "interior", *GLASS)}
+    kinds = ("wall", "frame", "sill", "blind", "blind_b", "curtain", "curtain_b", "ac", "grille", "interior", *GLASS)
+    meshes = {k: bmesh.new() for k in kinds + (("spandrel",) if style.get("spandrel_colors") else ())}
     floor, bay, pier, sp = style["floor"], style["bay"], style["pier"], style["spandrel"]
     bays, floors = style["_bays"], style["_floors"]
     windows = []
@@ -84,8 +84,9 @@ def build(style, rng):
             w = meshes["wall"]
             box(w, x0, ox0, 0.0, 0.3, z0, z1)
             box(w, ox1, x1, 0.0, 0.3, z0, z1)
-            box(w, ox0, ox1, 0.0, 0.3, z0, oz0)
-            box(w, ox0, ox1, 0.0, 0.3, oz1, z1)
+            sw = meshes.get("spandrel", w)  # spandrels in their own colours when the style says so
+            box(sw, ox0, ox1, 0.0, 0.3, z0, oz0)
+            box(sw, ox0, ox1, 0.0, 0.3, oz1, z1)
             # Frame round the opening, mullions, a transom under the top light.
             f = meshes["frame"]
             for (a, b, c, d) in ((ox0, ox1, oz0, oz0 + FRAME), (ox0, ox1, oz1 - FRAME, oz1),
@@ -164,6 +165,11 @@ def wall_nodes(nt, style):
         course = floor / round(floor / 0.11)
         tex.offset = 0.0
         mortar_size, rough, strength = 0.004, 0.45, 0.35
+    elif kind == "stone":  # dressed stone or metal cladding: large smooth panels, fine joints
+        length = bay / max(1, round(bay / 1.2))
+        course = floor / max(1, round(floor / 1.3))
+        tex.offset = 0.0
+        mortar_size, rough, strength = 0.006, 0.7, 0.25
     elif kind == "panel":  # curtain wall: spandrel glass panels between aluminium caps
         length, course = bay, floor / 2
         tex.offset = 0.0
@@ -206,8 +212,14 @@ def material(name, kind, style, pass_name):
             "interior": (color("interior_dark"), 0.95)}
     if kind == "wall":
         col, normal, rough = wall_nodes(nt, style)
+    elif kind == "spandrel":
+        col, normal, rough = wall_nodes(nt, dict(style, colors=style["spandrel_colors"],
+                                                 wall=style.get("spandrel_wall", style["wall"])))
     elif kind in GLASS_TINT:
-        base, t = color("glass_facade"), GLASS_TINT[kind]
+        # The style's glass (default glass_facade); glass_vary < 1 pulls each window's tint toward
+        # it, for curtain walls whose glass is one colour.
+        vary = style.get("glass_vary", 1.0)
+        base, t = color(style.get("glass", "glass_facade")), [1.0 + (k - 1.0) * vary for k in GLASS_TINT[kind]]
         col, normal, rough = (base[0] * t[0], base[1] * t[1], base[2] * t[2], 1.0), None, 0.05
     else:
         col, normal, rough = flat[kind][0], None, flat[kind][1]

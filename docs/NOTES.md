@@ -1830,3 +1830,27 @@ Perf (2026-11-17, `fast` GPU ms): canyon 10.1, storefront 11.1, aerial 16.0, har
 against 11-15 (10.5 / 8.1), so I ran the facade shader before and after the two night commits back
 to back: aerial 11.0 / 12.6, harbor 8.8 / 8.4, canyon 11.1 / 11.3, p50 equal. Noise, not the night
 changes.
+
+## Photo bundles retired: baked_glass and baked_sky (2026-11-17)
+The last two photo sets (real_glass, glass_sky) are replaced by two baked bundles in their texture
+layers: fourteen glass office styles after them (slate, bronze, pale blue, green and blue-grey grids;
+white and grey stone piers over glass spandrels; teal with white fins; deep blue ribbons; gold
+piers; charcoal frames; teal with white piers). Every tower in the city is now baked, so lit rooms
+group and fall off the same way on every tower (no more even grid of dots next to grouped rooms).
+Images: `docs/progress/baked-glass/` (atlases, inspect sheets, city by night and day).
+- First pass by day failed: with the reflection untinted, all fourteen styles became the same grey
+  sky mirror and teal, green and deep blue could not be told apart (`inspect-day-untinted.jpg`).
+  Coated glass reflects in its own hue, so each glass style now packs a reflection tint (glass
+  colour normalised, at half strength) that the shader multiplies in (`inspect-day-tinted.jpg`).
+  Neutral for the older bundles, which are byte-identical (rebuilt one style to confirm).
+- Works: by night the glass towers carry rooms like the brick and tile ones; by day the deep blue
+  ribbon tower, the bronze grid and the teal styles stand out among the stone and brick (fly-50,
+  tower-corner).
+- Weak: slate_grid and slate_wide are close cousins; the gold piers read as thin lines rather than
+  cladding; stone styles' spandrels are flat panel colour, no stone texture. Glass styles have no
+  tower-specific details yet (mechanical floors, sky lobbies), like the other bundles.
+Budgets: four layers as before, GPU process 800-805 MB (gate 920). `npm run perf` `fast` GPU ms:
+canyon 11.0, storefront 13.7, aerial 12.4, harbor 11.5, fly-75 10.7 on a warm machine, in the
+range of this session's earlier runs; the shader change is one vec3 multiply per tower pixel.
+`npm run textures` now prunes retired KTX2 outputs: it removed the osaka set's three files
+(left behind on 11-15) and the two photo sets' six.

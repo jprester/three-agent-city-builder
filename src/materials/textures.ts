@@ -1,15 +1,15 @@
 import * as THREE from 'three';
 import { loadKtx2 } from './ktx2';
 import bakedOsaka from '../../art/textures/facades/baked_osaka.json';
-import realGlass from '../../art/external/textures/real_glass.json';
-import glassSky from '../../art/external/textures/glass_sky.json';
+import bakedGlass from '../../art/textures/facades/baked_glass.json';
+import bakedSky from '../../art/textures/facades/baked_sky.json';
 import baked from '../../art/textures/facades/baked.json';
 
-/** Tower facade bundles, in the order the facade shader indexes them (TOWER_FACADES).
- * `baked_osaka` took the osaka photo set's place (its generated maps did not depict its photo).
- * `baked` is modelled and baked in Blender (npm run facades:bake); the city picks among all four
- * by seed (TOWER_CITY_BUNDLES in facade.ts). */
-export const TOWER_BUNDLES: { facades: TowerFacade[] }[] = [bakedOsaka, realGlass, glassSky, baked];
+/** Tower facade bundles, in the order the facade shader indexes them (TOWER_FACADES). All four
+ * are modelled and baked in Blender (npm run facades:bake, docs/FACADES.md); `baked_osaka`,
+ * `baked_glass` and `baked_sky` took the layers of the osaka, real_glass and glass_sky photo sets.
+ * The city picks among all four by seed (TOWER_CITY_BUNDLES in facade.ts). */
+export const TOWER_BUNDLES: { facades: TowerFacade[] }[] = [bakedOsaka, bakedGlass, bakedSky, baked];
 
 /** What the facade shader reads of a tower facade (atlas UV units; grid in image space, y down). */
 export interface TowerFacade {
@@ -20,8 +20,10 @@ export interface TowerFacade {
   wrap: number[];
   /** No column rhythm: no whole bays are fitted across. */
   ribbon?: boolean;
+  /** Reflection tint of the facade's glass (linear RGB); absent: neutral. */
+  tint?: number[];
 }
-export const TOWER_BUNDLE_NAMES = ['baked_osaka', 'real_glass', 'glass_sky', 'baked'];
+export const TOWER_BUNDLE_NAMES = ['baked_osaka', 'baked_glass', 'baked_sky', 'baked'];
 
 /** Facades per bundle that the city draws from by seed (bundle * 7 + facade). */
 export const TOWER_POOL = 7;
@@ -33,7 +35,7 @@ export const TOWER_POOL = 7;
 export const TOWER_FACADES: { bundle: number; slot: number; name: string; facade: TowerFacade }[] = [
   ...TOWER_BUNDLES.flatMap((b, bundle) => b.facades.slice(0, TOWER_POOL).map((facade, slot) => ({ bundle, slot, facade }))),
   ...TOWER_BUNDLES.flatMap((b, bundle) => b.facades.slice(TOWER_POOL).map((facade, i) => ({ bundle, slot: TOWER_POOL + i, facade }))),
-].map((t) => ({ ...t, name: `${['b2', 're', 'gl', 'bk'][t.bundle]}${t.slot}` }));
+].map((t) => ({ ...t, name: `${['b2', 'bg', 'bs', 'bk'][t.bundle]}${t.slot}` }));
 
 export interface FacadeTextures {
   /** One layer per bundle: diffuse (sRGB RGB) + roughness (A). */

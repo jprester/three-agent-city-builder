@@ -1,13 +1,4 @@
 {
-  "tower_osaka_diffuse": "62fddcd869b5b9b22dbb1e9be02fcd906bf034c19c2bd0253a04ec4b421fb366",
-  "tower_osaka_emissive": "3599e6e28ec1895a39d095beb747de341fa45d34665371aab14a78199a597480",
-  "tower_osaka_normal": "88387e38b70bafb5316815d85103fce382c5d27423cc64928081f02d50b145de",
-  "tower_real_glass_diffuse": "cf28d9a3d0f0a45d64164f6262d3df3a9813509859b3cded6f247823f662390f",
-  "tower_real_glass_emissive": "6fe97f7f962e08b8ea88c6d7c19be9336eff05e2b75b142dcec8c1fac2c78100",
-  "tower_real_glass_normal": "52f9d01152602410d21c4741dba99f04cb9d702790f29b9997f1f4d38fa42663",
-  "tower_glass_sky_diffuse": "66300db2fa4c7949c8fbfbe3a6836ee0a66c1a33e0c518130e481a39f4966f37",
-  "tower_glass_sky_emissive": "181ee523c9d7cb569f964ba950fe82f547816a6b55784973951ff04a9141c183",
-  "tower_glass_sky_normal": "56ff553ba93d2f7c39fd22d15bd244f249c7c9b554b6f4db5738fe2ec6dd6f04",
   "walls": "7b3e92c0ff8c7a26893354d37e2c256b6273f1a5e60ee1c7efc3c7be94413685",
   "interiors": "488e460ada2818bcf0050982c58f607fda6393e2aa889338858d4e568b9c868c",
   "signs_neon_v": "3ac50d23ee3711623a3a7126e7a82d57ddf0cc35f677152723b3c5297f955b91",
@@ -20,5 +11,11 @@
   "tower_baked_normal": "099fe8991e3f0341a6449d3162b16fe365cf81a3b2688d7931b224fcac6e48a7",
   "tower_baked_osaka_diffuse": "7c1c8365ffe36ebfe0c784f8e11d9c2402a41be22b5427716d55ae35737d8d5f",
   "tower_baked_osaka_emissive": "91a670bf026f92306dd75c5d8b6d41069132f6cdb0e260af50b4277715fe08ab",
-  "tower_baked_osaka_normal": "d9acd7a936e17654780347b6c9507d925b889aefe08703c35b02c9eb1591b8e9"
+  "tower_baked_osaka_normal": "d9acd7a936e17654780347b6c9507d925b889aefe08703c35b02c9eb1591b8e9",
+  "tower_baked_glass_diffuse": "4ecc6463d1d83f50ce85642bd0b0d11e0be563a220ed02b404f9d0723357046e",
+  "tower_baked_glass_emissive": "e4386402883e6f303918b8819f4c4b6584eedc253247406fac04d6e05f6bc169",
+  "tower_baked_glass_normal": "835d0b0e02ebb3eff64f8f37cb77a37f5aa50f18e46d267c1cd03f5951d26185",
+  "tower_baked_sky_diffuse": "05ea0960434bab5e63be1343852c591cc8a1b5e4841ad52bf53aad952598d4d1",
+  "tower_baked_sky_emissive": "113f6e5fd472bffd2b32a188f1790966c8e6a60c4f98fa397c53ea1acf0a5aa2",
+  "tower_baked_sky_normal": "8b6560ece880e0e1079b6fdb31756c615180bdabd490101943505266b25ed201"
 }

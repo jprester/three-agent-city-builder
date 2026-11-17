@@ -53,8 +53,9 @@ bay grid. Only the glass reflects, and at night whole rooms light up rather than
 See **[docs/FACADES.md](docs/FACADES.md)** for the method, how to add a style, and how to
 put it on a building (`npm run facades:bake`, `npm run inspect`).
 
-Two of the city's four tower bundles are baked (`baked_osaka`, `baked`); two older photo sets
-(`real_glass`, `glass_sky`) remain in the rotation. Check any facade or generator change with
+All four of the city's tower bundles are baked: `baked_osaka` and `baked` (brick, tile, concrete,
+curtain wall) and `baked_glass` and `baked_sky` (glass office towers whose tinted glass also tints
+its reflection). Check any facade or generator change with
 `npm run inspect -- <asset id>` (a contact sheet with the real facade shader; `--overlay` draws
 the floor and bay grid, `--night` shoots at night) or interactively with `?inspect=<asset>` in the
 dev app (`[` `]` change facade, `O` overlay, `V` view).

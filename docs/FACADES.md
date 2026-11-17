@@ -2,7 +2,7 @@
 
 **This is how tower facades are made in this project.** If you are adding or changing a tower's
 look, start here. (Low and mid-rise buildings use the procedural approach, `lib/building.walls()`
-with shader-drawn windows; photo bundles are legacy. See "Which method for which building" below.)
+with shader-drawn windows; the photo bundles are retired. See "Which method for which building" below.)
 
 ![Round landmark by day](progress/landmark-round-day.png)
 
@@ -62,7 +62,7 @@ Slot 7 is free for a **pinned** style that only one asset wears (in `baked` it i
 `landmark_pearl`, worn by the round landmark).
 
 Shader index (`TOWER_FACADES`, also the `?inspect=…&facade=<n>` number): 0–27 is the pool
-(baked_osaka 0–6, real_glass 7–13, glass_sky 14–20, baked 21–27), then 28+ for pinned styles
+(baked_osaka 0–6, baked_glass 7–13, baked_sky 14–20, baked 21–27), then 28+ for pinned styles
 (28 = baked `landmark_pearl`).
 
 ## A style
@@ -84,6 +84,22 @@ Shader index (`TOWER_FACADES`, also the `?inspect=…&facade=<n>` number): 0–2
   "seed": 18
 }
 ```
+
+Optional fields, for glass office towers (`baked_glass.json`, `baked_sky.json`):
+
+```jsonc
+  "glass": "glass_teal",                 // the style's glass (default glass_facade)
+  "glass_vary": 0.3,                     // 0–1: how far each window's tint may wander (1 = six-tint spread)
+  "glass_reflect": 0.5,                  // how strongly the glass colour tints its reflection (default 0.5)
+  "spandrel_colors": ["panel_grey", "panel_grey", "mullion_dark"],  // spandrels in their own material…
+  "spandrel_wall": "panel",              // …and kind, e.g. stone piers over glass spandrels
+  "wall": "stone"                        // a fourth wall kind: large smooth panels, fine joints
+```
+
+A style with `glass` gets a `tint` in its packed JSON: the glass colour normalised to its brightest
+channel, which the shader multiplies into the reflection. Coated glass reflects in its own hue;
+without it, every glass tower by day showed the same grey sky and the styles could not be told
+apart.
 
 Rules that keep it clean:
 - **Colours are palette names** (`art/style/palette.json`), never hex.
@@ -154,14 +170,15 @@ These lessons were learned on the round landmark:
    residential low and mid-rise buildings, where expressive detail comes from the geometry.
 2. **Baked** (this document): **tall towers, the default for any new tower look.** To add
    variety, add styles (or a new `art/facades/<bundle>.json`), not photo sets.
-3. **Photo bundles** (`real_glass`, `glass_sky`): legacy only. They keep their repair tools
-   (`facade_grid.py`, `fix_emissive.py`), but no new photo sets should be imported.
+3. **Photo bundles**: retired (2026-11-17). The city draws none; `baked_glass` and `baked_sky`
+   took the real_glass and glass_sky layers. The photo sets stay in `art/external/textures` as
+   reference, with their old tools (`facade_grid.py`, `fix_emissive.py`). Import no new ones.
 
 ## Files
 
 | File | Role |
 |---|---|
-| `art/facades/baked.json`, `baked_osaka.json` | style definitions (source of truth) |
+| `art/facades/baked.json`, `baked_osaka.json`, `baked_glass.json`, `baked_sky.json` | style definitions (source of truth) |
 | `tools/build-facades.mjs` | `npm run facades:bake`: runs Blender, then the packer |
 | `tools/blender/bake_facades.py` | models the styles and renders the passes |
 | `tools/textures/pack_facades.py` | packs maps, grime, rooms and the exact grid JSON |

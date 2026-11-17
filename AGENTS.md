@@ -40,14 +40,14 @@ binary in `public/` is regenerated from them.
   changed). `npm run dev`, `npm run build` and the Playwright runs call it first. The outputs
   are committed, like the GLBs.
 - `npm run facades:bake [-- <bundle> [<style id>]]` models the tower facade styles of each
-  `art/facades/<bundle>.json` (baked, baked_osaka) in Blender and renders their maps straight on (Cycles, ~1.5 min for 7),
-  then packs `art/textures/facades/<bundle>/` + `<bundle>.json` (exact grids, nothing measured);
-  then `npm run textures`. Of the city's four tower bundles two are baked (baked_osaka 0-6,
-  baked 21-27 in `?inspect=`) and two are photo sets (real_glass, glass_sky). Styles past a bundle's
+  `art/facades/<bundle>.json` (baked_osaka, baked_glass, baked_sky, baked) in Blender and renders their maps straight
+  on (Cycles, ~1.5 min for 7), then packs `art/textures/facades/<bundle>/` + `<bundle>.json` (exact grids and glass
+  tints, nothing measured); then `npm run textures`. All four of the city's tower bundles are baked (`?inspect=`
+  facades baked_osaka 0-6, baked_glass 7-13, baked_sky 14-20, baked 21-27). Styles past a bundle's
   seventh are not in the city's random pool; an asset pins one (`lib.surface.atlas_pin`; 28 = baked
   `landmark_pearl`, worn by the round landmark `buildings/roundtower`).
 - `npm run inspect -- <asset id>` renders a contact sheet of one asset with the real facade
-  shader, by day: every tower facade photo (rows) × cameras at its band junctions (columns), to
+  shader, by day: every tower facade (rows) × cameras at its band junctions (columns), to
   `build/inspect/`. Options: `--overlay` (the shader's floor lines red, bay/cell lines cyan,
   band edges yellow), `--night`, `--facades=0-6`, `--views=podium,tier1-foot`,
   `--scale=0.75,1.3,0.75` (the layout's tower scale), `--tile=WxH`. Interactive:
@@ -81,18 +81,17 @@ binary in `public/` is regenerated from them.
   viewpoint, screenshots in `build/shots/next/`, budgets from `next/budgets.json`.
 - `npm run check` typechecks, enforces budgets, runs `npm run coplanar` (z-fighting scan of
   every GLB: coplanar overlapping faces flicker as the camera moves) and `npm run facades`
-  (every window and photo-facade face carries a facade module and meter-scale upright UVs; every
-  tower photo has a grid of whole floors and bays). Must pass before every commit.
-- `python3 tools/textures/facade_grid.py` re-measures the floor and bay lines of the tower facade
+  (every window and tower-facade face carries a facade module and meter-scale upright UVs; every
+  tower facade has a grid of whole floors and bays). Must pass before every commit.
+- Legacy, for the retired photo sets in `art/external/textures` (no longer drawn by the city):
+  `python3 tools/textures/facade_grid.py` re-measures the floor and bay lines of the tower facade
   photos (from each bundle's `window_mask.webp`) into `art/external/textures/<bundle>.json`, and
   draws `build/previews/facade-grid/<bundle>.png` (lines) and `seams.png` (what a tier's base and
   a wrap seam show: no window may be cut there); `--check` verifies the JSONs against a fresh
   measurement. Floor periods are curated in `art/external/textures/facade_periods.json` (the
   generated photos fold almost as well at half or double a floor); after changing a photo,
   confirm its period by eye on the overlay before trusting the grid.
-- `python3 tools/textures/fix_emissive.py` repairs photo-bundle maps that do not depict their
-  photo (now only glass_sky's lit piers) (`<bundle>/*_fixed.webp`, read by
-  the KTX2 build); then `npm run textures`. Run after the grids change.
+  `python3 tools/textures/fix_emissive.py` repaired photo-bundle maps that did not depict their photo.
 
 ## Never hand-edit (generated)
 `public/assets/**`, `public/layouts/**`, `public/textures/**`, `public/basis/**`,
@@ -111,7 +110,7 @@ Change the generator, def, or layout def, then rebuild.
 - Colors: add to `art/style/palette.json` and reference by name. No hex literals in generators.
 
 ## Facade modules (no cut window rows)
-Window and photo-facade faces must carry a module: `MeshBuilder.quad/box(..., module=(w, h))`,
+Window and tower-facade faces must carry a module: `MeshBuilder.quad/box(..., module=(w, h))`,
 the band the face belongs to, in meters from its UV origin. `walls()` sets it for you (pass
 `rhythm=` when ribs or mullions stand in front of the wall). The runtime fills every module with
 whole floors and bays at whatever scale the layout gives the building, so a band never starts or

@@ -11,7 +11,7 @@
 // Images are flipped vertically here: compressed textures cannot be flipped at upload, and the
 // shaders expect three's flipY = true convention.
 import { createHash } from 'node:crypto';
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { zstdCompressSync } from 'node:zlib';
 import { encodeToKTX2 } from 'ktx2-encoder';
@@ -98,4 +98,13 @@ for (const t of def.textures) {
   built++; bytes += file.length;
   console.log(`${t.id}: ${raw.width}x${raw.height} -> ${(file.length / 1e6).toFixed(1)} MB (${((Date.now() - started) / 1000).toFixed(0)} s)`);
 }
+// Outputs whose id left the def (a retired texture) are removed, so they are not shipped or committed.
+const ids = new Set(def.textures.map((t) => t.id));
+let pruned = 0;
+for (const f of readdirSync(outDir)) {
+  const id = f.endsWith('.ktx2') ? f.slice(0, -5) : null;
+  if (id && !ids.has(id)) { unlinkSync(path.join(outDir, f)); delete stamps[id]; pruned++; }
+}
+for (const id of Object.keys(stamps)) if (!ids.has(id)) { delete stamps[id]; pruned++; }
+if (pruned) { writeFileSync(stampPath, JSON.stringify(stamps, null, 2) + '\n'); console.log(`textures: pruned ${pruned} retired`); }
 console.log(`textures: ${built} encoded, ${def.textures.length - built} up to date, ${(bytes / 1e6).toFixed(0)} MB in public/textures/`);

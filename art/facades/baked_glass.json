@@ -1,0 +1,176 @@
+{
+  "$comment": "Glass office tower styles, modelled and baked in Blender (npm run facades:bake), in the texture layer the real_glass photo set used to hold. Same fields as art/facades/baked.json, plus: glass (palette name of the style's glass, default glass_facade), glass_vary (0-1: how far each window's tint may wander from it; 1 = the six-tint spread of the other bundles), spandrel_colors / spandrel_wall (spandrels in their own material, e.g. stone piers over grey panels), and the wall kind stone (large smooth panels).",
+  "pixels_per_meter": 24,
+  "cell": [
+    464,
+    976
+  ],
+  "styles": [
+    {
+      "id": "slate_grid",
+      "wall": "panel",
+      "colors": [
+        "panel_slate",
+        "panel_slate",
+        "mullion_dark"
+      ],
+      "floor": 3.8,
+      "bay": 1.5,
+      "pier": 0.1,
+      "spandrel": 0.9,
+      "panes": 1,
+      "transom": 0.0,
+      "frame": "mullion_dark",
+      "sill": "mullion_dark",
+      "blinds": 0.25,
+      "ac": 0.0,
+      "glass": "glass_slate",
+      "glass_vary": 0.3,
+      "seed": 31
+    },
+    {
+      "id": "stone_piers",
+      "wall": "stone",
+      "colors": [
+        "stone_white",
+        "stone_white_alt",
+        "stone_joint"
+      ],
+      "floor": 3.8,
+      "bay": 3.0,
+      "pier": 1.3,
+      "spandrel": 1.0,
+      "panes": 1,
+      "transom": 0.0,
+      "frame": "frame_silver",
+      "sill": "frame_silver",
+      "blinds": 0.3,
+      "ac": 0.0,
+      "glass": "glass_bluegrey",
+      "glass_vary": 0.3,
+      "seed": 32,
+      "spandrel_colors": [
+        "panel_grey",
+        "panel_grey",
+        "mullion_dark"
+      ],
+      "spandrel_wall": "panel"
+    },
+    {
+      "id": "bronze_grid",
+      "wall": "panel",
+      "colors": [
+        "panel_bronze",
+        "panel_bronze",
+        "mullion_bronze"
+      ],
+      "floor": 3.8,
+      "bay": 1.6,
+      "pier": 0.12,
+      "spandrel": 1.0,
+      "panes": 1,
+      "transom": 0.5,
+      "frame": "mullion_bronze",
+      "sill": "mullion_bronze",
+      "blinds": 0.25,
+      "ac": 0.0,
+      "glass": "glass_bronze",
+      "glass_vary": 0.3,
+      "seed": 33
+    },
+    {
+      "id": "paleblue_grid",
+      "wall": "panel",
+      "colors": [
+        "panel_paleblue",
+        "panel_paleblue",
+        "mullion_alu"
+      ],
+      "floor": 3.8,
+      "bay": 1.8,
+      "pier": 0.12,
+      "spandrel": 1.0,
+      "panes": 1,
+      "transom": 0.0,
+      "frame": "mullion_alu",
+      "sill": "mullion_alu",
+      "blinds": 0.25,
+      "ac": 0.0,
+      "glass": "glass_paleblue",
+      "glass_vary": 0.3,
+      "seed": 34
+    },
+    {
+      "id": "slate_wide",
+      "wall": "panel",
+      "colors": [
+        "panel_slate",
+        "panel_charcoal_alt",
+        "mullion_dark"
+      ],
+      "floor": 3.8,
+      "bay": 2.4,
+      "pier": 0.14,
+      "spandrel": 1.0,
+      "panes": 2,
+      "transom": 0.0,
+      "frame": "mullion_dark",
+      "sill": "mullion_dark",
+      "blinds": 0.25,
+      "ac": 0.0,
+      "glass": "glass_slate",
+      "glass_vary": 0.3,
+      "seed": 35
+    },
+    {
+      "id": "stone_grey_piers",
+      "wall": "stone",
+      "colors": [
+        "stone_grey",
+        "stone_grey_alt",
+        "stone_joint"
+      ],
+      "floor": 3.8,
+      "bay": 2.4,
+      "pier": 0.9,
+      "spandrel": 1.0,
+      "panes": 1,
+      "transom": 0.0,
+      "frame": "frame_dark",
+      "sill": "frame_dark",
+      "blinds": 0.25,
+      "ac": 0.0,
+      "glass": "glass_bluegrey",
+      "glass_vary": 0.3,
+      "seed": 36,
+      "spandrel_colors": [
+        "panel_charcoal",
+        "panel_charcoal",
+        "mullion_dark"
+      ],
+      "spandrel_wall": "panel"
+    },
+    {
+      "id": "green_grid",
+      "wall": "panel",
+      "colors": [
+        "panel_green",
+        "panel_green",
+        "mullion_dark"
+      ],
+      "floor": 3.8,
+      "bay": 1.5,
+      "pier": 0.1,
+      "spandrel": 0.9,
+      "panes": 1,
+      "transom": 0.6,
+      "frame": "mullion_dark",
+      "sill": "mullion_dark",
+      "blinds": 0.25,
+      "ac": 0.0,
+      "glass": "glass_green",
+      "glass_vary": 0.3,
+      "seed": 37
+    }
+  ]
+}
