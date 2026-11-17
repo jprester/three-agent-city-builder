@@ -17,15 +17,47 @@ npm run dev           # http://localhost:5173
 npm test              # unit tests (vitest)
 npm run shots        # ~15 s smoke test on the real GPU: 3 viewpoints, errors/blank/budgets/frame time
 npm run shots:all    # the same for every viewpoint (~1 min)
-npm run perf         # GPU/CPU ms per frame and GPU memory at 1440x900@2x (~30 s)
+npm run smoke        # every viewpoint, no screenshots: browser errors and scene budgets (~1 min)
+npm run perf         # GPU/CPU ms per frame and GPU memory at 1440x900@2x (~40 s)
+npm run check        # typecheck, budgets, z-fighting scan, facade modules; must pass before a commit
 ```
+
+`npm run dev`, `npm run build` and the Playwright runs first call `npm run textures`, which
+encodes the large textures listed in `art/textures/ktx2.def.json` to GPU-compressed KTX2 in
+`public/textures/` (a few minutes the first time, then only what changed). The KTX2 files are
+committed, like the GLBs.
+
+## The city
+
+- **Night and day.** Night is the default: warm lit rooms behind the tower glass, city glow on
+  the walls, a charcoal sky, rain, wet streets and lightning. Over time windows and shops
+  close and the rain and fog vary. `?light=day` switches to sun, sky and dry streets, with the
+  painted night light off; it is also the honest way to read surfaces.
+- **Towers.** Tall towers wear baked facades (below) on varied silhouettes: tiers, a glass
+  prism crown on `tower_n`, and a round landmark (`buildings/roundtower`) with its own facade.
+  Low and mid-rise buildings stay procedural.
+- **Monorail.** A straight suspended line with a station over the main street's median, trains
+  that run and stop, textured structural steel and concrete decks (`art/defs/props/monorail_*`).
+- **Streets.** Traffic, pedestrians on the sidewalks, typeset shop signs and illustrated
+  advertising (below), and the cinematic flythrough.
+- **Sound.** Procedural city sound (rain, hum, tyre hiss, thunder, crossing chirps). It starts
+  muted because browsers need a gesture: press `M` or the Sound button.
+- **Frame cap.** 60 fps by default. `F` or the fps button toggles 60/30 and the browser
+  remembers the choice; `?fps=` sets it (`0` uncapped). Automated runs ignore the remembered value.
 
 ## Tower facades
 
 Tower facades are **baked**: each style is modelled in Blender and rendered straight on into
 diffuse, roughness, normal and emissive maps that agree pixel for pixel, with an exact floor and
-bay grid. See **[docs/FACADES.md](docs/FACADES.md)** for the method, how to add a style, and how to
+bay grid. Only the glass reflects, and at night whole rooms light up rather than single windows.
+See **[docs/FACADES.md](docs/FACADES.md)** for the method, how to add a style, and how to
 put it on a building (`npm run facades:bake`, `npm run inspect`).
+
+Two of the city's four tower bundles are baked (`baked_osaka`, `baked`); two older photo sets
+(`real_glass`, `glass_sky`) remain in the rotation. Check any facade or generator change with
+`npm run inspect -- <asset id>` (a contact sheet with the real facade shader; `--overlay` draws
+the floor and bay grid, `--night` shoots at night) or interactively with `?inspect=<asset>` in the
+dev app (`[` `]` change facade, `O` overlay, `V` view).
 
 ## Advertising
 
@@ -44,7 +76,12 @@ See [the advertising guide](docs/ADVERTISING.md) for copy, artwork, fonts and em
 | `?camera=orbit\|fly\|flythrough\|walk` | Starting camera mode (default `orbit`; `walk` without a viewpoint starts in the hero canyon). |
 | `?seed=<int>` | Regenerate the layout in the browser with this seed. |
 | `?t=<seconds>` | Freeze the shared clock at this time. |
+| `?light=night\|day` | Night (default) or daylight: sun, sky, dry streets, no painted night light. |
+| `?grade=filmic\|default` | Final colour grade (default `filmic`; `default` is the earlier, shallower look). |
 | `?quality=low\|med\|high` | Quality preset (default `high`). |
+| `?fps=<n>` | Frame cap (default 60, `0` uncapped). |
+| `?rain=0` | Turn the rain off. |
+| `?inspect=<asset id>` | Inspect one asset under controlled light and cameras instead of the city. |
 | `?debug=1` | Show the debug GUI. |
 | `?dynres=0` | Disable automatic resolution changes during interactive viewing. |
 
@@ -56,17 +93,21 @@ landmark crowns; the original `skyline` and `skyline-wide` comparison cameras re
 `npm run shots` is a smoke test, not a pixel comparison. It loads `canyon`, `aerial` and
 `skyline-hero` on the real GPU, saves screenshots to `build/shots/city/`, and fails only on
 browser errors, a blank frame, the scene budget in `pipeline.config.json` (draw calls,
-triangles, shader programs) or an average frame time over `scene.maxFrameMs`. It prints and
+triangles, shader programs) or an average frame time over `scene.maxFrameMs` (33 ms). It prints and
 records (`build/shots/city/info.json`) draw calls, triangles and frame time per viewpoint.
 
 - `npm run shots:all` covers every viewpoint in `src/debug/viewpoints.json` (~1 min).
 - `SHOTS=canyon,glass npm run shots` picks viewpoints by name.
 - `SWIFTSHADER=1 npm run shots` uses software WebGL on machines without a GPU (slow).
+- `LIGHT=day npm run shots` shoots by day into `build/shots/city-day/`.
+- `npm run smoke` loads every viewpoint without screenshots and fails only on browser errors
+  or scene budgets (`SMOKE=canyon,glass` picks some): the cheap gate.
 
 Frame time is capped by vsync at 16.7 ms, so it shows drops below 60 fps, not headroom; for
 headroom run `npm run perf`, which times each frame on the GPU with WebGL timer queries at a
 Retina laptop resolution (`PERF_DPR`, `PERF_QUALITY`, `PERF_VIEWS` override) and reports the
-GPU process's memory on macOS. It fails only if a median GPU frame exceeds 16.7 ms.
+GPU process's memory on macOS. It fails if a GPU frame at full clock exceeds 16.7 ms, or, on
+macOS at the default settings, if the GPU process exceeds `scene.maxGpuProcessMB`.
 Timer queries include time the GPU spends on other apps, so a busy or hot machine reads
 3–4× slow (e.g. ~37 ms instead of ~9 ms on street views). If numbers jump, close other GPU
 users (a browser tab running the app) and compare against the previous commit back to back
@@ -76,12 +117,14 @@ looking at, and only silent breakage and performance fail the run (decided 2026-
 
 ## Controls
 
-| Key | Mode |
+| Key | Action |
 |---|---|
 | `1` | **Orbit**: drag to orbit, right-drag to pan, wheel to zoom. |
 | `2` | **Free-fly**: click to capture the mouse, then look around. WASD moves, Space/E goes up, C/Q goes down, Shift boosts, the wheel changes speed, Esc releases the mouse. |
 | `3` | **Flythrough**: the cinematic loop (about 3 min). See [docs/FLYTHROUGH.md](docs/FLYTHROUGH.md). |
 | `4` | **Walk**: first-person at 1.7 m eye height. Click to capture the mouse, then WASD walks, Shift runs, Esc releases. The camera follows the 0.15 m sidewalk/curb step and slides out of building footprints. |
+| `M` | Sound on/off. |
+| `F` | Frame cap 60/30. |
 
 A hint in the top left shows the active mode for a few seconds after each switch. Free-fly
 slides along walls and roofs instead of entering buildings; walking stays on the ground and
@@ -113,6 +156,7 @@ then `/Applications/Blender.app/Contents/MacOS/Blender`, then `blender` on PATH.
 
 ## Debug tools
 
+- `npm run inspect -- <asset id>` — facade contact sheet of one asset (`build/inspect/`).
 - `node tools/debug/plan.mjs` — top-down plan of the city layout (`build/debug/city-plan.png`).
 - `node tools/debug/sheet.mjs 'buildings/*'` — contact sheet of Blender previews.
 - `node tools/debug/attrs.mjs public/assets/<id>.glb` — GLB attributes and generator metadata.
@@ -126,6 +170,8 @@ art/defs/*.json ──► tools/build-assets.mjs ──► Blender headless (too
                          ├─► tools/build-layouts.mjs (art/layouts) → public/layouts/
                          ├─► tools/manifest.mjs → src/assets/manifest.gen.ts
                          └─► tools/check-budgets.mjs
+art/facades/*.json ──► npm run facades:bake (Blender, Cycles) → art/textures/facades/
+art/textures/ktx2.def.json ──► npm run textures (KTX2) → public/textures/
 src/ ── loads layouts, instances assets with InstancedMesh
 tests/visual/ ── Playwright smoke test: screenshots, errors, budgets, frame time
 ```
@@ -133,8 +179,13 @@ tests/visual/ ── Playwright smoke test: screenshots, errors, budgets, frame 
 Builds are cached per asset by hashing the def, the generator and its local
 imports, the Blender tooling, the palette, the optimizer and the Blender version.
 
+## Fresh slice (`next/`)
+
+A small night city built from scratch on WebGPU beside the main app, to test a leaner build
+order: same 1000 × 800 m footprint, a suspended monorail and station, about 32 draw calls.
+`npm run next:dev` (port 5183), `npm run next:shots` (its gate). See [next/README.md](next/README.md).
+
 ## Not included yet
 - Lightmap/AO baking (`tools/blender/bake.py` is the natural next step; bake AO into
   tileable kit textures so instancing keeps working).
-- KTX2/Basis texture compression (image textures are used as WebP today).
 - Streaming by district.
