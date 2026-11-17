@@ -304,24 +304,29 @@ export function generate({ params, seed, assets = {}, art = [], designs = [] }) 
       const meta = assets[id].meta;
       const [fw, fd] = meta.footprint;
       let found = null;
-      for (const cand of candidates) {
-        if (used.has(cand.bi)) continue;
-        if (centers.some((c) => G.dist(c, cand.c) < P.landmarks.spacing)) continue;
-        const lot = cand.lot;
-        let best = null;
-        for (let i = 0; i < lot.length; i++) {
-          const q0 = lot[i], q1 = lot[(i + 1) % lot.length];
-          const L = G.dist(q0, q1);
-          if (L < fw + 2) continue;
-          const t = G.norm(G.sub(q1, q0));
-          const nIn = G.perp(t);
-          const u = G.mul(t, -1);
-          const c = G.add(G.add(q0, G.mul(t, L / 2)), G.mul(nIn, fd / 2));
-          const box = G.obb(c, u, fw / 2, fd / 2);
-          if (!box.corners.every((p) => G.insideConvex(lot, p, 0.01))) continue;
-          if (!best || L > best.L) best = { L, box, rotationY: Math.atan2(-nIn[0], -nIn[1]), road: cand.block.tags[i] === 'edge' ? -1 : cand.block.tags[i] };
+      // Some seeds have no free block at full spacing for the last landmark; relax the spacing
+      // rather than drop it (the default seed places all of them on the first pass).
+      for (const relax of [1, 0.75, 0.5]) {
+        if (found) break;
+        for (const cand of candidates) {
+          if (used.has(cand.bi)) continue;
+          if (centers.some((c) => G.dist(c, cand.c) < P.landmarks.spacing * relax)) continue;
+          const lot = cand.lot;
+          let best = null;
+          for (let i = 0; i < lot.length; i++) {
+            const q0 = lot[i], q1 = lot[(i + 1) % lot.length];
+            const L = G.dist(q0, q1);
+            if (L < fw + 2) continue;
+            const t = G.norm(G.sub(q1, q0));
+            const nIn = G.perp(t);
+            const u = G.mul(t, -1);
+            const c = G.add(G.add(q0, G.mul(t, L / 2)), G.mul(nIn, fd / 2));
+            const box = G.obb(c, u, fw / 2, fd / 2);
+            if (!box.corners.every((p) => G.insideConvex(lot, p, 0.01))) continue;
+            if (!best || L > best.L) best = { L, box, rotationY: Math.atan2(-nIn[0], -nIn[1]), road: cand.block.tags[i] === 'edge' ? -1 : cand.block.tags[i] };
+          }
+          if (best) { found = { cand, ...best, id }; break; }
         }
-        if (best) { found = { cand, ...best, id }; break; }
       }
       if (!found) continue;
       used.add(found.cand.bi);

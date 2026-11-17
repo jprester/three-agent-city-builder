@@ -19,6 +19,9 @@ export interface Viewpoint {
    * the canyon). Overrides position/target when the layout has a flythrough.
    */
   flythrough?: number;
+  /** Clock time (s) the screenshot tests freeze this view at; default 12. Picks a moment when
+   * traffic does not block the frame. Interactive loads ignore it unless `?t=` is given. */
+  t?: number;
 }
 
 export const VIEWPOINTS = viewpoints as Viewpoint[];

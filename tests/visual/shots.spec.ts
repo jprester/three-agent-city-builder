@@ -53,7 +53,7 @@ for (const vp of VIEWPOINTS) {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
-    await page.goto(`/?layout=${LAYOUT}&viewpoint=${vp.name}&t=${FROZEN_TIME}&dynres=0&light=${LIGHT}`);
+    await page.goto(`/?layout=${LAYOUT}&viewpoint=${vp.name}&t=${vp.t ?? FROZEN_TIME}&dynres=0&light=${LIGHT}`);
     await page.waitForFunction(() => window.__READY === true, undefined, { timeout: 90_000 });
 
     // Frame time over ~1.5 s of the running loop (a rough GPU-load signal, vsync-capped).

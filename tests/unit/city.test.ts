@@ -32,8 +32,8 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     const L = await get();
     const isLandmark = (i: LayoutInstance) => Boolean((ASSETS[i.asset as keyof typeof ASSETS].meta as { landmark?: boolean }).landmark);
     const landmarks = L.instances.filter(isLandmark);
-    expect(landmarks.length).toBe(3);
-    expect(new Set(landmarks.map((i) => i.asset)).size).toBe(3);
+    expect(landmarks.length).toBe(def.params.landmarks.count);
+    expect(new Set(landmarks.map((i) => i.asset)).size).toBe(landmarks.length);
     const normal = L.instances.filter((i) => i.district === 'towers' && !isLandmark(i));
     const tallestNormal = Math.max(...normal.map((i) => i.h!));
     for (const lm of landmarks) expect(lm.h!).toBeGreaterThan(tallestNormal + 20);

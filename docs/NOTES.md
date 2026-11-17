@@ -1791,3 +1791,42 @@ the exoskeleton's pale members become the hips and an X on each slope. By day it
 building to the tip. Weak: at night the hips and braces are unlit and nearly vanish, so the crown is
 only the lit rooms plus the top band; the dark mechanical band at its foot cuts it from the shaft.
 Shots: `landmark-prism` (docs/progress/landmark-prism-{day,night}.png).
+
+## Whole-city review (2026-11-17)
+Phase-end pass after the facade, landmark and night work of 11-15/16: `npm run check` (passes;
+8 module warnings, 48 small coplanar overlaps, unchanged), `npm test`, `shots:all` by night and by
+day, `perf`. Contact sheets: `docs/progress/review-2026-11-17/` (`night-*`, `day-*`; the canyon
+in `*-0` is before the fix, `canyon-t8.png` after).
+
+Regressions found and fixed:
+- `npm test` failed: the round landmark made four landmarks, the test still expected three. Worse,
+  seed 777 placed only three: at 130 m spacing no tower block was left, and the fourth was dropped
+  silently. Placement now relaxes the spacing (x0.75, x0.5) before giving up; the default seed's
+  layout is byte-identical. The test reads the count from the layout def.
+- The hero `canyon` shot: since the monorail changed traffic, a box truck passes the camera at
+  the shots' frozen t = 12 and filled half the frame. Viewpoints can now pin their own shot time;
+  canyon uses t = 8 (one car mid-distance, the street open).
+
+Weak, worst first:
+- Photo-bundle towers at night are an even grid of lit dots (fly-50, skyline, rooftops), next to
+  baked towers whose rooms group and fall off. The two methods now read as two cities. Next step.
+- tower_n's prism crown at night is a lit band and two masts floating over a dark facade; the hips
+  and braces vanish (landmark-prism). By day it is good.
+- The round landmark is invisible from every street view; only `landmark-*` viewpoints above the
+  roofs show it.
+- Monorail car noses are flat black slabs by day and night (monorail-platform): the cab glass has
+  no reflection or interior, so it reads as a hole in the train.
+- Day aerial is one grey: hills are paper cut-outs in the same value as the water, the city has
+  no sun-side/shade-side contrast. Day is a surface-reading mode, but the aerial is the weakest
+  frame of the set.
+- Waterfront by night is mostly black: an empty quay, a sea with no reflection of the city beside
+  it. Harbor shows two soft red blobs in the water with no visible source.
+- Shop signs pinned to tower curtain walls two floors up (tower-base, tower-corner) look stuck on
+  the glass, not mounted; they belong on the podium.
+- Day `delivery`: a dark smudge on the pavement left of the van (reflection or puddle), reads as dirt
+  on the lens.
+Perf (2026-11-17, `fast` GPU ms): canyon 10.1, storefront 11.1, aerial 16.0, harbor 12.2, fly-75
+10.6; 0 % late; GPU process 740-806 MB (gate 920). Aerial and harbor looked like a regression
+against 11-15 (10.5 / 8.1), so I ran the facade shader before and after the two night commits back
+to back: aerial 11.0 / 12.6, harbor 8.8 / 8.4, canyon 11.1 / 11.3, p50 equal. Noise, not the night
+changes.
