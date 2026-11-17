@@ -105,8 +105,8 @@
       ],
       "floor": 3.8,
       "bay": 3.0,
-      "pier": 0.35,
-      "spandrel": 0.9,
+      "pier": 0.9,
+      "spandrel": 1.2,
       "panes": 2,
       "transom": 0.0,
       "frame": "mullion_alu",
@@ -117,11 +117,11 @@
       "glass_vary": 0.3,
       "seed": 45,
       "spandrel_colors": [
-        "panel_paleblue",
-        "panel_paleblue",
-        "mullion_alu"
+        "stone_gold_alt",
+        "stone_gold",
+        "stone_joint"
       ],
-      "spandrel_wall": "panel"
+      "spandrel_wall": "stone"
     },
     {
       "id": "charcoal_frames",
@@ -168,7 +168,7 @@
       "seed": 47,
       "spandrel_colors": [
         "panel_teal",
-        "panel_teal",
+        "panel_teal_alt",
         "mullion_white"
       ],
       "spandrel_wall": "panel"

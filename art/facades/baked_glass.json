@@ -51,7 +51,7 @@
       "seed": 32,
       "spandrel_colors": [
         "panel_grey",
-        "panel_grey",
+        "panel_grey_alt",
         "mullion_dark"
       ],
       "spandrel_wall": "panel"
@@ -101,21 +101,21 @@
       "seed": 34
     },
     {
-      "id": "slate_wide",
+      "id": "steel_wide",
       "wall": "panel",
       "colors": [
-        "panel_slate",
-        "panel_charcoal_alt",
-        "mullion_dark"
+        "panel_steel",
+        "panel_steel_alt",
+        "mullion_alu"
       ],
       "floor": 3.8,
       "bay": 2.4,
-      "pier": 0.14,
-      "spandrel": 1.0,
+      "pier": 0.16,
+      "spandrel": 1.1,
       "panes": 2,
       "transom": 0.0,
-      "frame": "mullion_dark",
-      "sill": "mullion_dark",
+      "frame": "mullion_alu",
+      "sill": "mullion_alu",
       "blinds": 0.25,
       "ac": 0.0,
       "glass": "glass_slate",
@@ -145,7 +145,7 @@
       "seed": 36,
       "spandrel_colors": [
         "panel_charcoal",
-        "panel_charcoal",
+        "panel_charcoal_alt2",
         "mullion_dark"
       ],
       "spandrel_wall": "panel"

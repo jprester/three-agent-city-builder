@@ -12,10 +12,10 @@
   "tower_baked_osaka_diffuse": "7c1c8365ffe36ebfe0c784f8e11d9c2402a41be22b5427716d55ae35737d8d5f",
   "tower_baked_osaka_emissive": "91a670bf026f92306dd75c5d8b6d41069132f6cdb0e260af50b4277715fe08ab",
   "tower_baked_osaka_normal": "d9acd7a936e17654780347b6c9507d925b889aefe08703c35b02c9eb1591b8e9",
-  "tower_baked_glass_diffuse": "4ecc6463d1d83f50ce85642bd0b0d11e0be563a220ed02b404f9d0723357046e",
-  "tower_baked_glass_emissive": "e4386402883e6f303918b8819f4c4b6584eedc253247406fac04d6e05f6bc169",
-  "tower_baked_glass_normal": "835d0b0e02ebb3eff64f8f37cb77a37f5aa50f18e46d267c1cd03f5951d26185",
-  "tower_baked_sky_diffuse": "05ea0960434bab5e63be1343852c591cc8a1b5e4841ad52bf53aad952598d4d1",
-  "tower_baked_sky_emissive": "113f6e5fd472bffd2b32a188f1790966c8e6a60c4f98fa397c53ea1acf0a5aa2",
-  "tower_baked_sky_normal": "8b6560ece880e0e1079b6fdb31756c615180bdabd490101943505266b25ed201"
+  "tower_baked_glass_diffuse": "ed5309f83e8c6edab29fc14702b2589d93c0ddcc46151f68698b2be2409683cf",
+  "tower_baked_glass_emissive": "9f1a99a117b304967a2a9491843c0df59e7ad69b0a9f1a31a1233fa8f1e64482",
+  "tower_baked_glass_normal": "2efc018255da8b1073b0b9505c5de70ba7d5f3bd08090e7d79a0e64e0607b55a",
+  "tower_baked_sky_diffuse": "e59b18e20588151f872a90fddbfd14d67fe56f901639bd4d2b1927c1e89561ba",
+  "tower_baked_sky_emissive": "ea743824094fce8450b67766973a8fddde436f451ce8126772f389b1eb4e438b",
+  "tower_baked_sky_normal": "3073ff1baa0046a75145ed3370d2b01d6f2779f63d08f6b6cd09fe7138bdbc3e"
 }

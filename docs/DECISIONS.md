@@ -393,3 +393,7 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 - 2026-11-17 Glass styles get a per-style glass colour (glass, glass_vary), spandrels in their own material (spandrel_colors, spandrel_wall) and a stone wall kind; all opt-in, so the existing bundles bake byte-identical.
 - 2026-11-17 Tower glass reflection is tinted by the style's glass colour (packed tint, TF_TINT in the shader; neutral when a style sets no glass): untinted, every glass style by day was the same grey sky mirror.
 - 2026-11-17 `npm run textures` deletes KTX2 outputs and stamps whose id left ktx2.def.json: the retired osaka maps had stayed in public/textures (and git) since 11-15.
+- 2026-11-17 slate_wide restyled as steel_wide (light steel panels) rather than tuned: two dark-slate grids in one bundle could not be told apart at any distance. Same slot, so no tower changes bundle or index.
+- 2026-11-17 The prism crown's hips and braces carry lit strips 0.4 m wide (prism_lit, prism_lit_width): the FACADES.md rule says no lit details under ~0.3 m high up; the shaft's 0.32 m exoskeleton stays unlit for the same reason.
+- 2026-11-17 A prism crown sits directly on the shaft, without the 1.2 m mechanical band other crowns get: its slopes wear the shaft's facade, and the band cut the two apart at night. tower_n is 1.2 m lower (371.8 m).
+- 2026-11-17 The round landmark is shown from the street with a viewpoint on road 128, which already aims at it, instead of moving it to a vista: moving it reshuffles the tower district and every landmark viewpoint.

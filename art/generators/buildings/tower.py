@@ -88,8 +88,9 @@ def generate(ctx):
             sh = min(h * 0.45, w * ctx.p("screen", 0.6) * 1.5)
             screen(mb, ctx, w, d, z + h - sh - 6.0, z + h - 6.0, ctx.p("screen", 0.6))
         z += h
-    # The crown sits on the same dark band.
-    if band:
+    # The crown sits on the same dark band, except a prism, whose slopes carry the shaft's
+    # facade on up: a dark band there cut the crown from the shaft at night.
+    if band and crown != "prism":
         walls(mb, ctx, w, d, z, z + band, z, [("metal", 0.0, tint)] * 4)
         z += band
 
@@ -335,8 +336,22 @@ def _crown_prism(mb, ctx, w, d, z, tint):
     # little proud of each face. Thick enough (>= 0.5 m) not to flicker at a kilometre.
     m, s = surf(ctx, "trim", 0.0, max(tint, 0.75))
     hip = ctx.p("prism_hip", 1.1)
+    # By night the pale members vanish against the dark glass, so each carries a lit LED strip
+    # down its outer face (as the real building's outline lights). lit_w >= 0.3 m: thinner lit
+    # lines high up flicker at distance (docs/FACADES.md).
+    lit = ctx.p("prism_lit", True)
+    lit_w = ctx.p("prism_lit_width", 0.4)
+    fm, fs = fixture(ctx, ctx.p("crown_color", "white"), strip=True)
     for i in range(4):
         _beam(mb, m, s, (*base[i], z), (*top[i], zt), hip, hip)
+        if lit:
+            # Along the hip's outward bisector, just past the beam's corner (hip / sqrt 2).
+            bx, by = base[i]
+            lb = math.hypot(bx, by)
+            o = (hip * 0.75) / lb
+            off = (bx * o, by * o, 0.0)
+            _beam(mb, fm, fs, (bx + off[0], by + off[1], z), (top[i][0] + off[0], top[i][1] + off[1], zt),
+                  lit_w, 0.1, side=(-by / lb, bx / lb, 0.0))
     lift = 0.35
     for i in range(4):
         b0, b1 = (*base[i], z), (*base[(i + 1) % 4], z)
@@ -349,6 +364,11 @@ def _crown_prism(mb, ctx, w, d, z, tint):
         sh = lambda p: tuple(p[c] + off[c] for c in range(3))
         for p, q in ((b0, t1), (b1, t0)):
             _beam(mb, m, s, sh(p), sh(q), 0.6, 0.5, side=n)
+            if lit:
+                # On the brace's outer face: 0.3 m out is its face, the strip stands 5 cm proud.
+                so = [(lift + 0.3 + 0.05) * c / ln for c in n]
+                st = lambda p: tuple(p[c] + so[c] for c in range(3))
+                _beam(mb, fm, fs, st(p), st(q), 0.1, lit_w, side=n)
     # The flat top: a lit band (the crown's one light at distance), a metal cap, twin masts.
     fcol = ctx.facade["fixture_colors"][ctx.p("crown_color", "white")]
     walls(mb, ctx, tw, td, zt, zt + 1.4, zt, [("fixture", fcol, 1.0)] * 4)

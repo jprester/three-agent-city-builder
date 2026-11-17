@@ -113,5 +113,10 @@
   "stone_gold_alt": "#9A7F52",
   "mullion_bronze": "#5A4834",
   "mullion_white": "#D6D8D6",
-  "mullion_dark": "#22262A"
+  "mullion_dark": "#22262A",
+  "panel_grey_alt": "#4F565D",
+  "panel_charcoal_alt2": "#33373C",
+  "panel_teal_alt": "#24525A",
+  "panel_steel": "#8E979C",
+  "panel_steel_alt": "#858E93"
 }

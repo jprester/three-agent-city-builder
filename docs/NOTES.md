@@ -1854,3 +1854,29 @@ canyon 11.0, storefront 13.7, aerial 12.4, harbor 11.5, fly-75 10.7 on a warm ma
 range of this session's earlier runs; the shader change is one vec3 multiply per tower pixel.
 `npm run textures` now prunes retired KTX2 outputs: it removed the osaka set's three files
 (left behind on 11-15) and the two photo sets' six.
+
+## Review fixes: glass styles, prism crown at night, landmark from the street (2026-11-17)
+Images: `docs/progress/review-fixes-2026-11-17/`.
+- Glass styles. `slate_wide` (a near twin of `slate_grid`, dark on dark) is now `steel_wide`: light
+  steel panels and aluminium caps over the same slate glass, the one light curtain wall in the
+  bundle. `gold_piers` had 0.35 m piers that read as gold pinstripes; piers are now 0.9 m and the
+  spandrels gold stone too, so it reads as a gold-clad frame with punched windows (inspect sheet).
+  The stone styles' spandrel panels alternate between two close tints (panel_*_alt) instead of
+  one flat colour. Weak still: the spandrel variation is barely visible past 200 m; the gold is
+  loud by day next to the greys. No mechanical floors or sky lobbies yet in any bundle (a
+  generator change, not a style one).
+- tower_n prism crown by night: the hips and the X on each slope carry a 0.4 m white LED strip
+  (the real building's outline lights), and the dark mechanical band under the crown is gone, so
+  the shaft's rooms run up into the slopes. At night the crown now reads as a lit triangle
+  diagram over the shaft instead of a band floating on black (prism-night). By day the strips sit
+  on the pale members and read as part of them (prism-day).
+- Round landmark from the street. It is 490 m tall, but every street viewpoint looked along
+  streets that do not aim at it. Secondary road 128 runs 300 m almost straight at it (21 m off
+  axis): from there it closes the end of the avenue, a pearl spire with its lit rings between the
+  canyon walls (new viewpoint `landmark-avenue`). The hero street also aims at it (48 m off axis)
+  but its shopfront awnings and street wall hide it from the pavement. Weak: from the avenue only
+  its upper half shows and nearer 260 m towers frame it at the same apparent height; making it a
+  true vista end (placing it on a long axis on purpose) would reshuffle the layout.
+Gates: check (8 module warnings, coplanar unchanged; tower_n 21.7 m² vs 22.1 before), 116 tests,
+shots:all night and day (32 each), perf `fast` GPU ms canyon 10.8, storefront 14.3, aerial 13.3,
+harbor 9.9, fly-75 12.3, 0 % late, GPU process 740-803 MB (gate 920).

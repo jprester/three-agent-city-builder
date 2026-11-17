@@ -29,5 +29,6 @@
   {"name": "tower-setback", "position": [236.9, 12, 36.4], "target": [221.8, 15, 34.6]},
   {"name": "landmark-round", "position": [442.5, 275, -134.8], "target": [305.1, 330, -157.8]},
   {"name": "landmark-prism", "position": [75.0, 322, -175.0], "target": [181.0, 318, -289.8]},
-  {"name": "landmark-skyline", "position": [727.8, 140, -47.8], "target": [305.1, 230, -157.8]}
+  {"name": "landmark-skyline", "position": [727.8, 140, -47.8], "target": [305.1, 230, -157.8]},
+  {"name": "landmark-avenue", "position": [281.0, 1.7, 180.0], "target": [305.1, 230, -157.8]}
 ]
