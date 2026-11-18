@@ -7,21 +7,25 @@ export function captureCityEnvironment(renderer: THREE.WebGLRenderer, scene: THR
   const origin = layout?.anchors?.hero?.origin ?? [0, 0, 0];
   const direction = layout?.anchors?.hero?.x ?? [1, 0];
   const pmrem = new THREE.PMREMGenerator(renderer);
-  // The capture renders the city before it has an environment. Without one, every standard
-  // material (the facade shader among them) would compile a no-environment program used only
-  // here and kept alive after it. A blank placeholder of the same size and mapping at intensity
-  // 0 lights nothing (the capture is unchanged) and keeps one program per material.
-  const placeholder = pmrem.fromScene(new THREE.Scene(), 0, 0.1, 1, { size: 128 });
-  scene.environment = placeholder.texture;
-  scene.environmentIntensity = 0;
   const capture = pmrem.fromScene(scene, 0.025, 0.5, 2000, {
     size: 128,
     position: new THREE.Vector3(origin[0] + direction[0] * 180, 65, origin[2] + direction[1] * 180),
   });
-  placeholder.dispose();
   scene.environment = capture.texture;
   scene.environmentIntensity = 0.45;
   pmrem.dispose();
+  // The capture rendered the city before it had an environment, so every standard material
+  // (the facade shader among them) compiled a no-environment program used only here. Release
+  // them; the next render compiles the environment variant it would have compiled anyway.
+  // (A placeholder environment during the capture avoids the extra programs too, but cost
+  // 500-700 MB of GPU process memory on Metal.)
+  const released = new Set<THREE.Material>();
+  scene.traverse((o) => {
+    const m = (o as THREE.Mesh).material;
+    for (const mat of Array.isArray(m) ? m : m ? [m] : []) {
+      if ((mat as THREE.MeshStandardMaterial).isMeshStandardMaterial && !released.has(mat)) { released.add(mat); mat.dispose(); }
+    }
+  });
   return capture;
 }
 
