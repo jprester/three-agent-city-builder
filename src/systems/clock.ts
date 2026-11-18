@@ -29,6 +29,7 @@ export class Clock {
 /** Parses `?t=`. Returns null (running clock) when absent, NaN when malformed. */
 export function parseFrozenTime(value: string | null): number | null {
   if (value === null) return null;
-  const t = Number.parseFloat(value);
+  if (value.trim() === '') return Number.NaN;
+  const t = Number(value);
   return Number.isFinite(t) ? t : Number.NaN;
 }

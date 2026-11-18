@@ -66,7 +66,7 @@ const DAY_GRADE: GradeSettings = {
 
 export const GRADE_PRESETS = { default: DEFAULT_GRADE, filmic: FILMIC_GRADE, day: DAY_GRADE };
 export type GradeName = keyof typeof GRADE_PRESETS;
-export const isGradeName = (value: string): value is GradeName => value in GRADE_PRESETS;
+export const isGradeName = (value: string): value is GradeName => Object.hasOwn(GRADE_PRESETS, value);
 
 class NightGradeEffect extends Effect {
   readonly settings: GradeSettings;

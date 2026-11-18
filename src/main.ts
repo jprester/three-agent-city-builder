@@ -12,6 +12,7 @@ import { captureCityEnvironment, captureGlassEnvironment } from './scene/environ
 import { createLampMap, createSignLightMap } from './scene/lampmap';
 import { CityHazeEffect } from './scene/haze';
 import { DynamicResolution } from './systems/dynamic-resolution';
+import { DEFAULT_FPS, FrameCap, parseFps } from './systems/frame-cap';
 import { createPost, isGradeName } from './scene/post';
 import { PlanarReflection } from './scene/reflection';
 import { createStreets } from './scene/streets';
@@ -84,6 +85,18 @@ async function main() {
   if (!isGradeName(gradeParam)) problems.push(`?grade= must be default, filmic or day, got "${gradeParam}"; using filmic.`);
   const grade = isGradeName(gradeParam) ? gradeParam : 'filmic';
 
+  const FPS_KEY = 'city.fps';
+  const fpsParam = params.get('fps');
+  const storedFps = (() => { try { return navigator.webdriver ? null : localStorage.getItem(FPS_KEY); } catch { return null; } })();
+  const fpsSource = fpsParam ?? storedFps;
+  const parsedFps = fpsSource === null ? DEFAULT_FPS : parseFps(fpsSource);
+  if (parsedFps === null) {
+    problems.push(fpsParam === null
+      ? `Remembered frame cap is invalid; using ${DEFAULT_FPS}.`
+      : `?fps= must be a number of frames per second (0 = uncapped), got "${fpsParam}"; using ${DEFAULT_FPS}.`);
+  }
+  let fps = parsedFps ?? DEFAULT_FPS;
+
   let frozenAt = parseFrozenTime(params.get('t'));
   if (Number.isNaN(frozenAt)) {
     problems.push(`?t= must be a number of seconds, got "${params.get('t')}"; clock is running.`);
@@ -104,10 +117,10 @@ async function main() {
   let vehicles: VehicleMotion | null = null;
   const url = layoutUrl(layoutId);
   const seedParam = params.get('seed');
-  const seed = seedParam === null ? null : Number.parseInt(seedParam, 10);
+  const seed = seedParam === null ? null : seedParam.trim() === '' ? Number.NaN : Number(seedParam);
   if (!hasAnyAssets()) {
     problems.push('No assets built yet. Run `npm run assets`, then reload.');
-  } else if (seed !== null && Number.isNaN(seed)) {
+  } else if (seed !== null && !Number.isSafeInteger(seed)) {
     problems.push(`?seed= must be an integer, got "${seedParam}".`);
   } else if (seed === null && !url) {
     problems.push(`Layout "${layoutId}" not found. Check public/layouts/ or run \`npm run assets\`.`);
@@ -239,10 +252,11 @@ async function main() {
   }
   // Frame cap (?fps=, F toggles 60/30, remembered per browser): the GPU otherwise draws every
   // display refresh, 120 a second on a ProMotion screen, and runs hot. 0 = uncapped.
-  const FPS_KEY = 'city.fps';
-  const storedFps = (() => { try { return navigator.webdriver ? null : localStorage.getItem(FPS_KEY); } catch { return null; } })();
-  let fps = Math.max(0, Number(params.get('fps') ?? storedFps ?? 60) || 0);
-  const applyFps = () => dynres?.setTarget(fps > 0 ? Math.min(fps, 60) : 60);
+  const frameCap = new FrameCap(fps);
+  const applyFps = () => {
+    frameCap.setFps(fps);
+    dynres?.setTarget(fps > 0 ? Math.min(fps, 60) : 60);
+  };
   applyFps();
   if (!navigator.webdriver) {
     const button = document.createElement('button');
@@ -260,17 +274,15 @@ async function main() {
     window.addEventListener('keydown', (e) => { if (e.code === 'KeyF' && !e.repeat) toggle(); });
     document.body.appendChild(button);
   }
-  let lastDrawn = -Infinity;
   window.__PAUSE_RENDER = () => renderer.setAnimationLoop(null);
   let frames = 0;
   let last = clock.time;
   let lastReal = performance.now();
   renderer.setAnimationLoop(() => {
-    // Skip display refreshes until the next capped frame is due (10 % slack: refreshes come at
-    // whole multiples of the display's interval, which never land exactly on the cap's).
+    // Skip refreshes until the cap's next frame is due; the schedule is time-based, so the
+    // same cap holds on 60, 75, 90, 120 and 144 Hz displays instead of quantising to them.
     const t = performance.now();
-    if (fps > 0 && t - lastDrawn < 900 / fps) return;
-    lastDrawn = t;
+    if (!frameCap.shouldDraw(t)) return;
     const now = clock.tick();
     const delta = now - last;
     last = now;

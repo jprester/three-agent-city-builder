@@ -36,5 +36,5 @@ export const QUALITY_PRESETS: Record<QualityName, QualityPreset> = {
 };
 
 export function isQualityName(value: string): value is QualityName {
-  return value in QUALITY_PRESETS;
+  return Object.hasOwn(QUALITY_PRESETS, value);
 }
