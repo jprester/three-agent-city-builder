@@ -124,10 +124,12 @@ export const SURFACE_PROPS = /* glsl */ `} else if (fType == T_ROOF) {
 } else if (fType == T_FIXTURE) {
   // fixture_colors in facade.json: sodium 0, white 0.25, cyan 0.5, blue 0.75, red 1.
   vec3 fc = fFill < 0.125 ? P_SODIUM : fFill < 0.375 ? P_FLUORESCENT : fFill < 0.625 ? P_CYAN : fFill < 0.875 ? P_TV : P_RED;
-  float blink = fFill > 0.875 ? step(0.5, fract(uTime * 0.9 + fSeed * 3.0)) : 1.0;
   fBase = fc * 0.2;
   // Accent strips glow softly; small point fixtures (lamps, aviation lights) burn hot.
   bool strip = fTint > 0.9;   // lib/surface.py fixture(strip=True)
+  // Red point fixtures are aviation beacons and blink; red strips and vehicle lamps (tail
+  // lights, boat sidelights) stay steady.
+  float blink = fFill > 0.875 && fTint < 0.15 ? step(0.5, fract(uTime * 0.9 + fSeed * 3.0)) : 1.0;
   // Accent strips are white-dominant and soft; saturated cyan stripes on every tower read as
   // decoration rather than architecture. Point fixtures stay hot.
   if (strip) fc = mix(fc, vec3(1.0), 0.35);
