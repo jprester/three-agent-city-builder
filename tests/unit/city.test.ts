@@ -201,13 +201,20 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     expect(wrong.map((s) => [s.size, s.art, s.design])).toEqual([]);
   });
 
-  it('keeps tower signs in their zones (street, billboard 15–50 m, tall campaigns low, mostly below mid-height, crown)', async () => {
+  it('keeps tower signs in their zones (street on the podium fascia, billboard 15–50 m, tall campaigns low, mostly below mid-height, crown)', async () => {
     const L = await get();
     const wrong = L.signs!.filter((s) => s.zone).filter((s) => {
       const b = L.instances[s.building];
       const y0 = s.position[1] - s.size[1] / 2, y1 = s.position[1] + s.size[1] / 2;
       switch (s.zone) {
-        case 'street': return y1 > 12 + 0.01 || y0 < 4;
+        case 'street': {
+          // On the podium fascia: above the shop windows, under the podium top (the curtain wall
+          // starts there).
+          const meta = ASSETS[b.asset as keyof typeof ASSETS].meta as { podium?: number };
+          const sy = Array.isArray(b.scale) ? b.scale[1] : b.scale;
+          const top = (meta.podium ?? 4.8) * sy;
+          return y1 > top + 0.01 || y0 < top * 0.69 - 0.01;
+        }
         case 'billboard': return y0 < 15 - 0.01 || y1 > 50 + 0.01;
         case 'shaft': return y0 < 12 || y0 > Math.max(22, b.h! * 0.25) + 0.01 || s.size[0] / s.size[1] > 0.46 || y1 > b.h! * 0.75 + 0.01;
         case 'crown': {

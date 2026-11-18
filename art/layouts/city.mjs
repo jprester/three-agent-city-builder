@@ -62,7 +62,7 @@ const DEFAULTS = {
     margin: { west: 270, east: 300, north: 290, south: 95 }, minMargin: 70, corner: 160,
     wobble: [[2, 18], [3, 14], [5, 9], [9, 5]],
     strait: { north: 520, east: 750, west: 1100, south: 0 }, openSea: 6000, water: -1.6,
-    ring: 18, avenue: 12, street: 9, pitch: [70, 90], promenade: 12, lampEvery: 30, quietLamps: 34,
+    ring: 18, avenue: 12, street: 9, pitch: [70, 90], promenade: 12, lampEvery: 18, quietLamps: 34,
     height: [1.35, 0.75],
     terrain: { plain: 1.4, start: 40, rise: 1100, height: 220 },
   },
@@ -114,7 +114,7 @@ const DEFAULTS = {
     tall: {
       slabChance: 0.28, heroSlabChance: 0.6, minHeight: 40, brands: 8,
       // Tower sign zones (meters): see the tower branch of sign placement.
-      zones: { streetSigns: 2, streetTop: 12, billboard: [15, 50], billboardChance: 0.6, shaftChance: 0.85, shaftSideChance: 0.5, shaftMax: 70, shaftBase: [14, 22], shaftHighChance: 0.15, shaftWidthShare: 0.85, crownChance: 0.75 },
+      zones: { streetSigns: 2, fasciaSign: 1.3, fasciaFrom: 0.69, billboard: [15, 50], billboardChance: 0.6, shaftChance: 0.85, shaftSideChance: 0.5, shaftMax: 70, shaftBase: [14, 22], shaftHighChance: 0.15, shaftWidthShare: 0.85, crownChance: 0.75 },
     },
     // Ads in the rooftop billboard frames of buildings whose generator built one (meta.billboard).
     roofBillboardChance: 0.85,
@@ -690,14 +690,17 @@ export function generate({ params, seed, assets = {}, art = [], designs = [] }) 
         });
         return true;
       };
-      // Street: shop neon on the base, flush on the footprint face.
-      // Ground to 2nd floor in meters: the base itself stretches with the tower's vertical scale.
-      const baseTop = Math.min((meta.base ?? tiers[0][0]) * sy, Z.streetTop);
+      // Street: shop neon on the podium fascia, above the shop windows (~3.1 m) and under the
+      // podium top, flush on the footprint face. Everything above the podium is the tower's
+      // curtain wall: signs placed there (the old 4.8-12 m band) looked stuck on the glass.
+      // The podium (and its shop windows) stretches with the tower's vertical scale.
+      const podiumTop = (meta.podium ?? 4.8) * sy;
+      const fascia = [podiumTop * Z.fasciaFrom, podiumTop - 0.15];
       for (let k = 0; k < Z.streetSigns; k++) {
-        const c = chooseArt({ kind: 'neon', aspect: [1.5, 99], share: 1, stroke: null }, { w: [2, Math.min(10, 2 * hu - 4)], h: [0.8, Math.min(3, baseTop - 5)] });
+        const c = chooseArt({ kind: 'neon', aspect: [1.5, 99], share: 1, stroke: null }, { w: [2, Math.min(10, 2 * hu - 4)], h: [0.6, Math.max(0.6, Math.min(Z.fasciaSign, fascia[1] - fascia[0]))] });
         if (!c) continue;
         const off = rand(-hu + c.w / 2 + 1, hu - c.w / 2 - 1);
-        const y = rand(4.8 + c.h / 2, baseTop - 0.8 - c.h / 2);
+        const y = rand(fascia[0] + c.h / 2, Math.max(fascia[0], fascia[1] - c.h) + c.h / 2);
         signs.push({
           building: index, kind: 'panel', zone: 'street', ...artFields(c),
           position: [r3(front[0] + u[0] * off + v[0] * 0.2), r3(y), r3(front[1] + u[1] * off + v[1] * 0.2)],
