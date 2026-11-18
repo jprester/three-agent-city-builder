@@ -397,3 +397,10 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 - 2026-11-17 The prism crown's hips and braces carry lit strips 0.4 m wide (prism_lit, prism_lit_width): the FACADES.md rule says no lit details under ~0.3 m high up; the shaft's 0.32 m exoskeleton stays unlit for the same reason.
 - 2026-11-17 A prism crown sits directly on the shaft, without the 1.2 m mechanical band other crowns get: its slopes wear the shaft's facade, and the band cut the two apart at night. tower_n is 1.2 m lower (371.8 m).
 - 2026-11-17 The round landmark is shown from the street with a viewpoint on road 128, which already aims at it, instead of moving it to a vista: moving it reshuffles the tower district and every landmark viewpoint.
+- 2026-11-18 Vehicle and station glass (metal fill 0.5) reflects at half strength with f0 0.12: the monorail cab was a black hole without it, and chrome with full Fresnel. One cube lookup on glass pixels only.
+- 2026-11-18 The day grade gets contrast 1.08, saturation 1.12, shadow curve 1.15 instead of switching the tone mapper: AgX vs ACES is an open question for the human; the night grade is unchanged.
+- 2026-11-18 Hills by day: matte wooded green (day_hill, day_hill_dry) instead of the night ridge colour; by night unchanged.
+- 2026-11-18 The sea takes no specular light from scene.environment (the city cube captured by the hero street): it drew red patches with no source. The planar reflection is its reflection.
+- 2026-11-18 Promenade lamps every 18 m (was 30): the waterfront viewpoint stood in the dark between two lamps. Only the lamp list changes; the rest of the layout is identical.
+- 2026-11-18 Tower shop signs move from 4.8-12 m (curtain wall) to the podium fascia, inside the "street: ground to 2nd floor" zone of the 2026-09-27 review. The unit test now checks the fascia band.
+- 2026-11-18 Puddles are only mirror-smooth by night; by day (dry streets) they keep the paving's roughness.

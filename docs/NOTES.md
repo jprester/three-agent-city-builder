@@ -1880,3 +1880,34 @@ Images: `docs/progress/review-fixes-2026-11-17/`.
 Gates: check (8 module warnings, coplanar unchanged; tower_n 21.7 m² vs 22.1 before), 116 tests,
 shots:all night and day (32 each), perf `fast` GPU ms canyon 10.8, storefront 14.3, aerial 13.3,
 harbor 9.9, fly-75 12.3, 0 % late, GPU process 740-803 MB (gate 920).
+
+## Review fixes, round 2 (2026-11-18)
+The rest of the 11-17 review list. Images: `docs/progress/review-fixes-2026-11-18/`.
+- Monorail cab: the metal glass subtype (cars, monorail cab and cars, platform screens) had no
+  reflection, so the wraparound cab was a black hole. It now reflects the street (the shopfront
+  glass lookup with the street-canyon correction) at half strength, f0 0.12. At full Fresnel the
+  faceted cab and the platform screens read as chrome. By day the cab is tinted glass with its
+  own shape; by night it is dark, with the city faint in it. Weak: the loft's facets show as
+  flat-shaded panels in the reflection; no cab interior or driver.
+- Day aerial: the hills across the water had the night ridge colour (#090B10) as albedo, and the
+  ground's wet-asphalt roughness and puddle mask made them mirror the haze, so they came out the
+  same grey as the sea. Now matte, wooded green with drier patches, crests lighter than valleys.
+  The day grade adds contrast 1.08, saturation 1.12 and a 1.15 shadow curve against AgX's milky
+  blacks (night grade untouched). Weak: the hills are still smooth 100 m cells; the far ridges
+  in the sky dome are a flat blue-grey.
+- Harbour red blobs: not cars and not signs. The sea, nearly a mirror, took specular light from
+  the city environment cube (scene.environment, captured inside the city by the hero street's
+  red signs, looked up at infinite distance). The sea now takes no specular light from that cube; its real
+  reflection is the planar one. Found by hiding scene objects one at a time; setting
+  material.envMapIntensity does nothing when the env map comes from scene.environment.
+- Waterfront: promenade lamps every 18 m instead of 30 m, so the near promenade has its own light
+  pools. Weak: still an empty quay (no railing, benches, people); the sea beside it reflects
+  only the far shore.
+- Tower shop signs: the "street" zone ran 4.8-12 m, which on every tower is curtain wall (the
+  podium is 4.8 m). Shop neon now sits on the podium fascia, between 69 % of the podium height
+  (above the shop windows) and its top, at most 1.3 m tall. The tower glass above is clean.
+- Day delivery smudge: a puddle kept its mirror roughness by day and showed the city cube as a
+  pale lobe with a dark core on dry paving. Puddles dry by day now (roughness only).
+Gates: check (0 errors, 8 module warnings, coplanar unchanged), 116 tests, shots:all night and
+day (32 each), perf `fast` GPU ms canyon 11.1, storefront 10.2, aerial 10.8, harbor 9.4, fly-75
+12.1, 0 % late, GPU process 803-825 MB (gate 920).
