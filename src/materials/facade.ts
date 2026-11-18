@@ -950,7 +950,14 @@ if (fType == T_ATLAS) {
     fRough = 0.5; fMetal = 0.3;
     fSteelRelief = sg;
   } else if (fFill > 0.45 && fFill < 0.65) {
+    // Vehicle and station glass (cars, monorail cab and cars, platform screens). Unlit it was a
+    // black hole in the body, the monorail's wraparound cab most of all: it reflects the street
+    // like the shopfront glass (street-canyon lookup, so low panes see facades, not sky), but as
+    // tinted glass at half strength: at full Fresnel the faceted cab and the platform screens
+    // read as chrome.
     fBase = P_GLASS; fRough = 0.12; fMetal = 0.65;
+    fRefl = 0.5 * glassReflection(fV, normalize(vFNormal), fVt.z, fRough, vec3(0.0), 0.12, vFWorld, 20.0);
+    fEmit += fRefl;
   } else if (fFill > 0.65) {
     fBase = P_METAL * 0.25; fRough = 0.95; fMetal = 0.0;
   }
