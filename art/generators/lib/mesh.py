@@ -14,7 +14,11 @@ Faces can carry runtime-shader data (see lib/surface.py):
         (src/materials/facade.ts fWholeFit). locked=True: real geometry sits on this face's
         cells (recessed openings, shopfront jambs), so the runtime must not move them. Written
         to the "_face" attribute (exported as _FACE: width, height, 1 if locked); 0 means none.
-        Window and atlas faces must carry one (npm run check)."""
+        Window and atlas faces must carry one (npm run check).
+  limb  (set `mb.limb` before adding faces) a body part that the facade shader swings in a
+        walk cycle (src/materials/facade/vertex.ts): (pivot height, pivot forward, code) in
+        runtime axes (meters; forward is -Y in Blender). Written to "_limb" (exported as
+        _LIMB); None/0 means rigid."""
 import bmesh
 import bpy
 
@@ -36,6 +40,8 @@ class MeshBuilder:
         self._col = None
         self._preview = None
         self._modules = []   # (face, module): written in finish(), only if any face has one
+        self.limb = None     # current body-part tag for new faces (see the module docs)
+        self._limbs = []     # (face, limb): written in finish(), only if any face has one
 
     def _slot(self, mat) -> int:
         if mat.name not in self._slots:
@@ -49,6 +55,8 @@ class MeshBuilder:
     def _face(self, local_pts, xf, mat, surf=None, uvf=None, module=None):
         f = self.bm.faces.new(self._verts(local_pts, xf))
         f.material_index = self._slot(mat)
+        if self.limb is not None:
+            self._limbs.append((f, tuple(float(v) for v in self.limb)))
         if surf is not None or uvf is not None:
             if self._uv is None:
                 self._uv = self.bm.loops.layers.uv.new("UVMap")
@@ -106,6 +114,11 @@ class MeshBuilder:
             for f, mod in self._modules:
                 for loop in f.loops:
                     loop[layer] = mod
+        if self._limbs:
+            layer = self.bm.loops.layers.float_vector.new("_limb")
+            for f, limb in self._limbs:
+                for loop in f.loops:
+                    loop[layer] = limb
         bmesh.ops.remove_doubles(self.bm, verts=self.bm.verts, dist=1e-5)
         self.bm.normal_update()
         mesh = bpy.data.meshes.new(self.name)

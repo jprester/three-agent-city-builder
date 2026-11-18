@@ -6,6 +6,9 @@ uniform float uSeed;
 // Facade module (lib.mesh MeshBuilder module): the band a face belongs to, in meters before
 // the layout's scale, which must hold whole cells (floors and bays). 0: no module.
 attribute vec3 face;
+// Walk-cycle body part (lib.mesh MeshBuilder limb, props/walker): pivot height, pivot forward,
+// code (|code| 1 thigh, 2 + hip/10 shin, 3 arm; sign = gait side). 0: rigid.
+attribute vec3 limb;
 // xy: the module at this instance's scale; z: 1 if geometry sits on its cells (locked).
 flat varying vec3 vFace;
 varying vec2 vFacadeUv;
@@ -41,7 +44,33 @@ vFace = vec3(face.xy * vec2(fSu, fSv), face.z);
 vSurf = color.rgb;
 vRawUv = vec2(uv.x, 1.0 - uv.y);
 vInstSeed = fract(sin(dot(fInst[3].xz, vec2(12.9898, 78.233)) + uSeed * 0.0137) * 43758.5453);
-vFNormal = normalize(mat3(fInst) * normal);
+// Walk cycle: walkers carry their gait phase in the z scale, 1 + 0.004 * phase / 2π
+// (src/systems/vehicles.ts). Parts swing in the walker's own y-z plane (forward is +z).
+vec3 fGaitPos = position;
+vec3 fGaitNrm = normal;
+if (limb.z != 0.0) {
+  float ph = clamp((fScale.z - 1.0) / 0.004, 0.0, 1.0) * 6.2831853;
+  float side = sign(limb.z);
+  float kind = floor(abs(limb.z) + 1e-4);
+  float thigh = 0.42 * side * sin(ph);
+  // The knee folds while its leg swings forward and stays nearly straight in stance.
+  float flex = 0.06 + 0.7 * pow(max(side * cos(ph), 0.0), 1.5);
+  float a = kind > 2.5 ? 0.32 * side * sin(ph - 0.2) : kind > 1.5 ? thigh - flex : thigh;
+  vec2 piv = limb.xy;
+  vec2 p = fGaitPos.yz;
+  if (kind > 1.5 && kind < 2.5) {
+    // Shin: fold about the knee, then swing the folded leg with the thigh about the hip.
+    vec2 d = p - piv;
+    p = piv + vec2(d.x * cos(-flex) + d.y * sin(-flex), d.y * cos(-flex) - d.x * sin(-flex));
+    piv = vec2(fract(abs(limb.z)) * 10.0, limb.y);
+    a = thigh;
+  }
+  vec2 d = p - piv;
+  fGaitPos.yz = piv + vec2(d.x * cos(a) + d.y * sin(a), d.y * cos(a) - d.x * sin(a));
+  float n = kind > 2.5 ? a : kind > 1.5 ? thigh - flex : thigh;
+  fGaitNrm.yz = vec2(normal.y * cos(n) + normal.z * sin(n), normal.z * cos(n) - normal.y * sin(n));
+}
+vFNormal = normalize(mat3(fInst) * fGaitNrm);
 // Moving cars carry their paint pick in a slight height scale (src/systems/vehicles.ts),
 // since their position seed changes as they drive; static instances use the seed.
 vInstPaint = abs(fScale.y - 1.0) < 1e-5 ? vInstSeed : clamp((fScale.y - 1.0) * 64.0, 0.0, 0.999);
@@ -50,6 +79,16 @@ vInstBrake = abs(fScale.x - 1.004) < 0.001 ? 1.0 : 0.0;
 // Traffic signals carry their junction's cycle offset (x scale 1.01..1.03) and phase (z
 // scale 1.01 = phase 1); see layout signals in src/systems/instancing.ts.
 vInstSignal = vec2(clamp((fScale.x - 1.01) / 0.02, 0.0, 1.0), step(1.005, fScale.z));
+`;
+
+// After beginnormal_vertex / begin_vertex: the walk-cycle pose.
+export const VERTEX_GAIT_NORMAL = /* glsl */ `
+#include <beginnormal_vertex>
+objectNormal = fGaitNrm;
+`;
+export const VERTEX_GAIT_POSITION = /* glsl */ `
+#include <begin_vertex>
+transformed = fGaitPos;
 `;
 
 export const VERTEX_WORLD = /* glsl */ `

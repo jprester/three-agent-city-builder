@@ -5,7 +5,7 @@ import { SURFACE_PROPS } from './facade/surface-props';
 import { SURFACE_SETUP } from './facade/surface-setup';
 import { SURFACE_TOWERS } from './facade/surface-towers';
 import { SURFACE_WALLS } from './facade/surface-walls';
-import { VERTEX_INSTANCE, VERTEX_PARS, VERTEX_WORLD } from './facade/vertex';
+import { VERTEX_GAIT_NORMAL, VERTEX_GAIT_POSITION, VERTEX_INSTANCE, VERTEX_PARS, VERTEX_WORLD } from './facade/vertex';
 import { FRAGMENT_WINDOWS } from './facade/windows';
 import type { FacadeTextures } from './textures';
 
@@ -77,6 +77,8 @@ export function createFacadeMaterial(uniforms: FacadeUniforms): THREE.MeshStanda
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>\n${VERTEX_PARS}`)
       .replace('#include <batching_vertex>', VERTEX_INSTANCE)
+      .replace('#include <beginnormal_vertex>', VERTEX_GAIT_NORMAL)
+      .replace('#include <begin_vertex>', VERTEX_GAIT_POSITION)
       .replace('#include <project_vertex>', VERTEX_WORLD)
       // vColor is data here; keep three's color_vertex from multiplying anything.
       .replace('#include <color_vertex>', '');
@@ -88,7 +90,7 @@ export function createFacadeMaterial(uniforms: FacadeUniforms): THREE.MeshStanda
       .replace('#include <normal_fragment_maps>', 'normal = normalize((viewMatrix * vec4(fNormalW, 0.0)).xyz);')
       .replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance = fEmit;');
   };
-  material.customProgramCacheKey = () => 'facade-v21';
+  material.customProgramCacheKey = () => 'facade-v22';
   return material;
 }
 

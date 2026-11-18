@@ -12,6 +12,12 @@ const CARS: Record<string, number> = {
 const FLYERS: Record<string, number> = { 'vehicles/flyer_a': 2, 'vehicles/flyer_b': 1 };
 const WALKERS: Record<string, number> = { 'props/walker_a': 1, 'props/walker_b': 1 };
 
+/** Walk cycle (src/materials/facade/vertex.ts): thigh swing amplitude (rad), hip height (m)
+ * and the distance of one full cycle, two steps of 2 × leg × sin(swing). */
+const GAIT_SWING = 0.42;
+const GAIT_LEG = 0.88;
+const GAIT_STRIDE = 4 * GAIT_LEG * Math.sin(GAIT_SWING);
+
 type Lane = NonNullable<Layout['traffic']>[number];
 
 /** Which vehicles exist: one slot per car / flyer, each with its asset. Deterministic from the layout seed. */
@@ -94,13 +100,19 @@ export function createVehicleMotion(batch: DynamicInstances, ids: number[], plan
           batch.setMatrixAt(ids[k++], m.compose(pos, q, scale.setScalar(1)));
         }
       }
-      // Pedestrians walk their sidewalk loops at their own pace and direction, with a step bob.
+      // Pedestrians walk their sidewalk loops at their own pace and direction. The gait phase
+      // (one cycle = two steps per GAIT_STRIDE meters, so feet do not slide) rides in the z
+      // scale for the facade shader, which swings the legs and free arm (props/walker). The
+      // body drops as the legs spread so the stance foot stays on the pavement.
       for (const w of plan.walk) {
         for (let i = 0; i < w.assets.length; i++) {
           const p = trafficPose(w.loop, w.phases[i] * w.length + w.dirs[i] * w.speeds[i] * time);
-          pos.set(p.x, 0.15 + 0.035 * Math.abs(Math.sin(time * w.speeds[i] * 2.8 + i * 1.7)), p.z);
+          const cycle = (w.speeds[i] * time) / GAIT_STRIDE + i * 0.27;
+          const gait = cycle - Math.floor(cycle);
+          const thigh = GAIT_SWING * Math.sin(gait * Math.PI * 2);
+          pos.set(p.x, 0.15 - GAIT_LEG * (1 - Math.cos(thigh)), p.z);
           q.setFromAxisAngle(up, p.angle + (w.dirs[i] < 0 ? Math.PI : 0));
-          batch.setMatrixAt(ids[k++], m.compose(pos, q, scale.set(1, 1 + w.paints[i] / 64, 1)));
+          batch.setMatrixAt(ids[k++], m.compose(pos, q, scale.set(1, 1 + w.paints[i] / 64, 1 + 0.004 * gait)));
         }
       }
       // Monorail cars: a pure function of time (art/layouts/lib/monorail.mjs trainAt).

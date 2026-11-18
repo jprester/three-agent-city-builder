@@ -7,9 +7,10 @@ import { instanceMatrix } from './instancing';
 import type { LayoutInstance } from './layout';
 
 /** Attributes the facade material reads, and the glTF attribute each comes from; everything
- * else is dropped. `face`: the facade module (lib.mesh MeshBuilder), exported as `_FACE`. */
-const ATTRIBUTES = { position: 3, normal: 3, uv: 2, color: 3, face: 3 } as const;
-const SOURCE: Record<string, string> = { face: '_face' };
+ * else is dropped. `face`: the facade module (lib.mesh MeshBuilder), exported as `_FACE`;
+ * `limb`: the walk-cycle body part (props/walker), exported as `_LIMB`. */
+const ATTRIBUTES = { position: 3, normal: 3, uv: 2, color: 3, face: 3, limb: 3 } as const;
+const SOURCE: Record<string, string> = { face: '_face', limb: '_limb' };
 
 /** Runtime level-of-detail and visibility control for the facade instances. */
 export interface FacadeLod {

@@ -1959,3 +1959,15 @@ Gates: check (0 errors, 8 module warnings; coplanar 50 assets, quay_rail 0.11 mÂ
 post-rail joints like the guardrail), 144 tests, shots:all night and day (35 each; max 242 calls,
 1.86M triangles, 21 programs by night, 19 by day), perf `fast` GPU ms canyon 10.2, storefront
 14.6, aerial 12.6, harbor 9.9, fly-75 10.6, 0 % late, GPU process 810-821 MB (gate 920).
+
+## Pedestrians: shader walk cycle (2026-11-18, branch exp/walker-gait)
+- Better: walkers stride. Legs swing from the hip, the knee folds on the forward swing, the shoe
+  lifts and lands under the body, the free arm counter-swings. Read at storefront distance it is
+  the first thing that makes them look alive rather than sliding mannequins. walker_b now wears a
+  short jacket (hem 0.82 m) so its thighs show; walker_a keeps the long coat over a flared skirt.
+- Weak: bodies are still boxes; the thigh can poke through the long coat's skirt at full stride;
+  no torso sway or shoulder counter-rotation; the umbrella arm is rigid (right, but the whole
+  upper body is too still); everyone has the same cadence curve and amplitude.
+- Cost: A/B perf (5 views, back to back) within noise on GPU; draw calls and programs unchanged;
+  JS heap ~+8 MB because every facade geometry carries the new attribute (to trim: only
+  allocate it on walker geometry).
