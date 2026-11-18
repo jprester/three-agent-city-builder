@@ -404,3 +404,4 @@ One line per decision: `YYYY-MM-DD | area | decision | reason`.
 - 2026-11-18 Promenade lamps every 18 m (was 30): the waterfront viewpoint stood in the dark between two lamps. Only the lamp list changes; the rest of the layout is identical.
 - 2026-11-18 Tower shop signs move from 4.8-12 m (curtain wall) to the podium fascia, inside the "street: ground to 2nd floor" zone of the 2026-09-27 review. The unit test now checks the fascia band.
 - 2026-11-18 Puddles are only mirror-smooth by night; by day (dry streets) they keep the paving's roughness.
+- 2026-11-18 Monorail stations: `station.count` 2, `spacing` 180 m; `station` stays the first one (anchor, viewpoints, train 0's frozen stop) and `stations` lists all. Further stations search in 0.25 m steps; the first keeps 1 m steps so it does not move. A seed without a site keeps fewer stations rather than breaking the rules (no main road under a station, legs on sidewalks).

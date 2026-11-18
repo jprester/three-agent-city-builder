@@ -1,6 +1,6 @@
 // Suspended monorail (Chiba style) down one arterial of the city layout: a straight line of
-// T-piers in a median, twin box girders, one station with side platforms under a roof on
-// portal frames, a pedestrian deck and open stairs. Also the trains' timetable, a pure
+// T-piers in a median, twin box girders, stations (`station.count`) with side platforms under a
+// roof on portal frames, a pedestrian deck and open stairs. Also the trains' timetable, a pure
 // function of time shared with the runtime (src/systems/vehicles.ts).
 //
 // Route frame: s runs along the route from its far end toward the tower district, v across it
@@ -37,6 +37,10 @@ export const MONORAIL_DEFAULTS = {
     clearU: 50,
     /** Junctions of these classes may not pass under the station (side streets may end under it). */
     noJunction: ['arterial', 'hero'],
+    /** Stations on the line, at least `spacing` m apart (centre to centre). The first stands in
+     * the old core nearest the middle of the line; each further one in the middle of the longest
+     * stretch without a stop, in the core or the tower district. */
+    count: 2, spacing: 180,
   },
   /** Asset ids of the static pieces. */
   assets: {
@@ -168,21 +172,39 @@ export function buildMonorail(cfg, roads, blocks, districtAt, towersCenter, asse
     return pts;
   });
   const reach = Math.max(len / 2 + 1, ...groundRects.map(([u0, u1]) => Math.max(-u0, u1))) + 2;
-  const mid = (piers[0] + piers[piers.length - 1]) / 2;
-  let station = null, flip = 1;
-  for (let off = 0; off < L / 2 && station === null; off += 1) {
-    for (const sc of off ? [mid - off, mid + off] : [mid]) {
-      if (sc - reach < piers[0] + 20 || sc + reach > piers[piers.length - 1] - 20) continue;
-      if (junctions.some(([js, jh, cls]) => S.noJunction.includes(cls) && Math.abs(js - sc) < len / 2 + jh + 2)) continue;
-      if (districtAt(at(sc, 0)) !== 'core') continue;
-      const f = [1, -1].find((k) => groundPoints(sc, k).every(([s, v]) => onSidewalk(s, v)));
-      if (f === undefined) continue;
-      station = sc;
-      flip = f;
-      break;
+  const fits = (sc, districts) => {
+    if (sc - reach < piers[0] + 20 || sc + reach > piers[piers.length - 1] - 20) return undefined;
+    if (junctions.some(([js, jh, cls]) => S.noJunction.includes(cls) && Math.abs(js - sc) < len / 2 + jh + 2)) return undefined;
+    if (!districts.includes(districtAt(at(sc, 0)))) return undefined;
+    return [1, -1].find((k) => groundPoints(sc, k).every(([s, v]) => onSidewalk(s, v)));
+  };
+  /** The site nearest `target` (`step` m outward) that fits and keeps `spacing` from `taken`.
+   * Side streets every 40-50 m leave windows of a metre or two where every leg and stair lands
+   * on a sidewalk, so further stations search finely; the first keeps its original 1 m steps. */
+  const nearest = (target, districts, taken, step = 1) => {
+    for (let off = 0; off < L; off += step) {
+      for (const sc of off ? [target - off, target + off] : [target]) {
+        if (taken.some((t) => Math.abs(t.s - sc) < S.spacing)) continue;
+        const f = fits(sc, districts);
+        if (f !== undefined) return { s: sc, flip: f };
+      }
     }
+    return null;
+  };
+  const mid = (piers[0] + piers[piers.length - 1]) / 2;
+  const home = nearest(mid, ['core'], []);
+  if (home === null) return null;
+  const stations = [home];
+  while (stations.length < S.count) {
+    // The middle of the longest stretch between stops (the line's end piers count as stops).
+    const stops = [piers[0], ...stations.map((t) => t.s).sort((x, y) => x - y), piers[piers.length - 1]];
+    let gap = 0;
+    for (let k = 1; k < stops.length; k++) if (stops[k] - stops[k - 1] > stops[gap + 1] - stops[gap]) gap = k - 1;
+    const next = nearest((stops[gap] + stops[gap + 1]) / 2, ['core', 'towers'], stations, 0.25);
+    if (next === null) break;
+    stations.push(next);
   }
-  if (station === null) return null;
+  const station = home.s, flip = home.flip;
 
   // ---- static pieces
   const parts = [];
@@ -204,36 +226,38 @@ export function buildMonorail(cfg, roads, blocks, districtAt, towersCenter, asse
     from = Math.max(from, b1);
   }
   for (const [s0, s1] of medians) put(A.median, (s0 + s1) / 2, 0, 0, 0, [s1 - s0, 1, 1]);
-  // Station: platforms, screens and the stairs span it; portals, roof bays and deck segments repeat.
-  const sc = station;
-  const rot = flip > 0 ? 0 : Math.PI;
-  for (const [id, u] of stationParts) put(id, sc + flip * u, 0, 0, rot);
+  // Stations: platforms, screens and the stairs span each; portals, roof bays and deck segments repeat.
+  for (const st of stations) for (const [id, u] of stationParts) put(id, st.s + st.flip * u, 0, 0, st.flip > 0 ? 0 : Math.PI);
 
   // ---- light it through the lamp map (src/scene/lampmap.ts): [x, z, radius, strength].
   const lights = [];
   const sA = piers[0], sB = piers[piers.length - 1];
   for (let s = sA + 5; s < sB; s += 10) for (const v of [-C.trackV - 0.9, C.trackV + 0.9]) { const p = at(s, v); lights.push([r3(p[0]), r3(p[1]), 7, 0.1]); }
   for (const s of piers) { const p = at(s, 0); lights.push([r3(p[0]), r3(p[1]), 4, 0.3]); }
-  for (let u = -len / 2 + 3; u <= len / 2 - 3; u += 6) {
-    for (const v of [-6, 6]) { const p = at(sc + u, v); lights.push([r3(p[0]), r3(p[1]), 9, 0.22]); }
-    if (Math.abs(u) < S.deckBays * S.bay / 2) { const p = at(sc + u, flip * (S.deckV[0] + S.deckV[1]) / 2); lights.push([r3(p[0]), r3(p[1]), 6, 0.3]); }
+  for (const st of stations) {
+    for (let u = -len / 2 + 3; u <= len / 2 - 3; u += 6) {
+      for (const v of [-6, 6]) { const p = at(st.s + u, v); lights.push([r3(p[0]), r3(p[1]), 9, 0.22]); }
+      if (Math.abs(u) < S.deckBays * S.bay / 2) { const p = at(st.s + u, st.flip * (S.deckV[0] + S.deckV[1]) / 2); lights.push([r3(p[0]), r3(p[1]), 6, 0.3]); }
+    }
   }
 
   // ---- what the line displaces: 3D boxes in the route frame ([s0, s1], [v0, v1], [y0, y1]).
   const env = [
     // Girders, cars and their hangers along the whole line.
     { s: [sA - 3, sB + 3], v: [-C.trackV - C.car.halfWidth - 0.8, C.trackV + C.car.halfWidth + 0.8], y: [C.floorY - 0.6, C.beamY + C.beamH + 1.4] },
-    // The station and its stairs, from the ground to above the portal beams.
-    { s: [sc - reach, sc + reach], v: flip > 0 ? [-S.legV - 1.4, S.deckV[1] + 0.25] : [-S.deckV[1] - 0.25, S.legV + 1.4], y: [0, C.roofY + 2] },
+    // Each station and its stairs, from the ground to above the portal beams.
+    ...stations.map((st) => ({ s: [st.s - reach, st.s + reach], v: st.flip > 0 ? [-S.legV - 1.4, S.deckV[1] + 0.25] : [-S.deckV[1] - 0.25, S.legV + 1.4], y: [0, C.roofY + 2] })),
   ];
-  // On the ground: the station's sidewalk band (lamps, props, parked cars, signals, trees).
+  // On the ground: each station's sidewalk band (lamps, props, parked cars, signals, trees).
   const ground = [
-    { s: [sc - S.clearU, sc + S.clearU], v: [-half - 6, -half + 0.01] },
-    { s: [sc - S.clearU, sc + S.clearU], v: [half - 0.01, half + 6] },
+    ...stations.flatMap((st) => [
+      { s: [st.s - S.clearU, st.s + S.clearU], v: [-half - 6, -half + 0.01] },
+      { s: [st.s - S.clearU, st.s + S.clearU], v: [half - 0.01, half + 6] },
+    ]),
     { s: [sA - 3, sB + 3], v: [-C.median / 2 - 0.6, C.median / 2 + 0.6] },
   ];
 
-  // ---- trains: one per girder, shuttling between the end piers and stopping at the station.
+  // ---- trains: one per girder, shuttling between the end piers and stopping at every station.
   const trainLen = C.car.count * (C.car.length + C.car.gap) - C.car.gap + 2 * C.car.nose;
   const ends = [sA + trainLen / 2 + 1.5, sB - trainLen / 2 - 1.5];
   return {
@@ -241,7 +265,9 @@ export function buildMonorail(cfg, roads, blocks, districtAt, towersCenter, asse
     origin: a.map(r6), dir: d.map(r6), angle: r6(angle), length: r3(L),
     beamY: C.beamY, floorY: C.floorY, roofY: C.roofY, trackV: C.trackV,
     piers: piers.map(r3), medians: medians.map((m) => m.map(r3)),
-    station: { s: r3(sc), flip, length: len, legs, platform: S.platform, deckY: S.deckY, deckV: S.deckV, legV: S.legV },
+    // `station`: the first (the anchor and viewpoints use it); `stations`: all of them, along s.
+    station: { s: r3(station), flip, length: len, legs, platform: S.platform, deckY: S.deckY, deckV: S.deckV, legV: S.legV },
+    stations: [...stations].sort((x, y) => x.s - y.s).map((st) => ({ s: r3(st.s), flip: st.flip })),
     parts, lights,
     envelope: env.map((e) => ({ s: e.s.map(r3), v: e.v.map(r3), y: e.y.map(r3) })),
     ground: ground.map((e) => ({ s: e.s.map(r3), v: e.v.map(r3) })),
@@ -295,21 +321,30 @@ function runTime(D, vmax, acc) {
 /**
  * Train `k` (0 or 1) at `time`: its middle's position s along the route, the side v of its
  * girder and the direction it faces (+1 toward the route's end). Each train shuttles between
- * the end piers on its own girder and stops at the station both ways; the second train runs
+ * the end piers on its own girder and stops at every station both ways; the second train runs
  * half a cycle behind. A pure function of time, so frozen times stay reproducible.
  */
 export function trainAt(m, k, time) {
-  const T = m.trains, sS = m.station.s, [sA, sB] = T.ends;
-  const legs = [[sA, sS], [sS, sB], [sB, sS], [sS, sA]];
+  const T = m.trains, [sA, sB] = T.ends;
+  const halts = (m.stations ?? [m.station]).map((st) => st.s);
+  // Out from sA through every station to sB and back: a dwell at stations, a turn at the ends.
+  const path = [sA, ...halts, sB, ...[...halts].reverse(), sA];
+  const legs = path.slice(1).map((q, i) => [path[i], q]);
   const runs = legs.map(([p, q]) => runTime(Math.abs(q - p), T.cruise, T.accel));
-  const stops = [T.dwell, T.turn, T.dwell, T.turn];
+  const stops = legs.map(([, q]) => (q === sA || q === sB ? T.turn : T.dwell));
   const cycle = runs.reduce((x, y) => x + y, 0) + stops.reduce((x, y) => x + y, 0);
-  // Train 0 stands mid-dwell at the station at `frozenStop` on its way out, beside the
-  // station's south platform (station frame v < 0).
-  const shift = runs[0] + T.dwell / 2 - T.frozenStop;
+  // Train 0 stands mid-dwell at the first station (m.station) at `frozenStop` on its way out,
+  // beside that station's south platform (station frame v < 0).
+  let toStop = 0;
+  for (let i = 0; i < legs.length; i++) {
+    toStop += runs[i];
+    if (legs[i][1] === m.station.s) break;
+    toStop += stops[i];
+  }
+  const shift = toStop + T.dwell / 2 - T.frozenStop;
   const side = (k ? 1 : -1) * (m.station.flip ?? 1) * m.trackV;
   let t = ((((time + shift + k * cycle / 2) % cycle) + cycle) % cycle);
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < legs.length; i++) {
     const [p, q] = legs[i], dir = Math.sign(q - p);
     if (t < runs[i]) return { s: p + dir * runDistance(Math.abs(q - p), T.cruise, T.accel, t), v: side, dir };
     t -= runs[i];

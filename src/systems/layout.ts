@@ -134,7 +134,10 @@ export interface Monorail {
   beamY: number; floorY: number; roofY: number; trackV: number;
   piers: number[];
   medians: [number, number][];
+  /** The first station (anchor `monorail`, the monorail viewpoints). */
   station: { s: number; flip: number; length: number; legs: number[]; platform: [number, number]; deckY: number; deckV: [number, number]; legV: number };
+  /** Every station along the line, in route order; trains stop at each. */
+  stations?: { s: number; flip: number }[];
   /** Static pieces, drawn as one merged facade-shaded mesh. */
   parts: LayoutInstance[];
   /** Lamp-map contributions: [x, z, radius, strength]. */

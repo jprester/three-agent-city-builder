@@ -834,6 +834,11 @@ export function generate({ params, seed, assets = {}, art = [], designs = [] }) 
   if (monorail) {
     const st = G.add(monorail.origin, G.mul(monorail.dir, monorail.station.s));
     anchors.monorail = { origin: [r3(st[0]), 0, r3(st[1])], x: monorail.dir.map((c) => r3(c * monorail.station.flip)) };
+    // Further stations: monorail2, monorail3, ... in route order after the first.
+    monorail.stations.filter((x) => x.s !== monorail.station.s).forEach((x, i) => {
+      const p = G.add(monorail.origin, G.mul(monorail.dir, x.s));
+      anchors[`monorail${i + 2}`] = { origin: [r3(p[0]), 0, r3(p[1])], x: monorail.dir.map((c) => r3(c * x.flip)) };
+    });
   }
   if (parked.length) anchors.delivery = { origin: parked[0].position, x: [Math.sin(parked[0].rotationY), Math.cos(parked[0].rotationY)] };
 

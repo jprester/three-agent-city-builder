@@ -36,8 +36,9 @@ committed, like the GLBs.
 - **Towers.** Tall towers wear baked facades (below) on varied silhouettes: tiers, a glass
   prism crown on `tower_n`, and a round landmark (`buildings/roundtower`) with its own facade.
   Low and mid-rise buildings stay procedural.
-- **Monorail.** A straight suspended line with a station over the main street's median, trains
-  that run and stop, textured structural steel and concrete decks (`art/defs/props/monorail_*`).
+- **Monorail.** A straight suspended line over an arterial's median with two stations (one in
+  the old core, one toward the tower district), trains that run and stop at both, textured
+  structural steel and concrete decks (`art/defs/props/monorail_*`).
 - **Streets.** Traffic, pedestrians on the sidewalks, typeset shop signs and illustrated
   advertising (below), and the cinematic flythrough.
 - **Sound.** Procedural city sound (rain, hum, tyre hiss, thunder, crossing chirps). It starts

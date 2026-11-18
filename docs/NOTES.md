@@ -1911,3 +1911,25 @@ The rest of the 11-17 review list. Images: `docs/progress/review-fixes-2026-11-1
 Gates: check (0 errors, 8 module warnings, coplanar unchanged), 116 tests, shots:all night and
 day (32 each), perf `fast` GPU ms canyon 11.1, storefront 10.2, aerial 10.8, harbor 9.4, fly-75
 12.1, 0 % late, GPU process 803-825 MB (gate 920).
+
+## Monorail: a second station (2026-11-18)
+The human asked for another stop. The line stays straight (as agreed 2026-11-14); trains now stop
+at two stations both ways. Images: `docs/progress/monorail-second-station/`.
+- Placement: the first station is unchanged (s = 128.6 m, same search). Further stations go in
+  the middle of the longest stretch between stops, at least 180 m apart, in the core or the
+  tower district, with the same rules (every leg and stair on a sidewalk, no arterial or hero
+  street under it). On the default city the second stands at s = 472.9 m, 344 m on, near the
+  tower end of the line (viewpoints `monorail2-platform`, `monorail2-street`).
+- Side streets cross the arterial every 40-50 m, so the windows where all the legs and stairs land
+  on sidewalks are a metre or two wide: further stations search in 0.25 m steps (the first keeps
+  its 1 m steps, so it does not move). Seed 777 has no such window and keeps one station.
+- Its clearance removed 6 lamps, 6 props, 4 signs and 2 traffic signals under it; buildings and
+  the rest of the layout are unchanged.
+- Timetable: out through every station to the far end and back, a 12 s dwell at each. Train 0
+  still stands at the first station at the shots' frozen time; with the longer cycle the other
+  train happens to stand at the second.
+- Works: from the street (monorail2-street) the station spans the road overhead with a train in
+  it, the line running on toward the canyon.
+- Weak: both stations are the same building (same roof, stairs and colour); no station name or
+  signs.
+Perf: unchanged within noise (canyon 10.0-10.4 ms `fast` GPU on repeat runs; one run read 15.9).

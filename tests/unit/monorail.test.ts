@@ -44,23 +44,33 @@ describe.each([def.seed, 1, 777])('monorail, seed %i', (seed) => {
     for (const [s0, s1] of m.medians) expect(junctions.some(([js, jh]) => js + jh > s0 + 0.5 && js - jh < s1 - 0.5)).toBe(false);
   });
 
-  it('stands the station on sidewalks, in the old core, with no main road under it', async () => {
+  it('stands every station on sidewalks, apart from the others, with no main road under it', async () => {
     const L = await get(), m = await line();
-    const { s, flip } = m.station;
-    const at = (u: number, v: number) => G.add(G.add(m.origin, G.mul(m.dir, s + flip * u)), G.mul(G.perp(m.dir), flip * v));
-    const ground = m.parts.flatMap((p) => {
-      const g = (meta(p.asset).ground ?? []) as number[][];
-      const [ps] = toRoute(m, p.position[0], p.position[2]);
-      return g.map(([u0, u1, v0, v1]) => [u0 + flip * (ps - s), u1 + flip * (ps - s), v0, v1]);
-    });
-    expect(ground.length).toBeGreaterThan(10);
-    const off: string[] = [];
-    for (const [u0, u1, v0, v1] of ground) {
-      for (const u of [u0, (u0 + u1) / 2, u1]) for (const v of [v0, v1]) {
-        if (!L.blocks.some((bl) => G.insideConvex(bl.points, at(u, v), 0.05))) off.push(`${u.toFixed(1)},${v.toFixed(1)}`);
+    const stations = m.stations ?? [m.station];
+    // The default city has them all; another seed may have no second site that fits (one station).
+    if (seed === def.seed) expect(stations.length).toBe(MONORAIL_DEFAULTS.station.count);
+    else expect(stations.length).toBeGreaterThanOrEqual(1);
+    expect(stations.map((st) => st.s)).toContain(m.station.s);
+    for (let k = 1; k < stations.length; k++) expect(stations[k].s - stations[k - 1].s).toBeGreaterThanOrEqual(MONORAIL_DEFAULTS.station.spacing);
+    const half = MONORAIL_DEFAULTS.station.bays * MONORAIL_DEFAULTS.station.bay / 2 + 20;
+    for (const { s, flip } of stations) {
+      const at = (u: number, v: number) => G.add(G.add(m.origin, G.mul(m.dir, s + flip * u)), G.mul(G.perp(m.dir), flip * v));
+      // This station's pieces: those within its reach along the line.
+      const ground = m.parts.flatMap((p) => {
+        const [ps] = toRoute(m, p.position[0], p.position[2]);
+        if (Math.abs(ps - s) > half) return [];
+        const g = (meta(p.asset).ground ?? []) as number[][];
+        return g.map(([u0, u1, v0, v1]) => [u0 + flip * (ps - s), u1 + flip * (ps - s), v0, v1]);
+      });
+      expect(ground.length).toBeGreaterThan(10);
+      const off: string[] = [];
+      for (const [u0, u1, v0, v1] of ground) {
+        for (const u of [u0, (u0 + u1) / 2, u1]) for (const v of [v0, v1]) {
+          if (!L.blocks.some((bl) => G.insideConvex(bl.points, at(u, v), 0.05))) off.push(`${s}: ${u.toFixed(1)},${v.toFixed(1)}`);
+        }
       }
+      expect(off).toEqual([]);
     }
-    expect(off).toEqual([]);
   });
 
   it('leaves nothing inside its envelope: signs, footbridges, lamps, props, parked cars, signals', async () => {
@@ -102,6 +112,15 @@ describe.each([def.seed, 1, 777])('monorail, seed %i', (seed) => {
         expect(p.s).toBeLessThanOrEqual(m.trains.ends[1] + 1e-6);
       }
       expect(trainAt(m, 0, t).v).toBe(-trainAt(m, 1, t).v);
+    }
+    // Both trains stop at every station, both ways.
+    for (const k of [0, 1]) {
+      const seen = new Set<string>();
+      for (let t = 0; t < 900; t += 0.5) {
+        const p = trainAt(m, k, t);
+        if (trainAt(m, k, t + 0.5).s === p.s) for (const st of m.stations ?? [m.station]) if (Math.abs(p.s - st.s) < 1e-6) seen.add(`${st.s}:${p.dir}`);
+      }
+      expect(seen.size).toBe(2 * (m.stations ?? [m.station]).length);
     }
     // Moves smoothly: never more than cruise speed between samples.
     for (let t = 0; t < 300; t += 0.5) expect(Math.abs(trainAt(m, 1, t + 0.5).s - trainAt(m, 1, t).s)).toBeLessThanOrEqual(m.trains.cruise * 0.5 + 1e-6);
