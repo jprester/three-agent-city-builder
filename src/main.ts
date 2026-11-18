@@ -40,6 +40,8 @@ export interface SceneStats {
   calls: number;
   triangles: number;
   programs: number;
+  /** Shader program names (material type or name), to see what the program budget is spent on. */
+  programNames: string[];
   textures: number;
   geometries: number;
   /** Share of calls and triangles spent in the planar reflection pass. */
@@ -319,6 +321,7 @@ async function main() {
         calls: info.render.calls,
         triangles: info.render.triangles,
         programs: info.programs?.length ?? 0,
+        programNames: (info.programs ?? []).map((p) => p.name || "unnamed").sort(),
         textures: info.memory.textures,
         geometries: info.memory.geometries,
         reflection: { calls: reflCalls, triangles: reflTris },

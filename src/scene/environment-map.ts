@@ -7,10 +7,18 @@ export function captureCityEnvironment(renderer: THREE.WebGLRenderer, scene: THR
   const origin = layout?.anchors?.hero?.origin ?? [0, 0, 0];
   const direction = layout?.anchors?.hero?.x ?? [1, 0];
   const pmrem = new THREE.PMREMGenerator(renderer);
+  // The capture renders the city before it has an environment. Without one, every standard
+  // material (the facade shader among them) would compile a no-environment program used only
+  // here and kept alive after it. A blank placeholder of the same size and mapping at intensity
+  // 0 lights nothing (the capture is unchanged) and keeps one program per material.
+  const placeholder = pmrem.fromScene(new THREE.Scene(), 0, 0.1, 1, { size: 128 });
+  scene.environment = placeholder.texture;
+  scene.environmentIntensity = 0;
   const capture = pmrem.fromScene(scene, 0.025, 0.5, 2000, {
     size: 128,
     position: new THREE.Vector3(origin[0] + direction[0] * 180, 65, origin[2] + direction[1] * 180),
   });
+  placeholder.dispose();
   scene.environment = capture.texture;
   scene.environmentIntensity = 0.45;
   pmrem.dispose();
