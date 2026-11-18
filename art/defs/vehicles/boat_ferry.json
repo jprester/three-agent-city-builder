@@ -1,0 +1,19 @@
+{
+  "generator": "vehicles/boat",
+  "seed": 41,
+  "params": {
+    "kind": "ferry",
+    "length": 30.0,
+    "beam": 8.0,
+    "freeboard": 1.4,
+    "draft": 1.6,
+    "entry": 0.32,
+    "bow_rise": 0.6,
+    "hull_paint": "car_green",
+    "cabin_paint": "car_white",
+    "cabin_finish": 3,
+    "cabin_glow": 0.75,
+    "mast_height": 3.5,
+    "stations": 10
+  }
+}

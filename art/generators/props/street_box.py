@@ -2,7 +2,9 @@
   cabinet  utility cabinet with a status LED
   bin      litter bin (octagonal)
   vent     ventilation stack for an underground service, louvred top
-  bollard  short post with a reflective band"""
+  bollard  short post with a reflective band
+  bench    slatted seat and back on two cast legs (promenade), seat facing -Y
+  mooring  squat cast mooring bollard with a cap (quay edge)"""
 from lib.building import prism
 from lib.mesh import MeshBuilder
 from lib.surface import fixture, plan_uv, surf
@@ -31,6 +33,22 @@ def generate(ctx):
             mb.box(-w / 2 - 0.05, w / 2 + 0.05, -w / 2 - 0.05, w / 2 + 0.05, z, z + 0.05, mm, None, (), ms, plan_uv)
         mb.box(-w / 2 - 0.1, w / 2 + 0.1, -w / 2 - 0.1, w / 2 + 0.1, h, h + 0.08, mm, None, (), ms, plan_uv)
         fp, top = [w + 0.2, w + 0.2], h + 0.08
+    elif kind == "bench":
+        w, d = 1.8, 0.5
+        for x in (-w / 2 + 0.15, w / 2 - 0.15):   # cast legs
+            mb.box(x - 0.04, x + 0.04, -d / 2, d / 2, 0.0, 0.45, mm, None, ("bottom",), ms, plan_uv)
+            mb.box(x - 0.04, x + 0.04, d / 2 - 0.08, d / 2, 0.45, 0.85, mm, None, (), ms, plan_uv)
+        for k in range(3):                         # seat slats
+            y0 = -d / 2 + k * d / 3
+            mb.box(-w / 2, w / 2, y0 + 0.01, y0 + d / 3 - 0.01, 0.42, 0.46, tm, None, (), ts, plan_uv)
+        for k in range(2):                         # back slats
+            z = 0.58 + k * 0.16
+            mb.box(-w / 2, w / 2, d / 2 - 0.06, d / 2 - 0.02, z, z + 0.1, tm, None, (), ts, plan_uv)
+        fp, top = [w, d], 0.85
+    elif kind == "mooring":
+        prism(mb, mm, ms, 0.0, 0.0, 0.0, 0.55, 0.16, 8, r_top=0.13)
+        prism(mb, mm, ms, 0.0, 0.0, 0.55, 0.65, 0.22, 8)
+        fp, top = [0.45, 0.45], 0.65
     else:  # bollard
         prism(mb, mm, ms, 0.0, 0.0, 0.0, 0.9, 0.09, 6)
         fm, fs = fixture(ctx, "white", strip=True)

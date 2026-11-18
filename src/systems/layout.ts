@@ -92,6 +92,10 @@ export interface Layout {
   /** Low-rise far field around the city (district 'fringe'); drawn with the buildings. */
   fringe?: LayoutInstance[];
   parked?: LayoutInstance[];
+  /** Waterfront furniture (quay railing, benches, mooring posts), drawn like props. */
+  quay?: LayoutInstance[];
+  /** Boats moored at the quay and at anchor (art/layouts/lib/waterfront.mjs), at the water level. */
+  boats?: LayoutInstance[];
   /** The island (art/layouts/lib/island.mjs): polar radius tables of the coast and far shore. */
   island?: {
     coast: number[]; shore: number[]; water: number; promenade: number;

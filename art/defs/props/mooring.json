@@ -1,0 +1,8 @@
+{
+  "generator": "props/street_box",
+  "seed": 23,
+  "params": {
+    "kind": "mooring",
+    "tint": 0.25
+  }
+}

@@ -1933,3 +1933,29 @@ at two stations both ways. Images: `docs/progress/monorail-second-station/`.
 - Weak: both stations are the same building (same roof, stairs and colour); no station name or
   signs.
 Perf: unchanged within noise (canyon 10.0-10.4 ms `fast` GPU on repeat runs; one run read 15.9).
+
+## Waterfront: quay railing, benches, berths and boats (2026-11-18)
+From the state-of-the-project review: waterfront was the weakest frame (an empty quay beside a
+flat black sea). Images: `docs/progress/waterfront-2026-11-18/` (new viewpoint `quay`).
+- New: `props/quay_rail` (the guardrail generator with 3 rails and no slats) along the whole quay
+  edge, 849 segments; `props/bench` (street_box) every 27 m facing the water, clear of lamps;
+  four berths near the port where the railing breaks for `props/mooring` posts and a boat lies
+  alongside; seven more boats at anchor off the port. Boats: `vehicles/boat` generator (lofted
+  hull with a pale strake at the sheer, lit cabins from the lit-interior surface, white masthead
+  and stern lights, red and cyan sidelights): `boat_ferry` (30 m, green hull, two lit decks) and
+  two work boats (navy, red). Layout: `art/layouts/lib/waterfront.mjs`, its own random stream and
+  its own layout lists (`quay`, `boats`), so nothing else in the city moves.
+- Works: `quay` by night is a real promenade now: the railing leads the eye to the ferry tied up
+  under the lamps, a bench, an anchored boat's mast light out on the water. From `harbor` the
+  anchored work boat reads at 400 m (strake, warm wheelhouse, mast light).
+- Weak: boats are static (no bobbing, no ferry crossing) and throw no light on the water, so
+  they do not add the long reflected streaks a real harbour has; the sea itself is unchanged.
+  The ferry's windows by day are brown panels, not glass. No people on the promenade. The
+  starboard light is cyan, not green (no green fixture colour).
+- Found on the way: car tail lamps blinked at 0.9 Hz like aviation beacons (fixed, see
+  DECISIONS). The first program-budget fix (a placeholder environment) cost 500-700 MB of GPU
+  process memory; `npm run perf` caught it and it was replaced the same day.
+Gates: check (0 errors, 8 module warnings; coplanar 50 assets, quay_rail 0.11 m² at the
+post-rail joints like the guardrail), 144 tests, shots:all night and day (35 each; max 242 calls,
+1.86M triangles, 21 programs by night, 19 by day), perf `fast` GPU ms canyon 10.2, storefront
+14.6, aerial 12.6, harbor 9.9, fly-75 10.6, 0 % late, GPU process 810-821 MB (gate 920).

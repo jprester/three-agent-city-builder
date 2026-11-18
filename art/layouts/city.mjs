@@ -16,6 +16,7 @@
 import * as G from './lib/geom.mjs';
 import { parkedVehicles } from './lib/outskirts.mjs';
 import { buildIsland } from './lib/island.mjs';
+import { buildWaterfront } from './lib/waterfront.mjs';
 import { buildFlythrough, buildSkyLanes, instanceBox, liftClear, sampleFlythrough } from './lib/paths.mjs';
 import { buildBridges } from './lib/bridges.mjs';
 import { buildMonorail, hitsEnvelope, hitsGround } from './lib/monorail.mjs';
@@ -69,6 +70,8 @@ const DEFAULTS = {
   landmarks: { count: 3, spacing: 80 },
   // Suspended monorail down one arterial (lib/monorail.mjs, MONORAIL_DEFAULTS); {} = defaults.
   monorail: {},
+  // The waterfront (lib/waterfront.mjs WATERFRONT_DEFAULTS): quay railing, benches, berths, boats.
+  waterfront: {},
   // Pedestrians: a loop down the middle of each downtown block's sidewalk (`inset` × the
   // edge's sidewalk width from the curb), one walker per `spacing` meters by district.
   walkers: { inset: 0.5, spacing: { core: 5, towers: 8 } },
@@ -129,7 +132,7 @@ const EDGE_PRIORITY = { hero: 0, arterial: 1, secondary: 2, edge: 3, alley: 4 };
 export function generate({ params, seed, assets = {}, art = [], designs = [] }) {
   const P = { ...DEFAULTS, ...params };
   // Nested option groups merge with their defaults instead of replacing them.
-  for (const k of ['roads', 'sidewalks', 'lampSpacing', 'flythrough', 'signs', 'bridges', 'props', 'fringe', 'landmarks', 'parking', 'island', 'walkers', 'monorail']) P[k] = { ...DEFAULTS[k], ...(params[k] ?? {}) };
+  for (const k of ['roads', 'sidewalks', 'lampSpacing', 'flythrough', 'signs', 'bridges', 'props', 'fringe', 'landmarks', 'parking', 'island', 'walkers', 'monorail', 'waterfront']) P[k] = { ...DEFAULTS[k], ...(params[k] ?? {}) };
   const D = {};
   for (const k of Object.keys(DISTRICT_DEFAULTS)) D[k] = { ...DISTRICT_DEFAULTS[k], ...(params.districts?.[k] ?? {}) };
   const rng = mulberry32(seed);
@@ -465,6 +468,8 @@ export function generate({ params, seed, assets = {}, art = [], designs = [] }) 
   const fringe = isle.instances;
   roads.push(...isle.roads);
   lamps.push(...isle.lamps);
+  // ---- waterfront: quay railing, benches, berths and boats. Own random stream.
+  const waterfront = buildWaterfront(P.waterfront, isle.island, isle.lamps, portOrigin, assets, mulberry32((seed ^ 0x6b0a7c11) >>> 0));
   const skyLanes = buildSkyLanes(P.skyLanes, [...instances, ...fringe], bridges);
   for (const lane of skyLanes) lane.points = liftClear(lane.points, [...instances, ...fringe], 12, 14);
   const traffic = trafficLanes(roads.map((r) => ({ id: r.id, cls: r.cls, width: r.width, a: r.a.map(r3), b: r.b.map(r3) })), seed)
@@ -859,6 +864,8 @@ export function generate({ params, seed, assets = {}, art = [], designs = [] }) 
     instances,
     fringe,
     parked,
+    quay: waterfront.props,
+    boats: waterfront.boats,
     island: isle.island,
     flythrough,
     bridges,

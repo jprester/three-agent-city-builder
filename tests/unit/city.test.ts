@@ -77,6 +77,26 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     });
   });
 
+  it('keeps the quay furniture on the promenade and the boats afloat, apart', async () => {
+    const L = await get(), isle = L.island!, quay = L.quay ?? [], boats = L.boats ?? [];
+    expect(quay.filter((q) => q.asset === 'props/quay_rail').length).toBeGreaterThan(300);
+    expect(boats.length).toBeGreaterThan(4);
+    for (const q of quay) {
+      for (const [x, z] of box(q).corners) {
+        const d = coastDistance(x, z, isle);
+        expect(d, q.asset).toBeLessThan(0.05);
+        expect(d, q.asset).toBeGreaterThan(-isle.promenade);
+      }
+      expect(L.lamps!.some(([x, z]) => G.insideConvex(box(q).corners, [x, z], 0)), `${q.asset} on a lamp`).toBe(false);
+    }
+    const bb = boats.map(box);
+    bb.forEach((b, i) => {
+      expect(boats[i].position[1]).toBe(isle.water);
+      expect(b.corners.every(([x, z]) => coastDistance(x, z, isle) > 0), `${boats[i].asset} aground`).toBe(true);
+      expect(bb.slice(i + 1).some((o) => G.obbOverlap(o, b, 0)), 'boats overlap').toBe(false);
+    });
+  });
+
   it('keeps island buildings on the island, off its roads, with avenues out to the waterfront', async () => {
     const L = await get(), isle = L.island!;
     const roads = L.roads!.map(roadBox);

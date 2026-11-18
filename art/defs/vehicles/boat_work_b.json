@@ -1,0 +1,17 @@
+{
+  "generator": "vehicles/boat",
+  "seed": 43,
+  "params": {
+    "kind": "work",
+    "length": 11.0,
+    "beam": 3.8,
+    "freeboard": 0.9,
+    "draft": 0.8,
+    "house_length": 2.8,
+    "hull_paint": "car_red",
+    "cabin_paint": "car_beige",
+    "cabin_finish": 3,
+    "cabin_glow": 0.45,
+    "mast_height": 2.5
+  }
+}

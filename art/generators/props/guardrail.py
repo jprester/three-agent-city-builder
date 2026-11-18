@@ -1,6 +1,6 @@
 """Pedestrian guardrail along the curb (the painted steel railings lining Hong Kong
 streets): posts, top and bottom rails and a slatted infill panel, one segment of
-`length` meters. Runs along X; the layout places it parallel to the curb."""
+`length` meters. With `rails` 3 and `slat_spacing` 0 it is the open quay railing. Runs along X; the layout places it parallel to the curb."""
 from lib.mesh import MeshBuilder
 from lib.surface import plan_uv, surf
 
@@ -16,10 +16,14 @@ def generate(ctx):
     for k in range(n + 1):
         x = -L / 2 + k * L / n
         mb.box(x - t, x + t, -t, t, 0.0, h, mm, None, ("bottom",), ms, plan_uv)
-    for z in (h - 0.06, 0.25):
+    # Top and bottom rails, plus `rails` - 2 evenly between them (quay railings: 3, no slats).
+    rails = max(2, ctx.p("rails", 2))
+    for k in range(rails):
+        z = 0.25 + (h - 0.06 - 0.25) * (rails - 1 - k) / (rails - 1)
         mb.box(-L / 2, L / 2, -t, t, z, z + 0.06, mm, None, (), ms, plan_uv)
-    # Vertical slats between the rails (only the ones that read; ~every 0.3 m).
-    slats = int(L / ctx.p("slat_spacing", 0.3))
+    # Vertical slats between the rails (only the ones that read; ~every 0.3 m); 0: none.
+    spacing = ctx.p("slat_spacing", 0.3)
+    slats = int(L / spacing) if spacing > 0 else 0
     for k in range(1, slats):
         x = -L / 2 + k * L / slats
         mb.box(x - 0.012, x + 0.012, -0.015, 0.015, 0.31, h - 0.06, mm, None, ("bottom", "top"), ms, plan_uv)

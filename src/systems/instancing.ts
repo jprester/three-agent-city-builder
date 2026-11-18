@@ -47,10 +47,10 @@ export async function buildInstances(layout: Layout, loader: AssetLoader, facade
     if (getAsset(inst.asset)) facade.push(inst);
     else missing.add(inst.asset);
   }
-  for (const vehicle of layout.parked ?? []) if (getAsset(vehicle.asset)) facade.push(vehicle);
+  for (const vehicle of [...(layout.parked ?? []), ...(layout.boats ?? [])]) if (getAsset(vehicle.asset)) facade.push(vehicle);
   // Street props and park trees: merged into one static draw (see buildMergedStatic).
   const merged: LayoutInstance[] = [];
-  for (const prop of layout.props ?? []) if (getAsset(prop.asset)) merged.push(prop);
+  for (const prop of [...(layout.props ?? []), ...(layout.quay ?? [])]) if (getAsset(prop.asset)) merged.push(prop);
   for (const tree of layout.trees ?? []) if (getAsset(tree.asset)) merged.push(tree);
   // Street lamps from the layout's lamp list.
   if (layout.lamps?.length && getAsset(LAMP)) {

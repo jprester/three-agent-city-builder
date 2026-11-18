@@ -1,0 +1,12 @@
+{
+  "generator": "props/guardrail",
+  "seed": 19,
+  "params": {
+    "length": 6.0,
+    "height": 1.1,
+    "post_spacing": 2.0,
+    "rails": 3,
+    "slat_spacing": 0,
+    "tint": 0.35
+  }
+}

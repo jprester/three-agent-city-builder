@@ -1,0 +1,13 @@
+{
+  "generator": "vehicles/boat",
+  "seed": 42,
+  "params": {
+    "kind": "work",
+    "length": 14.0,
+    "beam": 4.6,
+    "hull_paint": "car_navy",
+    "cabin_paint": "car_white",
+    "cabin_finish": 3,
+    "cabin_glow": 0.6
+  }
+}
