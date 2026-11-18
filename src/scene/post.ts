@@ -51,14 +51,16 @@ const FILMIC_GRADE: GradeSettings = {
   highCurve: 0.92,
 };
 
-/** Daylight (?light=day): a neutral curve, no night tints, so surfaces read as they are. */
+/** Daylight (?light=day): no night tints, so surfaces read as they are. AgX alone left the
+ * day milky (lifted blacks, one grey from the aerial), so the curve deepens shadows and adds a
+ * little contrast and colour back; still far gentler than the night grade. */
 const DAY_GRADE: GradeSettings = {
   exposure: 0.9,
-  saturation: 1.0,
-  contrast: 1.0,
+  saturation: 1.12,
+  contrast: 1.08,
   highlightDesat: 0.05,
   lift: 0.0,
-  shadowCurve: 1.0,
+  shadowCurve: 1.15,
   highCurve: 1.0,
 };
 

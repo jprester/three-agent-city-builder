@@ -42,6 +42,13 @@ export function createGroundMaterial(color: THREE.Color, roughness: number, unif
   const material = new THREE.MeshStandardMaterial({ color, roughness, metalness: 0 });
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
+    // The sea is a near mirror: the city environment cube (scene.environment, captured once
+    // inside the city by the hero street's signs, at infinite distance) showed in it as large
+    // soft red patches with no source in view. Its real reflection is the planar one
+    // (uReflection, sky included), so the sea takes no specular IBL. (material.envMapIntensity
+    // is ignored for scene.environment.)
+    if (water) shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_maps>',
+      '#include <lights_fragment_maps>\nradiance = vec3(0.0);');
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec3 vGWorld;')
       .replace('#include <project_vertex>', '#include <project_vertex>\nvGWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;');
@@ -70,9 +77,20 @@ gPuddle = mix(gPuddle, 0.25, smoothstep(0.03, 0.15, length(fwidth(vGWorld.xz * 0
 ${water ? 'gPuddle = 1.0;' : ''}
 // Wet asphalt is darker, puddles darkest (by day it has mostly dried).
 diffuseColor.rgb *= mix(mix(0.8, 0.45, gPuddle), 1.0, 0.6 * uDay);
-${sprawl ? `diffuseColor.rgb = mix(diffuseColor.rgb, ${v3(new THREE.Color(palette.ridge))}, smoothstep(2.0, 35.0, vGWorld.y));` : ''}`)
+${sprawl ? `// The hills across the water: a dark silhouette by night; by day wooded slopes (Hong Kong's
+// green hills), patchy with drier scrub, so the sun can model them instead of a flat grey.
+vec3 gHillDay = mix(${v3(new THREE.Color(palette.day_hill))}, ${v3(new THREE.Color(palette.day_hill_dry))},
+  smoothstep(0.45, 0.85, gNoise(vGWorld.xz * 0.004) * 0.6 + gNoise(vGWorld.xz * 0.02) * 0.4));
+// The slopes are too gentle for the sun to model at a kilometre: valleys darker, crests and
+// spurs catching more light, and wooded texture at a few hundred metres.
+gHillDay *= mix(0.7, 1.25, smoothstep(30.0, 220.0, vGWorld.y)) * mix(0.8, 1.15, gNoise(vGWorld.xz * 0.05));
+diffuseColor.rgb = mix(diffuseColor.rgb, mix(${v3(new THREE.Color(palette.ridge))}, gHillDay, uDay), smoothstep(2.0, 35.0, vGWorld.y));` : ''}`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
-roughnessFactor = mix(roughnessFactor, 0.08, gPuddle);`)
+// By day the streets are dry (src/scene/daylight.ts): a mirror-smooth puddle on dry paving
+// showed the city cube as a pale lobe with a dark core (day delivery).
+roughnessFactor = mix(roughnessFactor, 0.08, gPuddle * (1.0 - uDay));
+${sprawl ? `// Hillsides are vegetation, not wet asphalt: matte, or they mirror the haze like the sea.
+roughnessFactor = mix(roughnessFactor, 0.95, smoothstep(2.0, 35.0, vGWorld.y));` : ''}`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
 // Everything below is night light (lamps, signs, wet reflections, car lights); by day a
 // quarter of it remains (src/scene/daylight.ts).

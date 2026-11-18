@@ -118,5 +118,7 @@
   "panel_charcoal_alt2": "#33373C",
   "panel_teal_alt": "#24525A",
   "panel_steel": "#8E979C",
-  "panel_steel_alt": "#858E93"
+  "panel_steel_alt": "#858E93",
+  "day_hill": "#2E3D25",
+  "day_hill_dry": "#5E5C40"
 }
