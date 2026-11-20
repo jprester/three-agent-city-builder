@@ -32,6 +32,7 @@
     "signs:designs": "python3 tools/textures/build_sign_designs.py && npm run layouts",
     "interiors": "node tools/build-interiors.mjs",
     "textures": "node tools/build-ktx2.mjs",
+    "audio": "node tools/build-audio.mjs",
     "next:signs": "python3 next/tools/build_signs.py",
     "next:dev": "vite --config next/vite.config.ts --open",
     "next:build": "vite build --config next/vite.config.ts",

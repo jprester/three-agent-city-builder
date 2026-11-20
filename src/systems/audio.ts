@@ -4,7 +4,9 @@ import { lightningAt } from '../scene/lightning';
 import type { Layout } from './layout';
 
 /**
- * Procedural city sound, synthesized at runtime with the Web Audio API (no files):
+ * City sound with the Web Audio API: one recorded bed, everything else synthesized at runtime.
+ *  - ambience: the recorded night-city loops (public/audio, from art/external/audio via
+ *    `npm run audio`), alternated with equal-power crossfades so neither clip's loop point is heard;
  *  - rain: a filtered hiss bed plus scattered droplet ticks, following the rain waves;
  *  - city: a low hum and a mid-band traffic roar (audible on small speakers), more from higher up;
  *  - tyre hiss: the nearest simulated cars swish past on the wet road, panned toward them;
@@ -24,9 +26,19 @@ export interface AudioFrame {
   cars: THREE.Vector4[];
 }
 
+/** Recorded ambience clips in public/audio/ (.opus, .m4a fallback), played in turn. */
+const AMBIENCE = ['city-night-a', 'city-night-b'];
+/** Crossfade between consecutive clips, seconds. */
+const AMBIENCE_FADE = 4;
+/** The recordings sit at ~-42 dBFS RMS; ×4 (~+12 dB) puts them just under the synthesized layers. */
+const AMBIENCE_GAIN = 4;
+
 export function createCityAudio(layout: Layout | null) {
   let ctx: AudioContext | null = null;
   let master: GainNode, rainBed: GainNode, hum: GainNode, roar: GainNode, hiss: GainNode, hissPan: StereoPannerNode;
+  let ambience: GainNode;
+  let clips: AudioBuffer[] = [];
+  let clipAt = 0, clipIndex = 0;
   let noise: AudioBuffer;
   let on = false;
   let lastFlash = 0, nextDrop = 0, nextChirp = 0, strikes = 0;
@@ -76,6 +88,49 @@ export function createCityAudio(layout: Layout | null) {
     hiss.gain.value = 0;
     hissPan = ctx.createStereoPanner();
     chain(bed(), filter('bandpass', 1400, 0.5), filter('lowpass', 4500), hiss, hissPan, master);
+    // Recorded ambience: fades in once the clips have loaded (update() schedules them).
+    ambience = ctx.createGain();
+    ambience.gain.value = 0;
+    ambience.connect(master);
+    void Promise.all(AMBIENCE.map(loadClip)).then((loaded) => { clips = loaded.filter((b): b is AudioBuffer => b !== null); });
+  }
+
+  /** Fetch and decode one clip: Ogg Opus first, AAC where the browser cannot decode Opus. */
+  async function loadClip(name: string): Promise<AudioBuffer | null> {
+    for (const ext of ['opus', 'm4a']) {
+      try {
+        const res = await fetch(`${import.meta.env.BASE_URL}audio/${name}.${ext}`);
+        if (res.ok) return await ctx!.decodeAudioData(await res.arrayBuffer());
+      } catch { /* undecodable here: try the next format */ }
+    }
+    console.warn(`audio: could not load ambience ${name}`);
+    return null;
+  }
+
+  /** Keep a clip scheduled ~1 s ahead; each fades in over the previous one's fade-out (sin/cos). */
+  function scheduleAmbience(now: number) {
+    if (!clips.length) return;
+    if (clipAt < now) clipAt = now + 0.05;   // first clip, or resuming after a mute
+    while (clipAt < now + 1) {
+      const buf = clips[clipIndex++ % clips.length];
+      const trim = 0.05;                      // skip encoder padding at both ends
+      const len = buf.duration - 2 * trim;
+      const fade = Math.min(AMBIENCE_FADE, len / 3);
+      const fadeIn = new Float32Array(32), fadeOut = new Float32Array(32);
+      for (let i = 0; i < 32; i++) {
+        const a = (i / 31) * Math.PI / 2;
+        fadeIn[i] = Math.sin(a); fadeOut[i] = Math.cos(a);
+      }
+      const s = ctx!.createBufferSource();
+      s.buffer = buf;
+      const g = ctx!.createGain();
+      g.gain.value = 0;
+      g.gain.setValueCurveAtTime(fadeIn, clipAt, fade);
+      g.gain.setValueCurveAtTime(fadeOut, clipAt + len - fade, fade);
+      chain(s, g, ambience);
+      s.start(clipAt, trim, len);
+      clipAt += len - fade;
+    }
   }
 
   /** A short filtered noise burst: rain drops and thunder crackle. */
@@ -154,6 +209,9 @@ export function createCityAudio(layout: Layout | null) {
       const street = Math.exp(-height / 60);          // 1 at street level, fading with height
       rainBed.gain.setTargetAtTime(f.rain * (0.008 + 0.018 * street), now, 0.5);
       hum.gain.setTargetAtTime(0.12 + 0.1 * (1 - street), now, 1.0);
+      // The recording is street-level city: a little quieter from the air.
+      scheduleAmbience(now);
+      if (clips.length) ambience.gain.setTargetAtTime(AMBIENCE_GAIN * (0.6 + 0.4 * street), now, 1.0);
 
       // Tyre hiss: each nearby car contributes by distance, the louder ones pull the pan.
       let level = 0, pan = 0;
