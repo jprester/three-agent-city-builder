@@ -35,8 +35,8 @@ const MIX = {
   ambience: 5,      // -42: the bed, ~-28 dB
   rain: 2.5,        // -42.5: at full rain and street level ~-34 dB, under the ambience
   tyre: 5,          // -42.5: a close pass ~-28 dB
-  thunderNear: 0.8, // -25, peak -0.6 (the limiter catches the crack)
-  thunderFar: 1.5,  // -32
+  thunderNear: 0.5, // -25, peak -0.6 (the limiter catches the crack)
+  thunderFar: 0.95, // -32
   crowd: 4,         // -40: full nightlife ~-28 dB
   future: 2.5,      // -44: a faint layer, ~-36 dB
   club: 3,          // -36, almost all below 150 Hz: ~-26 dB at the door
