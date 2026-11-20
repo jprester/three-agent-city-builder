@@ -240,7 +240,7 @@ async function main() {
     })
     : null;
 
-  // City sound (src/systems/audio.ts, recorded ambience + procedural layers): starts muted, the button or M turns it on (browsers
+  // City sound (src/systems/audio.ts, recorded layers driven by the scene): starts muted, the button or M turns it on (browsers
   // need a gesture). Hidden in automated runs so screenshots stay clean.
   const audio = createCityAudio(layout);
   if (!navigator.webdriver) {

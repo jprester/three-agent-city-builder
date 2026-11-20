@@ -39,8 +39,9 @@ binary in `public/` is regenerated from them.
   GPU-compressed KTX2 in `public/textures/` (a few minutes the first time, then only what
   changed). `npm run dev`, `npm run build` and the Playwright runs call it first. The outputs
   are committed, like the GLBs.
-- `npm run audio` copies the recorded ambience (`art/external/audio/*.opus`) to `public/audio/` with an
-  AAC `.m4a` fallback (needs ffmpeg). Outputs are committed; `src/systems/audio.ts` crossfades the clips.
+- `npm run audio` encodes the city sound (`art/external/audio/*.opus|mp3`: ElevenLabs ambience and effects)
+  to `public/audio/` as Opus with an AAC `.m4a` fallback (needs ffmpeg with libopus). Outputs are committed;
+  `src/systems/audio.ts` plays them, driven by rain, cars, lightning and signals. No synthesized sound.
 - `npm run facades:bake [-- <bundle> [<style id>]]` models the tower facade styles of each
   `art/facades/<bundle>.json` (baked_osaka, baked_glass, baked_sky, baked) in Blender and renders their maps straight
   on (Cycles, ~1.5 min for 7), then packs `art/textures/facades/<bundle>/` + `<bundle>.json` (exact grids and glass
