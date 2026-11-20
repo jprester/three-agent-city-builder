@@ -1,7 +1,5 @@
 import * as THREE from 'three';
-import { SIGNAL } from '../../art/layouts/lib/traffic.mjs';
 import { lightningAt } from '../scene/lightning';
-import type { Layout } from './layout';
 
 /**
  * City sound with the Web Audio API, all of it recorded (public/audio/, from art/external/audio via
@@ -12,9 +10,7 @@ import type { Layout } from './layout';
  *  - tyre hiss: a seamless loop whose level and pan follow the nearest simulated cars on the
  *    wet road, so each close pass swooshes by;
  *  - thunder: a near or far roll a few seconds after each lightning flash (src/scene/lightning.ts),
- *    the near one for short delays, louder the shorter the delay;
- *  - crossing chirps: the "piyo piyo" loop of a Japanese pedestrian signal, heard near a junction
- *    while its crossing is green, panned toward it.
+ *    the near one for short delays, louder the shorter the delay.
  * Browsers only start audio after a user gesture, so it begins muted; `toggle()` (button, M key)
  * turns it on and loads the files. Nothing here affects rendering or the deterministic simulation.
  */
@@ -32,23 +28,21 @@ const MIX = {
   ambience: 5,      // -42: the bed, ~-28 dB
   rain: 2.5,        // -42.5: at full rain and street level ~-34 dB, under the ambience
   tyre: 5,          // -42.5: a close pass ~-28 dB
-  chirp: 1.2,       // -30, chirps peak ~-22
   thunderNear: 0.8, // -25, peak -0.6 (the limiter catches the crack)
   thunderFar: 1.5,  // -32
 };
 /** Crossfade between consecutive ambience clips, seconds. */
 const AMBIENCE_FADE = 4;
 
-export function createCityAudio(layout: Layout | null) {
+export function createCityAudio() {
   let ctx: AudioContext | null = null;
   let master: GainNode;
-  let ambience: GainNode, rain: GainNode, tyre: GainNode, tyrePan: StereoPannerNode, chirp: GainNode, chirpPan: StereoPannerNode;
+  let ambience: GainNode, rain: GainNode, tyre: GainNode, tyrePan: StereoPannerNode;
   let ambienceClips: AudioBuffer[] = [];
   let thunderNear: AudioBuffer | null = null, thunderFar: AudioBuffer | null = null;
   let clipAt = 0, clipIndex = 0;
   let on = false;
   let lastFlash = 0, strikes = 0;
-  const signals = layout?.signals ?? [];
   const eye = new THREE.Vector3(), fwd = new THREE.Vector3(), right = new THREE.Vector3();
 
   const gainNode = (out: AudioNode, value = 0) => {
@@ -101,12 +95,9 @@ export function createCityAudio(layout: Layout | null) {
     rain = gainNode(master);
     tyrePan = panner(master);
     tyre = gainNode(tyrePan);
-    chirpPan = panner(master);
-    chirp = gainNode(chirpPan);
     void Promise.all(['city-night-a', 'city-night-b'].map(load)).then((b) => { ambienceClips = b.filter((x): x is AudioBuffer => x !== null); });
     void loop('rain-loop', rain);
     void loop('tyre-hiss', tyre);
-    void loop('crossing-chirp', chirp);
     void load('thunder-near').then((b) => { thunderNear = b; });
     void load('thunder-far').then((b) => { thunderFar = b; });
   }
@@ -195,26 +186,6 @@ export function createCityAudio(layout: Layout | null) {
         thunder(now + delay, 1 - (delay - 1.5) / 5.5);
       }
       lastFlash = flash;
-
-      // Crossing chirps: the nearest signal within 45 m, while its crossing (the other phase) is green.
-      let chirpLevel = 0;
-      if (height < 25) {
-        let best: (typeof signals)[number] | null = null, bd = 45;
-        for (const s of signals) {
-          const d = Math.hypot(s[0] - eye.x, s[1] - eye.z);
-          if (d < bd) { bd = d; best = s; }
-        }
-        if (best) {
-          const t = (((f.time + best[3] * SIGNAL.period) % SIGNAL.period) + SIGNAL.period) % SIGNAL.period;
-          const carsGo = best[4] === 0 ? t : t - (SIGNAL.green + SIGNAL.amber);
-          const crossing = !(carsGo >= 0 && carsGo < SIGNAL.green + SIGNAL.amber);
-          if (crossing) {
-            chirpLevel = MIX.chirp * (1 - bd / 45);
-            chirpPan.pan.setTargetAtTime(panOf(best[0], best[1]), now, 0.2);
-          }
-        }
-      }
-      chirp.gain.setTargetAtTime(chirpLevel, now, 0.08);
     },
   };
 }
