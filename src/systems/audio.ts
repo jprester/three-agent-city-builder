@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { lightningAt } from '../scene/lightning';
+import type { Layout } from './layout';
 
 /**
  * City sound with the Web Audio API, all of it recorded (public/audio/, from art/external/audio via
@@ -10,13 +11,19 @@ import { lightningAt } from '../scene/lightning';
  *  - tyre hiss: a seamless loop whose level and pan follow the nearest simulated cars on the
  *    wet road, so each close pass swooshes by;
  *  - thunder: a near or far roll a few seconds after each lightning flash (src/scene/lightning.ts),
- *    the near one for short delays, louder the shorter the delay.
+ *    the near one for short delays, louder the shorter the delay;
+ *  - nightlife: where street-level shop signs crowd together (the hero avenue most of all), a
+ *    crowd murmur and soft futuristic tones swell; around a dozen venues picked from the densest
+ *    sign clusters play muffled club, bar or arcade sound, louder as you pass and panned toward
+ *    them (clubs and bars mostly quiet by day). All of it fades out with height.
  * Browsers only start audio after a user gesture, so it begins muted; `toggle()` (button, M key)
  * turns it on and loads the files. Nothing here affects rendering or the deterministic simulation.
  */
 export interface AudioFrame {
   time: number;
   camera: THREE.Camera;
+  /** ?light=day: clubs and bars mostly quiet. */
+  day: boolean;
   /** Rain strength 0..1 (src/scene/night.ts). */
   rain: number;
   /** Nearest road cars: x, z, heading sin, cos (length 2 = braking; zero = none). */
@@ -30,14 +37,75 @@ const MIX = {
   tyre: 5,          // -42.5: a close pass ~-28 dB
   thunderNear: 0.8, // -25, peak -0.6 (the limiter catches the crack)
   thunderFar: 1.5,  // -32
+  crowd: 4,         // -40: full nightlife ~-28 dB
+  future: 2.5,      // -44: a faint layer, ~-36 dB
+  club: 3,          // -36, almost all below 150 Hz: ~-26 dB at the door
+  bar: 4.5,         // -41
+  arcade: 0.45,     // -21: the loudest file
 };
+/** Venue kinds, assigned in turn to the densest sign clusters; each is one loop in public/audio/. */
+const VENUES = ['club', 'bar', 'arcade'] as const;
+type Venue = (typeof VENUES)[number];
+/** Nightlife field: σ of the sign-density blur, its grid cell (m), venue count and spacing (m). */
+const NIGHTLIFE = { sigma: 40, cell: 20, venues: 12, spacing: 55, from: 0.45, full: 0.95 };
+
+/**
+ * Street-level sign density on a grid, normalised to its peak, plus the venue spots: the
+ * densest signs at least `spacing` apart, kinds in turn. Deterministic for a layout.
+ */
+function nightlifeOf(layout: Layout | null) {
+  const pts = (layout?.signs ?? [])
+    .filter((s) => (s.zone ?? 'street') === 'street' && s.position[1] < 20)
+    .map((s) => [s.position[0], s.position[2]] as const);
+  if (!pts.length) return null;
+  const { sigma, cell } = NIGHTLIFE;
+  const reach = 3 * sigma;
+  const x0 = Math.min(...pts.map((p) => p[0])) - reach, z0 = Math.min(...pts.map((p) => p[1])) - reach;
+  const nx = Math.ceil((Math.max(...pts.map((p) => p[0])) + reach - x0) / cell) + 1;
+  const nz = Math.ceil((Math.max(...pts.map((p) => p[1])) + reach - z0) / cell) + 1;
+  const density = (x: number, z: number) => {
+    let d = 0;
+    for (const [px, pz] of pts) {
+      const dx = px - x, dz = pz - z;
+      if (Math.abs(dx) < reach && Math.abs(dz) < reach) d += Math.exp(-(dx * dx + dz * dz) / (2 * sigma * sigma));
+    }
+    return d;
+  };
+  const grid = new Float32Array(nx * nz);
+  let peak = 0;
+  for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
+    const d = density(x0 + i * cell, z0 + j * cell);
+    grid[j * nx + i] = d;
+    peak = Math.max(peak, d);
+  }
+  for (let k = 0; k < grid.length; k++) grid[k] /= peak;
+  /** Bilinear density 0..1 at (x, z); 0 outside the grid. */
+  const at = (x: number, z: number) => {
+    const fx = (x - x0) / cell, fz = (z - z0) / cell;
+    const i = Math.floor(fx), j = Math.floor(fz);
+    if (i < 0 || j < 0 || i >= nx - 1 || j >= nz - 1) return 0;
+    const tx = fx - i, tz = fz - j, k = j * nx + i;
+    return (grid[k] * (1 - tx) + grid[k + 1] * tx) * (1 - tz) + (grid[k + nx] * (1 - tx) + grid[k + nx + 1] * tx) * tz;
+  };
+  const venues: { x: number; z: number; kind: Venue }[] = [];
+  const ranked = pts.map(([x, z]) => ({ x, z, d: density(x, z) })).sort((a, b) => b.d - a.d);
+  for (const p of ranked) {
+    if (venues.length >= NIGHTLIFE.venues) break;
+    if (venues.some((v) => Math.hypot(v.x - p.x, v.z - p.z) < NIGHTLIFE.spacing)) continue;
+    venues.push({ x: p.x, z: p.z, kind: VENUES[venues.length % VENUES.length] });
+  }
+  return { at, venues };
+}
 /** Crossfade between consecutive ambience clips, seconds. */
 const AMBIENCE_FADE = 4;
 
-export function createCityAudio() {
+export function createCityAudio(layout: Layout | null) {
   let ctx: AudioContext | null = null;
   let master: GainNode;
   let ambience: GainNode, rain: GainNode, tyre: GainNode, tyrePan: StereoPannerNode;
+  let crowd: GainNode, future: GainNode;
+  const venue = {} as Record<Venue, { gain: GainNode; pan: StereoPannerNode }>;
+  let nightlife: ReturnType<typeof nightlifeOf> = null;
   let ambienceClips: AudioBuffer[] = [];
   let thunderNear: AudioBuffer | null = null, thunderFar: AudioBuffer | null = null;
   let clipAt = 0, clipIndex = 0;
@@ -98,6 +166,16 @@ export function createCityAudio() {
     void Promise.all(['city-night-a', 'city-night-b'].map(load)).then((b) => { ambienceClips = b.filter((x): x is AudioBuffer => x !== null); });
     void loop('rain-loop', rain);
     void loop('tyre-hiss', tyre);
+    crowd = gainNode(master);
+    future = gainNode(master);
+    void loop('crowd-loop', crowd);
+    void loop('future-tones', future);
+    for (const kind of VENUES) {
+      const pan = panner(master);
+      venue[kind] = { gain: gainNode(pan), pan };
+      void loop(`${kind}-loop`, venue[kind].gain);
+    }
+    nightlife = nightlifeOf(layout);
     void load('thunder-near').then((b) => { thunderNear = b; });
     void load('thunder-far').then((b) => { thunderFar = b; });
   }
@@ -186,6 +264,25 @@ export function createCityAudio() {
         thunder(now + delay, 1 - (delay - 1.5) / 5.5);
       }
       lastFlash = flash;
+
+      // Nightlife: the bed swells with the sign density here; venues by distance (incl. height).
+      const lift = Math.exp(-height / 30);
+      const dense = nightlife ? nightlife.at(eye.x, eye.z) : 0;
+      const n = THREE.MathUtils.smoothstep(dense, NIGHTLIFE.from, NIGHTLIFE.full) * lift;
+      crowd.gain.setTargetAtTime(MIX.crowd * n, now, 0.6);
+      future.gain.setTargetAtTime(MIX.future * n, now, 0.6);
+      for (const kind of VENUES) {
+        let lv = 0, pn = 0;
+        for (const v of nightlife?.venues ?? []) {
+          if (v.kind !== kind) continue;
+          const d = Math.hypot(v.x - eye.x, v.z - eye.z, height);
+          const w = 1 / (1 + (d / 8) ** 2);        // ~0.7 at the door, -17 dB at 20 m
+          lv += w; pn += w * panOf(v.x, v.z);
+        }
+        const dayQuiet = f.day && kind !== 'arcade' ? 0.25 : 1;
+        venue[kind].gain.gain.setTargetAtTime(Math.min(1, lv) * MIX[kind] * dayQuiet, now, 0.3);
+        venue[kind].pan.pan.setTargetAtTime(lv > 1e-3 ? pn / lv : 0, now, 0.3);
+      }
     },
   };
 }

@@ -242,7 +242,7 @@ async function main() {
 
   // City sound (src/systems/audio.ts, recorded layers driven by the scene): starts muted, the button or M turns it on (browsers
   // need a gesture). Hidden in automated runs so screenshots stay clean.
-  const audio = createCityAudio();
+  const audio = createCityAudio(layout);
   if (!navigator.webdriver) {
     const button = document.createElement('button');
     button.id = 'sound';
@@ -306,7 +306,7 @@ async function main() {
     } else {
       groundUniforms.uRain.value = 0;
     }
-    audio.update({ time: now, camera, rain: day ? 0 : n.rain, cars: groundUniforms.uCars.value });
+    audio.update({ time: now, camera, day, rain: day ? 0 : n.rain, cars: groundUniforms.uCars.value });
     renderer.info.reset();
     // The reflection is half resolution and smeared: simplified buildings from 1/4 the distance.
     facadeLod?.update(camera, REFLECTION_LOD_BIAS * quality.lodDistanceScale, true);
