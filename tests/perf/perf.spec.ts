@@ -23,6 +23,8 @@ const VIEWS = process.env.PERF_VIEWS?.split(',') ?? ['canyon', 'storefront', 'ae
 const DPR = Number(process.env.PERF_DPR ?? 2);
 const QUALITY = process.env.PERF_QUALITY ?? 'high';
 const FRAMES = 120;
+/** HAZE=full: the original full-resolution haze march (?haze=full), into build/perf/report-hazefull.json. */
+const HAZE = process.env.HAZE ?? '';
 /** The memory budget is set for the default measurement (2x, high); other settings only report. */
 const MAX_GPU_PROCESS_MB: number | undefined = DPR === 2 && QUALITY === 'high'
   ? JSON.parse(readFileSync('pipeline.config.json', 'utf8')).scene.maxGpuProcessMB
@@ -91,7 +93,7 @@ function gpuFootprint(): number | null {
 for (const view of VIEWS) {
   test(`perf @ ${view}`, async ({ page }) => {
     test.setTimeout(120_000);
-    await page.goto(`/?viewpoint=${view}&dynres=0&quality=${QUALITY}`);
+    await page.goto(`/?viewpoint=${view}&dynres=0&quality=${QUALITY}${HAZE ? `&haze=${HAZE}` : ''}`);
     await page.waitForFunction(() => window.__READY === true, undefined, { timeout: 90_000 });
     // Warm up: a cold first page (shader compiles, uploads, the dev server's first transforms)
     // measured up to 4× slower than steady state.
@@ -111,7 +113,7 @@ for (const view of VIEWS) {
     report[view] = r;
     console.log(`${view.padEnd(12)} GPU ${r.gpuMs.fast} ms fast (p50 ${r.gpuMs.p50}, p95 ${r.gpuMs.p95})  late ${latePct} %  CPU ${r.cpuMs.p50} ms (p95 ${r.cpuMs.p95})  heap ${heap} MB  GPU process ${r.gpuProcessMB ?? '?'} MB`);
     mkdirSync('build/perf', { recursive: true });
-    writeFileSync('build/perf/report.json', JSON.stringify({ resolution: `1440x900@${DPR}x`, quality: QUALITY, views: report }, null, 2) + '\n');
+    writeFileSync(`build/perf/report${HAZE ? `-haze${HAZE}` : ''}.json`, JSON.stringify({ resolution: `1440x900@${DPR}x`, quality: QUALITY, haze: HAZE || 'half', views: report }, null, 2) + '\n');
     expect.soft(r.gpuMs.fast, `${view}: GPU frame at full clock over the 60 fps budget`).toBeLessThan(16.7);
     expect.soft(latePct, `${view}: more than 5 % of frames arrived late`).toBeLessThanOrEqual(5);
     if (MAX_GPU_PROCESS_MB !== undefined && r.gpuProcessMB !== null) {

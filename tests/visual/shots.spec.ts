@@ -22,7 +22,9 @@ const LAYOUT = process.env.LAYOUT ?? 'city';
 const LIGHT = process.env.LIGHT ?? 'night';
 /** Shots freeze the shared clock here, so animated scenes are comparable between runs. */
 const FROZEN_TIME = 12;
-const OUT_DIR = `build/shots/${LAYOUT}${LIGHT === 'night' ? '' : `-${LIGHT}`}`;
+/** HAZE=full: the original full-resolution haze march (?haze=full), into build/shots/<layout>-hazefull/. */
+const HAZE = process.env.HAZE ?? '';
+const OUT_DIR = `build/shots/${LAYOUT}${LIGHT === 'night' ? '' : `-${LIGHT}`}${HAZE ? `-haze${HAZE}` : ''}`;
 const INFO_FILE = `${OUT_DIR}/info.json`;
 
 type Shot = SceneStats & { frameMs: { avg: number; p95: number } };
@@ -53,7 +55,7 @@ for (const vp of VIEWPOINTS) {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
-    await page.goto(`/?layout=${LAYOUT}&viewpoint=${vp.name}&t=${vp.t ?? FROZEN_TIME}&dynres=0&light=${LIGHT}`);
+    await page.goto(`/?layout=${LAYOUT}&viewpoint=${vp.name}&t=${vp.t ?? FROZEN_TIME}&dynres=0&light=${LIGHT}${HAZE ? `&haze=${HAZE}` : ''}`);
     await page.waitForFunction(() => window.__READY === true, undefined, { timeout: 90_000 });
 
     // Frame time over ~1.5 s of the running loop (a rough GPU-load signal, vsync-capped).

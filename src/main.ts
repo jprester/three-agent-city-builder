@@ -214,7 +214,7 @@ async function main() {
   facadeUniforms.uGlassEnv.value = captureGlassEnvironment(renderer, scene, layout, [streets, ...(rain ? [rain] : [])]);
   facadeUniforms.uGlassOn.value = 1;
 
-  const haze = lamps && !day ? new CityHazeEffect(camera, lamps.texture, signMap, lamps.rect, clock.uniform, quality.hazeSteps) : undefined;
+  const haze = lamps && !day ? new CityHazeEffect(camera, lamps.texture, signMap, lamps.rect, clock.uniform, quality.hazeSteps, params.get('haze') !== 'full') : undefined;
   const post = createPost(renderer, scene, camera, quality, haze, grade);
   const size = renderer.getDrawingBufferSize(new THREE.Vector2());
   reflection.setSize(size.x, size.y);

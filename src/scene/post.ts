@@ -5,6 +5,7 @@ import {
 } from 'postprocessing';
 import palette from '../../art/style/palette.json';
 import type { QualityPreset } from '../systems/quality';
+import type { Pass } from 'postprocessing';
 
 /** Live settings of the final grade, exposed for `?debug=1`. */
 export interface GradeSettings {
@@ -173,11 +174,12 @@ export interface Post {
  * quality preset turns it off).
  * Half-float buffers throughout. Only one convolution effect per pass, hence three passes.
  */
-export function createPost(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, quality: QualityPreset, haze?: Effect, gradeName: GradeName = 'filmic'): Post {
+export function createPost(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, quality: QualityPreset, haze?: Effect & { march?: Pass | null }, gradeName: GradeName = 'filmic'): Post {
   renderer.toneMapping = THREE.NoToneMapping;
   const composer = new EffectComposer(renderer, { frameBufferType: THREE.HalfFloatType });
   composer.addPass(new RenderPass(scene, camera));
   // Scattered city light first, in HDR, so bloom picks it up.
+  if (haze?.march) composer.addPass(haze.march);
   if (haze) composer.addPass(new EffectPass(camera, haze));
 
   const bloom = new BloomEffect({
