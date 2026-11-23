@@ -3,7 +3,8 @@ import facade from '../../../art/style/facade.json';
 import palette from '../../../art/style/palette.json';
 import interiors from '../../../art/textures/interiors/interiors.json';
 import { GLASS_PROBE_Y } from '../../scene/environment-map';
-import { TOWER_FACADES } from '../textures';
+import { TOWER_FACADES, TOWER_ROOM_ROWS } from '../textures';
+
 
 // Constants the facade shader is built from: surface type ids, cell sizes, palette colours,
 // the tower facade table and the room-card tables, all as GLSL (DEFINES) generated from the
@@ -32,6 +33,11 @@ const TF_RECT = towerFacades.map((t) => `vec4(${t.grid.map(f).join(', ')})`).joi
 const TF_LAYER = TOWER_FACADES.map((t) => t.bundle).join(', ');
 const TF_TINT = towerFacades.map((t) => `vec3(${(t.tint ?? [1, 1, 1]).map(f).join(', ')})`).join(',\n  ');
 const TF_DIM = towerFacades.map((t) => `vec4(${f(t.floor)}, ${f(t.ribbon ? -t.bay : t.bay)}, ${f(t.wrap[0])}, ${f(t.wrap[1])})`).join(',\n  ');
+// Room parallax (surface-towers.ts): each facade's glass opening in its floor/bay cell (left,
+// bottom, width, height as fractions of bay and floor; tools/textures/pack_facades.py) and its
+// room table (first row in uTowerRooms, floors, bays, interiors set: 0 office, 1 residential).
+const TF_OPEN = towerFacades.map((t) => (t.open ? `vec4(${t.open.map(f).join(', ')})` : 'vec4(-1.0)')).join(',\n  ');
+const TF_ROOM = TOWER_FACADES.map((t, i) => `ivec4(${TOWER_ROOM_ROWS[i]}, ${t.facade.floors ?? 0}, ${t.facade.bays ?? 0}, ${t.facade.rooms_set === 'residential' ? 1 : 0})`).join(',\n  ');
 
 // Room cards (art/textures/interiors, npm run interiors): room box (W, H, D, camera distance)
 // and tile rects in texture UVs (u0, v0, u1, v1; the texture loads flipped, so v0 is the
@@ -114,4 +120,10 @@ const vec4 TF_DIM[${TF_COUNT}] = vec4[${TF_COUNT}](
 // Coated glass reflects in its own hue (art/facades/<bundle>.json glass, packed as tint).
 const vec3 TF_TINT[${TF_COUNT}] = vec3[${TF_COUNT}](
   ${TF_TINT});
+// Glass opening per facade (left, bottom, width, height of the cell; negative: no parallax) and
+// its room table (first row, floors, bays, set).
+const vec4 TF_OPEN[${TF_COUNT}] = vec4[${TF_COUNT}](
+  ${TF_OPEN});
+const ivec4 TF_ROOM[${TF_COUNT}] = ivec4[${TF_COUNT}](
+  ${TF_ROOM});
 `;

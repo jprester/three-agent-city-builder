@@ -7,7 +7,7 @@ import { SURFACE_TOWERS } from './facade/surface-towers';
 import { SURFACE_WALLS } from './facade/surface-walls';
 import { VERTEX_GAIT_NORMAL, VERTEX_GAIT_POSITION, VERTEX_INSTANCE, VERTEX_PARS, VERTEX_WORLD } from './facade/vertex';
 import { FRAGMENT_WINDOWS } from './facade/windows';
-import type { FacadeTextures } from './textures';
+import { createTowerRoomTexture, type FacadeTextures } from './textures';
 
 /**
  * The one material for every facade-shaded asset (buildings, and props built from the same
@@ -61,6 +61,8 @@ export interface FacadeUniforms {
   uGlassGain: { value: number };
   /** Room-card atlas behind lit windows (src/materials/textures.ts). */
   uInteriors: { value: THREE.Texture | null };
+  /** Tower facades' lit rooms (createTowerRoomTexture). */
+  uTowerRooms: { value: THREE.Texture | null };
 }
 
 // Fragment declarations, after #include <common>.
@@ -94,6 +96,7 @@ export function createFacadeMaterial(uniforms: FacadeUniforms): THREE.MeshStanda
   return material;
 }
 
+let towerRooms: THREE.DataTexture | undefined;
 export function createFacadeUniforms(time: { value: number }, seed: number, textures: FacadeTextures | null): FacadeUniforms {
   const t = textures;
   return {
@@ -117,5 +120,6 @@ export function createFacadeUniforms(time: { value: number }, seed: number, text
     uGlassOn: { value: 0 },
     uGlassGain: { value: 1.15 },
     uInteriors: { value: t?.interiors ?? null },
+    uTowerRooms: { value: towerRooms ??= createTowerRoomTexture() },
   };
 }

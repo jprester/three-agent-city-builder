@@ -17,6 +17,7 @@ uniform float uGridOverlay;
 uniform highp sampler2DArray uTowerDiff, uTowerEmit, uTowerNorm;
 uniform sampler2D uWalls;
 uniform sampler2D uInteriors;
+uniform highp sampler2D uTowerRooms;
 uniform sampler2D uSignMap;
 uniform sampler2D uScreens;
 uniform samplerCube uGlassEnv;

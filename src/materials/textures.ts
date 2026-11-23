@@ -22,6 +22,15 @@ export interface TowerFacade {
   ribbon?: boolean;
   /** Reflection tint of the facade's glass (linear RGB); absent: neutral. */
   tint?: number[];
+  style?: string;
+  floors?: number;
+  bays?: number;
+  /** Glass opening in the cell: left, bottom, width, height (fractions of bay and floor). */
+  open?: number[];
+  /** Interiors set of the rooms (office | residential). */
+  rooms_set?: string;
+  /** Per window, floor-major from the bottom: [warm, card, gain, index in room, windows in room, blind]; null: unlit. */
+  rooms?: (number[] | null)[];
 }
 export const TOWER_BUNDLE_NAMES = ['baked_osaka', 'baked_glass', 'baked_sky', 'baked'];
 
@@ -36,6 +45,34 @@ export const TOWER_FACADES: { bundle: number; slot: number; name: string; facade
   ...TOWER_BUNDLES.flatMap((b, bundle) => b.facades.slice(0, TOWER_POOL).map((facade, slot) => ({ bundle, slot, facade }))),
   ...TOWER_BUNDLES.flatMap((b, bundle) => b.facades.slice(TOWER_POOL).map((facade, i) => ({ bundle, slot: TOWER_POOL + i, facade }))),
 ].map((t) => ({ ...t, name: `${['b2', 'bg', 'bs', 'bk'][t.bundle]}${t.slot}` }));
+
+/**
+ * The tower facades' lit rooms (tools/textures/pack_facades.py) as an RGBA8 table for the room
+ * parallax in src/materials/facade/surface-towers.ts: one row per facade floor (TOWER_ROOM_ROWS
+ * gives each facade's first row), two texels per bay: (lit*128 + warm*64 + card, gain*255,
+ * index in room, windows in room) and (blind share*255, 0, 0, 0).
+ */
+export const TOWER_ROOM_ROWS: number[] = TOWER_FACADES.map((_, i) =>
+  TOWER_FACADES.slice(0, i).reduce((n, t) => n + (t.facade.floors ?? 1), 0));
+export function createTowerRoomTexture(): THREE.DataTexture {
+  const width = 2 * Math.max(1, ...TOWER_FACADES.map((t) => t.facade.bays ?? 1));
+  const rows = TOWER_FACADES.reduce((n, t) => n + (t.facade.floors ?? 1), 0);
+  const data = new Uint8Array(width * rows * 4);
+  TOWER_FACADES.forEach((t, i) => {
+    const { floors = 0, bays = 0, rooms = [] } = t.facade;
+    for (let fl = 0; fl < floors; fl++) for (let b = 0; b < bays; b++) {
+      const r = rooms[fl * bays + b];
+      if (!r) continue;
+      const [warm, card, gain, idx, n, blind] = r;
+      const at = ((TOWER_ROOM_ROWS[i] + fl) * width + 2 * b) * 4;
+      data.set([128 + warm * 64 + card, Math.round(Math.min(1, gain) * 255), idx, n], at);
+      data[at + 4] = Math.round(blind * 255);
+    }
+  });
+  const tex = new THREE.DataTexture(data, width, rows, THREE.RGBAFormat, THREE.UnsignedByteType);
+  tex.needsUpdate = true;
+  return tex;
+}
 
 export interface FacadeTextures {
   /** One layer per bundle: diffuse (sRGB RGB) + roughness (A). */

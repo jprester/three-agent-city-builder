@@ -132,13 +132,23 @@ def patches(rng, layout, h, w):
     return tone[ys[:, None], xs[None, :]]
 
 
-def emissive(rng, layout, glass, blind, cards, room_width):
+def card_norm(card):
+    """fit_card's brightness cap for a whole card (its crops differ only slightly)."""
+    room = lin(np.asarray(card, dtype=np.float32) / 255.0)
+    return min(1.0, 0.75 / max(float(np.percentile(room.mean(axis=2), 98)), 1e-3))
+
+
+def emissive(rng, layout, glass, blind, cards, room_width, records=None):
     """Lit rooms in the cell (linear RGB). Each floor is split into rooms several bays wide
     (`room_width`, metres: open-plan offices wider than flats); a room is lit or dark as a whole,
     so one light source shows in every window of it: one room card across the whole room (the
     interior continues from window to window), one tint, brightness falling off from where the
     light is. The windows next to a lit room catch a faint spill from its side. Rooms wrap
-    across the cell's edge like the facade does."""
+    across the cell's edge like the facade does.
+
+    `records` (a dict) receives each lit window's room for the shader's room parallax:
+    (floor, bay) -> (warm, card index, gain incl. the card's brightness cap, index in the room,
+    room size in windows, blind share). Recording draws nothing from `rng`."""
     ch_, cw_ = layout["cell"][1], layout["cell"][0]
     out = np.zeros((ch_, cw_, 3), dtype=np.float32)
     warm, cool = np.array([1.0, 0.74, 0.48]), np.array([0.9, 0.95, 1.0])
@@ -157,14 +167,18 @@ def emissive(rng, layout, glass, blind, cards, room_width):
         lit = [rng.random() < LIT_SHARE for _ in rooms]
         # Each lit room's light: tint, gain and room card (dark rooms draw theirs too, unused,
         # so the stream does not depend on which rooms are lit).
-        light = [(warm if rng.random() < 0.7 else cool, rng.uniform(0.4, 0.75), cards[rng.integers(len(cards))])
-                 for _ in rooms]
+        light = []
+        for _ in rooms:
+            t = warm if rng.random() < 0.7 else cool
+            g = rng.uniform(0.4, 0.75)
+            k = int(rng.integers(len(cards)))
+            light.append((t, g, cards[k], k))
         for r, (members, on) in enumerate(zip(rooms, lit)):
             wins = [row[j] for j in members if j in row]
             if not wins:
                 continue
             if on:
-                tint, gain, card = light[r]
+                tint, gain, card, card_k = light[r]
                 # The light sits somewhere along the room; windows further off get less of it.
                 src = rng.uniform(0.2, 0.8) * len(wins)
                 span = fit_card(card, max(2, int(round(sum(w["px"][2] - w["px"][0] for w in wins)))),
@@ -180,6 +194,8 @@ def emissive(rng, layout, glass, blind, cards, room_width):
                         piece = fit_card(card, x1 - x0, y1 - y0)
                     d = abs(i + 0.5 - src) / max(1.0, len(wins) / 2)
                     g = gain * (0.55 + 0.45 * np.exp(-2.0 * d * d)) * rng.uniform(0.9, 1.1)
+                    if records is not None:
+                        records[(w["floor"], w["bay"])] = (tint is warm, card_k, g * card_norm(card), i, len(wins), w["blind"])
                     col = piece * tint * g
                     # A lit blind glows in the room's light, dimmer than the open glass, in slats.
                     b = blind[y0:y1, x0:x1, :1]
@@ -191,7 +207,7 @@ def emissive(rng, layout, glass, blind, cards, room_width):
                 for side, nb in ((-1, r - 1), (1, r + 1)):
                     if len(rooms) < 2 or not lit[nb % len(rooms)]:
                         continue
-                    t_, g_, card_ = light[nb % len(rooms)]
+                    t_, g_, card_, _ = light[nb % len(rooms)]
                     w = wins[0] if side < 0 else wins[-1]
                     x0, y0, x1, y1 = (int(round(v)) for v in w["px"])
                     if x1 - x0 < 2 or y1 - y0 < 2:
@@ -240,7 +256,8 @@ def main(def_path, bake_dir, name="baked"):
         diff[y0:y0 + ch_, x0:x0 + cw_, 3] = g1 * rough + (1.0 - g1) * np.maximum(rough, WALL_ROUGH_MIN)
         norm[y0:y0 + ch_, x0:x0 + cw_] = tangent * 0.5 + 0.5
         room_width = style.get("room_width", [3.0, 7.0] if style.get("rooms") == "residential" else [5.0, 14.0])
-        emit[y0:y0 + ch_, x0:x0 + cw_] = srgb(emissive(rng, layout, glass, blind, cards, room_width))
+        records = {}
+        emit[y0:y0 + ch_, x0:x0 + cw_] = srgb(emissive(rng, layout, glass, blind, cards, room_width, records))
 
         gx0, gy0, gx1, gy1 = layout["grid"]
         rect = [x0 / SIZE, y0 / SIZE, (x0 + cw_) / SIZE, (y0 + ch_) / SIZE]
@@ -252,6 +269,18 @@ def main(def_path, bake_dir, name="baked"):
             "grid": grid, "wrap": [grid[2] - grid[0], grid[3] - grid[1]],
             "floors": layout["floors"], "bays": layout["bays"], "ribbon": False,
         }
+        # Room parallax (src/materials/facade/surface-towers.ts): the glass opening in the cell
+        # (left, bottom, width, height as fractions of the bay and floor, from bay 0 / floor 0)
+        # and, per window (floor-major from the bottom, bays from the left), its lit room:
+        # [warm, card, gain, index in room, windows in room, blind share]; null: not lit.
+        w0 = next(w for w in layout["windows"] if w["floor"] == 0 and w["bay"] == 0)
+        px0, py0, px1, py1 = w0["px"]
+        entry["open"] = [round((px0 - gx0) / layout["bay"], 4), round((gy1 - py1) / layout["floor"], 4),
+                         round((px1 - px0) / layout["bay"], 4), round((py1 - py0) / layout["floor"], 4)]
+        entry["rooms_set"] = style.get("rooms", "office")
+        entry["rooms"] = [[int(rec[0]), rec[1], round(float(rec[2]), 3), rec[3], rec[4], round(float(rec[5]), 3)] if rec else None
+                          for f in range(layout["floors"]) for b in range(layout["bays"])
+                          for rec in [records.get((f, b))]]
         if "glass" in style:
             # Coated glass reflects in its own hue: the glass colour normalised to its brightest
             # channel, at glass_reflect strength (default 0.5), multiplies the shader's reflection.

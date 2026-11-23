@@ -33,6 +33,7 @@ export const SURFACE_TOWERS = /* glsl */ `if (fType == T_ATLAS) {
   float pane = fHash(floor(fUv / CELL_CURTAIN) + fSeed * 13.0);
   fRough = clamp(dr.a + (pane - 0.5) * 0.08, 0.12, 0.95);
   fMetal = (1.0 - dr.a) * 0.4;
+  float glassAmt0 = 1.0 - smoothstep(0.3, 0.6, dr.a);
   float floorId = floor(L.y / Dm.x);
   // Not every floor is occupied: dark floors, then a slower per-bay variation so a whole
   // facade does not pulse as one sheet. Both fade to their mean before they alias.
@@ -50,6 +51,44 @@ export const SURFACE_TOWERS = /* glsl */ `if (fType == T_ATLAS) {
   float groupOn = step(0.15, fHash(vec2(groupId, fSeed * 43.0 + 7.0)));
   float group = mix(0.12, 1.0, groupOn);
   floorLit *= mix(group, 0.78, smoothstep(0.35, 0.9, fFw.y / floorM));
+  // Room parallax: close up, a lit pane shows its room interior-mapped (common.ts interior())
+  // instead of the flat picture baked into the emissive map, so the room has depth from every
+  // angle. The room is the one the bake drew there (tools/textures/pack_facades.py: uTowerRooms
+  // holds each window's room card, tint, gain and place in a room several windows wide), so near
+  // and far agree. The card's room box spans the room's windows, as for the low-rise offices.
+  // Blinds and curtains stay as baked (they hang at the glass), as do dark rooms with their
+  // spill; mullions, frames and AC units keep the map (glass only). Fades to the baked map once
+  // a pane is a few pixels across.
+  vec4 open = TF_OPEN[fi];
+  ivec4 rt = TF_ROOM[fi];
+  if (open.x >= 0.0 && hasBays && rt.y > 0) {
+    float bayW = Dm.y / perM, floorH = Dm.x / perM;
+    float gW = open.z * bayW, oH = open.w * floorH;
+    vec2 cellId = floor(L / Dm.yx);
+    vec2 q = ((L - cellId * Dm.yx) / Dm.yx - open.xy) / open.zw;   // 0..1 across the opening
+    float paneFade = (1.0 - smoothstep(0.08, 0.25, max(fFw.x / gW, fFw.y / oH))) * smoothstep(0.6, 0.95, glassAmt0);
+    if (paneFade > 0.0 && q.x >= 0.0 && q.x <= 1.0 && q.y >= 0.0 && q.y <= 1.0) {
+      int fl = int(mod(cellId.y, float(rt.y))), bay = int(mod(cellId.x, float(rt.z)));
+      ivec2 tx = ivec2(2 * bay, rt.x + fl);
+      vec4 r0 = texelFetch(uTowerRooms, tx, 0);
+      float blind = texelFetch(uTowerRooms, tx + ivec2(1, 0), 0).x;
+      int code = int(r0.x * 255.0 + 0.5);
+      // Venetian blinds hang from the top of the pane: the room shows below them.
+      if (code >= 128 && blind < 0.99 && q.y < 1.0 - blind - 0.02) {
+        int card = code & 63;
+        bool res = rt.w == 1;
+        vec4 box = res ? RES_BOX : OFF_BOX;
+        vec4 tile = res ? RES_TILES[min(card, RES_CARDS - 1)] : OFF_TILES[min(card, OFF_CARDS - 1)];
+        float n = max(r0.w * 255.0, 1.0);
+        float x = (r0.z * 255.0 + q.x) / n * box.x;
+        float y = min(q.y * oH + max(0.15, (box.y - oH) * 0.5), box.y - 0.05);
+        float pxPerM = (res ? RES_PX_M : OFF_PX_M) * n * gW / box.x;
+        vec3 roomCol = interior(box, tile, vec2(x, y), fVt, pxPerM, fFw);
+        vec3 tint = (code & 64) != 0 ? vec3(1.0, 0.74, 0.48) : vec3(0.9, 0.95, 1.0);
+        em = mix(em, roomCol * tint * r0.y * 0.85, paneFade);
+      }
+    }
+  }
   fEmit = em * 2.5 * floorLit * bayVar;
   // Spill: the emissive map blurred over ~a bay lights the frames and spandrels around windows.
   // One isotropic lookup in a mip about a bay across (never finer than the pixel's own): a

@@ -44,10 +44,15 @@ tools/blender/bake_facades.py          model each style, render 6 passes straigh
 tools/textures/pack_facades.py         AO, periodic grime, lit rooms (art/textures/interiors), tangent normals
         │                              → art/textures/facades/<bundle>/{diffuse_rough,emissive,normal}.webp
         │                              → art/textures/facades/<bundle>.json (rect, grid, floor, bay, wrap per style)
+        │                                (+ open: the glass opening, rooms: each lit window's room card,
+        │                                tint, gain, place in its room and blind share, for the room parallax)
         ▼
 npm run textures                       KTX2 (art/textures/ktx2.def.json) → public/textures/tower_<bundle>_*.ktx2
         ▼
 src/materials/textures.ts              TOWER_BUNDLES / TOWER_FACADES: one texture-array layer per bundle
+                                       createTowerRoomTexture: the rooms table → uTowerRooms. Close up, the
+                                       facade shader interior-maps lit, blind-free panes from it (surface-towers.ts),
+                                       far away it shows the baked emissive; both show the same room
 src/materials/facade.ts                the "atlas" surface: whole floors and bays per module, lit floors, spill, glass reflection
 ```
 
