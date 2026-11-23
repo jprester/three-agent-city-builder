@@ -42,6 +42,10 @@ binary in `public/` is regenerated from them.
 - `npm run audio` encodes the city sound (`art/external/audio/*.opus|mp3`: ElevenLabs ambience and effects)
   to `public/audio/` as Opus with an AAC `.m4a` fallback (needs ffmpeg with libopus). Outputs are committed;
   `src/systems/audio.ts` plays them, driven by rain, cars and lightning. No synthesized sound.
+- `python3 tools/textures/pack_ground.py` packs the street materials (asphalt, paving: Z-Image Turbo
+  albedo + DeepBump normal and height, `art/external/textures/ground/`, prompts and seeds in its
+  `ground.def.json`) into `art/textures/ground/`; then `npm run textures`. New tileable materials:
+  `img "<material>" --tile -s <seed>`, then `texmaps <file>.png`. Never for tower facades (baked only).
 - `npm run facades:bake [-- <bundle> [<style id>]]` models the tower facade styles of each
   `art/facades/<bundle>.json` (baked_osaka, baked_glass, baked_sky, baked) in Blender and renders their maps straight
   on (Cycles, ~1.5 min for 7), then packs `art/textures/facades/<bundle>/` + `<bundle>.json` (exact grids and glass

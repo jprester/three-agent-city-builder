@@ -65,3 +65,13 @@ export async function loadFacadeTextures(renderer: THREE.WebGLRenderer, anisotro
   ]);
   return { diffuse, emissive, normal, walls, interiors };
 }
+
+/**
+ * Street materials (GROUND_SURFACES in ./ground.ts): albedo + height and normal texture arrays,
+ * one layer per surface, repeating (tools/textures/pack_ground.py, encoded by `npm run textures`).
+ */
+export async function loadGroundTextures(renderer: THREE.WebGLRenderer, layers: string[], anisotropy: number) {
+  const [albedo, normal] = await Promise.all(['albedo', 'normal'].map((kind) => loadKtx2(renderer, layers.map((l) => `ground_${l}_${kind}`), anisotropy)));
+  for (const t of [albedo, normal]) t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return { albedo, normal };
+}

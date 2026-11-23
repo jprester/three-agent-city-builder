@@ -18,7 +18,25 @@ export interface GroundUniforms {
   uRain: { value: number };
   /** 1 by day (src/scene/daylight.ts): night light on the ground fades, the road dries. */
   uDay: { value: number };
+  /** Street materials (GROUND_SURFACES layers): albedo (sRGB RGB, linear mean 0.18) + height (A). */
+  uGroundAlbedo: { value: THREE.Texture | null };
+  /** Street materials: tangent-space normals (x along world x, y along world z). */
+  uGroundNormal: { value: THREE.Texture | null };
 }
+
+/**
+ * Tileable street materials, one texture-array layer each (Z-Image Turbo + DeepBump, see
+ * tools/textures/pack_ground.py), on up-facing faces: `tile` m per repeat, `contrast` of the
+ * albedo detail around the palette colour, `normal` strength. Asphalt has no direction and is
+ * laid in world XZ; paving (2 x 2 slabs of 0.5 m per tile) reads the mesh UVs, which run along
+ * each block's curb (src/scene/streets.ts sidewalkGeometry), so its joints follow the street.
+ */
+export const GROUND_SURFACES = {
+  asphalt: { layer: 0, tile: 3.2, contrast: 0.8, normal: 1.0, meshUv: false },
+  paving: { layer: 1, tile: 1.0, contrast: 0.7, normal: 1.0, meshUv: true },
+} as const;
+export type GroundSurface = (typeof GROUND_SURFACES)[keyof typeof GROUND_SURFACES];
+export const GROUND_LAYERS = Object.keys(GROUND_SURFACES);
 
 /** Vehicles whose headlights light the road (nearest to the camera; see src/systems/vehicles.ts). */
 export const CAR_LIGHTS = 24;
@@ -38,7 +56,8 @@ const v3 = (c: THREE.Color) => `vec3(${c.r.toFixed(4)}, ${c.g.toFixed(4)}, ${c.b
  * lights of the mainland metropolis across the water (see SPRAWL below). `water` makes the
  * surface one clean mirror broken by slow swell, with long vertical streaks of light.
  */
-export function createGroundMaterial(color: THREE.Color, roughness: number, uniforms: GroundUniforms, pool = 1, wet = 1, sprawl = false, water = false): THREE.MeshStandardMaterial {
+export function createGroundMaterial(color: THREE.Color, roughness: number, uniforms: GroundUniforms, pool = 1, wet = 1, sprawl = false, water = false, surface: GroundSurface | null = null): THREE.MeshStandardMaterial {
+  const tex = surface && uniforms.uGroundAlbedo.value && uniforms.uGroundNormal.value ? surface : null;
   const material = new THREE.MeshStandardMaterial({ color, roughness, metalness: 0 });
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
@@ -50,8 +69,8 @@ export function createGroundMaterial(color: THREE.Color, roughness: number, unif
     if (water) shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_maps>',
       '#include <lights_fragment_maps>\nradiance = vec3(0.0);');
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vGWorld;')
-      .replace('#include <project_vertex>', '#include <project_vertex>\nvGWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+      .replace('#include <common>', '#include <common>\nvarying vec3 vGWorld;\nvarying vec2 vGUv;')
+      .replace('#include <project_vertex>', '#include <project_vertex>\nvGWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;\nvGUv = uv;');
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>
 uniform sampler2D uLampMap;
@@ -64,14 +83,24 @@ uniform float uTime;
 uniform vec4 uCars[${CAR_LIGHTS}];
 uniform float uRain;
 uniform float uDay;
+${tex ? 'uniform sampler2DArray uGroundAlbedo;\nuniform sampler2DArray uGroundNormal;' : ''}
 varying vec3 vGWorld;
+varying vec2 vGUv;
 float gHash(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 float gNoise(vec2 p) {
   vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(gHash(i), gHash(i + vec2(1, 0)), f.x), mix(gHash(i + vec2(0, 1)), gHash(i + vec2(1, 1)), f.x), f.y);
 }`)
       .replace('#include <color_fragment>', `#include <color_fragment>
-float gPuddle = smoothstep(0.55, 0.66, gNoise(vGWorld.xz * 0.12) * 0.65 + gNoise(vGWorld.xz * 0.5) * 0.35);
+${tex ? `// Street material (GROUND_SURFACES): on up-facing faces near street level only (not curbs,
+// quay walls or the mainland hills). Albedo detail around the palette colour; its height pools
+// the puddles in the low spots; the normal (below) breaks up light and reflections.
+vec3 gTexUv = vec3(${tex.meshUv ? 'vGUv' : 'vGWorld.xz'} / ${tex.tile.toFixed(2)}, ${tex.layer.toFixed(1)});
+float gTexOn = smoothstep(0.8, 0.95, dot(normalize(vNormal), (viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz)) * (1.0 - smoothstep(0.5, 2.0, vGWorld.y));
+vec4 gAlb = texture(uGroundAlbedo, gTexUv);
+diffuseColor.rgb *= mix(vec3(1.0), gAlb.rgb / 0.18, ${tex.contrast.toFixed(2)} * gTexOn);
+float gLow = (0.5 - gAlb.a) * gTexOn;` : 'float gLow = 0.0;'}
+float gPuddle = smoothstep(0.55, 0.66, gNoise(vGWorld.xz * 0.12) * 0.65 + gNoise(vGWorld.xz * 0.5) * 0.35 + gLow * 0.2);
 // Far away the puddle pattern is sub-pixel: fade to its mean coverage instead of mottling.
 gPuddle = mix(gPuddle, 0.25, smoothstep(0.03, 0.15, length(fwidth(vGWorld.xz * 0.12))));
 ${water ? 'gPuddle = 1.0;' : ''}
@@ -88,9 +117,16 @@ diffuseColor.rgb = mix(diffuseColor.rgb, mix(${v3(new THREE.Color(palette.ridge)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
 // By day the streets are dry (src/scene/daylight.ts): a mirror-smooth puddle on dry paving
 // showed the city cube as a pale lobe with a dark core (day delivery).
+${tex ? '// Grit on the high points stays rougher, the low spots hold a water film.\nroughnessFactor *= 1.0 - gLow * 0.5;' : ''}
 roughnessFactor = mix(roughnessFactor, 0.08, gPuddle * (1.0 - uDay));
 ${sprawl ? `// Hillsides are vegetation, not wet asphalt: matte, or they mirror the haze like the sea.
 roughnessFactor = mix(roughnessFactor, 0.95, smoothstep(2.0, 35.0, vGWorld.y));` : ''}`)
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+${tex ? `// Texture normal (x along world x, y along world z), flattened under standing water.
+vec3 gTn = vec3(texture(uGroundNormal, gTexUv).xy * 2.0 - 1.0, 0.0);
+gTn.z = sqrt(max(1.0 - dot(gTn.xy, gTn.xy), 0.0));   // the normal-map encoding keeps x and y
+gTn.xy *= ${tex.normal.toFixed(2)} * gTexOn * (1.0 - 0.85 * gPuddle * (1.0 - uDay));
+normal = normalize(mix(normal, (viewMatrix * vec4(normalize(vec3(gTn.x, gTn.z, gTn.y)), 0.0)).xyz, gTexOn));` : 'vec3 gTn = vec3(0.0, 0.0, 1.0);'}`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
 // Everything below is night light (lamps, signs, wet reflections, car lights); by day a
 // quarter of it remains (src/scene/daylight.ts).
@@ -114,6 +150,7 @@ float gRing = exp(-pow((gD - gPh * 0.3) / 0.018, 2.0)) * (1.0 - gPh) * gPuddle *
 gRing *= 1.0 - smoothstep(0.02, 0.08, length(fwidth(vGWorld.xz)));   // gone before it aliases
 gRuv += gRing * 0.012;
 gRuv += gN * vec2(mix(0.003, 0.0012, gPuddle), mix(0.012, 0.003, gPuddle));
+gRuv += gTn.xy * vec2(0.002, 0.008) * (1.0 - gPuddle);   // the surface texture scatters the film
 float gSpan = mix(0.08, 0.018, gPuddle);
 ${water ? `// Swell: slow waves stretched across the view wobble the mirror sideways, more upward.
 vec2 gSwell = vec2(gNoise(vGWorld.xz * vec2(0.3, 0.09) + vec2(uTime * 0.22, 0.0)), gNoise(vGWorld.xz * vec2(0.09, 0.3) + vec2(0.0, uTime * 0.18))) - 0.5;
@@ -167,7 +204,7 @@ totalEmissiveRadiance += (vec3(1.0, 0.95, 0.85) * gHeadGlare * 0.9 + ${v3(signRe
 ${sprawl ? SPRAWL : ''}
 totalEmissiveRadiance = gEmitBefore + (totalEmissiveRadiance - gEmitBefore) * (1.0 - 0.75 * uDay);`);
   };
-  material.customProgramCacheKey = () => `ground-${pool}-${wet}-${sprawl}-${water}`;
+  material.customProgramCacheKey = () => `ground-${pool}-${wet}-${sprawl}-${water}-${tex ? tex.layer : -1}`;
   return material;
 }
 
@@ -183,6 +220,8 @@ export function createGroundUniforms(lampRect: { value: THREE.Vector4 }): Ground
     uCars: { value: Array.from({ length: CAR_LIGHTS }, () => new THREE.Vector4()) },
     uRain: { value: 1 },
     uDay: { value: 0 },
+    uGroundAlbedo: { value: null },
+    uGroundNormal: { value: null },
   };
 }
 

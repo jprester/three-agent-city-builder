@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { coastDistance, coastline, seabedHeight } from '../../art/layouts/lib/island.mjs';
 import palette from '../../art/style/palette.json';
-import { createGroundMaterial, type GroundUniforms } from '../materials/ground';
+import { createGroundMaterial, GROUND_SURFACES, type GroundUniforms } from '../materials/ground';
 import type { Layout, Vec2 } from '../systems/layout';
 import { SIDEWALK_HEIGHT } from '../systems/walk';
 
@@ -31,12 +31,12 @@ export function createStreets(layout: Layout | null, uniforms: GroundUniforms): 
     for (let i = 0; i < positions.count; i++) positions.setY(i, seabedHeight(positions.getX(i), positions.getZ(i), island));
     groundGeometry.computeVertexNormals();
   }
-  const groundMaterial = createGroundMaterial(color('road_wet'), 0.35, uniforms, 1, 1, true);
+  const groundMaterial = createGroundMaterial(color('road_wet'), 0.35, uniforms, 1, 1, true, false, GROUND_SURFACES.asphalt);
   const ground = new THREE.Mesh(groundGeometry, groundMaterial);
   ground.name = 'ground';
   group.add(ground);
   // Shared materials: each distinct ground variant is another shader program.
-  const sidewalkMaterial = createGroundMaterial(color('sidewalk'), 0.8, uniforms, 0.8, 0.35);
+  const sidewalkMaterial = createGroundMaterial(color('sidewalk'), 0.8, uniforms, 0.8, 0.35, false, false, GROUND_SURFACES.paving);
   if (island) group.add(...islandMeshes(island, uniforms, groundMaterial, sidewalkMaterial));
   if (!layout) return group;
   const sidewalks = new THREE.Mesh(
@@ -109,17 +109,28 @@ function islandMeshes(island: Island, uniforms: GroundUniforms, land: THREE.Mate
   ];
 }
 
+/**
+ * Raised sidewalks. UVs (meters) run along each block's longest edge from its first corner, so
+ * the paving slabs (GROUND_SURFACES.paving) line up with the curb instead of the world axes.
+ */
 function sidewalkGeometry(polygons: Vec2[][]): THREE.BufferGeometry {
   const pos: number[] = [];
   const nrm: number[] = [];
   const uv: number[] = [];
+  let o: Vec2 = [0, 0], d: Vec2 = [1, 0];
   const vert = (x: number, y: number, z: number, n: THREE.Vector3) => {
     pos.push(x, y, z);
     nrm.push(n.x, n.y, n.z);
-    uv.push(x, z);
+    const rx = x - o[0], rz = z - o[1];
+    uv.push(rx * d[0] + rz * d[1], -rx * d[1] + rz * d[0]);
   };
   const up = new THREE.Vector3(0, 1, 0);
   for (const pts of polygons) {
+    let best = -1;
+    for (let i = 0; i < pts.length; i++) {
+      const a = pts[i], b = pts[(i + 1) % pts.length], l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      if (l > best) { best = l; o = a; d = [(b[0] - a[0]) / l, (b[1] - a[1]) / l]; }
+    }
     // Top: fan over the convex polygon. CCW in (x, z) faces -y, so reverse the winding.
     for (let i = 1; i < pts.length - 1; i++) {
       for (const p of [pts[0], pts[i + 1], pts[i]]) vert(p[0], CURB_HEIGHT, p[1], up);

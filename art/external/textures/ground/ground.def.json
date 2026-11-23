@@ -1,0 +1,19 @@
+{
+  "$comment": "Street material sources (tools/textures/pack_ground.py). Albedo by Z-Image Turbo (`img`, 4-bit mflux, 1024 px), normal and height by DeepBump (`texmaps`). highpass: px of the periodic high-pass on normal and height.",
+  "surfaces": [
+    {
+      "name": "asphalt",
+      "prompt": "old dark grey road asphalt seen from directly above, fine gravel aggregate, small tar-sealed hairline cracks, slightly worn, flat even overcast light",
+      "command": "img \"<prompt>\" --tile -s 22",
+      "notes": "Seamless by image quilting (make-tileable). Seeds 21 and 23 showed darker bands along the quilting seams.",
+      "highpass": 48
+    },
+    {
+      "name": "paving",
+      "prompt": "texture photo, worn grey square concrete paving slabs of a city sidewalk seen from directly above, orthographic, perfectly straight aligned grid of joints parallel to the image edges, dirty grout joints, faint stains, flat even overcast light",
+      "command": "img \"<prompt>\" -s 42, then cropped to 2 x 2 slabs between joint centres (source px x 335.5-1023.5, y 331.3-1023.5) and resized to 1024",
+      "notes": "Not quilted: --tile (seeds 31-33) cut through slabs and stepped the joints at its seam; a crop on joint centres puts the wrap inside a joint. 2 x 2 slabs per tile.",
+      "highpass": 48
+    }
+  ]
+}
