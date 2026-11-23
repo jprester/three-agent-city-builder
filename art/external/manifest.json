@@ -28,7 +28,7 @@
     {
       "files": "art/external/textures/walls.webp, walls.json",
       "source": "material tiles of the osaka and real_glass bundles above",
-      "notes": "Opaque material tiles repacked 4x2.",
+      "notes": "Opaque material tiles repacked 4x2. No longer used at runtime (2026-11-23): replaced by the generated wall atlas, art/textures/walls/ (tools/textures/pack_walls.py); kept as reference.",
       "license": "Owned by the project author (generated artwork), provided for this project on 2026-09-25",
       "attribution": "Project author",
       "importer": "tools/textures/import_highrise.py"
@@ -111,6 +111,14 @@
       "attribution": "Project author (generated with Z-Image Turbo and DeepBump)",
       "importer": "tools/textures/pack_ground.py",
       "notes": "Stored as WebP (quality 95). Packed to art/textures/ground/ (albedo normalised to a linear mean of 0.18, height in alpha) and KTX2-encoded by npm run textures; drawn by the ground shader (src/materials/ground.ts GROUND_SURFACES)."
+    },
+    {
+      "files": "art/external/textures/walls/* (8 wall materials, walls.def.json)",
+      "source": "Generated locally 2026-11-23 with Z-Image Turbo (4-bit mflux build, the `img` command); prompts, seeds and the joint-line crops in art/external/textures/walls/walls.def.json",
+      "license": "Z-Image Turbo: Apache 2.0 upstream (the 4-bit repack is labelled Tongyi-Qianwen license). Generated images owned by the project author",
+      "attribution": "Project author (generated with Z-Image Turbo)",
+      "importer": "tools/textures/pack_walls.py",
+      "notes": "Seamless 1024 px tiles (WebP quality 95): quilted (concretes) or cut between joint centres from untiled takes (tile, formwork, panels, ribs, slate). Packed with wrap-around gutters, matched to the old cells' mean colour and roughness, into art/textures/walls/walls.webp; KTX2 by npm run textures; read by wallSample (src/materials/facade/common.ts)."
     }
   ]
 }

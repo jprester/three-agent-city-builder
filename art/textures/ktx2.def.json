@@ -16,7 +16,7 @@
     { "id": "tower_baked_diffuse", "src": "art/textures/facades/baked/diffuse_rough.webp", "kind": "color" },
     { "id": "tower_baked_emissive", "src": "art/textures/facades/baked/emissive.webp", "kind": "color" },
     { "id": "tower_baked_normal", "src": "art/textures/facades/baked/normal.webp", "kind": "normal" },
-    { "id": "walls", "src": "art/external/textures/walls.webp", "kind": "color" },
+    { "id": "walls", "src": "art/textures/walls/walls.webp", "kind": "color" },
     { "id": "interiors", "src": "art/textures/interiors/interiors.webp", "kind": "color" },
     { "id": "ground_asphalt_albedo", "src": "art/textures/ground/asphalt_albedo.webp", "kind": "color" },
     { "id": "ground_paving_albedo", "src": "art/textures/ground/paving_albedo.webp", "kind": "color" },

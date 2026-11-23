@@ -1,0 +1,197 @@
+{
+  "$comment": "Wall materials of the low and mid-rise buildings (tools/textures/pack_walls.py; slot order = the facade shader's material index, names as before). Albedo by Z-Image Turbo: `img \"<prompt>\" -s <seed>` (+ --tile for quilt cells). Grid cells were cut by `pack_walls.py --prepare` from the untiled take (`crop` in take px after `trim`). mean/rough: the old photo cell's mean sRGB colour and roughness, kept so the city's calibration holds. take: the local render the cut was made from, in build/walls-takes/ (not committed; re-render with the prompt and seed).",
+  "cells": [
+    {
+      "name": "light_ceramic_tile",
+      "method": "grid",
+      "x": "joints",
+      "y": "joints",
+      "seed": 51,
+      "take": "build/walls-takes/tile-51.png",
+      "prompt": "building wall clad in small square pale beige ceramic mosaic tiles, perfectly straight grid of grout lines parallel to the image edges, slightly dirty grout, seen straight on, orthographic texture photo, flat even overcast light, no shadows, no perspective",
+      "mean": [
+        182,
+        175,
+        168
+      ],
+      "rough": 250,
+      "crop": [
+        39.1,
+        0.4,
+        981.9,
+        1022.6
+      ]
+    },
+    {
+      "name": "medium_concrete",
+      "method": "quilt",
+      "seed": 52,
+      "take": "build/walls-takes/medium_concrete-52.png",
+      "prompt": "smooth grey cast concrete wall surface, subtle mottling, fine pores, faint water stains, seen straight on, orthographic texture photo, flat even overcast light, no shadows, no perspective",
+      "tile": true,
+      "mean": [
+        138,
+        135,
+        130
+      ],
+      "rough": 252,
+      "flatten": 0.3,
+      "contrast": 2.2
+    },
+    {
+      "name": "charcoal_ribbed_metal",
+      "method": "grid",
+      "x": "joints",
+      "y": "uniform",
+      "seed": 52,
+      "take": "build/walls-takes/charcoal_ribbed-52.png",
+      "prompt": "dark charcoal corrugated metal wall cladding, straight vertical ribs evenly spaced parallel to the image edges, matte, faint scuffs, seen straight on, orthographic texture photo, flat even overcast light, no shadows, no perspective",
+      "mean": [
+        69,
+        69,
+        70
+      ],
+      "rough": 188,
+      "crop": [
+        30.2,
+        0,
+        907.9,
+        1024
+      ],
+      "flatten": 0.9,
+      "detail": 0.3
+    },
+    {
+      "name": "weathered_concrete",
+      "method": "grid",
+      "x": "joints",
+      "y": "joints",
+      "seed": 52,
+      "take": "build/walls-takes/formwork_concrete-52.png",
+      "prompt": "weathered architectural concrete wall made of rectangular formwork panels, straight joint lines parallel to the image edges, small round tie holes, grey stains, seen straight on, orthographic texture photo, flat even overcast light, no shadows, no perspective",
+      "mean": [
+        145,
+        140,
+        134
+      ],
+      "rough": 250,
+      "period": [
+        150,
+        600
+      ],
+      "crop": [
+        40.2,
+        31.1,
+        974.6,
+        1000.3
+      ]
+    },
+    {
+      "name": "raw_concrete",
+      "method": "quilt",
+      "seed": 52,
+      "take": "build/walls-takes/raw_concrete-52.png",
+      "prompt": "rough pale grey raw concrete wall, small air pockets, grainy, faint grime, seen straight on, orthographic texture photo, flat even overcast light, no shadows, no perspective",
+      "tile": true,
+      "mean": [
+        180,
+        180,
+        181
+      ],
+      "rough": 255,
+      "flatten": 0.3,
+      "contrast": 2.2
+    },
+    {
+      "name": "white_panels",
+      "method": "grid",
+      "x": "joints",
+      "y": "fade",
+      "seed": 52,
+      "take": "build/walls-takes/white_panels-52.png",
+      "prompt": "off-white smooth metal facade panels, long vertical panel joints evenly spaced parallel to the image edges, clean, seen straight on, orthographic texture photo, flat even overcast light, no shadows, no perspective",
+      "mean": [
+        214,
+        210,
+        204
+      ],
+      "rough": 255,
+      "trim": [
+        24,
+        40,
+        24,
+        40
+      ],
+      "period": [
+        60,
+        400
+      ],
+      "crop": [
+        111.3,
+        0,
+        863.0,
+        944
+      ]
+    },
+    {
+      "name": "ribbed_metal",
+      "method": "grid",
+      "x": "joints",
+      "y": "uniform",
+      "seed": 52,
+      "take": "build/walls-takes/ribbed_metal-52.png",
+      "prompt": "blue-grey ribbed steel facade cladding, straight vertical trapezoid ribs evenly spaced parallel to the image edges, seen straight on, orthographic texture photo, flat even overcast light, no shadows, no perspective",
+      "mean": [
+        68,
+        72,
+        78
+      ],
+      "rough": 180,
+      "flatten": 0.9,
+      "crop": [
+        48.0,
+        0,
+        1019.9,
+        1024
+      ]
+    },
+    {
+      "name": "dark_slate",
+      "method": "grid",
+      "x": "joints",
+      "y": "joints",
+      "seed": 54,
+      "take": "build/walls-takes/dark_slate-54.png",
+      "prompt": "dark grey slate stone facade cladding, stack bond grid of many equal rectangular slate panels, four columns and five rows, straight thin dark joints parallel to the image edges, fine natural cleft texture, seen straight on, orthographic texture photo, flat even overcast light, no shadows, no perspective",
+      "mean": [
+        87,
+        88,
+        92
+      ],
+      "rough": 255,
+      "trim": [
+        55,
+        114,
+        54,
+        123
+      ],
+      "period": {
+        "x": [
+          180,
+          300
+        ],
+        "y": [
+          90,
+          150
+        ]
+      },
+      "crop": [
+        223.0,
+        108.9,
+        696.4,
+        569.7
+      ],
+      "find": "peaks"
+    }
+  ]
+}

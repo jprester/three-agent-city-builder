@@ -49,6 +49,11 @@ binary in `public/` is regenerated from them.
   albedo + DeepBump normal and height, `art/external/textures/ground/`, prompts and seeds in its
   `ground.def.json`) into `art/textures/ground/`; then `npm run textures`. New tileable materials:
   `img "<material>" --tile -s <seed>`, then `texmaps <file>.png`. Never for tower facades (baked only).
+- `python3 tools/textures/pack_walls.py` packs the 8 wall materials of the low and mid-rise buildings
+  (`art/external/textures/walls/`, Z-Image Turbo; `walls.def.json` holds prompts, seeds, crops and each
+  slot's reference colour and roughness) into `art/textures/walls/walls.webp`; then `npm run textures`.
+  `--prepare <cell>` re-cuts a grid material from its untiled take between joint centres (whole periods),
+  so the repeat lands inside a joint; quilting (`img --tile`) breaks regular grids.
 - `npm run facades:bake [-- <bundle> [<style id>]]` models the tower facade styles of each
   `art/facades/<bundle>.json` (baked_osaka, baked_glass, baked_sky, baked) in Blender and renders their maps straight
   on (Cycles, ~1.5 min for 7), then packs `art/textures/facades/<bundle>/` + `<bundle>.json` (exact grids and glass

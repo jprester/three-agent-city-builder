@@ -88,23 +88,23 @@ void towerSample(int bundle, vec2 uv, vec2 dx, vec2 dy, out vec4 dr, out vec3 em
   dr = textureGrad(uTowerDiff, l, dx, dy); em = textureGrad(uTowerEmit, l, dx, dy).rgb; nm = textureGrad(uTowerNorm, l, dx, dy).rgb;
 }
 
-// Wall material cell m (4×2 atlas) at facade meters uvm, one tile per 'size' meters,
-// mirror-repeated so the tiles need not be seamless. Returns diffuse+roughness and a
-// luminance gradient for relief.
+// Wall material cell m (4×2 atlas of 1024 px slots, tools/textures/pack_walls.py) at facade
+// meters uvm, one tile per 'size' meters. The materials are seamless and each slot carries a
+// 32 px wrap-around gutter, so they simply repeat. Returns diffuse+roughness and a luminance
+// gradient for relief.
 vec4 wallSample(int m, vec2 uvm, float size, out vec2 grad) {
   vec2 cell = vec2(float(m - (m / 4) * 4) * 0.25, 1.0 - float(m / 4 + 1) * 0.5);
   vec2 l = uvm / size;
-  vec2 t = abs(fract(l * 0.5) * 2.0 - 1.0);
-  vec2 k = vec2(0.25, 0.5) * 0.99;
-  vec2 uv = cell + vec2(0.00125, 0.0025) + t * k;
+  vec2 k = vec2(960.0 / 4096.0, 960.0 / 2048.0);
+  vec2 uv = cell + vec2(32.0 / 4096.0, 32.0 / 2048.0) + fract(l) * k;
   vec2 dx = dFdx(l) * k, dy = dFdy(l) * k;
   vec4 s = textureGrad(uWalls, uv, dx, dy);
-  vec2 e = vec2(1.5 / 2048.0, 0.0);
+  vec2 e = vec2(1.5 / 4096.0, 0.0);
   float lx = dot(textureGrad(uWalls, uv + e.xy, dx, dy).rgb, vec3(0.333));
   float ly = dot(textureGrad(uWalls, uv + e.yx * 2.0, dx, dy).rgb, vec3(0.333));
   float l0 = dot(s.rgb, vec3(0.333));
   // Relief fades out once a texel is smaller than a pixel.
-  grad = vec2(lx - l0, ly - l0) * (1.0 - smoothstep(0.3, 1.5, length(dx) * 2048.0));
+  grad = vec2(lx - l0, ly - l0) * (1.0 - smoothstep(0.3, 1.5, length(dx) * 4096.0));
   return s;
 }
 
