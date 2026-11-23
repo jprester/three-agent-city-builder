@@ -74,7 +74,7 @@ binary in `public/` is regenerated from them.
   default 60, `0` uncapped; F or the button toggles 60/30 and the browser remembers it; automated
   runs ignore the remembered value), `?quality=` and
   `?grade=default|filmic` (the final colour grade; filmic is the default, `?grade=default`
-  restores the earlier, shallower look).
+  restores the earlier, shallower look). `?music=0` turns off the ambient score (the city sound stays).
 - `npm run shots` smoke test (~15 s, real GPU): loads 3 viewpoints, saves screenshots to
   `build/shots/`, fails only on browser errors, a blank frame, scene budgets or frame time.
   `npm run shots:all` (~1 min) covers every viewpoint; `SHOTS=canyon,glass` picks some;

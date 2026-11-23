@@ -2,10 +2,12 @@
 
     python3 tools/audio/build_sa3.py [name ...]     then: npm run audio
 
-Each take is rendered once with `sa3 <prompt> <seconds> sm-sfx --seed <seed>` and cached in
-build/audio-sa3/ (keyed by prompt, length, seed). It is then trimmed; a loop gets its last
-`loop` seconds crossfaded (equal power) over its first ones, so it repeats without a seam; a
-one-shot gets short fades (`fade`: in, out). Needs sa3 and ffmpeg on PATH, and numpy.
+Each take is rendered once with `sa3 <prompt> <seconds> <model> --seed <seed>` (model sm-sfx
+unless `model` says otherwise, e.g. medium for music) and cached in build/audio-sa3/ (keyed by
+prompt, length, seed, model). It is then trimmed; a loop gets its last `loop` seconds crossfaded
+(equal power) over its first ones, so it repeats without a seam; a one-shot or a playlist track
+gets fades (`fade`: in, out); `normalize` sets its RMS level (dBFS). Needs sa3 and ffmpeg on
+PATH, and numpy.
 """
 import hashlib
 import json
@@ -23,11 +25,12 @@ SR = 48000
 
 
 def render(s):
-    key = hashlib.sha256(json.dumps([s['prompt'], s.get('negative', ''), s['seconds'], s['seed'], 'sm-sfx']).encode()).hexdigest()[:12]
+    model = s.get('model', 'sm-sfx')
+    key = hashlib.sha256(json.dumps([s['prompt'], s.get('negative', ''), s['seconds'], s['seed'], model]).encode()).hexdigest()[:12]
     wav = CACHE / f"{s['name']}-{s['seed']}-{key}.wav"
     if not wav.exists():
         CACHE.mkdir(parents=True, exist_ok=True)
-        cmd = ['sa3', s['prompt'], str(s['seconds']), 'sm-sfx', '--seed', str(s['seed']), '--out', str(wav)]
+        cmd = ['sa3', s['prompt'], str(s['seconds']), model, '--seed', str(s['seed']), '--out', str(wav)]
         if s.get('negative'):
             cmd += ['--negative-prompt', s['negative']]
         subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL)
@@ -54,6 +57,8 @@ def build(s):
         fi, fo = (int(t * SR) for t in s['fade'])
         x[:fi] *= np.linspace(0, 1, fi, dtype=np.float32)[:, None]
         x[-fo:] *= np.linspace(1, 0, fo, dtype=np.float32)[:, None] ** 2
+    if 'normalize' in s:
+        x *= 10 ** ((s['normalize'] - 20 * np.log10(np.sqrt((x ** 2).mean()) + 1e-9)) / 20)
     out = OUT / f"{s['name']}.opus"
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-f', 'f32le', '-ar', str(SR), '-ac', '2', '-i', '-',
                     '-c:a', 'libopus', '-b:a', '128k', str(out)], input=x.tobytes(), check=True)

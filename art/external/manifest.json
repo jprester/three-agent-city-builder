@@ -98,11 +98,11 @@
       "notes": "Stereo MP3 44.1 kHz as delivered. Encoded to Opus + AAC in public/audio/ by tools/build-audio.mjs; the nightlife layers of src/systems/audio.ts (bed by street-sign density, venues at the densest sign clusters)."
     },
     {
-      "files": "art/external/audio/monorail-run.opus, flyer-hum.opus, ac-hum.opus, siren-far-a.opus, siren-far-b.opus",
-      "source": "Generated locally 2026-11-23 with Stable Audio 3 (stabilityai/stable-audio-3-optimized, sm-sfx model, MLX; the `sa3` command). Prompts, seeds, trims and loop crossfades in art/external/audio/sa3.def.json; rebuilt by python3 tools/audio/build_sa3.py",
+      "files": "art/external/audio/monorail-run.opus, flyer-hum.opus, ac-hum.opus, siren-far-a.opus, siren-far-b.opus, score-a.opus, score-b.opus",
+      "source": "Generated locally 2026-11-23 with Stable Audio 3 (stabilityai/stable-audio-3-optimized, sm-sfx model for the effects, medium for the score (score-a, score-b), MLX; the `sa3` command). Prompts, seeds, trims and loop crossfades in art/external/audio/sa3.def.json; rebuilt by python3 tools/audio/build_sa3.py",
       "license": "Stability AI Community License (free, including commercial use, below USD 1M annual revenue); generated audio, not exclusive",
       "attribution": "Project author (generated with Stable Audio 3, Stability AI)",
-      "notes": "Opus 48 kHz stereo 128 kbps; loops made seamless by an equal-power tail-over-head crossfade. Copied and AAC-encoded to public/audio/ by tools/build-audio.mjs; the monorail, flyer, air-conditioner and siren layers of src/systems/audio.ts."
+      "notes": "Opus 48 kHz stereo 128 kbps; loops made seamless by an equal-power tail-over-head crossfade. Copied and AAC-encoded to public/audio/ by tools/build-audio.mjs; the monorail, flyer, air-conditioner and siren layers of src/systems/audio.ts. The score tracks are normalised to -20 dBFS RMS and played back to back with 10 s crossfades, very quiet (?music=0 turns them off)."
     },
     {
       "files": "art/external/textures/ground/* (asphalt, paving: albedo, -normal, -height)",

@@ -22,7 +22,9 @@ import type { Layout } from './layout';
  *    speed, by distance to its nearest car, panned toward it (a standing train only hums);
  *  - flyers: an electric hover hum from the flying vehicles near the camera, panned;
  *  - air conditioners: a faint hum of wall units at street level, mostly away from the nightlife;
- *  - sirens: now and then a far siren somewhere off to one side.
+ *  - sirens: now and then a far siren somewhere off to one side;
+ *  - score: a very quiet ambient score (two long Stable Audio 3 tracks, alternated with slow
+ *    crossfades), a little more present from the air; off with ?music=0.
  * Browsers only start audio after a user gesture, so it begins muted; `toggle()` (button, M key)
  * turns it on and loads the files. Nothing here affects rendering or the deterministic simulation.
  */
@@ -56,6 +58,7 @@ const MIX = {
   flyer: 0.25,      // -18: a flyer close by ~-30 dB, most of them far quieter
   ac: 0.12,         // -27: the street-level bed ~-45 dB, under the ambience
   siren: 0.12,      // -24 (a) / -28 (b): far, ~-42 dB
+  music: 0.09,      // -20 (both normalised): ~-41 dB at street level, under everything
 };
 /** Seconds between far sirens (random in this range). */
 const SIREN_GAP = [50, 140];
@@ -112,10 +115,15 @@ function nightlifeOf(layout: Layout | null) {
   }
   return { at, venues };
 }
-/** Crossfade between consecutive ambience clips, seconds. */
+/** Crossfade between consecutive ambience clips, and between score tracks, seconds. */
 const AMBIENCE_FADE = 4;
+const MUSIC_FADE = 10;
 
-export function createCityAudio(layout: Layout | null) {
+/** Clips played back to back on one output, each fading in over the previous one's fade-out. */
+interface Sequence { out: GainNode; fade: number; clips: AudioBuffer[]; at: number; index: number }
+
+export function createCityAudio(layout: Layout | null, opts: { music?: boolean } = {}) {
+  const musicOn = opts.music ?? true;
   let ctx: AudioContext | null = null;
   let master: GainNode;
   let ambience: GainNode, rain: GainNode, tyre: GainNode, tyrePan: StereoPannerNode;
@@ -127,9 +135,8 @@ export function createCityAudio(layout: Layout | null) {
   const monorail = layout?.monorail ?? null;
   const venue = {} as Record<Venue, { gain: GainNode; pan: StereoPannerNode }>;
   let nightlife: ReturnType<typeof nightlifeOf> = null;
-  let ambienceClips: AudioBuffer[] = [];
+  let ambienceSeq: Sequence, musicSeq: Sequence | null = null;
   let thunderNear: AudioBuffer | null = null, thunderFar: AudioBuffer | null = null;
-  let clipAt = 0, clipIndex = 0;
   let on = false;
   let lastFlash = 0, strikes = 0;
   const eye = new THREE.Vector3(), fwd = new THREE.Vector3(), right = new THREE.Vector3();
@@ -185,7 +192,13 @@ export function createCityAudio(layout: Layout | null) {
     rain = gainNode(master);
     tyrePan = panner(master);
     tyre = gainNode(tyrePan);
-    void Promise.all(['city-night-a', 'city-night-b'].map(load)).then((b) => { ambienceClips = b.filter((x): x is AudioBuffer => x !== null); });
+    ambienceSeq = { out: ambience, fade: AMBIENCE_FADE, clips: [], at: 0, index: 0 };
+    void Promise.all(['city-night-a', 'city-night-b'].map(load)).then((b) => { ambienceSeq.clips = b.filter((x): x is AudioBuffer => x !== null); });
+    if (musicOn) {
+      const seq: Sequence = { out: gainNode(master), fade: MUSIC_FADE, clips: [], at: 0, index: Math.random() < 0.5 ? 0 : 1 };
+      musicSeq = seq;
+      void Promise.all(['score-a', 'score-b'].map(load)).then((b) => { seq.clips = b.filter((x): x is AudioBuffer => x !== null); });
+    }
     void loop('rain-loop', rain);
     void loop('tyre-hiss', tyre);
     crowd = gainNode(master);
@@ -231,15 +244,15 @@ export function createCityAudio(layout: Layout | null) {
     s.start(now);
   }
 
-  /** Keep an ambience clip scheduled ~1 s ahead; each fades in over the previous one's fade-out. */
-  function scheduleAmbience(now: number) {
-    if (!ambienceClips.length) return;
-    if (clipAt < now) clipAt = now + 0.05;   // first clip, or resuming after a mute
-    while (clipAt < now + 1) {
-      const buf = ambienceClips[clipIndex++ % ambienceClips.length];
+  /** Keep a sequence's next clip scheduled ~1 s ahead; each fades in over the previous one's fade-out. */
+  function schedule(seq: Sequence, now: number) {
+    if (!seq.clips.length) return;
+    if (seq.at < now) seq.at = now + 0.05;    // first clip, or resuming after a mute
+    while (seq.at < now + 1) {
+      const buf = seq.clips[seq.index++ % seq.clips.length];
       const trim = 0.05;                      // skip encoder padding at both ends
       const len = buf.duration - 2 * trim;
-      const fade = Math.min(AMBIENCE_FADE, len / 3);
+      const fade = Math.min(seq.fade, len / 3);
       const fadeIn = new Float32Array(32), fadeOut = new Float32Array(32);
       for (let i = 0; i < 32; i++) {
         const a = (i / 31) * Math.PI / 2;
@@ -247,12 +260,12 @@ export function createCityAudio(layout: Layout | null) {
       }
       const s = ctx!.createBufferSource();
       s.buffer = buf;
-      const g = gainNode(ambience);
-      g.gain.setValueCurveAtTime(fadeIn, clipAt, fade);
-      g.gain.setValueCurveAtTime(fadeOut, clipAt + len - fade, fade);
+      const g = gainNode(seq.out);
+      g.gain.setValueCurveAtTime(fadeIn, seq.at, fade);
+      g.gain.setValueCurveAtTime(fadeOut, seq.at + len - fade, fade);
       s.connect(g);
-      s.start(clipAt, trim, len);
-      clipAt += len - fade;
+      s.start(seq.at, trim, len);
+      seq.at += len - fade;
     }
   }
 
@@ -292,8 +305,12 @@ export function createCityAudio(layout: Layout | null) {
       const height = Math.max(0, eye.y);
       const street = Math.exp(-height / 60);          // 1 at street level, fading with height
 
-      scheduleAmbience(now);
-      if (ambienceClips.length) ambience.gain.setTargetAtTime(MIX.ambience * (0.6 + 0.4 * street), now, 1.0);
+      schedule(ambienceSeq, now);
+      if (ambienceSeq.clips.length) ambience.gain.setTargetAtTime(MIX.ambience * (0.6 + 0.4 * street), now, 1.0);
+      if (musicSeq) {
+        schedule(musicSeq, now);
+        musicSeq.out.gain.setTargetAtTime(MIX.music * (1.3 - 0.3 * street), now, 2.0);
+      }
       rain.gain.setTargetAtTime(MIX.rain * f.rain * (0.4 + 0.6 * street), now, 0.5);
 
       // Tyre hiss: each nearby car contributes by distance, the louder ones pull the pan.
