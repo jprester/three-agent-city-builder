@@ -42,7 +42,7 @@ export interface AudioFrame {
 /** Gains per layer, set against each file's measured level (dBFS RMS in the comment). */
 const MIX = {
   ambience: 5,      // -42: the bed, ~-28 dB
-  rain: 2.5,        // -42.5: at full rain and street level ~-34 dB, under the ambience
+  rain: 1.9,        // -42.5: at full rain and street level ~-36.5 dB, under the ambience
   tyre: 5,          // -42.5: a close pass ~-28 dB
   thunderNear: 0.5, // -25, peak -0.6 (the limiter catches the crack)
   thunderFar: 0.95, // -32
