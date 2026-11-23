@@ -71,11 +71,15 @@ export function createVehicleMotion(batch: DynamicInstances, ids: number[], plan
   const cars = plan.ground.reduce((s, g) => s + g.assets.length, 0);
   /** Ground cars this frame: x, z, heading sin, heading cos. */
   const placed = new Float32Array(cars * 4);
+  /** Flyers this frame: x, y, z (city sound, src/systems/audio.ts). */
+  const flyers = new Float32Array(plan.sky.reduce((n, s) => n + s.assets.length, 0) * 3);
   const best = new Float32Array(64), bestIdx = new Int32Array(64);
   const sim = createTrafficSim(plan.ground.map((g) => g.lane));
   return {
+    /** Flyer positions as of the last update: x, y, z per flyer. */
+    flyers,
     update(time: number) {
-      let k = 0, c = 0;
+      let k = 0, c = 0, f = 0;
       const w = sim.at(time);
       plan.ground.forEach((g, lane) => {
         for (let i = 0; i < g.assets.length; i++) {
@@ -96,6 +100,7 @@ export function createVehicleMotion(batch: DynamicInstances, ids: number[], plan
           s.curve.getPointAt(u, pos);
           s.curve.getTangentAt(u, tangent).multiplyScalar(dir);
           pos.y += Math.sin(time * 0.6 + i * 2.1) * 1.2;
+          pos.toArray(flyers, 3 * f++);
           q.setFromAxisAngle(up, Math.atan2(tangent.x, tangent.z));
           batch.setMatrixAt(ids[k++], m.compose(pos, q, scale.setScalar(1)));
         }

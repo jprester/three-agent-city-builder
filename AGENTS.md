@@ -39,9 +39,12 @@ binary in `public/` is regenerated from them.
   GPU-compressed KTX2 in `public/textures/` (a few minutes the first time, then only what
   changed). `npm run dev`, `npm run build` and the Playwright runs call it first. The outputs
   are committed, like the GLBs.
-- `npm run audio` encodes the city sound (`art/external/audio/*.opus|mp3`: ElevenLabs ambience and effects)
-  to `public/audio/` as Opus with an AAC `.m4a` fallback (needs ffmpeg with libopus). Outputs are committed;
-  `src/systems/audio.ts` plays them, driven by rain, cars and lightning. No synthesized sound.
+- `npm run audio` encodes the city sound (`art/external/audio/*.opus|mp3`: ElevenLabs ambience and effects,
+  plus Stable Audio 3 takes) to `public/audio/` as Opus with an AAC `.m4a` fallback (needs ffmpeg with libopus).
+  Outputs are committed; `src/systems/audio.ts` plays them, driven by rain, cars, trains, flyers and lightning.
+  Sound comes from files (recorded or model-generated), never synthesized in the browser.
+  `python3 tools/audio/build_sa3.py [name]` re-renders the Stable Audio 3 sounds from
+  `art/external/audio/sa3.def.json` (prompt, seed, trim, loop crossfade; needs `sa3`).
 - `python3 tools/textures/pack_ground.py` packs the street materials (asphalt, paving: Z-Image Turbo
   albedo + DeepBump normal and height, `art/external/textures/ground/`, prompts and seeds in its
   `ground.def.json`) into `art/textures/ground/`; then `npm run textures`. New tileable materials:

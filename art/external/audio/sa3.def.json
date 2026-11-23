@@ -1,0 +1,10 @@
+{
+  "$comment": "City sounds generated locally with Stable Audio 3 (sa3, model sm-sfx; ~/.claude/skills/local-music). `python3 tools/audio/build_sa3.py` renders each take (cached in build/audio-sa3/), trims it, makes loops seamless with an equal-power crossfade of the tail over the head, and writes art/external/audio/<name>.opus; then `npm run audio`. One take per sound was picked from seeds 11-13 by measurement (steady level for loops, a clean swell for one-shots); the others are listed for re-picking by ear.",
+  "sounds": [
+    { "name": "monorail-run", "prompt": "electric monorail train running on an elevated track, steady electric motor whine, rubber tyres rolling on a concrete beam, low rumble, continuous, no horn, no announcement", "negative": "music, voices, horn, bell, melody", "seconds": 24, "seed": 12, "trim": [0.5, 13.5], "loop": 2.0, "alternatives": [11, 13] },
+    { "name": "flyer-hum", "prompt": "futuristic hovering aircraft engine, smooth electric ducted fan hum, soft turbine whine, steady continuous drone, no jet roar", "negative": "music, voices, melody, explosion", "seconds": 20, "seed": 12, "trim": [1.5, 18.5], "loop": 2.0, "alternatives": [11, 13] },
+    { "name": "ac-hum", "prompt": "outdoor air conditioning condenser units humming on building walls, electric fan drone, faint rattle and dripping, steady continuous", "negative": "music, voices, melody, traffic", "seconds": 24, "seed": 13, "trim": [0.5, 23.5], "loop": 3.0, "alternatives": [11, 12] },
+    { "name": "siren-far-a", "prompt": "distant emergency siren wailing far away across a big city at night, echoing between buildings, rising and falling", "negative": "music, voices, melody, drums", "seconds": 14, "seed": 11, "trim": [0.0, 14.0], "fade": [0.3, 2.0], "alternatives": [12, 13] },
+    { "name": "siren-far-b", "prompt": "distant emergency siren wailing far away across a big city at night, echoing between buildings, rising and falling", "negative": "music, voices, melody, drums", "seconds": 14, "seed": 13, "trim": [0.0, 14.0], "fade": [0.3, 2.0], "alternatives": [12] }
+  ]
+}

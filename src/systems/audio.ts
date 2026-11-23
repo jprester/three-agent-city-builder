@@ -1,10 +1,12 @@
 import * as THREE from 'three';
 import { lightningAt } from '../scene/lightning';
+import { trainAt, trainCars } from '../../art/layouts/lib/monorail.mjs';
 import type { Layout } from './layout';
 
 /**
- * City sound with the Web Audio API, all of it recorded (public/audio/, from art/external/audio via
- * `npm run audio`; the author's ElevenLabs ambience and generated effects), driven by the scene:
+ * City sound with the Web Audio API, all of it from audio files (public/audio/, from art/external/audio
+ * via `npm run audio`: the author's ElevenLabs ambience and effects, and Stable Audio 3 takes rendered
+ * by tools/audio/build_sa3.py), driven by the scene:
  *  - ambience: two 30 s night-city recordings, alternated with equal-power crossfades so neither
  *    clip's loop point is heard; a little quieter from the air;
  *  - rain: a seamless loop following the rain waves, mostly at street level;
@@ -15,7 +17,12 @@ import type { Layout } from './layout';
  *  - nightlife: where street-level shop signs crowd together (the hero avenue most of all), a
  *    crowd murmur and soft futuristic tones swell; around a dozen venues picked from the densest
  *    sign clusters play muffled club, bar or arcade sound, louder as you pass and panned toward
- *    them (clubs and bars mostly quiet by day). All of it fades out with height.
+ *    them (clubs and bars mostly quiet by day). All of it fades out with height;
+ *  - monorail: a running loop for each of the two trains, louder and higher pitched with its
+ *    speed, by distance to its nearest car, panned toward it (a standing train only hums);
+ *  - flyers: an electric hover hum from the flying vehicles near the camera, panned;
+ *  - air conditioners: a faint hum of wall units at street level, mostly away from the nightlife;
+ *  - sirens: now and then a far siren somewhere off to one side.
  * Browsers only start audio after a user gesture, so it begins muted; `toggle()` (button, M key)
  * turns it on and loads the files. Nothing here affects rendering or the deterministic simulation.
  */
@@ -28,6 +35,8 @@ export interface AudioFrame {
   rain: number;
   /** Nearest road cars: x, z, heading sin, cos (length 2 = braking; zero = none). */
   cars: THREE.Vector4[];
+  /** Flyer positions, x, y, z each (src/systems/vehicles.ts). */
+  flyers?: Float32Array;
 }
 
 /** Gains per layer, set against each file's measured level (dBFS RMS in the comment). */
@@ -42,7 +51,14 @@ const MIX = {
   club: 3,          // -36, almost all below 150 Hz: ~-26 dB at the door
   bar: 4.5,         // -41
   arcade: 0.45,     // -21: the loudest file
+  // Stable Audio 3 takes (tools/audio/build_sa3.py) are far hotter than the ElevenLabs files.
+  monorail: 0.3,    // -15: a train passing close overhead ~-25 dB
+  flyer: 0.25,      // -18: a flyer close by ~-30 dB, most of them far quieter
+  ac: 0.12,         // -27: the street-level bed ~-45 dB, under the ambience
+  siren: 0.12,      // -24 (a) / -28 (b): far, ~-42 dB
 };
+/** Seconds between far sirens (random in this range). */
+const SIREN_GAP = [50, 140];
 /** Venue kinds, assigned in turn to the densest sign clusters; each is one loop in public/audio/. */
 const VENUES = ['club', 'bar', 'arcade'] as const;
 type Venue = (typeof VENUES)[number];
@@ -104,6 +120,11 @@ export function createCityAudio(layout: Layout | null) {
   let master: GainNode;
   let ambience: GainNode, rain: GainNode, tyre: GainNode, tyrePan: StereoPannerNode;
   let crowd: GainNode, future: GainNode;
+  let ac: GainNode, flyer: GainNode, flyerPan: StereoPannerNode;
+  const trains: { gain: GainNode; pan: StereoPannerNode; source: AudioBufferSourceNode | null }[] = [];
+  let sirens: AudioBuffer[] = [];
+  let sirenAt = 0;
+  const monorail = layout?.monorail ?? null;
   const venue = {} as Record<Venue, { gain: GainNode; pan: StereoPannerNode }>;
   let nightlife: ReturnType<typeof nightlifeOf> = null;
   let ambienceClips: AudioBuffer[] = [];
@@ -140,12 +161,13 @@ export function createCityAudio(layout: Layout | null) {
   /** A seamless generated loop, started once it has loaded and left running under its gain. */
   async function loop(name: string, out: AudioNode) {
     const buf = await load(name);
-    if (!buf || !ctx) return;
+    if (!buf || !ctx) return null;
     const s = ctx.createBufferSource();
     s.buffer = buf;
     s.loop = true;
     s.connect(out);
     s.start(0, Math.random() * buf.duration);
+    return s;
   }
 
   function start() {
@@ -178,6 +200,35 @@ export function createCityAudio(layout: Layout | null) {
     nightlife = nightlifeOf(layout);
     void load('thunder-near').then((b) => { thunderNear = b; });
     void load('thunder-far').then((b) => { thunderFar = b; });
+    ac = gainNode(master);
+    void loop('ac-hum', ac);
+    flyerPan = panner(master);
+    flyer = gainNode(flyerPan);
+    void loop('flyer-hum', flyer);
+    if (monorail) {
+      for (let k = 0; k < 2; k++) {
+        const pan = panner(master);
+        const t = { gain: gainNode(pan), pan, source: null as AudioBufferSourceNode | null };
+        trains.push(t);
+        void loop('monorail-run', t.gain).then((src) => { t.source = src; });
+      }
+    }
+    void Promise.all(['siren-far-a', 'siren-far-b'].map(load)).then((b) => { sirens = b.filter((x): x is AudioBuffer => x !== null); });
+  }
+
+  /** A far siren off to one side, now and then. */
+  function siren(now: number) {
+    if (!sirens.length) return;
+    if (sirenAt === 0) sirenAt = now + 15 + Math.random() * 30;
+    if (now < sirenAt) return;
+    sirenAt = now + SIREN_GAP[0] + Math.random() * (SIREN_GAP[1] - SIREN_GAP[0]);
+    const s = ctx!.createBufferSource();
+    s.buffer = sirens[Math.floor(Math.random() * sirens.length)];
+    s.playbackRate.value = 0.94 + Math.random() * 0.1;
+    const pan = panner(master);
+    pan.pan.value = (Math.random() < 0.5 ? -1 : 1) * (0.3 + 0.5 * Math.random());
+    s.connect(gainNode(pan, MIX.siren * (0.6 + 0.4 * Math.random())));
+    s.start(now);
   }
 
   /** Keep an ambience clip scheduled ~1 s ahead; each fades in over the previous one's fade-out. */
@@ -283,6 +334,38 @@ export function createCityAudio(layout: Layout | null) {
         venue[kind].gain.gain.setTargetAtTime(Math.min(1, lv) * MIX[kind] * dayQuiet, now, 0.3);
         venue[kind].pan.pan.setTargetAtTime(lv > 1e-3 ? pn / lv : 0, now, 0.3);
       }
+
+      // Air conditioners: street level, mostly in the quieter streets.
+      ac.gain.setTargetAtTime(MIX.ac * Math.exp(-height / 25) * (1 - 0.6 * n), now, 1.0);
+
+      // Flyers: each by distance (they pass ~20-60 m up), the louder ones pull the pan.
+      let fl = 0, fp = 0;
+      const fly = f.flyers ?? new Float32Array(0);
+      for (let i = 0; i < fly.length; i += 3) {
+        const d = Math.hypot(fly[i] - eye.x, fly[i + 1] - eye.y, fly[i + 2] - eye.z);
+        const w = 1 / (1 + (d / 18) ** 2);
+        fl += w; fp += w * panOf(fly[i], fly[i + 2]);
+      }
+      flyer.gain.setTargetAtTime(Math.min(1, fl) * MIX.flyer, now, 0.25);
+      flyerPan.pan.setTargetAtTime(fl > 1e-3 ? fp / fl : 0, now, 0.25);
+
+      // Monorail: each train by its nearest car; speed sets loudness and pitch.
+      if (monorail) {
+        trains.forEach((t, k) => {
+          let d = Infinity, px = 0, pz = 0;
+          for (const [x, y, z] of trainCars(monorail, k, f.time)) {
+            const dk = Math.hypot(x - eye.x, y - eye.y, z - eye.z);
+            if (dk < d) { d = dk; px = x; pz = z; }
+          }
+          const speed = Math.min(1, Math.abs(trainAt(monorail, k, f.time + 0.25).s - trainAt(monorail, k, f.time).s) * 4 / monorail.trains.cruise);
+          const w = 1 / (1 + (d / 14) ** 2);
+          t.gain.gain.setTargetAtTime(MIX.monorail * w * (0.12 + 0.88 * speed), now, 0.2);
+          t.pan.pan.setTargetAtTime(panOf(px, pz), now, 0.2);
+          t.source?.playbackRate.setTargetAtTime(0.8 + 0.25 * speed, now, 0.3);
+        });
+      }
+
+      siren(now);
     },
   };
 }
