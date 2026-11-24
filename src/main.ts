@@ -18,9 +18,8 @@ import { PlanarReflection } from './scene/reflection';
 import { createStreets } from './scene/streets';
 import { createRain } from './scene/rain';
 import { createBridges } from './scene/bridges';
-import { loadSignAtlas } from './scene/signs/atlas';
 import { loadSignArt } from './scene/signs/art';
-import { createSigns } from './scene/signs/signs';
+import { createSigns, signUniforms } from './scene/signs/signs';
 import { CameraRig, isCameraMode, obstaclesFrom } from './systems/cameras';
 import { Clock, parseFrozenTime } from './systems/clock';
 import { FlythroughPath } from './systems/flythrough';
@@ -167,21 +166,16 @@ async function main() {
   let signMap: THREE.Texture | null = null;
   const signArt = await loadSignArt(renderer, Math.min(8, renderer.capabilities.getMaxAnisotropy()));
   facadeUniforms.uScreens.value = signArt.screens;
-  const signUniforms = {
-    uTime: clock.uniform, uAtlas: { value: null as THREE.Texture | null }, uSignGain: { value: 1 },
-    uNeonV: { value: signArt.atlases[0] }, uNeonH: { value: signArt.atlases[1] },
-    uPosterP: { value: signArt.atlases[2] }, uPosterL: { value: signArt.atlases[3] },
-  };
+  const signUni = signUniforms(signArt, clock.uniform);
   // Signs stay lit by day, dimmer against it.
-  if (day) signUniforms.uSignGain.value = 0.6;
+  if (day) signUni.uSignGain.value = 0.6;
   if (layout) {
-    const atlas = await loadSignAtlas();
-    signUniforms.uAtlas.value = atlas.texture;
-    const signs = createSigns(layout, atlas, signArt, signUniforms);
+    const signs = createSigns(layout, signUni);
     if (signs) {
       scene.add(signs.mesh);
       if (signs.brackets) scene.add(signs.brackets);
       if (signs.brackets && !quality.reflectBuildings) unreflected.push(signs.brackets);
+      if (signs.floods) scene.add(signs.floods);
       if (signs.holo) scene.add(signs.holo);
       signMap = createSignLightMap(layout, signs.lights);
       facadeUniforms.uSignMap.value = signMap;

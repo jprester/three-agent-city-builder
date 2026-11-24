@@ -1,12 +1,11 @@
 import { ASSETS } from '../assets/manifest.gen';
-import signCatalog from '../../art/external/textures/signs/catalog.json';
-import designCatalog from '../../art/textures/signs/designs.json';
+import signCatalog from '../../art/textures/signs/catalog.json';
 
-/** Artwork facts the layout sizes signs by (same as tools/build-layouts.mjs signArt()). */
-export const SIGN_ART = signCatalog.entries.map(({ kind, aspect, holo, hue, sat, shop, weight }) => ({ kind, aspect, holo, hue, sat, shop: !!shop, weight: weight ?? 1 }));
-
-/** Typeset design facts the layout chooses and sizes signs by (same as tools/build-layouts.mjs signDesigns()). */
-export const SIGN_DESIGNS = designCatalog.designs.map((d) => ({ kind: d.kind, aspect: d.aspect, brand: (d as { brand?: number }).brand }));
+/** Sign facts the layout chooses and sizes signs by (same as tools/build-layouts.mjs signArt()). */
+export const SIGN_ART = signCatalog.entries.map((e) => {
+  const x = e as { floor?: number; script?: string; brand?: boolean; jp?: boolean };
+  return { owner: e.owner, format: e.format, aspect: e.aspect, floor: x.floor, script: x.script, brand: !!x.brand, jp: !!x.jp };
+});
 
 export type Vec2 = [number, number];
 export type Vec3 = [number, number, number];
@@ -56,18 +55,22 @@ export interface LayoutSign {
   seed: number;
   /** Panels on a set-back tower tier: distance of that wall behind the footprint face. */
   inset?: number;
-  /** Brand of a tower logo family (wordmark / stacked logo). */
-  brand?: number;
-  /** Catalog artwork index (art/external/textures/signs/catalog.json entries). */
-  art?: number;
-  /** Typeset design family when not catalog art. */
-  stroke?: 'blade' | 'panel';
-  /** Typeset design index (art/textures/signs/designs.json). */
-  design?: number;
+  /** Sign index (art/textures/signs/catalog.json entries). */
+  art: number;
+  /** Business or brand the sign belongs to (art/signs/signs.def.json). */
+  owner?: string;
+  /** The tenant's floor (1 = street level). */
+  floor?: number;
+  /** One panel of a tenant column. */
+  column?: boolean;
+  /** Tenant column: floor height the column's frame spans at this panel. */
+  span?: number;
+  /** Rooftop board lit by a row of floodlights along its top edge. */
+  flood?: boolean;
   /** Tower signs on a side face (±1: the building's ±x side) rather than the street front. */
   side?: number;
   /** Tower sign zone (street | billboard | shaft | crown). */
-  zone?: 'street' | 'billboard' | 'shaft' | 'crown';
+  zone?: 'street' | 'billboard' | 'shaft' | 'crown' | 'tall';
   /** Blade: distance from the wall to the sign's inner edge (the hanger arm spans it). */
   arm?: number;
   /** Rooftop board: leg length (m) from the roof to the board's bottom edge. */
@@ -175,7 +178,7 @@ interface LayoutDef {
 }
 
 interface LayoutGeneratorModule {
-  generate(input: { params: Record<string, unknown>; seed: number; assets: typeof ASSETS; art: typeof SIGN_ART; designs: typeof SIGN_DESIGNS }): Omit<Layout, 'name'>;
+  generate(input: { params: Record<string, unknown>; seed: number; assets: typeof ASSETS; art: typeof SIGN_ART }): Omit<Layout, 'name'>;
 }
 
 export async function generateLayout(id: string, seed: number): Promise<Layout> {
@@ -185,5 +188,5 @@ export async function generateLayout(id: string, seed: number): Promise<Layout> 
   const loadGen = layoutGenerators[`/art/layouts/${def.generator}.mjs`];
   if (!loadGen) throw new Error(`Layout generator "${def.generator}" not found in art/layouts/`);
   const mod = (await loadGen()) as LayoutGeneratorModule;
-  return { name: id, ...mod.generate({ params: def.params ?? {}, seed, assets: ASSETS, art: SIGN_ART, designs: SIGN_DESIGNS }) };
+  return { name: id, ...mod.generate({ params: def.params ?? {}, seed, assets: ASSETS, art: SIGN_ART }) };
 }

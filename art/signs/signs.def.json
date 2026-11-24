@@ -1,0 +1,805 @@
+{
+  "$comment": "The city's sign and ad library (docs/ADS-PLAN.md). Every sign belongs to a business (a tenant at a fixed floor) or a brand. tools/textures/build_signs.py renders each sign with Z-Image Turbo from one style template (`styles`), crops it to the sign, and packs the atlases in art/textures/signs/ with catalog.json. Seeds: `seed` + the sign's index unless `seeds` pins a pick (re-rolled because a take garbled its text). Rejected takes and why: `rejects`.",
+  "seed": 4000,
+  "background": "isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text",
+  "styles": {
+    "lightbox": "A single {shape} Japanese {trade} sign: a backlit acrylic lightbox glowing at night, {face} face with bold {ink} Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading {text}{extra}, thin dark metal frame",
+    "neon": "A single {shape} Hong Kong {trade} neon sign: exposed glowing glass neon tubes forming the traditional Chinese characters {text} in {ink}{extra}, with a neon tube border in {border}, tubes mounted on a dark steel frame",
+    "billboard": "A single large Japanese {trade} advertising billboard: a backlit lightbox, the left half a bright photo of {photo}, the right half {face} with bold {ink} Japanese lettering reading {text} and below it a large floor number {floor}, thin dark metal frame",
+    "brand": "{art}, full-bleed advertising photograph filling the entire frame edge to edge, rich saturated colour, dramatic light, no text, no logo, no letters, no frame, no billboard, no border"
+  },
+  "formats": {
+    "fascia": {
+      "style": "lightbox",
+      "shape": "wide horizontal shop fascia",
+      "size": [
+        1536,
+        512
+      ]
+    },
+    "blade": {
+      "style": "lightbox",
+      "shape": "tall narrow vertical projecting",
+      "size": [
+        512,
+        1536
+      ],
+      "vertical": true
+    },
+    "panel": {
+      "style": "lightbox",
+      "shape": "square tenant",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    "billboard": {
+      "style": "billboard",
+      "size": [
+        1536,
+        768
+      ]
+    },
+    "overhang": {
+      "style": "neon",
+      "shape": "large horizontal",
+      "size": [
+        1344,
+        768
+      ]
+    },
+    "hkblade": {
+      "style": "neon",
+      "shape": "tall narrow vertical",
+      "size": [
+        512,
+        1536
+      ],
+      "vertical": true
+    },
+    "land": {
+      "style": "brand",
+      "size": [
+        1536,
+        640
+      ]
+    },
+    "tall": {
+      "style": "brand",
+      "size": [
+        512,
+        1536
+      ]
+    }
+  },
+  "$businesses": "floor 1: street shops (fascia over the door + blade); floor >= 2: upper tenants (a panel in the building's tenant column + a blade at their floor, optional upper-wall billboard), the floor number is part of their signs. script ja: Japanese lightboxes; zh: Hong Kong neon (overhang + blade). Colours are words in the prompt; the runtime measures each sign's light colour.",
+  "businesses": [
+    {
+      "id": "ramen",
+      "trade": "ramen shop",
+      "script": "ja",
+      "floor": 1,
+      "text": "麺屋 龍",
+      "face": "bright yellow",
+      "ink": "black",
+      "icon": "a red ramen bowl icon on the left"
+    },
+    {
+      "id": "sushi",
+      "trade": "sushi restaurant",
+      "script": "ja",
+      "floor": 1,
+      "text": "すし 政",
+      "face": "white",
+      "ink": "deep red",
+      "icon": "a small fish icon"
+    },
+    {
+      "id": "gyudon",
+      "trade": "beef bowl restaurant",
+      "script": "ja",
+      "floor": 1,
+      "text": "牛めし",
+      "face": "orange",
+      "ink": "black"
+    },
+    {
+      "id": "gyoza",
+      "trade": "dumpling restaurant",
+      "script": "ja",
+      "floor": 1,
+      "text": "餃子",
+      "face": "white",
+      "ink": "red"
+    },
+    {
+      "id": "yakiniku",
+      "trade": "grilled meat restaurant",
+      "script": "ja",
+      "floor": 1,
+      "text": "焼肉 炎",
+      "face": "black",
+      "ink": "red and white"
+    },
+    {
+      "id": "kusuri",
+      "trade": "drugstore",
+      "script": "ja",
+      "floor": 1,
+      "text": "くすり",
+      "face": "bright yellow",
+      "ink": "red"
+    },
+    {
+      "id": "kissa",
+      "trade": "cafe",
+      "script": "ja",
+      "floor": 1,
+      "text": "カフェ",
+      "face": "cream",
+      "ink": "dark brown",
+      "icon": "a coffee cup icon on the left"
+    },
+    {
+      "id": "chuka",
+      "trade": "Chinese restaurant",
+      "script": "ja",
+      "floor": 1,
+      "text": "中華料理",
+      "face": "red",
+      "ink": "yellow"
+    },
+    {
+      "id": "tabako",
+      "trade": "tobacco shop",
+      "script": "ja",
+      "floor": 1,
+      "text": "たばこ",
+      "face": "red",
+      "ink": "white"
+    },
+    {
+      "id": "flower",
+      "trade": "flower shop",
+      "script": "ja",
+      "floor": 1,
+      "text": "フラワー",
+      "face": "white",
+      "ink": "deep pink",
+      "icon": "a small flower icon"
+    },
+    {
+      "id": "megane",
+      "trade": "eyeglasses shop",
+      "script": "ja",
+      "floor": 1,
+      "text": "メガネ",
+      "face": "white",
+      "ink": "black",
+      "icon": "a pair of glasses icon"
+    },
+    {
+      "id": "pachinko",
+      "trade": "pachinko parlour",
+      "script": "ja",
+      "floor": 1,
+      "text": "パチンコ",
+      "face": "red",
+      "ink": "yellow"
+    },
+    {
+      "id": "game",
+      "trade": "game arcade",
+      "script": "ja",
+      "floor": 1,
+      "text": "ゲーム",
+      "face": "blue",
+      "ink": "white"
+    },
+    {
+      "id": "tachinomi",
+      "trade": "old drinking bar",
+      "script": "ja",
+      "floor": 1,
+      "text": "酒場",
+      "face": "white",
+      "ink": "black",
+      "icon": "a beer mug icon"
+    },
+    {
+      "id": "tendon",
+      "trade": "tempura restaurant",
+      "script": "ja",
+      "floor": 1,
+      "text": "天ぷら",
+      "face": "green",
+      "ink": "white"
+    },
+    {
+      "id": "kombini",
+      "trade": "convenience store",
+      "script": "ja",
+      "floor": 1,
+      "text": "24時間",
+      "face": "white",
+      "ink": "green",
+      "extra": "with a green stripe along the bottom"
+    },
+    {
+      "id": "clinic",
+      "trade": "medical clinic",
+      "script": "ja",
+      "floor": 2,
+      "text": "内科",
+      "face": "white",
+      "ink": "green"
+    },
+    {
+      "id": "biyou",
+      "trade": "hair salon",
+      "script": "ja",
+      "floor": 2,
+      "text": "美容室",
+      "face": "pale pink",
+      "ink": "black"
+    },
+    {
+      "id": "yakitori",
+      "trade": "yakitori bar",
+      "script": "ja",
+      "floor": 2,
+      "text": "焼鳥",
+      "face": "red",
+      "ink": "white",
+      "billboard": "glistening grilled chicken skewers"
+    },
+    {
+      "id": "dental",
+      "trade": "dental clinic",
+      "script": "ja",
+      "floor": 3,
+      "text": "デンタル",
+      "face": "white",
+      "ink": "blue"
+    },
+    {
+      "id": "kinyu",
+      "trade": "consumer loans",
+      "script": "ja",
+      "floor": 3,
+      "text": "金融",
+      "face": "yellow",
+      "ink": "dark blue"
+    },
+    {
+      "id": "massage",
+      "trade": "massage parlour",
+      "script": "ja",
+      "floor": 3,
+      "text": "マッサージ",
+      "face": "green",
+      "ink": "white"
+    },
+    {
+      "id": "karaoke",
+      "trade": "karaoke",
+      "script": "ja",
+      "floor": 4,
+      "text": "カラオケ",
+      "face": "red",
+      "ink": "white",
+      "billboard": "smiling friends singing with microphones"
+    },
+    {
+      "id": "snack",
+      "trade": "snack bar",
+      "script": "ja",
+      "floor": 4,
+      "text": "スナック",
+      "face": "purple",
+      "ink": "white"
+    },
+    {
+      "id": "soroban",
+      "trade": "abacus school",
+      "script": "ja",
+      "floor": 4,
+      "text": "そろばん",
+      "face": "white",
+      "ink": "dark blue"
+    },
+    {
+      "id": "mahjong",
+      "trade": "mahjong parlour",
+      "script": "ja",
+      "floor": 5,
+      "text": "麻雀",
+      "face": "white",
+      "ink": "green"
+    },
+    {
+      "id": "izakaya",
+      "trade": "izakaya pub",
+      "script": "ja",
+      "floor": 5,
+      "text": "居酒屋",
+      "face": "black",
+      "ink": "orange",
+      "billboard": "frosty beer mugs and grilled food"
+    },
+    {
+      "id": "manga",
+      "trade": "manga cafe",
+      "script": "ja",
+      "floor": 6,
+      "text": "漫画喫茶",
+      "face": "yellow",
+      "ink": "black"
+    },
+    {
+      "id": "eikaiwa",
+      "trade": "English school",
+      "script": "ja",
+      "floor": 6,
+      "text": "英会話",
+      "face": "light blue",
+      "ink": "white"
+    },
+    {
+      "id": "bar",
+      "trade": "cocktail bar",
+      "script": "ja",
+      "floor": 7,
+      "text": "BAR",
+      "face": "black",
+      "ink": "gold",
+      "only": [
+        "panel"
+      ]
+    },
+    {
+      "id": "spa",
+      "trade": "spa",
+      "script": "ja",
+      "floor": 8,
+      "text": "スパ",
+      "face": "orange",
+      "ink": "white",
+      "billboard": "a steaming hot spring bath"
+    },
+    {
+      "id": "hotel",
+      "trade": "business hotel",
+      "script": "ja",
+      "floor": 1,
+      "text": "ホテル",
+      "face": "white",
+      "ink": "dark red",
+      "only": [
+        "blade"
+      ],
+      "tall": true
+    },
+    {
+      "id": "jinlong",
+      "trade": "restaurant",
+      "script": "zh",
+      "floor": 1,
+      "text": "金龍酒家",
+      "ink": "red",
+      "border": "amber"
+    },
+    {
+      "id": "pawn",
+      "trade": "pawnshop",
+      "script": "zh",
+      "floor": 1,
+      "text": "大押",
+      "ink": "red",
+      "border": "red",
+      "extra": ", above them a neon bat holding a coin"
+    },
+    {
+      "id": "mahjong_hk",
+      "trade": "mahjong parlour",
+      "script": "zh",
+      "floor": 1,
+      "text": "麻雀",
+      "ink": "green",
+      "border": "pink"
+    },
+    {
+      "id": "store_hk",
+      "trade": "corner store",
+      "script": "zh",
+      "floor": 1,
+      "text": "士多",
+      "ink": "yellow",
+      "border": "green"
+    },
+    {
+      "id": "nightclub",
+      "trade": "nightclub",
+      "script": "zh",
+      "floor": 1,
+      "text": "夜總會",
+      "ink": "pink",
+      "border": "purple"
+    },
+    {
+      "id": "chachaan",
+      "trade": "tea restaurant",
+      "script": "zh",
+      "floor": 1,
+      "text": "茶餐廳",
+      "ink": "yellow",
+      "border": "red"
+    },
+    {
+      "id": "herbaltea",
+      "trade": "herbal tea shop",
+      "script": "zh",
+      "floor": 1,
+      "text": "涼茶",
+      "ink": "green",
+      "border": "yellow"
+    },
+    {
+      "id": "seafood",
+      "trade": "seafood restaurant",
+      "script": "zh",
+      "floor": 1,
+      "text": "海鮮酒家",
+      "ink": "blue",
+      "border": "red"
+    },
+    {
+      "id": "goldshop",
+      "trade": "jewellery shop",
+      "script": "zh",
+      "floor": 1,
+      "text": "金行",
+      "ink": "gold",
+      "border": "red"
+    },
+    {
+      "id": "pharmacy_hk",
+      "trade": "pharmacy",
+      "script": "zh",
+      "floor": 1,
+      "text": "藥房",
+      "ink": "white",
+      "border": "green"
+    },
+    {
+      "id": "hotel_hk",
+      "trade": "hotel",
+      "script": "zh",
+      "floor": 1,
+      "text": "酒店",
+      "ink": "red",
+      "border": "white"
+    },
+    {
+      "id": "sauna_hk",
+      "trade": "sauna",
+      "script": "zh",
+      "floor": 1,
+      "text": "桑拿",
+      "ink": "orange",
+      "border": "blue"
+    }
+  ],
+  "$brands": "International brands (English) for rooftops and towers: a text-free Z-Image photo plus a typeset wordmark (font, colour) composited by the builder. Rooftop/billboard boards use `land`, tower shafts and screens use `tall`. Crown lettering is the wordmark alone, as neon channel letters. jp: domestic brands with a Japanese wordmark (rooftops only).",
+  "brands": [
+    {
+      "id": "kaze",
+      "name": "KAZE",
+      "tagline": "ENERGY",
+      "colour": [
+        255,
+        255,
+        255
+      ],
+      "accent": [
+        230,
+        40,
+        40
+      ],
+      "land": "a cold red aluminium drink can bursting through splashing ice water on a deep red background, unlabelled can",
+      "tall": "a cold red aluminium drink can with ice cubes and water splashes rising upward on a deep red background, unlabelled can"
+    },
+    {
+      "id": "kurose",
+      "name": "KUROSE",
+      "tagline": "WHISKY",
+      "colour": [
+        235,
+        190,
+        110
+      ],
+      "accent": [
+        235,
+        190,
+        110
+      ],
+      "land": "a crystal glass of amber whisky with a large ice sphere on a dark wooden bar, warm golden light, black background",
+      "tall": "an unlabelled amber whisky bottle and a crystal glass with ice, warm golden backlight on black"
+    },
+    {
+      "id": "arcline",
+      "name": "ARCLINE",
+      "tagline": "THE NEW ONE",
+      "colour": [
+        255,
+        255,
+        255
+      ],
+      "accent": [
+        80,
+        170,
+        255
+      ],
+      "land": "a sleek black smartphone floating at an angle above a glowing blue abstract wave, dark background",
+      "tall": "a sleek black smartphone standing upright with a glowing blue light trail spiralling around it, dark background"
+    },
+    {
+      "id": "lumora",
+      "name": "LUMORA",
+      "tagline": "SWISS MADE",
+      "colour": [
+        240,
+        225,
+        200
+      ],
+      "accent": [
+        240,
+        225,
+        200
+      ],
+      "land": "a luxury gold wristwatch with a black dial lying on dark velvet, close-up, spotlight",
+      "tall": "a luxury gold wristwatch with a black dial standing upright, close-up, spotlight on black velvet"
+    },
+    {
+      "id": "kiraku",
+      "name": "KIRAKU",
+      "tagline": "NOODLES",
+      "colour": [
+        255,
+        240,
+        60
+      ],
+      "accent": [
+        255,
+        240,
+        60
+      ],
+      "land": "a steaming bowl of instant ramen noodles with egg and green onion, chopsticks lifting noodles, on a bright red background",
+      "tall": "chopsticks lifting steaming ramen noodles high above a bowl, on a bright red background"
+    },
+    {
+      "id": "vanta",
+      "name": "VANTA AIR",
+      "tagline": "FLY FURTHER",
+      "colour": [
+        255,
+        255,
+        255
+      ],
+      "accent": [
+        110,
+        200,
+        255
+      ],
+      "land": "a white passenger jet flying above golden sunset clouds, wide sky",
+      "tall": "a white passenger jet climbing steeply into a deep blue sky above sunset clouds"
+    },
+    {
+      "id": "helix",
+      "name": "HELIX BANK",
+      "tagline": "",
+      "colour": [
+        255,
+        255,
+        255
+      ],
+      "accent": [
+        60,
+        220,
+        160
+      ],
+      "land": "a smiling young couple looking at a city skyline at dusk, soft teal light",
+      "tall": "a smiling businesswoman in a teal coat walking through a modern city at dusk"
+    },
+    {
+      "id": "solenne",
+      "name": "SOLENNE",
+      "tagline": "PARIS",
+      "colour": [
+        255,
+        255,
+        255
+      ],
+      "accent": [
+        255,
+        120,
+        170
+      ],
+      "land": "an elegant glass perfume bottle among pink rose petals, soft pink light",
+      "tall": "a fashion model with dark hair in profile with pink light on her face, beauty portrait"
+    },
+    {
+      "id": "seira",
+      "name": "SEIRA",
+      "tagline": "LAGER",
+      "colour": [
+        255,
+        255,
+        255
+      ],
+      "accent": [
+        250,
+        200,
+        60
+      ],
+      "land": "an ice-cold glass of golden lager beer with foam and condensation droplets, bright blue background",
+      "tall": "a tall glass of golden lager beer with rising bubbles and foam, condensation droplets, bright blue background"
+    },
+    {
+      "id": "zencash",
+      "name": "ゼンキャッシュ",
+      "jp": true,
+      "tagline": "ご融資 即日",
+      "colour": [
+        255,
+        255,
+        255
+      ],
+      "accent": [
+        255,
+        200,
+        0
+      ],
+      "land": "a cheerful smiling woman in a yellow blouse giving a thumbs up, bright yellow background",
+      "tall": "a cheerful smiling woman in a yellow blouse, bright yellow background"
+    },
+    {
+      "id": "daikichi",
+      "name": "パーラー大吉",
+      "jp": true,
+      "tagline": "新台入替",
+      "colour": [
+        255,
+        240,
+        80
+      ],
+      "accent": [
+        255,
+        60,
+        60
+      ],
+      "land": "golden pachinko balls pouring like a waterfall with red and gold sparkles, red background",
+      "tall": "a cascade of shiny golden pachinko balls falling with sparkles on a red background"
+    }
+  ],
+  "seeds": {
+    "sushi.fascia": 5000,
+    "gyudon.fascia": 5001,
+    "kusuri.fascia": 5002,
+    "kissa.fascia": 5003,
+    "pachinko.fascia": 5005,
+    "tachinomi.fascia": 5006,
+    "tendon.fascia": 5007,
+    "kombini.fascia": 5008,
+    "ramen.blade": 5009,
+    "gyudon.blade": 5010,
+    "gyoza.blade": 5011,
+    "yakiniku.blade": 5012,
+    "kusuri.blade": 5013,
+    "kissa.blade": 5014,
+    "chuka.blade": 5015,
+    "tabako.blade": 5016,
+    "pachinko.blade": 5018,
+    "game.blade": 5019,
+    "tachinomi.blade": 5020,
+    "tendon.blade": 5021,
+    "kombini.blade": 5022,
+    "biyou.blade": 5023,
+    "yakitori.blade": 5024,
+    "kinyu.blade": 5026,
+    "eikaiwa.blade": 5028,
+    "bar.blade": 5029,
+    "hotel.blade": 5031,
+    "yakitori.panel": 5032,
+    "karaoke.panel": 5033,
+    "mahjong.panel": 5034,
+    "bar.panel": 5035,
+    "yakitori.billboard": 5039,
+    "karaoke.billboard": 5040,
+    "pawn.overhang": 5042,
+    "pharmacy_hk.overhang": 5044,
+    "jinlong.hkblade": 5045,
+    "pawn.hkblade": 5046,
+    "mahjong_hk.hkblade": 5047,
+    "nightclub.hkblade": 5049,
+    "chachaan.hkblade": 5050,
+    "herbaltea.hkblade": 5051,
+    "seafood.hkblade": 5052,
+    "goldshop.hkblade": 5053,
+    "pharmacy_hk.hkblade": 5054,
+    "hotel_hk.hkblade": 5055,
+    "sauna_hk.hkblade": 5056,
+    "flower.fascia": 5004,
+    "flower.blade": 5017,
+    "dental.blade": 5025,
+    "soroban.blade": 5027,
+    "spa.blade": 5030,
+    "spa.panel": 5036,
+    "dental.panel": 5037,
+    "soroban.panel": 5038,
+    "spa.billboard": 5041,
+    "store_hk.overhang": 5043,
+    "store_hk.hkblade": 5048
+  },
+  "rejects": {
+    "sushi.fascia": "round 1: garbled, repeated or simplified-Chinese text",
+    "gyudon.fascia": "round 1: garbled, repeated or simplified-Chinese text",
+    "kusuri.fascia": "round 1: garbled, repeated or simplified-Chinese text",
+    "kissa.fascia": "round 1: garbled, repeated or simplified-Chinese text",
+    "pachinko.fascia": "round 1: garbled, repeated or simplified-Chinese text",
+    "tachinomi.fascia": "round 1: garbled, repeated or simplified-Chinese text",
+    "tendon.fascia": "round 1: garbled, repeated or simplified-Chinese text",
+    "kombini.fascia": "round 1: garbled, repeated or simplified-Chinese text",
+    "ramen.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "gyudon.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "gyoza.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "yakiniku.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "kusuri.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "kissa.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "chuka.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "tabako.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "pachinko.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "game.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "tachinomi.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "tendon.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "kombini.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "biyou.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "yakitori.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "kinyu.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "eikaiwa.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "bar.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "hotel.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "yakitori.panel": "round 1: garbled, repeated or simplified-Chinese text",
+    "karaoke.panel": "round 1: garbled, repeated or simplified-Chinese text",
+    "mahjong.panel": "round 1: garbled, repeated or simplified-Chinese text",
+    "bar.panel": "round 1: garbled, repeated or simplified-Chinese text",
+    "yakitori.billboard": "round 1: garbled, repeated or simplified-Chinese text",
+    "karaoke.billboard": "round 1: garbled, repeated or simplified-Chinese text",
+    "pawn.overhang": "round 1: garbled, repeated or simplified-Chinese text",
+    "pharmacy_hk.overhang": "round 1: garbled, repeated or simplified-Chinese text",
+    "jinlong.hkblade": "round 1: garbled, repeated or simplified-Chinese text",
+    "pawn.hkblade": "round 1: garbled, repeated or simplified-Chinese text",
+    "mahjong_hk.hkblade": "round 1: garbled, repeated or simplified-Chinese text",
+    "nightclub.hkblade": "round 1: garbled, repeated or simplified-Chinese text",
+    "chachaan.hkblade": "round 1: garbled, repeated or simplified-Chinese text",
+    "herbaltea.hkblade": "round 1: garbled, repeated or simplified-Chinese text",
+    "seafood.hkblade": "round 1: garbled, repeated or simplified-Chinese text",
+    "goldshop.hkblade": "round 1: garbled, repeated or simplified-Chinese text",
+    "pharmacy_hk.hkblade": "round 1: garbled, repeated or simplified-Chinese text",
+    "hotel_hk.hkblade": "round 1: garbled, repeated or simplified-Chinese text",
+    "sauna_hk.hkblade": "round 1: garbled, repeated or simplified-Chinese text",
+    "flower.fascia": "round 1: garbled, repeated or simplified-Chinese text",
+    "flower.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "dental.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "soroban.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "spa.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "spa.panel": "round 1: garbled, repeated or simplified-Chinese text",
+    "dental.panel": "round 1: garbled, repeated or simplified-Chinese text",
+    "soroban.panel": "round 1: garbled, repeated or simplified-Chinese text",
+    "spa.billboard": "round 1: garbled, repeated or simplified-Chinese text",
+    "store_hk.overhang": "round 1: garbled, repeated or simplified-Chinese text",
+    "store_hk.hkblade": "round 1: garbled, repeated or simplified-Chinese text"
+  },
+  "$seeds": "Re-rolls: 5xxx = round 2 (blades sized to their characters, script named in the prompt)."
+}

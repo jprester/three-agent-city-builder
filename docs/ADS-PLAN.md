@@ -1,8 +1,23 @@
-# Signs and ads: plan for a coherent system (deferred)
+# Signs and ads: plan for a coherent system
 
-Status: **decided, not started** (human, 2026-11-23: "no need to do it at the moment"). Start from
-here when the work is picked up. Current system: docs/ADVERTISING.md (partly stale),
-docs/SIGN-PROMPTS.md, `art/layouts/city.mjs` (placement), `src/scene/signs/` (rendering).
+Status: **in progress** on branch `ads-tenant-signs` (2026-11-24, paused for the night,
+uncommitted). The system as built is described in docs/ADVERTISING.md. Remaining: render round 3
+(`python3 tools/textures/build_signs.py --candidates "$(cat build/signs-round3.txt)" 2 6000`;
+13 of its 40 signs already have both seeds cached), review `build/previews/signs/candidates.png`,
+pin picks in `seeds`, `--render` (the renamed businesses flower, dental, soroban, spa, store_hk have
+no source yet). Then give any blade still garbled `only` (drop it), pack (`npm run signs`), run tests,
+shots (`npm run shots`, frame times measured with no renders running), commit.
+
+**Hero billboards (human review 2026-11-24, after the first shots):** the big downtown tower
+billboards and shaft campaigns look underwhelming: low resolution (packed at 1024 / 768 px for
+boards 20-70 m tall) and the wrong theme (noodles, beer, energy drink read as small-shop ads). Big
+billboards should carry high-quality fashion and luxury campaigns (classy). Decision (human): keep
+local Z-Image for the signs and the smaller image ads (rooftop boards, street-level billboards,
+screens); the big tower hero ads (`wide`, `tall`, zones billboard and shaft) come from GPT or
+Midjourney, made by the human, imported into `art/external/` with a manifest entry. They need
+their own higher-resolution atlas (long edge ~2048 px). Food, drink and loan brands then stay on the
+roofs and low buildings. Not yet built: street props (menu lightboxes, A-frames, lanterns) and
+dedicated roof lattice frames. The plan below is kept as the record of the decisions.
 
 ## Decisions (human, 2026-11-23)
 

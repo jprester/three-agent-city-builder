@@ -1,0 +1,3206 @@
+{
+ "atlases": [
+  [
+   4096,
+   4096
+  ],
+  [
+   4096,
+   4096
+  ],
+  [
+   4096,
+   1352
+  ]
+ ],
+ "entries": [
+  {
+   "id": "ramen.fascia",
+   "owner": "ramen",
+   "format": "fascia",
+   "aspect": 3.531,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.984,
+    0.879,
+    0.423
+   ],
+   "hue": 49,
+   "sat": 0.57,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 2,
+   "rect": [
+    0.729004,
+    0.781065,
+    0.25,
+    0.214497
+   ]
+  },
+  {
+   "id": "ramen.blade",
+   "owner": "ramen",
+   "format": "blade",
+   "aspect": 0.2591,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.974,
+    0.911,
+    0.26
+   ],
+   "hue": 55,
+   "sat": 0.73,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.001465,
+    0.811035,
+    0.048584,
+    0.1875
+   ]
+  },
+  {
+   "id": "sushi.fascia",
+   "owner": "sushi",
+   "format": "fascia",
+   "aspect": 4.5919,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.974,
+    0.988,
+    0.988
+   ],
+   "hue": 178,
+   "sat": 0.01,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 2,
+   "rect": [
+    0.735107,
+    0.186391,
+    0.25,
+    0.164941
+   ]
+  },
+  {
+   "id": "sushi.blade",
+   "owner": "sushi",
+   "format": "blade",
+   "aspect": 0.2266,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.984,
+    0.992,
+    0.993
+   ],
+   "hue": 188,
+   "sat": 0.01,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.052979,
+    0.811035,
+    0.04248,
+    0.1875
+   ]
+  },
+  {
+   "id": "gyudon.fascia",
+   "owner": "gyudon",
+   "format": "fascia",
+   "aspect": 2.5974,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.972,
+    0.699,
+    0.306
+   ],
+   "hue": 35,
+   "sat": 0.69,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 1,
+   "rect": [
+    0.25415,
+    0.152344,
+    0.244141,
+    0.093994
+   ]
+  },
+  {
+   "id": "gyudon.blade",
+   "owner": "gyudon",
+   "format": "blade",
+   "aspect": 0.2083,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.939,
+    0.62,
+    0.155
+   ],
+   "hue": 36,
+   "sat": 0.83,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.098389,
+    0.811035,
+    0.039062,
+    0.1875
+   ]
+  },
+  {
+   "id": "gyoza.fascia",
+   "owner": "gyoza",
+   "format": "fascia",
+   "aspect": 4.785,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.955,
+    0.982,
+    0.988
+   ],
+   "hue": 191,
+   "sat": 0.03,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 2,
+   "rect": [
+    0.001465,
+    0.006657,
+    0.25,
+    0.158284
+   ]
+  },
+  {
+   "id": "gyoza.blade",
+   "owner": "gyoza",
+   "format": "blade",
+   "aspect": 0.3333,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.949,
+    0.977,
+    0.985
+   ],
+   "hue": 195,
+   "sat": 0.04,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.140381,
+    0.811035,
+    0.0625,
+    0.1875
+   ]
+  },
+  {
+   "id": "yakiniku.fascia",
+   "owner": "yakiniku",
+   "format": "fascia",
+   "aspect": 3.7101,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.95,
+    0.668,
+    0.659
+   ],
+   "hue": 2,
+   "sat": 0.31,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 2,
+   "rect": [
+    0.001465,
+    0.553254,
+    0.25,
+    0.204142
+   ]
+  },
+  {
+   "id": "yakiniku.blade",
+   "owner": "yakiniku",
+   "format": "blade",
+   "aspect": 0.25,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.921,
+    0.667,
+    0.683
+   ],
+   "hue": 356,
+   "sat": 0.28,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.205811,
+    0.811035,
+    0.046875,
+    0.1875
+   ]
+  },
+  {
+   "id": "kusuri.fascia",
+   "owner": "kusuri",
+   "format": "fascia",
+   "aspect": 4.1124,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.983,
+    0.898,
+    0.41
+   ],
+   "hue": 51,
+   "sat": 0.58,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 2,
+   "rect": [
+    0.001465,
+    0.360207,
+    0.25,
+    0.184172
+   ]
+  },
+  {
+   "id": "kusuri.blade",
+   "owner": "kusuri",
+   "format": "blade",
+   "aspect": 0.1732,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.958,
+    0.869,
+    0.203
+   ],
+   "hue": 53,
+   "sat": 0.79,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.255615,
+    0.811035,
+    0.032471,
+    0.1875
+   ]
+  },
+  {
+   "id": "kissa.fascia",
+   "owner": "kissa",
+   "format": "fascia",
+   "aspect": 4.1626,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.996,
+    0.969,
+    0.89
+   ],
+   "hue": 45,
+   "sat": 0.11,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 1,
+   "rect": [
+    0.001465,
+    0.001465,
+    0.25,
+    0.060059
+   ]
+  },
+  {
+   "id": "kissa.blade",
+   "owner": "kissa",
+   "format": "blade",
+   "aspect": 0.2122,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.993,
+    0.968,
+    0.908
+   ],
+   "hue": 43,
+   "sat": 0.09,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.291016,
+    0.811035,
+    0.039795,
+    0.1875
+   ]
+  },
+  {
+   "id": "chuka.fascia",
+   "owner": "chuka",
+   "format": "fascia",
+   "aspect": 4.1796,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.982,
+    0.917,
+    0.286
+   ],
+   "hue": 54,
+   "sat": 0.71,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 1,
+   "rect": [
+    0.254395,
+    0.001709,
+    0.25,
+    0.059814
+   ]
+  },
+  {
+   "id": "chuka.blade",
+   "owner": "chuka",
+   "format": "blade",
+   "aspect": 0.3333,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.993,
+    0.993,
+    0.985
+   ],
+   "hue": 55,
+   "sat": 0.01,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.33374,
+    0.811035,
+    0.0625,
+    0.1875
+   ]
+  },
+  {
+   "id": "tabako.fascia",
+   "owner": "tabako",
+   "format": "fascia",
+   "aspect": 3.3032,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.94,
+    0.898,
+    0.895
+   ],
+   "hue": 4,
+   "sat": 0.05,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 2,
+   "rect": [
+    0.001465,
+    0.766272,
+    0.25,
+    0.22929
+   ]
+  },
+  {
+   "id": "tabako.blade",
+   "owner": "tabako",
+   "format": "blade",
+   "aspect": 0.2135,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.956,
+    0.975,
+    0.981
+   ],
+   "hue": 195,
+   "sat": 0.03,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.39917,
+    0.811035,
+    0.040039,
+    0.1875
+   ]
+  },
+  {
+   "id": "fudosan.fascia",
+   "owner": "fudosan",
+   "format": "fascia",
+   "aspect": 3.9084,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.982,
+    0.989,
+    0.985
+   ],
+   "hue": 146,
+   "sat": 0.01,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 2,
+   "rect": [
+    0.697754,
+    0.563609,
+    0.25,
+    0.193787
+   ]
+  },
+  {
+   "id": "fudosan.blade",
+   "owner": "fudosan",
+   "format": "blade",
+   "aspect": 0.2161,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.988,
+    0.99,
+    0.988
+   ],
+   "hue": 122,
+   "sat": 0.0,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.442139,
+    0.811035,
+    0.040527,
+    0.1875
+   ]
+  },
+  {
+   "id": "megane.fascia",
+   "owner": "megane",
+   "format": "fascia",
+   "aspect": 4.5714,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.97,
+    0.982,
+    0.986
+   ],
+   "hue": 197,
+   "sat": 0.02,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 2,
+   "rect": [
+    0.482178,
+    0.185651,
+    0.25,
+    0.16568
+   ]
+  },
+  {
+   "id": "megane.blade",
+   "owner": "megane",
+   "format": "blade",
+   "aspect": 0.1615,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.993,
+    0.993,
+    0.994
+   ],
+   "hue": 228,
+   "sat": 0.0,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.485596,
+    0.811035,
+    0.030273,
+    0.1875
+   ]
+  },
+  {
+   "id": "pachinko.fascia",
+   "owner": "pachinko",
+   "format": "fascia",
+   "aspect": 3.3684,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.975,
+    0.931,
+    0.26
+   ],
+   "hue": 56,
+   "sat": 0.73,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 2,
+   "rect": [
+    0.254395,
+    0.77071,
+    0.25,
+    0.224852
+   ]
+  },
+  {
+   "id": "pachinko.blade",
+   "owner": "pachinko",
+   "format": "blade",
+   "aspect": 0.2292,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.966,
+    0.886,
+    0.152
+   ],
+   "hue": 54,
+   "sat": 0.84,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.518799,
+    0.811035,
+    0.042969,
+    0.1875
+   ]
+  },
+  {
+   "id": "game.fascia",
+   "owner": "game",
+   "format": "fascia",
+   "aspect": 4.511,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.93,
+    0.96,
+    0.972
+   ],
+   "hue": 198,
+   "sat": 0.04,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 2,
+   "rect": [
+    0.229248,
+    0.183432,
+    0.25,
+    0.167899
+   ]
+  },
+  {
+   "id": "game.blade",
+   "owner": "game",
+   "format": "blade",
+   "aspect": 0.2096,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.957,
+    0.972,
+    0.977
+   ],
+   "hue": 194,
+   "sat": 0.02,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.564697,
+    0.811035,
+    0.039307,
+    0.1875
+   ]
+  },
+  {
+   "id": "tachinomi.fascia",
+   "owner": "tachinomi",
+   "format": "fascia",
+   "aspect": 5.0693,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.993,
+    0.993,
+    0.993
+   ],
+   "hue": 196,
+   "sat": 0.0,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 2,
+   "rect": [
+    0.254395,
+    0.015533,
+    0.25,
+    0.149408
+   ]
+  },
+  {
+   "id": "tachinomi.blade",
+   "owner": "tachinomi",
+   "format": "blade",
+   "aspect": 0.2109,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.986,
+    0.989,
+    0.992
+   ],
+   "hue": 216,
+   "sat": 0.01,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.606934,
+    0.811035,
+    0.039551,
+    0.1875
+   ]
+  },
+  {
+   "id": "tendon.fascia",
+   "owner": "tendon",
+   "format": "fascia",
+   "aspect": 3.0029,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.979,
+    0.985,
+    0.984
+   ],
+   "hue": 172,
+   "sat": 0.01,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 1,
+   "rect": [
+    0.001465,
+    0.064453,
+    0.25,
+    0.083252
+   ]
+  },
+  {
+   "id": "tendon.blade",
+   "owner": "tendon",
+   "format": "blade",
+   "aspect": 0.2487,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.886,
+    0.932,
+    0.961
+   ],
+   "hue": 203,
+   "sat": 0.08,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.649414,
+    0.811035,
+    0.046631,
+    0.1875
+   ]
+  },
+  {
+   "id": "kombini.fascia",
+   "owner": "kombini",
+   "format": "fascia",
+   "aspect": 2.6097,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.984,
+    0.989,
+    0.991
+   ],
+   "hue": 202,
+   "sat": 0.01,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 1,
+   "rect": [
+    0.001465,
+    0.150635,
+    0.249756,
+    0.095703
+   ]
+  },
+  {
+   "id": "kombini.blade",
+   "owner": "kombini",
+   "format": "blade",
+   "aspect": 0.2005,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.969,
+    0.973,
+    0.985
+   ],
+   "hue": 223,
+   "sat": 0.02,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.698975,
+    0.811035,
+    0.037598,
+    0.1875
+   ]
+  },
+  {
+   "id": "clinic.panel",
+   "owner": "clinic",
+   "format": "panel",
+   "aspect": 0.8996,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.967,
+    0.975,
+    0.977
+   ],
+   "hue": 191,
+   "sat": 0.01,
+   "floor": 2,
+   "script": "ja",
+   "atlas": 1,
+   "rect": [
+    0.760254,
+    0.88916,
+    0.098389,
+    0.109375
+   ]
+  },
+  {
+   "id": "clinic.blade",
+   "owner": "clinic",
+   "format": "blade",
+   "aspect": 0.2487,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.991,
+    0.992,
+    0.993
+   ],
+   "hue": 226,
+   "sat": 0.0,
+   "floor": 2,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.739502,
+    0.811035,
+    0.046631,
+    0.1875
+   ]
+  },
+  {
+   "id": "biyou.panel",
+   "owner": "biyou",
+   "format": "panel",
+   "aspect": 0.7946,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.987,
+    0.94,
+    0.905
+   ],
+   "hue": 26,
+   "sat": 0.08,
+   "floor": 2,
+   "script": "ja",
+   "atlas": 1,
+   "rect": [
+    0.861572,
+    0.88916,
+    0.086914,
+    0.109375
+   ]
+  },
+  {
+   "id": "biyou.blade",
+   "owner": "biyou",
+   "format": "blade",
+   "aspect": 0.168,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.988,
+    0.97,
+    0.963
+   ],
+   "hue": 16,
+   "sat": 0.03,
+   "floor": 2,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.789062,
+    0.811035,
+    0.031494,
+    0.1875
+   ]
+  },
+  {
+   "id": "yakitori.panel",
+   "owner": "yakitori",
+   "format": "panel",
+   "aspect": 0.8415,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.951,
+    0.986,
+    0.986
+   ],
+   "hue": 181,
+   "sat": 0.04,
+   "floor": 2,
+   "script": "ja",
+   "atlas": 1,
+   "rect": [
+    0.507324,
+    0.72998,
+    0.092041,
+    0.109375
+   ]
+  },
+  {
+   "id": "yakitori.blade",
+   "owner": "yakitori",
+   "format": "blade",
+   "aspect": 0.2487,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.975,
+    0.992,
+    0.991
+   ],
+   "hue": 174,
+   "sat": 0.02,
+   "floor": 2,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.823486,
+    0.811035,
+    0.046631,
+    0.1875
+   ]
+  },
+  {
+   "id": "yakitori.billboard",
+   "owner": "yakitori",
+   "format": "billboard",
+   "aspect": 2.0789,
+   "holo": false,
+   "gain": 0.9,
+   "color": [
+    0.932,
+    0.98,
+    0.988
+   ],
+   "hue": 189,
+   "sat": 0.06,
+   "floor": 2,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.223145,
+    0.003662,
+    0.21875,
+    0.105225
+   ]
+  },
+  {
+   "id": "shika.panel",
+   "owner": "shika",
+   "format": "panel",
+   "aspect": 0.7455,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.987,
+    0.989,
+    0.987
+   ],
+   "hue": 124,
+   "sat": 0.0,
+   "floor": 3,
+   "script": "ja",
+   "atlas": 1,
+   "rect": [
+    0.602295,
+    0.72998,
+    0.081543,
+    0.109375
+   ]
+  },
+  {
+   "id": "shika.blade",
+   "owner": "shika",
+   "format": "blade",
+   "aspect": 0.2018,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.982,
+    0.985,
+    0.984
+   ],
+   "hue": 157,
+   "sat": 0.0,
+   "floor": 3,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.873047,
+    0.811035,
+    0.037842,
+    0.1875
+   ]
+  },
+  {
+   "id": "kinyu.panel",
+   "owner": "kinyu",
+   "format": "panel",
+   "aspect": 0.8281,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.978,
+    0.901,
+    0.447
+   ],
+   "hue": 51,
+   "sat": 0.54,
+   "floor": 3,
+   "script": "ja",
+   "atlas": 1,
+   "rect": [
+    0.686768,
+    0.72998,
+    0.090576,
+    0.109375
+   ]
+  },
+  {
+   "id": "kinyu.blade",
+   "owner": "kinyu",
+   "format": "blade",
+   "aspect": 0.2643,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.938,
+    0.88,
+    0.239
+   ],
+   "hue": 55,
+   "sat": 0.75,
+   "floor": 3,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.913818,
+    0.811035,
+    0.049561,
+    0.1875
+   ]
+  },
+  {
+   "id": "massage.panel",
+   "owner": "massage",
+   "format": "panel",
+   "aspect": 0.9196,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.974,
+    0.977,
+    0.981
+   ],
+   "hue": 208,
+   "sat": 0.01,
+   "floor": 3,
+   "script": "ja",
+   "atlas": 1,
+   "rect": [
+    0.780273,
+    0.72998,
+    0.100586,
+    0.109375
+   ]
+  },
+  {
+   "id": "massage.blade",
+   "owner": "massage",
+   "format": "blade",
+   "aspect": 0.2305,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.966,
+    0.98,
+    0.983
+   ],
+   "hue": 191,
+   "sat": 0.02,
+   "floor": 3,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.001465,
+    0.620605,
+    0.043213,
+    0.1875
+   ]
+  },
+  {
+   "id": "karaoke.panel",
+   "owner": "karaoke",
+   "format": "panel",
+   "aspect": 0.9754,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.964,
+    0.986,
+    0.987
+   ],
+   "hue": 184,
+   "sat": 0.02,
+   "floor": 4,
+   "script": "ja",
+   "atlas": 1,
+   "rect": [
+    0.883789,
+    0.72998,
+    0.106689,
+    0.109375
+   ]
+  },
+  {
+   "id": "karaoke.blade",
+   "owner": "karaoke",
+   "format": "blade",
+   "aspect": 0.1862,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.971,
+    0.985,
+    0.986
+   ],
+   "hue": 181,
+   "sat": 0.02,
+   "floor": 4,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.047607,
+    0.620605,
+    0.034912,
+    0.1875
+   ]
+  },
+  {
+   "id": "karaoke.billboard",
+   "owner": "karaoke",
+   "format": "billboard",
+   "aspect": 1.4405,
+   "holo": false,
+   "gain": 0.9,
+   "color": [
+    0.943,
+    0.989,
+    0.992
+   ],
+   "hue": 184,
+   "sat": 0.05,
+   "floor": 4,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.770996,
+    0.46582,
+    0.21875,
+    0.151855
+   ]
+  },
+  {
+   "id": "snack.panel",
+   "owner": "snack",
+   "format": "panel",
+   "aspect": 0.9844,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.974,
+    0.985,
+    0.982
+   ],
+   "hue": 167,
+   "sat": 0.01,
+   "floor": 4,
+   "script": "ja",
+   "atlas": 1,
+   "rect": [
+    0.001465,
+    0.570801,
+    0.107666,
+    0.109375
+   ]
+  },
+  {
+   "id": "snack.blade",
+   "owner": "snack",
+   "format": "blade",
+   "aspect": 0.2474,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.977,
+    0.988,
+    0.982
+   ],
+   "hue": 151,
+   "sat": 0.01,
+   "floor": 4,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.085449,
+    0.620605,
+    0.046387,
+    0.1875
+   ]
+  },
+  {
+   "id": "juku.panel",
+   "owner": "juku",
+   "format": "panel",
+   "aspect": 0.7812,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.993,
+    0.993,
+    0.991
+   ],
+   "hue": 69,
+   "sat": 0.0,
+   "floor": 4,
+   "script": "ja",
+   "atlas": 1,
+   "rect": [
+    0.112061,
+    0.570801,
+    0.085449,
+    0.109375
+   ]
+  },
+  {
+   "id": "juku.blade",
+   "owner": "juku",
+   "format": "blade",
+   "aspect": 0.2266,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.992,
+    0.991,
+    0.988
+   ],
+   "hue": 46,
+   "sat": 0.0,
+   "floor": 4,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.134766,
+    0.620605,
+    0.04248,
+    0.1875
+   ]
+  },
+  {
+   "id": "mahjong.panel",
+   "owner": "mahjong",
+   "format": "panel",
+   "aspect": 0.7031,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.971,
+    0.976,
+    0.979
+   ],
+   "hue": 202,
+   "sat": 0.01,
+   "floor": 5,
+   "script": "ja",
+   "atlas": 1,
+   "rect": [
+    0.200439,
+    0.570801,
+    0.076904,
+    0.109375
+   ]
+  },
+  {
+   "id": "mahjong.blade",
+   "owner": "mahjong",
+   "format": "blade",
+   "aspect": 0.2578,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.987,
+    0.986,
+    0.989
+   ],
+   "hue": 261,
+   "sat": 0.0,
+   "floor": 5,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.180176,
+    0.620605,
+    0.04834,
+    0.1875
+   ]
+  },
+  {
+   "id": "izakaya.panel",
+   "owner": "izakaya",
+   "format": "panel",
+   "aspect": 0.9576,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.982,
+    0.718,
+    0.328
+   ],
+   "hue": 36,
+   "sat": 0.67,
+   "floor": 5,
+   "script": "ja",
+   "atlas": 1,
+   "rect": [
+    0.280273,
+    0.570801,
+    0.104736,
+    0.109375
+   ]
+  },
+  {
+   "id": "izakaya.blade",
+   "owner": "izakaya",
+   "format": "blade",
+   "aspect": 0.2995,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.971,
+    0.64,
+    0.197
+   ],
+   "hue": 34,
+   "sat": 0.8,
+   "floor": 5,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.231445,
+    0.620605,
+    0.056152,
+    0.1875
+   ]
+  },
+  {
+   "id": "izakaya.billboard",
+   "owner": "izakaya",
+   "format": "billboard",
+   "aspect": 2.4282,
+   "holo": false,
+   "gain": 0.9,
+   "color": [
+    0.954,
+    0.813,
+    0.614
+   ],
+   "hue": 35,
+   "sat": 0.36,
+   "floor": 5,
+   "script": "ja",
+   "atlas": 1,
+   "rect": [
+    0.501221,
+    0.15625,
+    0.21875,
+    0.090088
+   ]
+  },
+  {
+   "id": "manga.panel",
+   "owner": "manga",
+   "format": "panel",
+   "aspect": 0.8929,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.985,
+    0.878,
+    0.509
+   ],
+   "hue": 47,
+   "sat": 0.48,
+   "floor": 6,
+   "script": "ja",
+   "atlas": 1,
+   "rect": [
+    0.387939,
+    0.570801,
+    0.097656,
+    0.109375
+   ]
+  },
+  {
+   "id": "manga.blade",
+   "owner": "manga",
+   "format": "blade",
+   "aspect": 0.2409,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.964,
+    0.902,
+    0.259
+   ],
+   "hue": 55,
+   "sat": 0.73,
+   "floor": 6,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.290527,
+    0.620605,
+    0.045166,
+    0.1875
+   ]
+  },
+  {
+   "id": "eikaiwa.panel",
+   "owner": "eikaiwa",
+   "format": "panel",
+   "aspect": 0.9777,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.988,
+    0.988,
+    0.985
+   ],
+   "hue": 61,
+   "sat": 0.0,
+   "floor": 6,
+   "script": "ja",
+   "atlas": 1,
+   "rect": [
+    0.488525,
+    0.570801,
+    0.106934,
+    0.109375
+   ]
+  },
+  {
+   "id": "eikaiwa.blade",
+   "owner": "eikaiwa",
+   "format": "blade",
+   "aspect": 0.2266,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.96,
+    0.972,
+    0.976
+   ],
+   "hue": 197,
+   "sat": 0.02,
+   "floor": 6,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.338623,
+    0.620605,
+    0.04248,
+    0.1875
+   ]
+  },
+  {
+   "id": "bar.panel",
+   "owner": "bar",
+   "format": "panel",
+   "aspect": 0.9888,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.979,
+    0.924,
+    0.782
+   ],
+   "hue": 43,
+   "sat": 0.2,
+   "floor": 7,
+   "script": "ja",
+   "atlas": 1,
+   "rect": [
+    0.598389,
+    0.570801,
+    0.108154,
+    0.109375
+   ]
+  },
+  {
+   "id": "bar.blade",
+   "owner": "bar",
+   "format": "blade",
+   "aspect": 0.2682,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.992,
+    0.967,
+    0.896
+   ],
+   "hue": 44,
+   "sat": 0.1,
+   "floor": 7,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.384033,
+    0.620605,
+    0.050293,
+    0.1875
+   ]
+  },
+  {
+   "id": "sauna.panel",
+   "owner": "sauna",
+   "format": "panel",
+   "aspect": 0.9598,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.973,
+    0.984,
+    0.981
+   ],
+   "hue": 164,
+   "sat": 0.01,
+   "floor": 8,
+   "script": "ja",
+   "atlas": 1,
+   "rect": [
+    0.709473,
+    0.570801,
+    0.10498,
+    0.109375
+   ]
+  },
+  {
+   "id": "sauna.blade",
+   "owner": "sauna",
+   "format": "blade",
+   "aspect": 0.2279,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.943,
+    0.922,
+    0.877
+   ],
+   "hue": 41,
+   "sat": 0.07,
+   "floor": 8,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.437256,
+    0.620605,
+    0.042725,
+    0.1875
+   ]
+  },
+  {
+   "id": "sauna.billboard",
+   "owner": "sauna",
+   "format": "billboard",
+   "aspect": 1.9823,
+   "holo": false,
+   "gain": 0.9,
+   "color": [
+    0.961,
+    0.835,
+    0.692
+   ],
+   "hue": 32,
+   "sat": 0.28,
+   "floor": 8,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.760254,
+    0.157715,
+    0.21875,
+    0.110352
+   ]
+  },
+  {
+   "id": "hotel.blade",
+   "owner": "hotel",
+   "format": "blade",
+   "aspect": 0.1667,
+   "holo": false,
+   "gain": 0.85,
+   "color": [
+    0.977,
+    0.988,
+    0.992
+   ],
+   "hue": 194,
+   "sat": 0.01,
+   "floor": 1,
+   "script": "ja",
+   "atlas": 0,
+   "rect": [
+    0.966309,
+    0.811035,
+    0.03125,
+    0.1875
+   ]
+  },
+  {
+   "id": "jinlong.overhang",
+   "owner": "jinlong",
+   "format": "overhang",
+   "aspect": 2.9474,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.947,
+    0.685,
+    0.594
+   ],
+   "hue": 15,
+   "sat": 0.37,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 2,
+   "rect": [
+    0.507324,
+    0.77071,
+    0.21875,
+    0.224852
+   ]
+  },
+  {
+   "id": "jinlong.hkblade",
+   "owner": "jinlong",
+   "format": "hkblade",
+   "aspect": 0.237,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.958,
+    0.587,
+    0.472
+   ],
+   "hue": 14,
+   "sat": 0.51,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 0,
+   "rect": [
+    0.48291,
+    0.620605,
+    0.044434,
+    0.1875
+   ]
+  },
+  {
+   "id": "pawn.overhang",
+   "owner": "pawn",
+   "format": "overhang",
+   "aspect": 2.3093,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.94,
+    0.625,
+    0.586
+   ],
+   "hue": 7,
+   "sat": 0.38,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 1,
+   "rect": [
+    0.760254,
+    0.473145,
+    0.21875,
+    0.094727
+   ]
+  },
+  {
+   "id": "pawn.hkblade",
+   "owner": "pawn",
+   "format": "hkblade",
+   "aspect": 0.2656,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.94,
+    0.546,
+    0.494
+   ],
+   "hue": 7,
+   "sat": 0.47,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 0,
+   "rect": [
+    0.530273,
+    0.620605,
+    0.049805,
+    0.1875
+   ]
+  },
+  {
+   "id": "mahjong_hk.overhang",
+   "owner": "mahjong_hk",
+   "format": "overhang",
+   "aspect": 2.4216,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.78,
+    0.886,
+    0.904
+   ],
+   "hue": 189,
+   "sat": 0.14,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 1,
+   "rect": [
+    0.760254,
+    0.263184,
+    0.21875,
+    0.090332
+   ]
+  },
+  {
+   "id": "mahjong_hk.hkblade",
+   "owner": "mahjong_hk",
+   "format": "hkblade",
+   "aspect": 0.1927,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.833,
+    0.912,
+    0.911
+   ],
+   "hue": 179,
+   "sat": 0.09,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 0,
+   "rect": [
+    0.583008,
+    0.620605,
+    0.036133,
+    0.1875
+   ]
+  },
+  {
+   "id": "karaoke_hk.overhang",
+   "owner": "karaoke_hk",
+   "format": "overhang",
+   "aspect": 3.3811,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.721,
+    0.77,
+    0.911
+   ],
+   "hue": 225,
+   "sat": 0.21,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 2,
+   "rect": [
+    0.476074,
+    0.561391,
+    0.21875,
+    0.196006
+   ]
+  },
+  {
+   "id": "karaoke_hk.hkblade",
+   "owner": "karaoke_hk",
+   "format": "hkblade",
+   "aspect": 0.2135,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.807,
+    0.712,
+    0.93
+   ],
+   "hue": 266,
+   "sat": 0.23,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 0,
+   "rect": [
+    0.62207,
+    0.620605,
+    0.040039,
+    0.1875
+   ]
+  },
+  {
+   "id": "nightclub.overhang",
+   "owner": "nightclub",
+   "format": "overhang",
+   "aspect": 2.7401,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.936,
+    0.776,
+    0.941
+   ],
+   "hue": 298,
+   "sat": 0.18,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 1,
+   "rect": [
+    0.476074,
+    0.067871,
+    0.21875,
+    0.079834
+   ]
+  },
+  {
+   "id": "nightclub.hkblade",
+   "owner": "nightclub",
+   "format": "hkblade",
+   "aspect": 0.2266,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.952,
+    0.666,
+    0.903
+   ],
+   "hue": 310,
+   "sat": 0.3,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 0,
+   "rect": [
+    0.665039,
+    0.620605,
+    0.04248,
+    0.1875
+   ]
+  },
+  {
+   "id": "chachaan.overhang",
+   "owner": "chachaan",
+   "format": "overhang",
+   "aspect": 2.7485,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.971,
+    0.872,
+    0.635
+   ],
+   "hue": 42,
+   "sat": 0.35,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 1,
+   "rect": [
+    0.697754,
+    0.068115,
+    0.21875,
+    0.07959
+   ]
+  },
+  {
+   "id": "chachaan.hkblade",
+   "owner": "chachaan",
+   "format": "hkblade",
+   "aspect": 0.2018,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.97,
+    0.717,
+    0.444
+   ],
+   "hue": 31,
+   "sat": 0.54,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 0,
+   "rect": [
+    0.710449,
+    0.620605,
+    0.037842,
+    0.1875
+   ]
+  },
+  {
+   "id": "herbaltea.overhang",
+   "owner": "herbaltea",
+   "format": "overhang",
+   "aspect": 2.0645,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.68,
+    0.931,
+    0.707
+   ],
+   "hue": 126,
+   "sat": 0.27,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 0,
+   "rect": [
+    0.001465,
+    0.00293,
+    0.21875,
+    0.105957
+   ]
+  },
+  {
+   "id": "herbaltea.hkblade",
+   "owner": "herbaltea",
+   "format": "hkblade",
+   "aspect": 0.2734,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.722,
+    0.916,
+    0.685
+   ],
+   "hue": 110,
+   "sat": 0.25,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 0,
+   "rect": [
+    0.751221,
+    0.620605,
+    0.05127,
+    0.1875
+   ]
+  },
+  {
+   "id": "seafood.overhang",
+   "owner": "seafood",
+   "format": "overhang",
+   "aspect": 3.3185,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.668,
+    0.802,
+    0.885
+   ],
+   "hue": 203,
+   "sat": 0.24,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 2,
+   "rect": [
+    0.254395,
+    0.557692,
+    0.21875,
+    0.199704
+   ]
+  },
+  {
+   "id": "seafood.hkblade",
+   "owner": "seafood",
+   "format": "hkblade",
+   "aspect": 0.2305,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.609,
+    0.693,
+    0.884
+   ],
+   "hue": 222,
+   "sat": 0.31,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 0,
+   "rect": [
+    0.80542,
+    0.620605,
+    0.043213,
+    0.1875
+   ]
+  },
+  {
+   "id": "goldshop.overhang",
+   "owner": "goldshop",
+   "format": "overhang",
+   "aspect": 2.3641,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.923,
+    0.781,
+    0.668
+   ],
+   "hue": 27,
+   "sat": 0.28,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 1,
+   "rect": [
+    0.760254,
+    0.368164,
+    0.21875,
+    0.092529
+   ]
+  },
+  {
+   "id": "goldshop.hkblade",
+   "owner": "goldshop",
+   "format": "hkblade",
+   "aspect": 0.2122,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.93,
+    0.742,
+    0.595
+   ],
+   "hue": 26,
+   "sat": 0.36,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 0,
+   "rect": [
+    0.851562,
+    0.620605,
+    0.039795,
+    0.1875
+   ]
+  },
+  {
+   "id": "pharmacy_hk.overhang",
+   "owner": "pharmacy_hk",
+   "format": "overhang",
+   "aspect": 1.6115,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.857,
+    0.957,
+    0.936
+   ],
+   "hue": 167,
+   "sat": 0.1,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 0,
+   "rect": [
+    0.760254,
+    0.291504,
+    0.21875,
+    0.135742
+   ]
+  },
+  {
+   "id": "pharmacy_hk.hkblade",
+   "owner": "pharmacy_hk",
+   "format": "hkblade",
+   "aspect": 0.2083,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.836,
+    0.986,
+    0.932
+   ],
+   "hue": 158,
+   "sat": 0.15,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 0,
+   "rect": [
+    0.894287,
+    0.620605,
+    0.039062,
+    0.1875
+   ]
+  },
+  {
+   "id": "hotel_hk.overhang",
+   "owner": "hotel_hk",
+   "format": "overhang",
+   "aspect": 2.5382,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.96,
+    0.734,
+    0.702
+   ],
+   "hue": 8,
+   "sat": 0.27,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 1,
+   "rect": [
+    0.7229,
+    0.160156,
+    0.21875,
+    0.086182
+   ]
+  },
+  {
+   "id": "hotel_hk.hkblade",
+   "owner": "hotel_hk",
+   "format": "hkblade",
+   "aspect": 0.2305,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.934,
+    0.542,
+    0.515
+   ],
+   "hue": 4,
+   "sat": 0.45,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 0,
+   "rect": [
+    0.936279,
+    0.620605,
+    0.043213,
+    0.1875
+   ]
+  },
+  {
+   "id": "sauna_hk.overhang",
+   "owner": "sauna_hk",
+   "format": "overhang",
+   "aspect": 2.6509,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.888,
+    0.947,
+    0.848
+   ],
+   "hue": 96,
+   "sat": 0.1,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 1,
+   "rect": [
+    0.254395,
+    0.065186,
+    0.21875,
+    0.08252
+   ]
+  },
+  {
+   "id": "sauna_hk.hkblade",
+   "owner": "sauna_hk",
+   "format": "hkblade",
+   "aspect": 0.25,
+   "holo": false,
+   "gain": 1.9,
+   "color": [
+    0.726,
+    0.775,
+    0.672
+   ],
+   "hue": 89,
+   "sat": 0.13,
+   "floor": 1,
+   "script": "zh",
+   "atlas": 0,
+   "rect": [
+    0.001465,
+    0.430176,
+    0.046875,
+    0.1875
+   ]
+  },
+  {
+   "id": "kaze.board",
+   "owner": "kaze",
+   "format": "board",
+   "aspect": 2.3981,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.881,
+    0.593,
+    0.6
+   ],
+   "hue": 359,
+   "sat": 0.33,
+   "brand": true,
+   "jp": false,
+   "atlas": 0,
+   "rect": [
+    0.444824,
+    0.004639,
+    0.25,
+    0.104248
+   ]
+  },
+  {
+   "id": "kaze.wide",
+   "owner": "kaze",
+   "format": "wide",
+   "aspect": 1.6,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.89,
+    0.518,
+    0.524
+   ],
+   "hue": 359,
+   "sat": 0.42,
+   "brand": true,
+   "jp": false,
+   "atlas": 0,
+   "rect": [
+    0.001465,
+    0.270996,
+    0.25,
+    0.15625
+   ]
+  },
+  {
+   "id": "kaze.tall",
+   "owner": "kaze",
+   "format": "tall",
+   "aspect": 0.3333,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.858,
+    0.401,
+    0.388
+   ],
+   "hue": 2,
+   "sat": 0.55,
+   "brand": true,
+   "jp": false,
+   "atlas": 0,
+   "rect": [
+    0.05127,
+    0.430176,
+    0.0625,
+    0.1875
+   ]
+  },
+  {
+   "id": "kurose.board",
+   "owner": "kurose",
+   "format": "board",
+   "aspect": 2.3981,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.76,
+    0.601,
+    0.372
+   ],
+   "hue": 35,
+   "sat": 0.51,
+   "brand": true,
+   "jp": false,
+   "atlas": 0,
+   "rect": [
+    0.697754,
+    0.004639,
+    0.25,
+    0.104248
+   ]
+  },
+  {
+   "id": "kurose.wide",
+   "owner": "kurose",
+   "format": "wide",
+   "aspect": 1.6,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.714,
+    0.557,
+    0.347
+   ],
+   "hue": 34,
+   "sat": 0.51,
+   "brand": true,
+   "jp": false,
+   "atlas": 0,
+   "rect": [
+    0.254395,
+    0.270996,
+    0.25,
+    0.15625
+   ]
+  },
+  {
+   "id": "kurose.tall",
+   "owner": "kurose",
+   "format": "tall",
+   "aspect": 0.3333,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.921,
+    0.625,
+    0.284
+   ],
+   "hue": 32,
+   "sat": 0.69,
+   "brand": true,
+   "jp": false,
+   "atlas": 0,
+   "rect": [
+    0.116699,
+    0.430176,
+    0.0625,
+    0.1875
+   ]
+  },
+  {
+   "id": "arcline.board",
+   "owner": "arcline",
+   "format": "board",
+   "aspect": 2.3981,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.305,
+    0.626,
+    0.858
+   ],
+   "hue": 205,
+   "sat": 0.64,
+   "brand": true,
+   "jp": false,
+   "atlas": 1,
+   "rect": [
+    0.001465,
+    0.463623,
+    0.25,
+    0.104248
+   ]
+  },
+  {
+   "id": "arcline.wide",
+   "owner": "arcline",
+   "format": "wide",
+   "aspect": 1.6,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.271,
+    0.629,
+    0.871
+   ],
+   "hue": 204,
+   "sat": 0.69,
+   "brand": true,
+   "jp": false,
+   "atlas": 0,
+   "rect": [
+    0.507324,
+    0.270996,
+    0.25,
+    0.15625
+   ]
+  },
+  {
+   "id": "arcline.tall",
+   "owner": "arcline",
+   "format": "tall",
+   "aspect": 0.3333,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.319,
+    0.654,
+    0.912
+   ],
+   "hue": 206,
+   "sat": 0.65,
+   "brand": true,
+   "jp": false,
+   "atlas": 0,
+   "rect": [
+    0.182129,
+    0.430176,
+    0.0625,
+    0.1875
+   ]
+  },
+  {
+   "id": "lumora.board",
+   "owner": "lumora",
+   "format": "board",
+   "aspect": 2.3981,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.694,
+    0.611,
+    0.517
+   ],
+   "hue": 32,
+   "sat": 0.26,
+   "brand": true,
+   "jp": false,
+   "atlas": 1,
+   "rect": [
+    0.254395,
+    0.463623,
+    0.25,
+    0.104248
+   ]
+  },
+  {
+   "id": "lumora.wide",
+   "owner": "lumora",
+   "format": "wide",
+   "aspect": 1.6,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.611,
+    0.544,
+    0.47
+   ],
+   "hue": 31,
+   "sat": 0.23,
+   "brand": true,
+   "jp": false,
+   "atlas": 0,
+   "rect": [
+    0.001465,
+    0.111816,
+    0.25,
+    0.15625
+   ]
+  },
+  {
+   "id": "lumora.tall",
+   "owner": "lumora",
+   "format": "tall",
+   "aspect": 0.3333,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.8,
+    0.701,
+    0.571
+   ],
+   "hue": 34,
+   "sat": 0.29,
+   "brand": true,
+   "jp": false,
+   "atlas": 0,
+   "rect": [
+    0.247559,
+    0.430176,
+    0.0625,
+    0.1875
+   ]
+  },
+  {
+   "id": "kiraku.board",
+   "owner": "kiraku",
+   "format": "board",
+   "aspect": 2.3981,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.977,
+    0.852,
+    0.491
+   ],
+   "hue": 44,
+   "sat": 0.5,
+   "brand": true,
+   "jp": false,
+   "atlas": 1,
+   "rect": [
+    0.507324,
+    0.463623,
+    0.25,
+    0.104248
+   ]
+  },
+  {
+   "id": "kiraku.wide",
+   "owner": "kiraku",
+   "format": "wide",
+   "aspect": 1.6,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.983,
+    0.879,
+    0.585
+   ],
+   "hue": 44,
+   "sat": 0.41,
+   "brand": true,
+   "jp": false,
+   "atlas": 0,
+   "rect": [
+    0.254395,
+    0.111816,
+    0.25,
+    0.15625
+   ]
+  },
+  {
+   "id": "kiraku.tall",
+   "owner": "kiraku",
+   "format": "tall",
+   "aspect": 0.3333,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.953,
+    0.74,
+    0.405
+   ],
+   "hue": 37,
+   "sat": 0.57,
+   "brand": true,
+   "jp": false,
+   "atlas": 0,
+   "rect": [
+    0.312988,
+    0.430176,
+    0.0625,
+    0.1875
+   ]
+  },
+  {
+   "id": "vanta.board",
+   "owner": "vanta",
+   "format": "board",
+   "aspect": 2.3981,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.968,
+    0.801,
+    0.549
+   ],
+   "hue": 36,
+   "sat": 0.43,
+   "brand": true,
+   "jp": false,
+   "atlas": 1,
+   "rect": [
+    0.001465,
+    0.356445,
+    0.25,
+    0.104248
+   ]
+  },
+  {
+   "id": "vanta.wide",
+   "owner": "vanta",
+   "format": "wide",
+   "aspect": 1.6,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.961,
+    0.784,
+    0.528
+   ],
+   "hue": 35,
+   "sat": 0.45,
+   "brand": true,
+   "jp": false,
+   "atlas": 0,
+   "rect": [
+    0.507324,
+    0.111816,
+    0.25,
+    0.15625
+   ]
+  },
+  {
+   "id": "vanta.tall",
+   "owner": "vanta",
+   "format": "tall",
+   "aspect": 0.3333,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.886,
+    0.75,
+    0.64
+   ],
+   "hue": 27,
+   "sat": 0.28,
+   "brand": true,
+   "jp": false,
+   "atlas": 0,
+   "rect": [
+    0.378418,
+    0.430176,
+    0.0625,
+    0.1875
+   ]
+  },
+  {
+   "id": "helix.board",
+   "owner": "helix",
+   "format": "board",
+   "aspect": 2.3981,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.649,
+    0.785,
+    0.768
+   ],
+   "hue": 172,
+   "sat": 0.17,
+   "brand": true,
+   "jp": false,
+   "atlas": 1,
+   "rect": [
+    0.254395,
+    0.356445,
+    0.25,
+    0.104248
+   ]
+  },
+  {
+   "id": "helix.wide",
+   "owner": "helix",
+   "format": "wide",
+   "aspect": 1.6,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.627,
+    0.777,
+    0.758
+   ],
+   "hue": 173,
+   "sat": 0.19,
+   "brand": true,
+   "jp": false,
+   "atlas": 1,
+   "rect": [
+    0.001465,
+    0.842285,
+    0.25,
+    0.15625
+   ]
+  },
+  {
+   "id": "helix.tall",
+   "owner": "helix",
+   "format": "tall",
+   "aspect": 0.3333,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.531,
+    0.728,
+    0.898
+   ],
+   "hue": 208,
+   "sat": 0.41,
+   "brand": true,
+   "jp": false,
+   "atlas": 0,
+   "rect": [
+    0.443848,
+    0.430176,
+    0.0625,
+    0.1875
+   ]
+  },
+  {
+   "id": "solenne.board",
+   "owner": "solenne",
+   "format": "board",
+   "aspect": 2.3981,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.96,
+    0.736,
+    0.804
+   ],
+   "hue": 342,
+   "sat": 0.23,
+   "brand": true,
+   "jp": false,
+   "atlas": 1,
+   "rect": [
+    0.507324,
+    0.356445,
+    0.25,
+    0.104248
+   ]
+  },
+  {
+   "id": "solenne.wide",
+   "owner": "solenne",
+   "format": "wide",
+   "aspect": 1.6,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.958,
+    0.717,
+    0.792
+   ],
+   "hue": 341,
+   "sat": 0.25,
+   "brand": true,
+   "jp": false,
+   "atlas": 1,
+   "rect": [
+    0.254395,
+    0.842285,
+    0.25,
+    0.15625
+   ]
+  },
+  {
+   "id": "solenne.tall",
+   "owner": "solenne",
+   "format": "tall",
+   "aspect": 0.3333,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.95,
+    0.537,
+    0.664
+   ],
+   "hue": 342,
+   "sat": 0.43,
+   "brand": true,
+   "jp": false,
+   "atlas": 0,
+   "rect": [
+    0.509277,
+    0.430176,
+    0.0625,
+    0.1875
+   ]
+  },
+  {
+   "id": "seira.board",
+   "owner": "seira",
+   "format": "board",
+   "aspect": 2.3981,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.56,
+    0.819,
+    0.917
+   ],
+   "hue": 197,
+   "sat": 0.39,
+   "brand": true,
+   "jp": false,
+   "atlas": 1,
+   "rect": [
+    0.001465,
+    0.249268,
+    0.25,
+    0.104248
+   ]
+  },
+  {
+   "id": "seira.wide",
+   "owner": "seira",
+   "format": "wide",
+   "aspect": 1.6,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.539,
+    0.808,
+    0.899
+   ],
+   "hue": 195,
+   "sat": 0.4,
+   "brand": true,
+   "jp": false,
+   "atlas": 1,
+   "rect": [
+    0.507324,
+    0.842285,
+    0.25,
+    0.15625
+   ]
+  },
+  {
+   "id": "seira.tall",
+   "owner": "seira",
+   "format": "tall",
+   "aspect": 0.3333,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.545,
+    0.824,
+    0.966
+   ],
+   "hue": 200,
+   "sat": 0.44,
+   "brand": true,
+   "jp": false,
+   "atlas": 0,
+   "rect": [
+    0.574707,
+    0.430176,
+    0.0625,
+    0.1875
+   ]
+  },
+  {
+   "id": "zencash.board",
+   "owner": "zencash",
+   "format": "board",
+   "aspect": 2.3981,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.964,
+    0.839,
+    0.424
+   ],
+   "hue": 46,
+   "sat": 0.56,
+   "brand": true,
+   "jp": true,
+   "atlas": 1,
+   "rect": [
+    0.254395,
+    0.249268,
+    0.25,
+    0.104248
+   ]
+  },
+  {
+   "id": "zencash.wide",
+   "owner": "zencash",
+   "format": "wide",
+   "aspect": 1.6,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.96,
+    0.829,
+    0.407
+   ],
+   "hue": 46,
+   "sat": 0.58,
+   "brand": true,
+   "jp": true,
+   "atlas": 1,
+   "rect": [
+    0.001465,
+    0.683105,
+    0.25,
+    0.15625
+   ]
+  },
+  {
+   "id": "zencash.tall",
+   "owner": "zencash",
+   "format": "tall",
+   "aspect": 0.3333,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.971,
+    0.817,
+    0.319
+   ],
+   "hue": 46,
+   "sat": 0.67,
+   "brand": true,
+   "jp": true,
+   "atlas": 0,
+   "rect": [
+    0.640137,
+    0.430176,
+    0.0625,
+    0.1875
+   ]
+  },
+  {
+   "id": "daikichi.board",
+   "owner": "daikichi",
+   "format": "board",
+   "aspect": 2.3981,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.838,
+    0.551,
+    0.311
+   ],
+   "hue": 27,
+   "sat": 0.63,
+   "brand": true,
+   "jp": true,
+   "atlas": 1,
+   "rect": [
+    0.507324,
+    0.249268,
+    0.25,
+    0.104248
+   ]
+  },
+  {
+   "id": "daikichi.wide",
+   "owner": "daikichi",
+   "format": "wide",
+   "aspect": 1.6,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.842,
+    0.581,
+    0.328
+   ],
+   "hue": 30,
+   "sat": 0.61,
+   "brand": true,
+   "jp": true,
+   "atlas": 1,
+   "rect": [
+    0.254395,
+    0.683105,
+    0.25,
+    0.15625
+   ]
+  },
+  {
+   "id": "daikichi.tall",
+   "owner": "daikichi",
+   "format": "tall",
+   "aspect": 0.3333,
+   "holo": false,
+   "gain": 1.0,
+   "color": [
+    0.876,
+    0.678,
+    0.387
+   ],
+   "hue": 36,
+   "sat": 0.56,
+   "brand": true,
+   "jp": true,
+   "atlas": 0,
+   "rect": [
+    0.705566,
+    0.430176,
+    0.0625,
+    0.1875
+   ]
+  },
+  {
+   "id": "kaze.mark",
+   "owner": "kaze",
+   "format": "mark",
+   "aspect": 1.8917,
+   "holo": true,
+   "gain": 2.2,
+   "color": [
+    1.0,
+    0.76,
+    0.76
+   ],
+   "hue": 0,
+   "sat": 0.24,
+   "brand": true,
+   "atlas": 2,
+   "rect": [
+    0.590576,
+    0.366864,
+    0.11084,
+    0.177515
+   ]
+  },
+  {
+   "id": "kurose.mark",
+   "owner": "kurose",
+   "format": "mark",
+   "aspect": 2.686,
+   "holo": true,
+   "gain": 2.2,
+   "color": [
+    1.0,
+    1.0,
+    0.947
+   ],
+   "hue": 60,
+   "sat": 0.05,
+   "brand": true,
+   "atlas": 1,
+   "rect": [
+    0.817383,
+    0.621094,
+    0.158691,
+    0.059082
+   ]
+  },
+  {
+   "id": "arcline.mark",
+   "owner": "arcline",
+   "format": "mark",
+   "aspect": 2.8512,
+   "holo": true,
+   "gain": 2.2,
+   "color": [
+    0.874,
+    1.0,
+    1.0
+   ],
+   "hue": 180,
+   "sat": 0.13,
+   "brand": true,
+   "atlas": 1,
+   "rect": [
+    0.507324,
+    0.002441,
+    0.168457,
+    0.059082
+   ]
+  },
+  {
+   "id": "lumora.mark",
+   "owner": "lumora",
+   "format": "mark",
+   "aspect": 2.7397,
+   "holo": true,
+   "gain": 2.2,
+   "color": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "hue": 46,
+   "sat": 0.0,
+   "brand": true,
+   "atlas": 1,
+   "rect": [
+    0.678711,
+    0.002441,
+    0.161865,
+    0.059082
+   ]
+  },
+  {
+   "id": "kiraku.mark",
+   "owner": "kiraku",
+   "format": "mark",
+   "aspect": 2.5477,
+   "holo": true,
+   "gain": 2.2,
+   "color": [
+    1.0,
+    1.0,
+    0.819
+   ],
+   "hue": 60,
+   "sat": 0.18,
+   "brand": true,
+   "atlas": 2,
+   "rect": [
+    0.437744,
+    0.366124,
+    0.149902,
+    0.178254
+   ]
+  },
+  {
+   "id": "vanta.mark",
+   "owner": "vanta",
+   "format": "mark",
+   "aspect": 3.4792,
+   "holo": true,
+   "gain": 2.2,
+   "color": [
+    0.962,
+    1.0,
+    1.0
+   ],
+   "hue": 180,
+   "sat": 0.04,
+   "brand": true,
+   "atlas": 2,
+   "rect": [
+    0.704346,
+    0.366864,
+    0.203857,
+    0.177515
+   ]
+  },
+  {
+   "id": "helix.mark",
+   "owner": "helix",
+   "format": "mark",
+   "aspect": 3.8375,
+   "holo": true,
+   "gain": 2.2,
+   "color": [
+    0.833,
+    1.0,
+    1.0
+   ],
+   "hue": 180,
+   "sat": 0.17,
+   "brand": true,
+   "atlas": 2,
+   "rect": [
+    0.001465,
+    0.173817,
+    0.224854,
+    0.177515
+   ]
+  },
+  {
+   "id": "solenne.mark",
+   "owner": "solenne",
+   "format": "mark",
+   "aspect": 3.0537,
+   "holo": true,
+   "gain": 2.2,
+   "color": [
+    1.0,
+    0.975,
+    1.0
+   ],
+   "hue": 300,
+   "sat": 0.02,
+   "brand": true,
+   "atlas": 2,
+   "rect": [
+    0.254395,
+    0.365385,
+    0.18042,
+    0.178994
+   ]
+  },
+  {
+   "id": "seira.mark",
+   "owner": "seira",
+   "format": "mark",
+   "aspect": 2.0744,
+   "holo": true,
+   "gain": 2.2,
+   "color": [
+    1.0,
+    1.0,
+    0.812
+   ],
+   "hue": 60,
+   "sat": 0.19,
+   "brand": true,
+   "atlas": 1,
+   "rect": [
+    0.843506,
+    0.002441,
+    0.122559,
+    0.059082
+   ]
+  }
+ ],
+ "screens": {
+  "count": 11,
+  "cols": 6,
+  "rows": 2
+ }
+}

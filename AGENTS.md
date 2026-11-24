@@ -33,8 +33,14 @@ binary in `public/` is regenerated from them.
 - `npm run assets -- --only 'buildings/*'` limits to matching asset ids.
 - `npm run assets -- --force` ignores the cache.
 - `npm run layouts` regenerates layouts and manifest only (no Blender).
-- `npm run signs:designs` rebuilds the typeset sign designs from `art/signs/designs.def.json`
-  (Python 3 with Pillow and numpy), then the layouts. Preview: `build/previews/signs/designs.png`.
+- `npm run signs` packs the sign library (`art/signs/signs.def.json`: ~45 businesses, each a
+  tenant at a fixed floor with its sign set, and 11 brands) into `art/textures/signs/`, then textures
+  and layouts. Sources are Z-Image Turbo renders cropped to the sign, in `art/external/signs/`
+  (committed); `python3 tools/textures/build_signs.py --render [glob]` renders missing ones,
+  `--sheet` draws contact sheets (`build/previews/signs/sources-*.png`: check every sign's text),
+  `--candidates <ids> <n> <seed>` renders alternative seeds side by side; pin the pick in the def's
+  `seeds` and run `--render` (it re-renders only what changed; `art/external/signs/takes.json`
+  records the prompt and seed of every source). Placement: `art/layouts/lib/signs.mjs` (docs/ADVERTISING.md).
 - `npm run textures` encodes the large textures listed in `art/textures/ktx2.def.json` to
   GPU-compressed KTX2 in `public/textures/` (a few minutes the first time, then only what
   changed). `npm run dev`, `npm run build` and the Playwright runs call it first. The outputs

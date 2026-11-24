@@ -23,6 +23,7 @@ import { buildMonorail, hitsEnvelope, hitsGround } from './lib/monorail.mjs';
 import { placeProps, plantParks } from './lib/street.mjs';
 import { centroidOf, globToRegex, r3 } from './lib/util.mjs';
 import { mulberry32, weightedChoice } from './lib/rng.mjs';
+import { createSignPlacer, signParams } from './lib/signs.mjs';
 import { signalOffset, trafficLanes, trafficPose } from './lib/traffic.mjs';
 
 const DISTRICT_DEFAULTS = {
@@ -102,37 +103,16 @@ const DEFAULTS = {
     sky: { max: 7, perTower: 2, dist: [30, 95], height: [0.2, 0.5], width: 4.5, depth: 4.2 },
     foot: { max: 16, hero: 2, perRoad: 2, spacing: 70, floor: [6.5, 9.0], width: 3.2, depth: 3.0, overlap: 4 },
   },
-  signs: {
-    hero: { blades: [2, 5], bladeChance: 1, panelChance: 0.85 },
-    core: { blades: [1, 1], bladeChance: 0.3, panelChance: 0.45 },
-    // Island band, by what the building faces (buildIsland's `frontage`).
-    island: {
-      ring: { blades: [1, 2], bladeChance: 0.45, panelChance: 0.65 },
-      avenue: { blades: [1, 2], bladeChance: 0.4, panelChance: 0.6 },
-      street: { blades: [1, 1], bladeChance: 0.16, panelChance: 0.3 },
-    },
-    // Signs per frontage building above: hero street dense, old core sparse, elsewhere none.
-    // Tall signs climbing buildings at mid-height: flat panels on tower shafts, tall blades on
-    // old slabs taller than `minHeight`.
-    tall: {
-      slabChance: 0.28, heroSlabChance: 0.6, minHeight: 40, brands: 8,
-      // Tower sign zones (meters): see the tower branch of sign placement.
-      zones: { streetSigns: 2, fasciaSign: 1.3, fasciaFrom: 0.69, billboard: [15, 50], billboardChance: 0.6, shaftChance: 0.85, shaftSideChance: 0.5, shaftMax: 70, shaftBase: [14, 22], shaftHighChance: 0.15, shaftWidthShare: 0.85, crownChance: 0.75 },
-    },
-    // Ads in the rooftop billboard frames of buildings whose generator built one (meta.billboard).
-    roofBillboardChance: 0.85,
-    // Share of placements showing catalog artwork (the rest typeset designs).
-    artShare: { street: 0.72, tower: 1 },
-  },
+  // Signs: see SIGN_DEFAULTS in lib/signs.mjs (override with params.signs).
 };
 
 /** Frontage priority: edges along bigger streets get first pick of buildings. */
 const EDGE_PRIORITY = { hero: 0, arterial: 1, secondary: 2, edge: 3, alley: 4 };
 
-export function generate({ params, seed, assets = {}, art = [], designs = [] }) {
+export function generate({ params, seed, assets = {}, art = [] }) {
   const P = { ...DEFAULTS, ...params };
   // Nested option groups merge with their defaults instead of replacing them.
-  for (const k of ['roads', 'sidewalks', 'lampSpacing', 'flythrough', 'signs', 'bridges', 'props', 'fringe', 'landmarks', 'parking', 'island', 'walkers', 'monorail', 'waterfront']) P[k] = { ...DEFAULTS[k], ...(params[k] ?? {}) };
+  for (const k of ['roads', 'sidewalks', 'lampSpacing', 'flythrough', 'bridges', 'props', 'fringe', 'landmarks', 'parking', 'island', 'walkers', 'monorail', 'waterfront']) P[k] = { ...DEFAULTS[k], ...(params[k] ?? {}) };
   const D = {};
   for (const k of Object.keys(DISTRICT_DEFAULTS)) D[k] = { ...DISTRICT_DEFAULTS[k], ...(params.districts?.[k] ?? {}) };
   const rng = mulberry32(seed);
@@ -506,278 +486,20 @@ export function generate({ params, seed, assets = {}, art = [], designs = [] }) 
     return footBoxes.some((f) => pos[1] + size[1] / 2 > f.y0 && pos[1] - size[1] / 2 < f.y1 && G.obbOverlap(f.box, sb, 0));
   };
 
-  // ---- sign artwork: every sign shows either a catalog image (the human's neon and ads,
-  // tools/textures/import_ads.py) or a typeset design (tools/textures/build_sign_designs.py), and is sized to that artwork's
-  // exact aspect within the placement's size limits, so nothing is cropped or stretched.
-  const ART = (art ?? []).map((e, i) => ({ ...e, i }));
-  const artUses = new Map();
-  const DESIGNS = (designs ?? []).map((d, i) => ({ ...d, i }));
-  const designUses = new Map();
-  const artWeight = (e) => (e.weight ?? 1) * (e.hue <= 60 || e.hue >= 330 ? 3 : e.sat < 0.25 ? 1.5 : 1) / (1 + 1.5 * (artUses.get(e.i) ?? 0));
-  /** Height range allowed by width/height limits at aspect `a` (null if none). */
-  const heightRange = (a, lim) => {
-    const lo = Math.max(lim.h[0], lim.w[0] / a), hi = Math.min(lim.h[1], lim.w[1] / a);
-    return lo <= hi ? [lo, hi] : null;
-  };
-  /**
-   * Choose artwork for a placement and size it. `want`: { kind: 'neon'|'ad', aspect: [lo, hi],
-   * share (chance of catalog art), stroke: 'blade'|'panel'|null (fallback design) }.
-   * `lim`: { w: [min, max], h: [min, max] }. Returns { w, h, art } | { w, h, stroke } | null.
-   */
-  const chooseArt = (want, lim, pickH = (lo, hi) => rand(lo, hi)) => {
-    if (want.stroke === null || rng() < want.share) {
-      const kinds = [].concat(want.kind);
-      const pool = ART.filter((e) => (kinds.includes(e.kind) || (want.shopAds && e.shop)) && !(want.noShop && e.shop) && e.aspect >= want.aspect[0] && e.aspect <= want.aspect[1] && heightRange(e.aspect, lim));
-      if (pool.length) {
-        let r = rng() * pool.reduce((acc, e) => acc + artWeight(e), 0);
-        let e = pool[pool.length - 1];
-        for (const c of pool) if ((r -= artWeight(c)) <= 0) { e = c; break; }
-        artUses.set(e.i, (artUses.get(e.i) ?? 0) + 1);
-        const [lo, hi] = heightRange(e.aspect, lim);
-        const h = pickH(lo, hi);
-        return { w: h * e.aspect, h, art: e.i };
-      }
-      if (want.stroke === null) return null;
-    }
-    // Typeset design (art/textures/signs/designs.json): any of the wanted kind that fits the
-    // placement, least-used first so the vocabulary spreads along a street.
-    const fits = DESIGNS.filter((d) => d.kind === want.stroke && d.brand === undefined && heightRange(d.aspect, lim));
-    if (!fits.length) return null;
-    const least = Math.min(...fits.map((d) => designUses.get(d.i) ?? 0));
-    const few = fits.filter((d) => (designUses.get(d.i) ?? 0) <= least + 1);
-    const d = few[Math.floor(rng() * few.length)];
-    designUses.set(d.i, (designUses.get(d.i) ?? 0) + 1);
-    const [lo, hi] = heightRange(d.aspect, lim);
-    const h = pickH(lo, hi);
-    return { w: h * d.aspect, h, stroke: want.stroke, design: d.i };
-  };
-  const artFields = (c) => (c.art !== undefined ? { art: c.art } : { stroke: c.stroke, design: c.design });
-
-  // ---- signs: blades project from the front face over the street, panels sit flat on it
-  const signs = [];
-  /** Street-level blades and panels on one building's front (`index` into its own list). */
-  const streetSigns = (inst, index, cfg, onHero, k = [1, 1, 1]) => {
-    // k: the building's scale, for stretched island shells (canopy depth, floor heights).
-    const t = inst.rotationY;
-    const u = [Math.cos(t), -Math.sin(t)], v = [Math.sin(t), Math.cos(t)];
-    const [hu, hv] = inst.fp;
-    const front = [inst.position[0] + v[0] * hv, inst.position[2] + v[1] * hv];
-    const top = Math.min(inst.h - 3, onHero ? 34 : 22);
-    const share = P.signs.artShare.street;
-    const fmeta = assets[inst.asset]?.meta ?? {};
-    // Street-face clearance: balconies, bay windows and AC units stick out this far.
-    const depth = (fmeta.depth ?? 0.3) * k[2];
-    const canopy = (fmeta.canopy ?? 0) * k[2];
-    const lift = 5.4 * k[1];
-    const used = [];
-    if (rng() < cfg.bladeChance && hu > 2 && top > 9) {
-      const n = cfg.blades[0] + Math.floor(rng() * (cfg.blades[1] - cfg.blades[0] + 1));
-      for (let k = 0; k < n; k++) {
-        const off = rand(-hu + 1.2, hu - 1.2);
-        if (used.some((o) => Math.abs(o - off) < 2.2)) continue;
-        used.push(off);
-        // Tall blades, or wide "arms" reaching out over the street (the Mong Kok read).
-        const arm = rng() < (onHero ? 0.5 : 0.3);
-        const c = arm
-          ? chooseArt({ kind: 'neon', aspect: [2, 99], share, stroke: null }, { w: [2.5, onHero ? 7.5 : 4.5], h: [0.6, Math.min(2.6, top - lift)] })
-          : chooseArt({ kind: 'neon', shopAds: true, aspect: [0, 1.05], share, stroke: 'blade' }, { w: [0.7, onHero ? 3.2 : 2.4], h: [2.2, Math.min(onHero ? 12 : 7, top - lift)] });
-        if (!c) continue;
-        const { w, h } = c;
-        const y = rand(lift, top - h) + h / 2;
-        const out = depth + 0.3 + w / 2;
-        const sgn = {
-          building: index, kind: 'blade', arm: r3(depth + 0.3), ...artFields(c),
-          position: [r3(front[0] + u[0] * off + v[0] * out), r3(y), r3(front[1] + u[1] * off + v[1] * out)],
-          // A blade's faces look along the street: its normal is the facade's u axis.
-          rotationY: r3(Math.atan2(u[0], u[1])),
-          size: [r3(w), r3(h), 0.28],
-          seed: Math.floor(rng() * 2 ** 31),
-          };
-        if (!hitsBridge(sgn.position, sgn.rotationY, sgn.size)) signs.push(sgn);
-      }
-    }
-    if (rng() < cfg.panelChance && hu > 2.5) {
-      const aboveCanopy = rng() < 0.4;
-      // Shopfront fascias carry a row of one to three small plates: the dense small-business
-      // read. Above the canopy stays a single sign per building.
-      const plates = aboveCanopy ? 1 : 1 + Math.floor(rng() * 3);
-      for (let j = 0; j < plates; j++) {
-        const c = aboveCanopy
-          ? chooseArt({ kind: 'neon', aspect: [0.6, 99], share, stroke: null }, { w: [1.6, Math.min(9, 2 * hu - 1)], h: [0.6, 2.8] })
-          : chooseArt({ kind: 'neon', aspect: [3, 99], share, stroke: 'panel' }, { w: [1.2, Math.min(9, 2 * hu - 1)], h: [0.45, 1.0] });
-        if (c) {
-          const { w, h } = c;
-          // Above the canopy: stands on the canopy's front edge (clear of balconies above);
-          // below it: flat on the shop fascia under the canopy soffit.
-          const ph = 4.8 * k[1];
-          const y = aboveCanopy ? (canopy > 0 ? ph - 0.1 : ph + 0.4) + h / 2 : 3.3 * k[1] + h / 2;
-          const off = rand(-hu + w / 2 + 0.3, hu - w / 2 - 0.3);
-          const out = aboveCanopy ? (canopy > 0 ? canopy - 0.12 : depth + 0.15) : 0.12;
-          const sgn = {
-            building: index, kind: 'panel', ...artFields(c),
-            position: [r3(front[0] + u[0] * off + v[0] * out), r3(y), r3(front[1] + u[1] * off + v[1] * out)],
-            rotationY: r3(t),
-            size: [r3(w), r3(h), 0.2],
-            seed: Math.floor(rng() * 2 ** 31),
-          };
-          // A blade's arm can reach over the canopy edge where the panel stands (stretched shells).
-          const box = (g) => G.obb([g.position[0], g.position[2]], [Math.cos(g.rotationY), -Math.sin(g.rotationY)], g.size[0] / 2, g.size[2] / 2);
-          const clash = signs.some((o) => o.building === index && Math.abs(o.position[1] - sgn.position[1]) < (o.size[1] + sgn.size[1]) / 2
-            && G.obbOverlap(box(o), box(sgn), 0.01));
-          if (!clash && !hitsBridge(sgn.position, sgn.rotationY, sgn.size)) signs.push(sgn);
-        }
-      }
-    }
-  };
+  // ---- signs (lib/signs.mjs): every sign belongs to a tenant of its building at the tenant's
+  // floor, or to a brand on a roof or tower. Street frontages first (they win the clash pass).
+  const S = signParams(params.signs);
+  const placer = createSignPlacer({ S, seed, assets, art: art ?? [], hitsBridge });
+  const signs = placer.signs;
   instances.forEach((inst, index) => {
     if (inst.interior || inst.road < 0) return;
     const onHero = hero && inst.road === hero.id;
-    const cfg = onHero ? P.signs.hero : inst.district === 'core' ? P.signs.core : null;
-    if (cfg) streetSigns(inst, index, cfg, onHero);
+    const cfg = onHero ? S.hero : inst.district === 'core' ? S.core : null;
+    if (cfg) placer.street(inst, index, cfg, 'ja');
   });
-  // ---- tall signs at mid-height (color climbing the city, not just the street)
-  const tallCfg = P.signs.tall;
   instances.forEach((inst, index) => {
     if (inst.interior || inst.road < 0) return;
-    const meta = assets[inst.asset]?.meta ?? {};
-    const t = inst.rotationY;
-    const u = [Math.cos(t), -Math.sin(t)], v = [Math.sin(t), Math.cos(t)];
-    const [hu, hv] = inst.fp;
-    const s3 = Array.isArray(inst.scale) ? inst.scale : [inst.scale, inst.scale, inst.scale];
-    const front = [inst.position[0] + v[0] * hv, inst.position[2] + v[1] * hv];
-    if (meta.billboard && rng() < P.signs.roofBillboardChance) {
-      // An ad fitted inside the rooftop frame (contain: the frame plate shows around it).
-      const b = meta.billboard;
-      // Only ads close to the frame's shape (~2.4:1), so they fill it instead of leaving
-      // dark panels at the sides; the largest size that fits.
-      // Any landscape ad, at the largest size the slot allows; the board is built to fit it.
-      const c = chooseArt({ kind: 'ad', aspect: [1.3, 3.5], share: 1, stroke: null, noShop: true }, { w: [1, b.width], h: [1, b.height] }, (lo, hi) => hi);
-      if (c) {
-        // Blender space → three.js: local x stays, Blender -y is the front (+z along v).
-        const out = -(b.y + 0.25);
-        signs.push({
-          building: index, kind: 'panel', roof: true, legs: r3((b.legs ?? 2) + (b.height - c.h) / 2), ...artFields(c),
-          position: [r3(inst.position[0] + v[0] * out), r3(b.z + b.height / 2), r3(inst.position[2] + v[1] * out)],
-          rotationY: r3(t), size: [r3(c.w), r3(c.h), 0.2], seed: Math.floor(rng() * 2 ** 31),
-        });
-      }
-    }
-    if (meta.family === 'tower' && meta.tiers?.length) {
-      // Tower sign zones (human review 2026-09-27), all on the street-facing face:
-      //   street     storefront band on the base (ground to 2nd floor): shop neon
-      //   billboard  15–65 m (≈ floors 5–20), visible from street and road: big ads
-      //   shaft      mid-height: very tall (≈1:4) holographic ads running with the shaft
-      //   crown      top tier: the tower's brand wordmark, holographic, no board
-      const Z = tallCfg.zones;
-      const sy = s3[1];
-      const tiers = meta.tiers;
-      const faceOf = (tier) => 2 * (hu - tier[2] * s3[0]);
-      const tierAt = (y) => tiers.find(([z0, z1]) => y >= z0 * sy && y <= z1 * sy);
-      /** Flat sign on the tier wall that contains its whole height, or nothing. */
-      /** side: 0 street front (+v), +1 / -1 the side faces (±u). */
-      const sideOf = (tier, side) => side === 0
-        ? { n: v, tan: u, half: hu - tier[2] * s3[0], dist: hv, setback: tier[2] * s3[2] }
-        : { n: [u[0] * side, u[1] * side], tan: [-v[0] * side, -v[1] * side], half: hv - tier[2] * s3[2], dist: hu, setback: tier[2] * s3[0] };
-      const place = (c, yBottom, zone, extra = {}, side = 0) => {
-        const { w, h } = c;
-        const tier = tierAt(yBottom);
-        if (!tier) return false;
-        const f = sideOf(tier, side);
-        const faceW = 2 * f.half - 3;
-        if (yBottom + h > tier[1] * sy - 1 || w > faceW) return false;
-        const off = rand(-faceW / 2 + w / 2, faceW / 2 - w / 2);
-        const out = f.dist - f.setback + 0.25;
-        const c0 = [inst.position[0], inst.position[2]];
-        signs.push({
-          building: index, kind: 'panel', inset: r3(f.setback), zone, ...(side ? { side } : {}), ...extra,
-          position: [r3(c0[0] + f.tan[0] * off + f.n[0] * out), r3(yBottom + h / 2), r3(c0[1] + f.tan[1] * off + f.n[1] * out)],
-          rotationY: r3(Math.atan2(f.n[0], f.n[1])), size: [r3(w), r3(h), 0.3], seed: Math.floor(rng() * 2 ** 31),
-        });
-        return true;
-      };
-      // Street: shop neon on the podium fascia, above the shop windows (~3.1 m) and under the
-      // podium top, flush on the footprint face. Everything above the podium is the tower's
-      // curtain wall: signs placed there (the old 4.8-12 m band) looked stuck on the glass.
-      // The podium (and its shop windows) stretches with the tower's vertical scale.
-      const podiumTop = (meta.podium ?? 4.8) * sy;
-      const fascia = [podiumTop * Z.fasciaFrom, podiumTop - 0.15];
-      for (let k = 0; k < Z.streetSigns; k++) {
-        const c = chooseArt({ kind: 'neon', aspect: [1.5, 99], share: 1, stroke: null }, { w: [2, Math.min(10, 2 * hu - 4)], h: [0.6, Math.max(0.6, Math.min(Z.fasciaSign, fascia[1] - fascia[0]))] });
-        if (!c) continue;
-        const off = rand(-hu + c.w / 2 + 1, hu - c.w / 2 - 1);
-        const y = rand(fascia[0] + c.h / 2, Math.max(fascia[0], fascia[1] - c.h) + c.h / 2);
-        signs.push({
-          building: index, kind: 'panel', zone: 'street', ...artFields(c),
-          position: [r3(front[0] + u[0] * off + v[0] * 0.2), r3(y), r3(front[1] + u[1] * off + v[1] * 0.2)],
-          rotationY: r3(t), size: [r3(c.w), r3(c.h), 0.2], seed: Math.floor(rng() * 2 ** 31),
-        });
-      }
-      // Billboard band.
-      let frontUsed = false;
-      if (!meta.landmark && rng() < Z.billboardChance) {
-        const lo = Math.max(Z.billboard[0], tiers[0][0] * sy + 1);
-        frontUsed = true;
-        const c = chooseArt({ kind: 'ad', aspect: [0.5, 2.2], share: 1, stroke: null, noShop: true }, { w: [6, faceOf(tiers[0]) - 3], h: [10, Math.min(26, Z.billboard[1] - lo)] });
-        if (c) place(c, rand(lo, Z.billboard[1] - c.h), 'billboard', artFields(c));
-      }
-      // Tall campaign: starts just above the street zone and rises with the shaft, where
-      // people on the street and in cars see it (human review: not high up the tower). On the
-      // front when it is free, otherwise (or additionally) on a side face.
-      if (!meta.landmark && rng() < Z.shaftChance) {
-        // Varied heights: the base anywhere from just above the shops up to a quarter of the
-        // tower; most campaigns end by mid-height, a few (shaftHighChance) reach higher.
-        const tier = tiers[0];
-        const H = inst.h;
-        const a = Math.max(tier[0] * sy + 1, rand(Z.shaftBase[0], Math.max(Z.shaftBase[1], H * 0.25)));
-        const topCap = H * (rng() < Z.shaftHighChance ? 0.75 : 0.5);
-        const b = Math.min(tier[1] * sy - 4, topCap);
-        if (b - a > 40) {
-          const sides = frontUsed ? [rng() < 0.5 ? 1 : -1] : rng() < Z.shaftSideChance ? [0, rng() < 0.5 ? 1 : -1] : [0];
-          for (const side of sides) {
-            const f = sideOf(tier, side);
-            const lim = { w: [6, (2 * f.half - 3) * Z.shaftWidthShare], h: [30, Math.min(Z.shaftMax, b - a)] };
-            const tallest = (lo, hi) => rand(lo + (hi - lo) * 0.7, hi);
-            // Stylish brand campaigns only: food and shop ads belong at street level.
-            const c = chooseArt({ kind: 'ad', aspect: [0, 0.45], share: 1, stroke: null, noShop: true }, lim, tallest);
-            if (c) place(c, a, 'shaft', artFields(c), side);
-          }
-        }
-      }
-      // Crown: the brand lettering stands on the roof above the parapet, set back 1 m from
-      // the top tier's front edge, on posts (human review: attached to the rooftop).
-      if (meta.crownSigns !== false && rng() < Z.crownChance && meta.roof) {
-        const topTier = tiers[tiers.length - 1];
-        const f = sideOf(topTier, 0);
-        const w = Math.min(2 * f.half - 4, 34);
-        const brand = Math.floor(rng() * tallCfg.brands);
-        const mark = DESIGNS.find((d) => d.kind === 'panel' && d.brand === brand);
-        if (!mark) return;
-        const h = w / mark.aspect;
-        const legs = 1.2;
-        const out = f.dist - f.setback - 1.0;
-        signs.push({
-          building: index, kind: 'panel', zone: 'crown', legs, brand, stroke: 'panel', design: mark.i,
-          position: [r3(front[0] - v[0] * f.dist + v[0] * out), r3(meta.roof * sy + legs + h / 2), r3(front[1] - v[1] * f.dist + v[1] * out)],
-          rotationY: r3(t), size: [r3(w), r3(h), 0.3], seed: Math.floor(rng() * 2 ** 31),
-        });
-      }
-    } else if (meta.family === 'slab' && inst.h >= tallCfg.minHeight) {
-      const onHero = hero && inst.road === hero.id;
-      if (rng() > (onHero ? tallCfg.heroSlabChance : tallCfg.slabChance) || hu < 3) return;
-      // A tall blade from above the street signs up the facade (Mong Kok's vertical signs).
-      const c = chooseArt({ kind: 'neon', aspect: [0, 0.6], share: 1, stroke: null }, { w: [1.6, 3.4], h: [8, Math.min(24, inst.h - 22)] });
-      if (!c) return;
-      const { w, h } = c;
-      const y = rand(20, inst.h - 3 - h) + h / 2;
-      const off = rand(-hu + 1.5, hu - 1.5);
-      const clear = (meta.depth ?? 0.3) + 0.3;
-      const out = clear + w / 2;
-      signs.push({
-        building: index, kind: 'blade', arm: r3(clear), ...artFields(c),
-        position: [r3(front[0] + u[0] * off + v[0] * out), r3(y), r3(front[1] + u[1] * off + v[1] * out)],
-        rotationY: r3(Math.atan2(u[0], u[1])), size: [r3(w), r3(h), 0.35], seed: Math.floor(rng() * 2 ** 31),
-      });
-    }
+    placer.building(inst, index, hero && inst.road === hero.id);
   });
 
   // ---- clash pass: drop any sign overlapping an earlier sign, reaching into a building
@@ -789,22 +511,27 @@ export function generate({ params, seed, assets = {}, art = [], designs = [] }) 
     Math.abs(p[0] - box.c[0]) < 60 && Math.abs(p[2] - box.c[1]) < 60 &&
     G.insideConvex(G.obb(box.c, box.u, box.hu + 2.5, box.hv + 2.5).corners, [p[0], p[2]]));
   const kept = [];
-  for (const s of signs) {
-    const r = s.rotationY;
-    const box = G.obb([s.position[0], s.position[2]], [Math.cos(r), -Math.sin(r)], s.size[0] / 2 + 0.15, s.size[2] / 2 + 0.15);
-    const y0 = s.position[1] - s.size[1] / 2, y1 = s.position[1] + s.size[1] / 2;
-    const clashSign = kept.some((k) => k.y0 < y1 + 0.2 && k.y1 > y0 - 0.2 && G.dist(k.box.c, box.c) < 40 && G.obbOverlap(k.box, box, 0));
-    const clashBld = !clashSign && bld.some((b, k) => k !== s.building && b.h > y0 && G.dist(b.box.c, box.c) < 120 && G.obbOverlap(b.box, box, 0.05));
-    if (!clashSign && !clashBld && !nearFly(box, y0 - (s.legs ?? 0), y1)) kept.push({ s, box, y0, y1 });
-  }
-  signs.length = 0;
-  for (const k of kept) signs.push(k.s);
+  const clashPass = (list, buildings) => {
+    for (const s of list) {
+      const r = s.rotationY;
+      const box = G.obb([s.position[0], s.position[2]], [Math.cos(r), -Math.sin(r)], s.size[0] / 2 + 0.15, s.size[2] / 2 + 0.15);
+      const y0 = s.position[1] - s.size[1] / 2, y1 = s.position[1] + s.size[1] / 2;
+      const clashSign = kept.some((k) => k.y0 < y1 + 0.2 && k.y1 > y0 - 0.2 && G.dist(k.box.c, box.c) < 40 && G.obbOverlap(k.box, box, 0));
+      const clashBld = !clashSign && buildings && bld.some((b, k) => k !== s.building && b.h > y0 && G.dist(b.box.c, box.c) < 120 && G.obbOverlap(b.box, box, 0.05));
+      if (!clashSign && !clashBld && !nearFly(box, y0 - (s.legs ?? 0), y1)) kept.push({ s, box, y0, y1 });
+    }
+    signs.length = 0;
+    for (const k of kept) signs.push(k.s);
+  };
+  clashPass([...signs], true);
 
   // Island band (last, so it never shifts the city's random stream): shops along the ring road and avenues, a few on quiet streets.
   fringe.forEach((inst, index) => {
-    const cfg = P.signs.island[inst.frontage];
-    if (cfg) streetSigns(inst, instances.length + index, cfg, false, inst.scale);
+    const cfg = S.island[inst.frontage];
+    if (cfg) placer.street(inst, instances.length + index, cfg, 'zh', inst.scale);
   });
+  // Island signs clash with each other too (stacked overhangs reach far over the street).
+  clashPass(signs.slice(kept.length), false);
 
   // ---- monorail (after everything that draws random numbers, so the city comes out the same):
   // the line, its station and pieces, then whatever stands in its way is removed.

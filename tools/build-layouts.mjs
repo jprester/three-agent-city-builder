@@ -17,30 +17,23 @@ function assertBrowserSafe() {
   }
 }
 
-/** Sign artwork catalog (tools/textures/import_ads.py): what the layout needs to choose and size signs. */
+/** Sign catalog (tools/textures/build_signs.py): what the layout needs to choose and size signs. */
 export function signArt() {
-  const cat = readJson(path.join(ROOT, 'art', 'external', 'textures', 'signs', 'catalog.json'), { entries: [] });
-  return cat.entries.map(({ kind, aspect, holo, hue, sat, shop, weight }) => ({ kind, aspect, holo, hue, sat, shop: !!shop, weight: weight ?? 1 }));
-}
-
-/** Typeset sign designs (tools/textures/build_sign_designs.py): kind, aspect and brand per design. */
-export function signDesigns() {
-  const cat = readJson(path.join(ROOT, 'art', 'textures', 'signs', 'designs.json'), { designs: [] });
-  return cat.designs.map(({ kind, aspect, brand }) => ({ kind, aspect, brand }));
+  const cat = readJson(path.join(ROOT, 'art', 'textures', 'signs', 'catalog.json'), { entries: [] });
+  return cat.entries.map(({ owner, format, aspect, floor, script, brand, jp }) => ({ owner, format, aspect, floor, script, brand: !!brand, jp: !!jp }));
 }
 
 export async function buildLayouts() {
   assertBrowserSafe();
   const assets = await readCatalog();
   const art = signArt();
-  const designs = signDesigns();
   const known = new Set(Object.keys(assets));
   const written = [];
   for (const file of listFiles(P.layoutDefs, '.json')) {
     const name = path.basename(file, '.json');
     const def = readJson(file);
     const mod = await import(pathToFileURL(path.join(P.layoutGenerators, `${def.generator}.mjs`)).href);
-    const layout = mod.generate({ params: def.params ?? {}, seed: def.seed ?? 0, assets, art, designs });
+    const layout = mod.generate({ params: def.params ?? {}, seed: def.seed ?? 0, assets, art });
     const unknown = [...new Set(layout.instances.map((i) => i.asset))].filter((id) => !known.has(id));
     if (unknown.length) console.warn(`  layout ${name}: references unbuilt assets: ${unknown.join(', ')}`);
     writeJson(path.join(P.layoutsOut, `${name}.json`), { name, ...layout });

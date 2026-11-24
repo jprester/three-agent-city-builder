@@ -22,10 +22,9 @@
     { "id": "ground_paving_albedo", "src": "art/textures/ground/paving_albedo.webp", "kind": "color" },
     { "id": "ground_asphalt_normal", "src": "art/textures/ground/asphalt_normal.webp", "kind": "normal" },
     { "id": "ground_paving_normal", "src": "art/textures/ground/paving_normal.webp", "kind": "normal" },
-    { "id": "signs_neon_v", "src": "art/external/textures/signs/neon_v.webp", "kind": "color" },
-    { "id": "signs_neon_h", "src": "art/external/textures/signs/neon_h.webp", "kind": "color" },
-    { "id": "signs_posters_p", "src": "art/external/textures/signs/posters_p.webp", "kind": "color" },
-    { "id": "signs_posters_l", "src": "art/external/textures/signs/posters_l.webp", "kind": "color" },
-    { "id": "signs_screens", "src": "art/external/textures/signs/screens.webp", "kind": "color" }
+    { "id": "signs_0", "src": "art/textures/signs/signs_0.webp", "kind": "color" },
+    { "id": "signs_1", "src": "art/textures/signs/signs_1.webp", "kind": "color" },
+    { "id": "signs_2", "src": "art/textures/signs/signs_2.webp", "kind": "color" },
+    { "id": "signs_screens", "src": "art/textures/signs/screens.webp", "kind": "color" }
   ]
 }

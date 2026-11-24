@@ -119,6 +119,14 @@
       "attribution": "Project author (generated with Z-Image Turbo)",
       "importer": "tools/textures/pack_walls.py",
       "notes": "Seamless 1024 px tiles (WebP quality 95): quilted (concretes) or cut between joint centres from untiled takes (tile, formwork, panels, ribs, slate). Packed with wrap-around gutters, matched to the old cells' mean colour and roughness, into art/textures/walls/walls.webp; KTX2 by npm run textures; read by wallSample (src/materials/facade/common.ts)."
+    },
+    {
+      "files": "art/external/signs/*.webp (the city's signs and the brands' campaign photos)",
+      "source": "Generated locally 2026-11-24 with Z-Image Turbo (4-bit mflux build, the `img` command) by tools/textures/build_signs.py --render; prompts are built from art/signs/signs.def.json (style template, business or brand, seed), each take cropped to its sign",
+      "license": "Z-Image Turbo: Apache 2.0 upstream (the 4-bit repack is labelled Tongyi-Qianwen license). Generated images owned by the project author",
+      "attribution": "Project author (generated with Z-Image Turbo)",
+      "importer": "tools/textures/build_signs.py",
+      "notes": "All businesses and brands are fictional. Brand wordmarks are typeset at pack time in the bundled OFL fonts (Barlow Condensed, Noto Sans JP), not generated. Replaces the Midjourney/GPT library in art/external/textures/signs/ and the typeset designs (art/signs/designs.def.json), both kept on disk as reference."
     }
   ]
 }

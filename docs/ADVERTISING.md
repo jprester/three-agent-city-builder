@@ -1,71 +1,86 @@
-# Advertising pilot
+# Signs and ads
 
-The city now uses a hybrid library: 12 typeset shop signs and six illustrated campaigns,
-each composed in portrait, landscape and tall formats (30 designs total). Brand names
-and all copy are drawn using bundled fonts. Images contain illustration only.
+One library in one style (2026-11-24, docs/ADS-PLAN.md): every sign belongs to a tenant of its
+building, at the tenant's floor, or to a brand on a roof or a tower. The earlier libraries (the
+Midjourney/GPT set in `art/external/textures/signs/`, the typeset designs in
+`art/signs/designs.def.json`, the typeset pilot in `art/advertising/`) stay on disk as reference;
+the city no longer draws them.
 
-## Authoring
+## The library: `art/signs/signs.def.json`
 
-- Edit `art/advertising/catalog.def.json` for copy, palette names and campaign sources.
-- Original text-free illustrations live in `art/advertising/artwork/`. The exact built-in
-  image generator prompts are recorded in `art/advertising/PROMPTS.json`.
-- Run `npm run signs` to compose textures, pack atlases and regenerate layout references.
-  `npm run assets` also runs the advertising builder. Python 3 with Pillow is required.
-- Inspect all variants in `build/previews/advertising/`, then run `npm test`,
-  `npm run check` and `npm run shots`, then look at the screenshots.
-- Commit sources, `art/textures/advertising/` and regenerated layouts together. Do not
-  edit generated atlas pixels or catalogue indices directly.
+- **Businesses** (fictional): id, trade, script, floor, sign text, face and ink colours, icon.
+  - `ja`, floor 1: street shops, each with a **fascia** (wide lightbox) and a **blade**.
+  - `ja`, floor 2–8: upper-floor tenants, each with a square **panel** for the tenant column and a
+    **blade**, both showing the floor number ("4F"). Some also have a two-floor **billboard**
+    (food photo, name, floor).
+  - `zh`: Hong Kong neon, each with an **overhang** board and a vertical neon **hkblade**.
+  - `only` limits a business to some formats (the hotel: one tall blade).
+- **Brands** (fictional; English, two domestic ones in Japanese): a text-free campaign photo,
+  `land` and `tall`, plus a wordmark and tagline that the builder typesets in a bundled font. They
+  produce a rooftop **board** (~2.4:1), a tower billboard (**wide**, 1.6:1), a tower-shaft
+  campaign (**tall**, 1:3), a 2:3 crop for the facade video screens, and the crown lettering
+  (**mark**, lit letters on black, drawn without a board).
+- **Style**: one prompt template per format (`styles`, `formats`, `background`): front view,
+  isolated on black, backlit acrylic lightbox (Shinjuku) or exposed glass neon on a steel frame
+  (Mong Kok).
 
-Noto Sans JP and Barlow Condensed are bundled under OFL in `art/external/fonts/`, with
-licenses and source attribution in the external manifest. Fonts run offline at build
-time; no browser font download or platform font dependency is introduced.
+## Pipeline: `tools/textures/build_signs.py`
 
-## Rendering contract
+1. `--render [glob]` renders every sign whose source is missing or whose pinned seed changed
+   (`img`, Z-Image Turbo, ~50 s each). It crops each take to its sign and writes it to
+   `art/external/signs/<id>.webp`, which is committed. `takes.json` beside the sources records the
+   exact prompt, size and seed of each one. Takes stay in `build/signs-takes/`.
+2. `--sheet` draws `build/previews/signs/sources-<format>.png`. **Read every sign's text.**
+   Z-Image often garbles characters, repeats them on tall boards, or slips into simplified
+   Chinese (动, 习). Round 1 got about half of the Japanese text right; tall blades fared worst.
+3. Re-roll a failure: `--candidates <id,id> <n> <first seed>` renders n seeds side by side
+   (`build/previews/signs/candidates.png`). Pin the pick in the def's `seeds`, note it in
+   `rejects`, and run `--render`.
+4. Running with no flag packs the sources, longest edge per format (`SCALE`), into shelf-packed
+   atlases `art/textures/signs/signs_<i>.webp`: RGB colour, alpha the emission mask, at most four
+   atlases of 4096 px. The atlas count must match `art/textures/ktx2.def.json` (the packer checks
+   it). It also writes `screens.webp` and `catalog.json` (per sign: owner, format, floor, script,
+   atlas, UV rect, aspect, light colour, gain).
+5. `npm run textures`, then `npm run layouts`. `npm run signs` runs steps 4 and 5.
 
-The four padded WebP atlases preserve RGB color and store emission strength in alpha.
-**Alpha is not transparency.** The opaque sign shader illuminates letters/tubes while
-leaving the backing unlit; backlit panels and screens use separate gains. WebP preserves
-RGB even where alpha is zero. Six portrait campaigns also feed the facade screen grid.
-UV rectangles, pixel bounds, aspect ratio, surface class, accent and emission gain are
-recorded in the generated catalogue. Gutters have extruded edges for mip filtering.
+## Placement: `art/layouts/lib/signs.mjs`
 
-Runtime metal housings use the existing instanced sign system: projecting blades have
-arms, lightboxes have frames, and tower screens have frames/back rails. All hardware is
-one instanced draw. Tower shaft slots prefer broad campaign screens and omit undersized
-slots instead of placing enormous shop signs high on glass towers.
+Placement has its own random stream, so changing signs never moves anything else in the city.
+Per street frontage (`hero` dense, `core` sparse, the island's ring, avenues and quiet streets):
 
-The previous Midjourney sources and atlases remain intact for future curated reuse;
-they are no longer the default runtime library. This pilot intentionally keeps the
-warm street palette rather than reproducing the reference's city-wide magenta wash.
+- **Street level:** the front is split into shopfronts, one business each. A fascia stands on the
+  canopy's front edge (or sits on the wall over the window); the shop's blade hangs above the
+  canopy at the shopfront's edge.
+- **Upper floors** (2 up to `tenantFloors[family]`: commercial 8, midrise 7, slab 5, walkup 3) are
+  let to tenants whose own floor is that floor, so 4F karaoke is always on the fourth floor.
+  Floor heights come from the facade cells (ground 4.8 m; then 3.0, 3.6 or 3.8 m by family).
+  - The **tenant column** stacks the panels at one edge of the front, one per floor, joined by
+    frame rails.
+  - **Billboards** cover the tenant's floor and the one above.
+  - **Blades** hang at the tenant's floor.
+- **Island (Hong Kong):** every tenant is a `zh` business. Neon overhangs reach 0.4–1.8 m clear
+  of the wall and 3–6.5 m out, stacked by floor, with vertical neon blades between them.
+- **Rooftop frames** carry a brand board, lit by floodlights along the top edge.
+- **Towers:** podium fascias (one per shopfront, some units left empty), a brand billboard at
+  15–50 m, tall campaigns on the shaft, and the brand's lettering on the crown.
+- **Hotels:** a tall hotel blade sometimes climbs an old slab.
+- **No wayfinding** and no sign without an owner. `tests/unit/city.test.ts` checks owners,
+  formats, mounting, floors and overlaps. A clash pass drops overlapping signs, island ones
+  included.
 
-## Extending the library
+## Rendering: `src/scene/signs/`
 
-Add another campaign with a text-free portrait illustration and short copy, then rebuild.
-The builder creates three reflowed formats automatically. Atlas packing fails explicitly
-if a sheet exceeds the configured maximum; expanding beyond that requires adding another
-atlas/shader binding or a texture-array strategy. It is not an unlimited library.
-The layouts currently share a template per format; custom campaign layouts and richer
-weathering are the next art improvements, not more random text or colors.
+- **Boards:** every sign except crown lettering is a box in one instanced draw. The ±Z faces
+  sample the sign's atlas; the black around a sign reads as its dark case. Emission is the image
+  times the catalog gain; tower campaigns get ×1.8 and everything is ×0.6 by day. A few neon
+  boards (12 %) and the odd lightbox (3 %) flicker like a failing tube.
+- **Crown lettering:** additive planes with no board.
+- **Hardware:** case lips, blade arms, column rails, roof posts and floodlight arms are one more
+  instanced draw; the lamp heads are a third.
+- **Light map:** each sign's measured light colour feeds the sign light map (facades, wet streets).
 
-## Typeset sign designs (2026-11-13)
+## Not yet built (from the plan)
 
-Simple shop signs no longer need an image each. `tools/textures/build_sign_designs.py`
-(`npm run signs:designs`) sets real trade words from `art/signs/designs.def.json` in the
-bundled fonts and bakes 144 designs into one data atlas, `art/textures/signs/designs.png`
-(R ink, G part id, B backlit face), with `designs.json` beside it. The sign shader colours each
-instance, so one design appears as red neon on one building and a pale lightbox on another.
-
-- **Add a sign:** add `{ "jp", "en"?, "icon"? }` to `words` in the def and rebuild. Trades and
-  services only, never real brands. Words are spread evenly over the slots.
-- **Styles** (shares in the def): `neon` (solid glowing letters on a dark board), `tube` (thin
-  even strokes, like bent glass), `outline`, `box` (lightbox) and `plate` (dim printed plate).
-- **Slots:** tall and short blades, wide and small panels; counts and pixel sizes are in the
-  def's `classes`. The build fails if they overflow the atlas.
-- **Fonts:** Noto Sans JP (two weights), Dela Gothic One, Kaisei Tokumin and Reggae One for
-  Japanese, Barlow Condensed for Latin; all OFL, build time only.
-- **Brands:** the eight tower wordmarks and stacked logos are in the same atlas, set in Barlow
-  Condensed from the def's `brands` list (fixed names; they no longer change with the seed).
-- The layout picks a design per sign (`design` index) and sizes the sign to its aspect, the same
-  way it treats catalog artwork. `signs.artShare.street` in `art/layouts/city.mjs` sets how many
-  street placements use artwork versus typeset designs.
-- Look at `build/previews/signs/designs.png` after every rebuild.
+- Street-level menu lightboxes, A-frames and lanterns (street props).
+- Roof lattice frames for the brand boards: they stand in the generators' existing billboard
+  frames.

@@ -5,7 +5,7 @@ import { coastDistance } from '../../art/layouts/lib/island.mjs';
 import def from '../../art/layouts/defs/city.json';
 import { ASSETS } from '../../src/assets/manifest.gen';
 import { FlythroughPath } from '../../src/systems/flythrough';
-import { SIGN_ART, SIGN_DESIGNS, generateLayout, type Layout, type LayoutInstance, type Vec2 } from '../../src/systems/layout';
+import { SIGN_ART, generateLayout, type Layout, type LayoutInstance, type Vec2 } from '../../src/systems/layout';
 
 const box = (i: LayoutInstance) => {
   const t = i.rotationY;
@@ -215,10 +215,10 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
   it('sizes every sign to its artwork aspect (no cropping or stretching)', async () => {
     const L = await get();
     const wrong = L.signs!.filter((s) => {
-      const want = s.art !== undefined ? SIGN_ART[s.art].aspect : s.design !== undefined ? SIGN_DESIGNS[s.design].aspect : null;
-      return want === null || Math.abs(s.size[0] / s.size[1] / want - 1) > 0.02;
+      const want = SIGN_ART[s.art]?.aspect;
+      return want === undefined || Math.abs(s.size[0] / s.size[1] / want - 1) > 0.02;
     });
-    expect(wrong.map((s) => [s.size, s.art, s.design])).toEqual([]);
+    expect(wrong.map((s) => [s.size, s.art])).toEqual([]);
   });
 
   it('keeps tower signs in their zones (street on the podium fascia, billboard 15–50 m, tall campaigns low, mostly below mid-height, crown)', async () => {
@@ -242,9 +242,10 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
           // Standing on the roof (above the parapet), inside the footprint.
           const roof = (ASSETS[b.asset as keyof typeof ASSETS].meta as { roof: number }).roof;
           const sy = Array.isArray(b.scale) ? b.scale[1] : b.scale;
-          return Math.abs(y0 - (roof * sy + (s.legs ?? 0))) > 0.02 || (s.legs ?? 0) < 1 || s.brand === undefined
+          return Math.abs(y0 - (roof * sy + (s.legs ?? 0))) > 0.02 || (s.legs ?? 0) < 1 || SIGN_ART[s.art].format !== 'mark'
             || !G.insideConvex(box(b).corners, [s.position[0], s.position[2]], 0.05);
         }
+        case 'tall': return SIGN_ART[s.art].format !== 'blade' || s.kind !== 'blade';
         default: return true;
       }
     });
@@ -253,10 +254,44 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     const shafts = L.signs!.filter((s) => s.zone === 'shaft');
     const low = shafts.filter((s) => s.position[1] + s.size[1] / 2 <= L.instances[s.building].h! * 0.5 + 0.01);
     expect(low.length / shafts.length).toBeGreaterThan(0.7);
-    // Typeset designs are shop signs: street level only, of the sign's own kind; brand marks on crowns.
-    const typeset = L.signs!.filter((s) => s.design !== undefined);
-    expect(typeset.filter((s) => SIGN_DESIGNS[s.design!].kind !== s.kind || (s.brand === undefined ? s.zone !== undefined && s.zone !== 'street' : SIGN_DESIGNS[s.design!].brand !== s.brand)).map((s) => [s.zone, s.kind, s.design])).toEqual([]);
-    expect(typeset.filter((s) => s.brand === undefined).length).toBeGreaterThan(100);
+  });
+
+  it('gives every sign an owner and puts it in its place (tenants at their floor, brands up high)', async () => {
+    const L = await get();
+    const wrong = L.signs!.filter((s) => {
+      const e = SIGN_ART[s.art];
+      if (!e || s.owner !== e.owner) return true;
+      if (e.brand) return !(s.roof || s.zone === 'billboard' || s.zone === 'shaft' || s.zone === 'crown');
+      switch (e.format) {
+        case 'fascia': return s.kind !== 'panel' || s.floor !== 1;
+        case 'panel': return s.kind !== 'blade' || !s.column || s.floor !== e.floor;
+        case 'billboard': return s.kind !== 'panel' || s.floor !== e.floor;
+        case 'blade': return s.kind !== 'blade' || (s.zone !== 'tall' && s.floor !== e.floor);
+        case 'overhang': case 'hkblade': return s.kind !== 'blade' || e.script !== 'zh';
+        default: return true;
+      }
+    });
+    expect(wrong.map((s) => [s.owner, s.floor, s.kind, s.zone])).toEqual([]);
+    // Upper tenants' signs sit at their floor: bottom within the floor (or the one below for blades).
+    const ground = 4.8, fh: Record<string, number> = { commercial: 3.8, midrise: 3.6, slab: 3, walkup: 3, restower: 3 };
+    const off = L.signs!.filter((s) => (s.floor ?? 1) > 1 && SIGN_ART[s.art].script === 'ja').filter((s) => {
+      const b = s.building >= L.instances.length ? L.fringe![s.building - L.instances.length] : L.instances[s.building];
+      const fam = (ASSETS[b.asset as keyof typeof ASSETS].meta as { family: string }).family;
+      const k = Array.isArray(b.scale) ? b.scale[1] : 1;
+      const y0 = ground * k + (s.floor! - 2) * fh[fam] * k;
+      const bottom = s.position[1] - s.size[1] / 2;
+      return bottom < y0 - 0.01 || bottom > y0 + fh[fam] * k;
+    });
+    expect(off.map((s) => [s.owner, s.floor, s.position[1]])).toEqual([]);
+    // No business twice on one building; every street of shops has a mix.
+    const seen = new Set<string>(), dup: string[] = [];
+    for (const s of L.signs!) {
+      const key = `${s.building}/${s.owner}/${s.art}`;
+      if (seen.has(key) && !SIGN_ART[s.art].brand) dup.push(key);
+      seen.add(key);
+    }
+    expect(dup).toEqual([]);
+    expect(new Set(L.signs!.map((s) => s.owner)).size).toBeGreaterThan(30);
   });
 
   it('keeps signs from overlapping each other or reaching into other buildings', async () => {
