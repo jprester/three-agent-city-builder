@@ -1,12 +1,8 @@
 # Signs and ads: plan for a coherent system
 
-Status: **in progress** on branch `ads-tenant-signs` (2026-11-24, paused for the night,
-uncommitted). The system as built is described in docs/ADVERTISING.md. Remaining: render round 3
-(`python3 tools/textures/build_signs.py --candidates "$(cat build/signs-round3.txt)" 2 6000`;
-13 of its 40 signs already have both seeds cached), review `build/previews/signs/candidates.png`,
-pin picks in `seeds`, `--render` (the renamed businesses flower, dental, soroban, spa, store_hk have
-no source yet). Then give any blade still garbled `only` (drop it), pack (`npm run signs`), run tests,
-shots (`npm run shots`, frame times measured with no renders running), commit.
+Status: **signs done** on branch `ads-tenant-signs` (2026-11-26, three render rounds); the system as
+built is described in docs/ADVERTISING.md. Remaining: the hero billboards below (last), then street
+props (menu lightboxes, A-frames, lanterns) and dedicated roof lattice frames.
 
 **Hero billboards (human review 2026-11-24, after the first shots):** the big downtown tower
 billboards and shaft campaigns look underwhelming: low resolution (packed at 1024 / 768 px for

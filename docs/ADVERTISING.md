@@ -26,13 +26,22 @@ the city no longer draws them.
 
 ## Pipeline: `tools/textures/build_signs.py`
 
-1. `--render [glob]` renders every sign whose source is missing or whose pinned seed changed
+1. Every sign's seed is pinned in the def's `seeds`; a new sign defaults to `seed` + crc32 of its
+   id, never its list position (removing a business once shifted every later seed and started
+   re-rendering good signs). `--render [glob]` renders every sign whose source is missing or whose
+   pinned seed changed
    (`img`, Z-Image Turbo, ~50 s each). It crops each take to its sign and writes it to
    `art/external/signs/<id>.webp`, which is committed. `takes.json` beside the sources records the
    exact prompt, size and seed of each one. Takes stay in `build/signs-takes/`.
 2. `--sheet` draws `build/previews/signs/sources-<format>.png`. **Read every sign's text.**
    Z-Image often garbles characters, repeats them on tall boards, or slips into simplified
    Chinese (动, 习). Round 1 got about half of the Japanese text right; tall blades fared worst.
+   After three rounds (2026-11-26) every fascia, panel, billboard and overhang is correct, but
+   only about half the blades: vertical text repeats characters (料料理, 夜總總會). Blades that
+   never came right are left out with `only`, and the business keeps its fascia or panel. Of the
+   Hong Kong vertical neon only 海鮮酒家 survived. Some words never render correctly and were
+   swapped for real alternatives (サウナ→スパ→dropped, 歯科→デンタル, 学習塾→そろばん,
+   珈琲→カフェ, 不動産→フラワー). `rejects` in the def records what failed and why.
 3. Re-roll a failure: `--candidates <id,id> <n> <first seed>` renders n seeds side by side
    (`build/previews/signs/candidates.png`). Pin the pick in the def's `seeds`, note it in
    `rejects`, and run `--render`.
@@ -63,7 +72,8 @@ Per street frontage (`hero` dense, `core` sparse, the island's ring, avenues and
 - **Rooftop frames** carry a brand board, lit by floodlights along the top edge.
 - **Towers:** podium fascias (one per shopfront, some units left empty), a brand billboard at
   15–50 m, tall campaigns on the shaft, and the brand's lettering on the crown.
-- **Hotels:** a tall hotel blade sometimes climbs an old slab.
+- **Hotels:** a tall blade sometimes climbs an old slab (businesses marked `tall`). There is none
+  at present: the ホテル blade never rendered correctly.
 - **No wayfinding** and no sign without an owner. `tests/unit/city.test.ts` checks owners,
   formats, mounting, floors and overlaps. A clash pass drops overlapping signs, island ones
   included.

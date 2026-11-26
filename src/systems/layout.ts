@@ -3,8 +3,8 @@ import signCatalog from '../../art/textures/signs/catalog.json';
 
 /** Sign facts the layout chooses and sizes signs by (same as tools/build-layouts.mjs signArt()). */
 export const SIGN_ART = signCatalog.entries.map((e) => {
-  const x = e as { floor?: number; script?: string; brand?: boolean; jp?: boolean };
-  return { owner: e.owner, format: e.format, aspect: e.aspect, floor: x.floor, script: x.script, brand: !!x.brand, jp: !!x.jp };
+  const x = e as { floor?: number; script?: string; brand?: boolean; jp?: boolean; tall?: boolean };
+  return { owner: e.owner, format: e.format, aspect: e.aspect, floor: x.floor, script: x.script, brand: !!x.brand, jp: !!x.jp, tall: !!x.tall };
 });
 
 export type Vec2 = [number, number];

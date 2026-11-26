@@ -65,13 +65,14 @@ export function createSignPlacer({ S, seed, assets, art, hitsBridge }) {
   // ---- the library, by owner
   const owners = new Map();
   art.forEach((e, i) => {
-    if (!owners.has(e.owner)) owners.set(e.owner, { owner: e.owner, floor: e.floor ?? 1, script: e.script, brand: !!e.brand, jp: !!e.jp, f: {} });
+    if (!owners.has(e.owner)) owners.set(e.owner, { owner: e.owner, floor: e.floor ?? 1, script: e.script, brand: !!e.brand, jp: !!e.jp, tall: !!e.tall, f: {} });
     owners.get(e.owner).f[e.format] = i;
   });
   const all = [...owners.values()];
   const pools = {
-    shops: all.filter((o) => o.script === 'ja' && o.floor === 1 && o.f.fascia !== undefined),
-    hotels: all.filter((o) => o.script === 'ja' && o.f.fascia === undefined && o.f.blade !== undefined),
+    shops: all.filter((o) => o.script === 'ja' && o.floor === 1 && !o.tall && (o.f.fascia !== undefined || o.f.blade !== undefined)),
+    fascias: all.filter((o) => o.script === 'ja' && o.floor === 1 && o.f.fascia !== undefined),
+    hotels: all.filter((o) => o.tall && o.f.blade !== undefined),
     upper: (f) => all.filter((o) => o.script === 'ja' && o.floor === f && o.f.panel !== undefined),
     hk: all.filter((o) => o.script === 'zh' && o.f.overhang !== undefined),
     brands: all.filter((o) => o.brand && !o.jp),
@@ -153,7 +154,7 @@ export function createSignPlacer({ S, seed, assets, art, hitsBridge }) {
       const o = pick(zh ? pools.hk : pools.shops, taken);
       if (!o) break;
       const c = -hu + (j + 0.5) * shopW;
-      if (!zh) {
+      if (!zh && o.f.fascia !== undefined) {
         // Fascia: stands on the canopy's front edge (or on the wall over the shop window).
         const e = art[o.f.fascia];
         const sz = fit(e.aspect, shopW - 0.8, S.size.fascia * k[1]);
@@ -306,7 +307,7 @@ export function createSignPlacer({ S, seed, assets, art, hitsBridge }) {
       const taken = new Set();
       for (let j = 0; j < nShops; j++) {
         if (rng() < 0.25) continue;   // a lobby or an empty unit
-        const o = pick(pools.shops, taken);
+        const o = pick(pools.fascias, taken);
         if (!o) break;
         const sz = fit(art[o.f.fascia].aspect, shopW - 1.2, Math.min(Z.fascia, band[1] - band[0]));
         const c = -hu + 1 + (j + 0.5) * shopW;

@@ -83,7 +83,10 @@
       "text": "麺屋 龍",
       "face": "bright yellow",
       "ink": "black",
-      "icon": "a red ramen bowl icon on the left"
+      "icon": "a red ramen bowl icon on the left",
+      "only": [
+        "fascia"
+      ]
     },
     {
       "id": "sushi",
@@ -93,7 +96,10 @@
       "text": "すし 政",
       "face": "white",
       "ink": "deep red",
-      "icon": "a small fish icon"
+      "icon": "a small fish icon",
+      "only": [
+        "blade"
+      ]
     },
     {
       "id": "gyudon",
@@ -102,7 +108,10 @@
       "floor": 1,
       "text": "牛めし",
       "face": "orange",
-      "ink": "black"
+      "ink": "black",
+      "only": [
+        "fascia"
+      ]
     },
     {
       "id": "gyoza",
@@ -111,7 +120,10 @@
       "floor": 1,
       "text": "餃子",
       "face": "white",
-      "ink": "red"
+      "ink": "red",
+      "only": [
+        "fascia"
+      ]
     },
     {
       "id": "yakiniku",
@@ -129,7 +141,10 @@
       "floor": 1,
       "text": "くすり",
       "face": "bright yellow",
-      "ink": "red"
+      "ink": "red",
+      "only": [
+        "fascia"
+      ]
     },
     {
       "id": "kissa",
@@ -139,7 +154,10 @@
       "text": "カフェ",
       "face": "cream",
       "ink": "dark brown",
-      "icon": "a coffee cup icon on the left"
+      "icon": "a coffee cup icon on the left",
+      "only": [
+        "fascia"
+      ]
     },
     {
       "id": "chuka",
@@ -148,7 +166,10 @@
       "floor": 1,
       "text": "中華料理",
       "face": "red",
-      "ink": "yellow"
+      "ink": "yellow",
+      "only": [
+        "fascia"
+      ]
     },
     {
       "id": "tabako",
@@ -157,7 +178,10 @@
       "floor": 1,
       "text": "たばこ",
       "face": "red",
-      "ink": "white"
+      "ink": "white",
+      "only": [
+        "fascia"
+      ]
     },
     {
       "id": "flower",
@@ -178,15 +202,6 @@
       "face": "white",
       "ink": "black",
       "icon": "a pair of glasses icon"
-    },
-    {
-      "id": "pachinko",
-      "trade": "pachinko parlour",
-      "script": "ja",
-      "floor": 1,
-      "text": "パチンコ",
-      "face": "red",
-      "ink": "yellow"
     },
     {
       "id": "game",
@@ -224,7 +239,10 @@
       "text": "24時間",
       "face": "white",
       "ink": "green",
-      "extra": "with a green stripe along the bottom"
+      "extra": "with a green stripe along the bottom",
+      "only": [
+        "fascia"
+      ]
     },
     {
       "id": "clinic",
@@ -252,7 +270,11 @@
       "text": "焼鳥",
       "face": "red",
       "ink": "white",
-      "billboard": "glistening grilled chicken skewers"
+      "billboard": "glistening grilled chicken skewers",
+      "only": [
+        "panel",
+        "billboard"
+      ]
     },
     {
       "id": "dental",
@@ -270,7 +292,10 @@
       "floor": 3,
       "text": "金融",
       "face": "yellow",
-      "ink": "dark blue"
+      "ink": "dark blue",
+      "only": [
+        "panel"
+      ]
     },
     {
       "id": "massage",
@@ -307,7 +332,10 @@
       "floor": 4,
       "text": "そろばん",
       "face": "white",
-      "ink": "dark blue"
+      "ink": "dark blue",
+      "only": [
+        "panel"
+      ]
     },
     {
       "id": "mahjong",
@@ -359,36 +387,16 @@
       ]
     },
     {
-      "id": "spa",
-      "trade": "spa",
-      "script": "ja",
-      "floor": 8,
-      "text": "スパ",
-      "face": "orange",
-      "ink": "white",
-      "billboard": "a steaming hot spring bath"
-    },
-    {
-      "id": "hotel",
-      "trade": "business hotel",
-      "script": "ja",
-      "floor": 1,
-      "text": "ホテル",
-      "face": "white",
-      "ink": "dark red",
-      "only": [
-        "blade"
-      ],
-      "tall": true
-    },
-    {
       "id": "jinlong",
       "trade": "restaurant",
       "script": "zh",
       "floor": 1,
       "text": "金龍酒家",
       "ink": "red",
-      "border": "amber"
+      "border": "amber",
+      "only": [
+        "overhang"
+      ]
     },
     {
       "id": "pawn",
@@ -398,7 +406,10 @@
       "text": "大押",
       "ink": "red",
       "border": "red",
-      "extra": ", above them a neon bat holding a coin"
+      "extra": ", above them a neon bat holding a coin",
+      "only": [
+        "overhang"
+      ]
     },
     {
       "id": "mahjong_hk",
@@ -407,16 +418,10 @@
       "floor": 1,
       "text": "麻雀",
       "ink": "green",
-      "border": "pink"
-    },
-    {
-      "id": "store_hk",
-      "trade": "corner store",
-      "script": "zh",
-      "floor": 1,
-      "text": "士多",
-      "ink": "yellow",
-      "border": "green"
+      "border": "pink",
+      "only": [
+        "overhang"
+      ]
     },
     {
       "id": "nightclub",
@@ -425,7 +430,10 @@
       "floor": 1,
       "text": "夜總會",
       "ink": "pink",
-      "border": "purple"
+      "border": "purple",
+      "only": [
+        "overhang"
+      ]
     },
     {
       "id": "chachaan",
@@ -434,7 +442,10 @@
       "floor": 1,
       "text": "茶餐廳",
       "ink": "yellow",
-      "border": "red"
+      "border": "red",
+      "only": [
+        "overhang"
+      ]
     },
     {
       "id": "herbaltea",
@@ -443,7 +454,10 @@
       "floor": 1,
       "text": "涼茶",
       "ink": "green",
-      "border": "yellow"
+      "border": "yellow",
+      "only": [
+        "overhang"
+      ]
     },
     {
       "id": "seafood",
@@ -461,7 +475,10 @@
       "floor": 1,
       "text": "金行",
       "ink": "gold",
-      "border": "red"
+      "border": "red",
+      "only": [
+        "overhang"
+      ]
     },
     {
       "id": "pharmacy_hk",
@@ -470,7 +487,10 @@
       "floor": 1,
       "text": "藥房",
       "ink": "white",
-      "border": "green"
+      "border": "green",
+      "only": [
+        "overhang"
+      ]
     },
     {
       "id": "hotel_hk",
@@ -479,7 +499,10 @@
       "floor": 1,
       "text": "酒店",
       "ink": "red",
-      "border": "white"
+      "border": "white",
+      "only": [
+        "overhang"
+      ]
     },
     {
       "id": "sauna_hk",
@@ -488,7 +511,10 @@
       "floor": 1,
       "text": "桑拿",
       "ink": "orange",
-      "border": "blue"
+      "border": "blue",
+      "only": [
+        "overhang"
+      ]
     }
   ],
   "$brands": "International brands (English) for rooftops and towers: a text-free Z-Image photo plus a typeset wordmark (font, colour) composited by the builder. Rooftop/billboard boards use `land`, tower shafts and screens use `tall`. Crown lettering is the wordmark alone, as neon channel letters. jp: domestic brands with a Japanese wordmark (rooftops only).",
@@ -684,99 +710,152 @@
     }
   ],
   "seeds": {
-    "sushi.fascia": 5000,
-    "gyudon.fascia": 5001,
-    "kusuri.fascia": 5002,
-    "kissa.fascia": 5003,
-    "pachinko.fascia": 5005,
-    "tachinomi.fascia": 5006,
-    "tendon.fascia": 5007,
-    "kombini.fascia": 5008,
-    "ramen.blade": 5009,
-    "gyudon.blade": 5010,
-    "gyoza.blade": 5011,
-    "yakiniku.blade": 5012,
-    "kusuri.blade": 5013,
-    "kissa.blade": 5014,
-    "chuka.blade": 5015,
-    "tabako.blade": 5016,
-    "pachinko.blade": 5018,
-    "game.blade": 5019,
-    "tachinomi.blade": 5020,
-    "tendon.blade": 5021,
-    "kombini.blade": 5022,
-    "biyou.blade": 5023,
-    "yakitori.blade": 5024,
-    "kinyu.blade": 5026,
-    "eikaiwa.blade": 5028,
+    "arcline.land": 4095,
+    "arcline.tall": 4096,
     "bar.blade": 5029,
-    "hotel.blade": 5031,
-    "yakitori.panel": 5032,
-    "karaoke.panel": 5033,
-    "mahjong.panel": 5034,
     "bar.panel": 5035,
-    "yakitori.billboard": 5039,
-    "karaoke.billboard": 5040,
-    "pawn.overhang": 5042,
-    "pharmacy_hk.overhang": 5044,
-    "jinlong.hkblade": 5045,
-    "pawn.hkblade": 5046,
-    "mahjong_hk.hkblade": 5047,
-    "nightclub.hkblade": 5049,
+    "biyou.blade": 5023,
+    "biyou.panel": 4034,
     "chachaan.hkblade": 5050,
-    "herbaltea.hkblade": 5051,
-    "seafood.hkblade": 5052,
+    "chachaan.overhang": 4077,
+    "chuka.blade": 5015,
+    "chuka.fascia": 4014,
+    "clinic.blade": 4033,
+    "clinic.panel": 4032,
+    "daikichi.land": 4111,
+    "daikichi.tall": 4112,
+    "dental.blade": 6000,
+    "dental.panel": 6000,
+    "eikaiwa.blade": 5028,
+    "eikaiwa.panel": 4059,
+    "flower.blade": 6000,
+    "flower.fascia": 6000,
+    "fudosan.blade": 5017,
+    "fudosan.fascia": 5004,
+    "game.blade": 6001,
+    "game.fascia": 4024,
     "goldshop.hkblade": 5053,
-    "pharmacy_hk.hkblade": 5054,
+    "goldshop.overhang": 4083,
+    "gyoza.blade": 5011,
+    "gyoza.fascia": 4006,
+    "gyudon.blade": 5010,
+    "gyudon.fascia": 5001,
+    "helix.land": 4103,
+    "helix.tall": 4104,
+    "herbaltea.hkblade": 5051,
+    "herbaltea.overhang": 4079,
+    "hotel.blade": 5031,
     "hotel_hk.hkblade": 5055,
+    "hotel_hk.overhang": 4087,
+    "izakaya.billboard": 4056,
+    "izakaya.blade": 4055,
+    "izakaya.panel": 4054,
+    "jinlong.hkblade": 5045,
+    "jinlong.overhang": 4067,
+    "juku.blade": 5027,
+    "juku.panel": 5038,
+    "karaoke.billboard": 5040,
+    "karaoke.blade": 4046,
+    "karaoke.panel": 5033,
+    "karaoke_hk.hkblade": 5048,
+    "karaoke_hk.overhang": 5043,
+    "kaze.land": 4091,
+    "kaze.tall": 4092,
+    "kinyu.blade": 5026,
+    "kinyu.panel": 4041,
+    "kiraku.land": 4099,
+    "kiraku.tall": 4100,
+    "kissa.blade": 5014,
+    "kissa.fascia": 6001,
+    "kombini.blade": 5022,
+    "kombini.fascia": 5008,
+    "kurose.land": 4093,
+    "kurose.tall": 4094,
+    "kusuri.blade": 5013,
+    "kusuri.fascia": 5002,
+    "lumora.land": 4097,
+    "lumora.tall": 4098,
+    "mahjong.blade": 4053,
+    "mahjong.panel": 5034,
+    "mahjong_hk.hkblade": 5047,
+    "mahjong_hk.overhang": 4071,
+    "manga.blade": 4058,
+    "manga.panel": 4057,
+    "massage.blade": 4044,
+    "massage.panel": 4043,
+    "megane.blade": 4021,
+    "megane.fascia": 4020,
+    "nightclub.hkblade": 5049,
+    "nightclub.overhang": 4075,
+    "pachinko.blade": 5018,
+    "pachinko.fascia": 5005,
+    "pawn.hkblade": 5046,
+    "pawn.overhang": 6001,
+    "pharmacy_hk.hkblade": 5054,
+    "pharmacy_hk.overhang": 5044,
+    "ramen.blade": 5009,
+    "ramen.fascia": 4000,
+    "sauna.billboard": 5041,
+    "sauna.blade": 5030,
+    "sauna.panel": 5036,
     "sauna_hk.hkblade": 5056,
-    "flower.fascia": 5004,
-    "flower.blade": 5017,
-    "dental.blade": 5025,
+    "sauna_hk.overhang": 4089,
+    "seafood.hkblade": 5052,
+    "seafood.overhang": 4081,
+    "seira.land": 4107,
+    "seira.tall": 4108,
+    "shika.blade": 5025,
+    "shika.panel": 5037,
+    "snack.blade": 4049,
+    "snack.panel": 4048,
+    "solenne.land": 4105,
+    "solenne.tall": 4106,
     "soroban.blade": 5027,
-    "spa.blade": 5030,
-    "spa.panel": 5036,
-    "dental.panel": 5037,
-    "soroban.panel": 5038,
-    "spa.billboard": 5041,
-    "store_hk.overhang": 5043,
-    "store_hk.hkblade": 5048
+    "soroban.panel": 6000,
+    "sushi.blade": 4003,
+    "sushi.fascia": 5000,
+    "tabako.blade": 5016,
+    "tabako.fascia": 4016,
+    "tachinomi.blade": 6000,
+    "tachinomi.fascia": 5006,
+    "tendon.blade": 6001,
+    "tendon.fascia": 5007,
+    "vanta.land": 4101,
+    "vanta.tall": 4102,
+    "yakiniku.blade": 6001,
+    "yakiniku.fascia": 4008,
+    "yakitori.billboard": 5039,
+    "yakitori.blade": 5024,
+    "yakitori.panel": 5032,
+    "zencash.land": 4109,
+    "zencash.tall": 4110
   },
   "rejects": {
     "sushi.fascia": "round 1: garbled, repeated or simplified-Chinese text",
     "gyudon.fascia": "round 1: garbled, repeated or simplified-Chinese text",
     "kusuri.fascia": "round 1: garbled, repeated or simplified-Chinese text",
-    "kissa.fascia": "round 1: garbled, repeated or simplified-Chinese text",
-    "pachinko.fascia": "round 1: garbled, repeated or simplified-Chinese text",
     "tachinomi.fascia": "round 1: garbled, repeated or simplified-Chinese text",
     "tendon.fascia": "round 1: garbled, repeated or simplified-Chinese text",
     "kombini.fascia": "round 1: garbled, repeated or simplified-Chinese text",
-    "ramen.blade": "round 1: garbled, repeated or simplified-Chinese text",
+    "ramen.blade": "repeated 龍 in rounds 1-2; blade dropped",
     "gyudon.blade": "round 1: garbled, repeated or simplified-Chinese text",
     "gyoza.blade": "round 1: garbled, repeated or simplified-Chinese text",
-    "yakiniku.blade": "round 1: garbled, repeated or simplified-Chinese text",
     "kusuri.blade": "round 1: garbled, repeated or simplified-Chinese text",
     "kissa.blade": "round 1: garbled, repeated or simplified-Chinese text",
     "chuka.blade": "round 1: garbled, repeated or simplified-Chinese text",
     "tabako.blade": "round 1: garbled, repeated or simplified-Chinese text",
-    "pachinko.blade": "round 1: garbled, repeated or simplified-Chinese text",
-    "game.blade": "round 1: garbled, repeated or simplified-Chinese text",
-    "tachinomi.blade": "round 1: garbled, repeated or simplified-Chinese text",
-    "tendon.blade": "round 1: garbled, repeated or simplified-Chinese text",
     "kombini.blade": "round 1: garbled, repeated or simplified-Chinese text",
     "biyou.blade": "round 1: garbled, repeated or simplified-Chinese text",
     "yakitori.blade": "round 1: garbled, repeated or simplified-Chinese text",
     "kinyu.blade": "round 1: garbled, repeated or simplified-Chinese text",
     "eikaiwa.blade": "round 1: garbled, repeated or simplified-Chinese text",
     "bar.blade": "round 1: garbled, repeated or simplified-Chinese text",
-    "hotel.blade": "round 1: garbled, repeated or simplified-Chinese text",
     "yakitori.panel": "round 1: garbled, repeated or simplified-Chinese text",
     "karaoke.panel": "round 1: garbled, repeated or simplified-Chinese text",
     "mahjong.panel": "round 1: garbled, repeated or simplified-Chinese text",
     "bar.panel": "round 1: garbled, repeated or simplified-Chinese text",
     "yakitori.billboard": "round 1: garbled, repeated or simplified-Chinese text",
     "karaoke.billboard": "round 1: garbled, repeated or simplified-Chinese text",
-    "pawn.overhang": "round 1: garbled, repeated or simplified-Chinese text",
     "pharmacy_hk.overhang": "round 1: garbled, repeated or simplified-Chinese text",
     "jinlong.hkblade": "round 1: garbled, repeated or simplified-Chinese text",
     "pawn.hkblade": "round 1: garbled, repeated or simplified-Chinese text",
@@ -789,17 +868,23 @@
     "pharmacy_hk.hkblade": "round 1: garbled, repeated or simplified-Chinese text",
     "hotel_hk.hkblade": "round 1: garbled, repeated or simplified-Chinese text",
     "sauna_hk.hkblade": "round 1: garbled, repeated or simplified-Chinese text",
-    "flower.fascia": "round 1: garbled, repeated or simplified-Chinese text",
-    "flower.blade": "round 1: garbled, repeated or simplified-Chinese text",
-    "dental.blade": "round 1: garbled, repeated or simplified-Chinese text",
     "soroban.blade": "round 1: garbled, repeated or simplified-Chinese text",
-    "spa.blade": "round 1: garbled, repeated or simplified-Chinese text",
-    "spa.panel": "round 1: garbled, repeated or simplified-Chinese text",
-    "dental.panel": "round 1: garbled, repeated or simplified-Chinese text",
-    "soroban.panel": "round 1: garbled, repeated or simplified-Chinese text",
-    "spa.billboard": "round 1: garbled, repeated or simplified-Chinese text",
-    "store_hk.overhang": "round 1: garbled, repeated or simplified-Chinese text",
-    "store_hk.hkblade": "round 1: garbled, repeated or simplified-Chinese text"
+    "kissa.fascia": "rounds 1-2 garbled; round 3 pick",
+    "flower.fascia": "rounds 1-2 garbled; round 3 pick",
+    "flower.blade": "rounds 1-2 garbled; round 3 pick",
+    "dental.panel": "rounds 1-2 garbled; round 3 pick",
+    "dental.blade": "rounds 1-2 garbled; round 3 pick",
+    "soroban.panel": "rounds 1-2 garbled; round 3 pick",
+    "yakiniku.blade": "rounds 1-2 garbled; round 3 pick",
+    "game.blade": "rounds 1-2 garbled; round 3 pick",
+    "tachinomi.blade": "rounds 1-2 garbled; round 3 pick",
+    "tendon.blade": "rounds 1-2 garbled; round 3 pick",
+    "pawn.overhang": "rounds 1-2 garbled; round 3 pick",
+    "spa": "business dropped: スパ always rendered as スバ (rounds 2-3)",
+    "store_hk": "business dropped: 士多 always gained a third character",
+    "pachinko": "business dropped: パチンコ always rendered as バテンコ / バテシンコ",
+    "hotel": "business dropped: ホテル blade never correct (ボテルル)",
+    "$blades": "Blades left out by `only` repeated or garbled their characters in all three rounds (vertical text is Z-Image's weak spot); the business keeps its fascia or panel."
   },
-  "$seeds": "Re-rolls: 5xxx = round 2 (blades sized to their characters, script named in the prompt)."
+  "$seeds": "Every sign's seed is pinned here (a sign without one gets seed + crc32 of its id). Re-rolls: 5xxx = round 2 (blades sized to their characters, script named in the prompt); 6000/6001 = round 3 candidates."
 }

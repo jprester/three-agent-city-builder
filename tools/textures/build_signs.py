@@ -24,6 +24,7 @@ import colorsys
 import fnmatch
 import hashlib
 import json
+import zlib
 import subprocess
 import sys
 from pathlib import Path
@@ -93,8 +94,9 @@ def items(d):
             F = d['formats'][f]
             out.append(dict(id=f"{b['id']}.{f}", owner=b['id'], kind='brand', format=f, style='brand',
                             prompt=d['styles']['brand'].format(art=b[f]), size=list(F['size'])))
-    for i, it in enumerate(out):
-        it['seed'] = d['seeds'].get(it['id'], d['seed'] + i)
+    for it in out:
+        # Pinned seeds; a new sign's default depends on its id only, never on its place in the list.
+        it['seed'] = d['seeds'].get(it['id'], d['seed'] + zlib.crc32(it['id'].encode()) % 100000)
     return out
 
 
@@ -344,7 +346,7 @@ def pack():
         im = Image.open(src).convert('RGB')
         if it['kind'] == 'business':
             b = next(x for x in d['businesses'] if x['id'] == it['owner'])
-            add(it['id'], it['owner'], it['format'], im, GAIN[it['style']], floor=b['floor'], script=b['script'])
+            add(it['id'], it['owner'], it['format'], im, GAIN[it['style']], floor=b['floor'], script=b['script'], **({'tall': True} if b.get('tall') else {}))
         else:
             br = brands[it['owner']]
             if it['format'] == 'land':

@@ -15,14 +15,6 @@
   ],
   "prompt": "A single tall narrow vertical projecting Japanese ramen shop sign: a backlit acrylic lightbox glowing at night, bright yellow face with bold black Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading 麺屋 龍 written once from top to bottom, exactly 3 characters, each appearing only once, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
- "sushi.fascia": {
-  "seed": 5000,
-  "size": [
-   1536,
-   512
-  ],
-  "prompt": "A single wide horizontal shop fascia Japanese sushi restaurant sign: a backlit acrylic lightbox glowing at night, white face with bold deep red Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading すし 政, a small fish icon, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
  "sushi.blade": {
   "seed": 4003,
   "size": [
@@ -39,14 +31,6 @@
   ],
   "prompt": "A single wide horizontal shop fascia Japanese beef bowl restaurant sign: a backlit acrylic lightbox glowing at night, orange face with bold black Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading 牛めし, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
- "gyudon.blade": {
-  "seed": 5010,
-  "size": [
-   512,
-   1120
-  ],
-  "prompt": "A single tall narrow vertical projecting Japanese beef bowl restaurant sign: a backlit acrylic lightbox glowing at night, orange face with bold black Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading 牛めし written once from top to bottom, exactly 3 characters, each appearing only once, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
  "gyoza.fascia": {
   "seed": 4006,
   "size": [
@@ -54,14 +38,6 @@
    512
   ],
   "prompt": "A single wide horizontal shop fascia Japanese dumpling restaurant sign: a backlit acrylic lightbox glowing at night, white face with bold red Japanese lettering reading 餃子, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
- "gyoza.blade": {
-  "seed": 5011,
-  "size": [
-   512,
-   896
-  ],
-  "prompt": "A single tall narrow vertical projecting Japanese dumpling restaurant sign: a backlit acrylic lightbox glowing at night, white face with bold red Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading 餃子 written once from top to bottom, exactly 2 characters, each appearing only once, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
  "yakiniku.fascia": {
   "seed": 4008,
@@ -72,7 +48,7 @@
   "prompt": "A single wide horizontal shop fascia Japanese grilled meat restaurant sign: a backlit acrylic lightbox glowing at night, black face with bold red and white Japanese lettering reading 焼肉 炎, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
  "yakiniku.blade": {
-  "seed": 5012,
+  "seed": 6001,
   "size": [
    512,
    1120
@@ -87,29 +63,13 @@
   ],
   "prompt": "A single wide horizontal shop fascia Japanese drugstore sign: a backlit acrylic lightbox glowing at night, bright yellow face with bold red Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading くすり, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
- "kusuri.blade": {
-  "seed": 5013,
-  "size": [
-   512,
-   1120
-  ],
-  "prompt": "A single tall narrow vertical projecting Japanese drugstore sign: a backlit acrylic lightbox glowing at night, bright yellow face with bold red Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading くすり written once from top to bottom, exactly 3 characters, each appearing only once, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
  "kissa.fascia": {
-  "seed": 5003,
+  "seed": 6001,
   "size": [
    1536,
    512
   ],
-  "prompt": "A single wide horizontal shop fascia Japanese old coffee house sign: a backlit acrylic lightbox glowing at night, cream face with bold dark brown Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading 珈琲, a coffee cup icon on the left, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
- "kissa.blade": {
-  "seed": 5014,
-  "size": [
-   512,
-   896
-  ],
-  "prompt": "A single tall narrow vertical projecting Japanese old coffee house sign: a backlit acrylic lightbox glowing at night, cream face with bold dark brown Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading 珈琲 written once from top to bottom, exactly 2 characters, each appearing only once, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
+  "prompt": "A single wide horizontal shop fascia Japanese cafe sign: a backlit acrylic lightbox glowing at night, cream face with bold dark brown Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading カフェ, a coffee cup icon on the left, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
  "chuka.fascia": {
   "seed": 4014,
@@ -119,14 +79,6 @@
   ],
   "prompt": "A single wide horizontal shop fascia Japanese Chinese restaurant sign: a backlit acrylic lightbox glowing at night, red face with bold yellow Japanese lettering reading 中華料理, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
- "chuka.blade": {
-  "seed": 5015,
-  "size": [
-   512,
-   1344
-  ],
-  "prompt": "A single tall narrow vertical projecting Japanese Chinese restaurant sign: a backlit acrylic lightbox glowing at night, red face with bold yellow Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading 中華料理 written once from top to bottom, exactly 4 characters, each appearing only once, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
  "tabako.fascia": {
   "seed": 4016,
   "size": [
@@ -134,30 +86,6 @@
    512
   ],
   "prompt": "A single wide horizontal shop fascia Japanese tobacco shop sign: a backlit acrylic lightbox glowing at night, red face with bold white Japanese lettering reading たばこ, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
- "tabako.blade": {
-  "seed": 5016,
-  "size": [
-   512,
-   1120
-  ],
-  "prompt": "A single tall narrow vertical projecting Japanese tobacco shop sign: a backlit acrylic lightbox glowing at night, red face with bold white Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading たばこ written once from top to bottom, exactly 3 characters, each appearing only once, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
- "fudosan.fascia": {
-  "seed": 5004,
-  "size": [
-   1536,
-   512
-  ],
-  "prompt": "A single wide horizontal shop fascia Japanese real estate agency sign: a backlit acrylic lightbox glowing at night, white face with bold dark blue Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading 不動産, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
- "fudosan.blade": {
-  "seed": 5017,
-  "size": [
-   512,
-   1120
-  ],
-  "prompt": "A single tall narrow vertical projecting Japanese real estate agency sign: a backlit acrylic lightbox glowing at night, white face with bold dark blue Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading 不動産 written once from top to bottom, exactly 3 characters, each appearing only once, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
  "megane.fascia": {
   "seed": 4020,
@@ -175,22 +103,6 @@
   ],
   "prompt": "A single tall narrow vertical projecting Japanese eyeglasses shop sign: a backlit acrylic lightbox glowing at night, white face with bold black Japanese lettering reading メガネ stacked vertically, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
- "pachinko.fascia": {
-  "seed": 5005,
-  "size": [
-   1536,
-   512
-  ],
-  "prompt": "A single wide horizontal shop fascia Japanese pachinko parlour sign: a backlit acrylic lightbox glowing at night, red face with bold yellow Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading パチンコ, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
- "pachinko.blade": {
-  "seed": 5018,
-  "size": [
-   512,
-   1344
-  ],
-  "prompt": "A single tall narrow vertical projecting Japanese pachinko parlour sign: a backlit acrylic lightbox glowing at night, red face with bold yellow Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading パチンコ written once from top to bottom, exactly 4 characters, each appearing only once, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
  "game.fascia": {
   "seed": 4024,
   "size": [
@@ -200,7 +112,7 @@
   "prompt": "A single wide horizontal shop fascia Japanese game arcade sign: a backlit acrylic lightbox glowing at night, blue face with bold white Japanese lettering reading ゲーム, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
  "game.blade": {
-  "seed": 5019,
+  "seed": 6001,
   "size": [
    512,
    1120
@@ -216,7 +128,7 @@
   "prompt": "A single wide horizontal shop fascia Japanese old drinking bar sign: a backlit acrylic lightbox glowing at night, white face with bold black Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading 酒場, a beer mug icon, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
  "tachinomi.blade": {
-  "seed": 5020,
+  "seed": 6000,
   "size": [
    512,
    896
@@ -232,7 +144,7 @@
   "prompt": "A single wide horizontal shop fascia Japanese tempura restaurant sign: a backlit acrylic lightbox glowing at night, green face with bold white Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading 天ぷら, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
  "tendon.blade": {
-  "seed": 5021,
+  "seed": 6001,
   "size": [
    512,
    1120
@@ -246,14 +158,6 @@
    512
   ],
   "prompt": "A single wide horizontal shop fascia Japanese convenience store sign: a backlit acrylic lightbox glowing at night, white face with bold green Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading 24時間, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
- "kombini.blade": {
-  "seed": 5022,
-  "size": [
-   512,
-   1344
-  ],
-  "prompt": "A single tall narrow vertical projecting Japanese convenience store sign: a backlit acrylic lightbox glowing at night, white face with bold green Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading 24時間 written once from top to bottom, exactly 4 characters, each appearing only once, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
  "clinic.panel": {
   "seed": 4032,
@@ -295,14 +199,6 @@
   ],
   "prompt": "A single square tenant Japanese yakitori bar sign: a backlit acrylic lightbox glowing at night, red face with bold white Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading 焼鳥 and below it a large floor number 2F, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
- "yakitori.blade": {
-  "seed": 5024,
-  "size": [
-   512,
-   1120
-  ],
-  "prompt": "A single tall narrow vertical projecting Japanese yakitori bar sign: a backlit acrylic lightbox glowing at night, red face with bold white Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading 焼鳥 written once from top to bottom, exactly 2 characters, each appearing only once and below it a badge reading 2F, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
  "yakitori.billboard": {
   "seed": 5039,
   "size": [
@@ -311,22 +207,6 @@
   ],
   "prompt": "A single large Japanese yakitori bar advertising billboard: a backlit lightbox, the left half a bright photo of glistening grilled chicken skewers, the right half red with bold white Japanese lettering reading 焼鳥 and below it a large floor number 2F, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no other text"
  },
- "shika.panel": {
-  "seed": 5037,
-  "size": [
-   1024,
-   1024
-  ],
-  "prompt": "A single square tenant Japanese dentist sign: a backlit acrylic lightbox glowing at night, white face with bold blue Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading 歯科 and below it a large floor number 3F, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
- "shika.blade": {
-  "seed": 5025,
-  "size": [
-   512,
-   1120
-  ],
-  "prompt": "A single tall narrow vertical projecting Japanese dentist sign: a backlit acrylic lightbox glowing at night, white face with bold blue Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading 歯科 written once from top to bottom, exactly 2 characters, each appearing only once and below it a badge reading 3F, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
  "kinyu.panel": {
   "seed": 4041,
   "size": [
@@ -334,14 +214,6 @@
    1024
   ],
   "prompt": "A single square tenant Japanese consumer loans sign: a backlit acrylic lightbox glowing at night, yellow face with bold dark blue Japanese lettering reading 金融 and below it a large floor number 3F, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
- "kinyu.blade": {
-  "seed": 5026,
-  "size": [
-   512,
-   1120
-  ],
-  "prompt": "A single tall narrow vertical projecting Japanese consumer loans sign: a backlit acrylic lightbox glowing at night, yellow face with bold dark blue Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading 金融 written once from top to bottom, exactly 2 characters, each appearing only once and below it a badge reading 3F, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
  "massage.panel": {
   "seed": 4043,
@@ -398,22 +270,6 @@
    1536
   ],
   "prompt": "A single tall narrow vertical projecting Japanese snack bar sign: a backlit acrylic lightbox glowing at night, purple face with bold white Japanese lettering reading スナック stacked vertically and below it a badge reading 4F, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
- "juku.panel": {
-  "seed": 5038,
-  "size": [
-   1024,
-   1024
-  ],
-  "prompt": "A single square tenant Japanese cram school sign: a backlit acrylic lightbox glowing at night, white face with bold dark blue Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading 学習塾 and below it a large floor number 4F, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
- "juku.blade": {
-  "seed": 5027,
-  "size": [
-   512,
-   1344
-  ],
-  "prompt": "A single tall narrow vertical projecting Japanese cram school sign: a backlit acrylic lightbox glowing at night, white face with bold dark blue Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading 学習塾 written once from top to bottom, exactly 3 characters, each appearing only once and below it a badge reading 4F, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
  "mahjong.panel": {
   "seed": 5034,
@@ -495,46 +351,6 @@
   ],
   "prompt": "A single square tenant Japanese cocktail bar sign: a backlit acrylic lightbox glowing at night, black face with bold gold Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading BAR and below it a large floor number 7F, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
- "bar.blade": {
-  "seed": 5029,
-  "size": [
-   512,
-   1344
-  ],
-  "prompt": "A single tall narrow vertical projecting Japanese cocktail bar sign: a backlit acrylic lightbox glowing at night, black face with bold gold Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading BAR written once from top to bottom, exactly 3 characters, each appearing only once and below it a badge reading 7F, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
- "sauna.panel": {
-  "seed": 5036,
-  "size": [
-   1024,
-   1024
-  ],
-  "prompt": "A single square tenant Japanese sauna sign: a backlit acrylic lightbox glowing at night, orange face with bold white Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading サウナ and below it a large floor number 8F, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
- "sauna.blade": {
-  "seed": 5030,
-  "size": [
-   512,
-   1344
-  ],
-  "prompt": "A single tall narrow vertical projecting Japanese sauna sign: a backlit acrylic lightbox glowing at night, orange face with bold white Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading サウナ written once from top to bottom, exactly 3 characters, each appearing only once and below it a badge reading 8F, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
- "sauna.billboard": {
-  "seed": 5041,
-  "size": [
-   1536,
-   768
-  ],
-  "prompt": "A single large Japanese sauna advertising billboard: a backlit lightbox, the left half a bright photo of a steaming hot wooden sauna room, the right half orange with bold white Japanese lettering reading サウナ and below it a large floor number 8F, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no other text"
- },
- "hotel.blade": {
-  "seed": 5031,
-  "size": [
-   384,
-   1120
-  ],
-  "prompt": "A single tall narrow vertical projecting Japanese business hotel sign: a backlit acrylic lightbox glowing at night, white face with bold dark red Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading ホテル written once from top to bottom, exactly 3 characters, each appearing only once, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
  "jinlong.overhang": {
   "seed": 4067,
   "size": [
@@ -543,29 +359,13 @@
   ],
   "prompt": "A single large horizontal Hong Kong restaurant neon sign: exposed glowing glass neon tubes forming the Chinese characters 金龍酒家 in red, with a neon tube border in amber, tubes mounted on a dark steel frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
- "jinlong.hkblade": {
-  "seed": 5045,
-  "size": [
-   512,
-   1344
-  ],
-  "prompt": "A single tall narrow vertical Hong Kong restaurant neon sign: exposed glowing glass neon tubes forming the traditional Chinese characters 金龍酒家 in red written once from top to bottom, exactly 4 characters, each appearing only once, with a neon tube border in amber, tubes mounted on a dark steel frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
  "pawn.overhang": {
-  "seed": 5042,
+  "seed": 6001,
   "size": [
    1344,
    768
   ],
   "prompt": "A single large horizontal Hong Kong pawnshop neon sign: exposed glowing glass neon tubes forming the traditional Chinese characters 大押 in red, above them a neon bat holding a coin, with a neon tube border in red, tubes mounted on a dark steel frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
- "pawn.hkblade": {
-  "seed": 5046,
-  "size": [
-   512,
-   896
-  ],
-  "prompt": "A single tall narrow vertical Hong Kong pawnshop neon sign: exposed glowing glass neon tubes forming the traditional Chinese characters 大押 in red written once from top to bottom, exactly 2 characters, each appearing only once, above them a neon bat holding a coin, with a neon tube border in red, tubes mounted on a dark steel frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
  "mahjong_hk.overhang": {
   "seed": 4071,
@@ -575,30 +375,6 @@
   ],
   "prompt": "A single large horizontal Hong Kong mahjong parlour neon sign: exposed glowing glass neon tubes forming the Chinese characters 麻雀 in green, with a neon tube border in pink, tubes mounted on a dark steel frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
- "mahjong_hk.hkblade": {
-  "seed": 5047,
-  "size": [
-   512,
-   896
-  ],
-  "prompt": "A single tall narrow vertical Hong Kong mahjong parlour neon sign: exposed glowing glass neon tubes forming the traditional Chinese characters 麻雀 in green written once from top to bottom, exactly 2 characters, each appearing only once, with a neon tube border in pink, tubes mounted on a dark steel frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
- "karaoke_hk.overhang": {
-  "seed": 5043,
-  "size": [
-   1344,
-   768
-  ],
-  "prompt": "A single large horizontal Hong Kong karaoke neon sign: exposed glowing glass neon tubes forming the traditional Chinese characters 卡拉OK in magenta, with a neon tube border in blue, tubes mounted on a dark steel frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
- "karaoke_hk.hkblade": {
-  "seed": 5048,
-  "size": [
-   512,
-   1344
-  ],
-  "prompt": "A single tall narrow vertical Hong Kong karaoke neon sign: exposed glowing glass neon tubes forming the traditional Chinese characters 卡拉OK in magenta written once from top to bottom, exactly 4 characters, each appearing only once, with a neon tube border in blue, tubes mounted on a dark steel frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
  "nightclub.overhang": {
   "seed": 4075,
   "size": [
@@ -606,14 +382,6 @@
    768
   ],
   "prompt": "A single large horizontal Hong Kong nightclub neon sign: exposed glowing glass neon tubes forming the Chinese characters 夜總會 in pink, with a neon tube border in purple, tubes mounted on a dark steel frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
- "nightclub.hkblade": {
-  "seed": 5049,
-  "size": [
-   512,
-   1120
-  ],
-  "prompt": "A single tall narrow vertical Hong Kong nightclub neon sign: exposed glowing glass neon tubes forming the traditional Chinese characters 夜總會 in pink written once from top to bottom, exactly 3 characters, each appearing only once, with a neon tube border in purple, tubes mounted on a dark steel frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
  "chachaan.overhang": {
   "seed": 4077,
@@ -623,14 +391,6 @@
   ],
   "prompt": "A single large horizontal Hong Kong tea restaurant neon sign: exposed glowing glass neon tubes forming the Chinese characters 茶餐廳 in yellow, with a neon tube border in red, tubes mounted on a dark steel frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
- "chachaan.hkblade": {
-  "seed": 5050,
-  "size": [
-   512,
-   1120
-  ],
-  "prompt": "A single tall narrow vertical Hong Kong tea restaurant neon sign: exposed glowing glass neon tubes forming the traditional Chinese characters 茶餐廳 in yellow written once from top to bottom, exactly 3 characters, each appearing only once, with a neon tube border in red, tubes mounted on a dark steel frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
  "herbaltea.overhang": {
   "seed": 4079,
   "size": [
@@ -638,14 +398,6 @@
    768
   ],
   "prompt": "A single large horizontal Hong Kong herbal tea shop neon sign: exposed glowing glass neon tubes forming the Chinese characters 涼茶 in green, with a neon tube border in yellow, tubes mounted on a dark steel frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
- "herbaltea.hkblade": {
-  "seed": 5051,
-  "size": [
-   512,
-   896
-  ],
-  "prompt": "A single tall narrow vertical Hong Kong herbal tea shop neon sign: exposed glowing glass neon tubes forming the traditional Chinese characters 涼茶 in green written once from top to bottom, exactly 2 characters, each appearing only once, with a neon tube border in yellow, tubes mounted on a dark steel frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
  "seafood.overhang": {
   "seed": 4081,
@@ -671,14 +423,6 @@
   ],
   "prompt": "A single large horizontal Hong Kong jewellery shop neon sign: exposed glowing glass neon tubes forming the Chinese characters 金行 in gold, with a neon tube border in red, tubes mounted on a dark steel frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
- "goldshop.hkblade": {
-  "seed": 5053,
-  "size": [
-   512,
-   896
-  ],
-  "prompt": "A single tall narrow vertical Hong Kong jewellery shop neon sign: exposed glowing glass neon tubes forming the traditional Chinese characters 金行 in gold written once from top to bottom, exactly 2 characters, each appearing only once, with a neon tube border in red, tubes mounted on a dark steel frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
  "pharmacy_hk.overhang": {
   "seed": 5044,
   "size": [
@@ -686,14 +430,6 @@
    768
   ],
   "prompt": "A single large horizontal Hong Kong pharmacy neon sign: exposed glowing glass neon tubes forming the traditional Chinese characters 藥房 in white, with a neon tube border in green, tubes mounted on a dark steel frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
- "pharmacy_hk.hkblade": {
-  "seed": 5054,
-  "size": [
-   512,
-   896
-  ],
-  "prompt": "A single tall narrow vertical Hong Kong pharmacy neon sign: exposed glowing glass neon tubes forming the traditional Chinese characters 藥房 in white written once from top to bottom, exactly 2 characters, each appearing only once, with a neon tube border in green, tubes mounted on a dark steel frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
  "hotel_hk.overhang": {
   "seed": 4087,
@@ -703,14 +439,6 @@
   ],
   "prompt": "A single large horizontal Hong Kong hotel neon sign: exposed glowing glass neon tubes forming the Chinese characters 酒店 in red, with a neon tube border in white, tubes mounted on a dark steel frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
- "hotel_hk.hkblade": {
-  "seed": 5055,
-  "size": [
-   512,
-   896
-  ],
-  "prompt": "A single tall narrow vertical Hong Kong hotel neon sign: exposed glowing glass neon tubes forming the traditional Chinese characters 酒店 in red written once from top to bottom, exactly 2 characters, each appearing only once, with a neon tube border in white, tubes mounted on a dark steel frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
  "sauna_hk.overhang": {
   "seed": 4089,
   "size": [
@@ -718,14 +446,6 @@
    768
   ],
   "prompt": "A single large horizontal Hong Kong sauna neon sign: exposed glowing glass neon tubes forming the Chinese characters 桑拿 in orange, with a neon tube border in blue, tubes mounted on a dark steel frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
- "sauna_hk.hkblade": {
-  "seed": 5056,
-  "size": [
-   512,
-   896
-  ],
-  "prompt": "A single tall narrow vertical Hong Kong sauna neon sign: exposed glowing glass neon tubes forming the traditional Chinese characters 桑拿 in orange written once from top to bottom, exactly 2 characters, each appearing only once, with a neon tube border in blue, tubes mounted on a dark steel frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
  "kaze.land": {
   "seed": 4091,
@@ -902,5 +622,45 @@
    1536
   ],
   "prompt": "a cascade of shiny golden pachinko balls falling with sparkles on a red background, full-bleed advertising photograph filling the entire frame edge to edge, rich saturated colour, dramatic light, no text, no logo, no letters, no frame, no billboard, no border"
+ },
+ "flower.fascia": {
+  "seed": 6000,
+  "size": [
+   1536,
+   512
+  ],
+  "prompt": "A single wide horizontal shop fascia Japanese flower shop sign: a backlit acrylic lightbox glowing at night, white face with bold deep pink Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading フラワー, a small flower icon, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
+ },
+ "flower.blade": {
+  "seed": 6000,
+  "size": [
+   512,
+   1344
+  ],
+  "prompt": "A single tall narrow vertical projecting Japanese flower shop sign: a backlit acrylic lightbox glowing at night, white face with bold deep pink Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading フラワー written once from top to bottom, exactly 4 characters, each appearing only once, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
+ },
+ "dental.panel": {
+  "seed": 6000,
+  "size": [
+   1024,
+   1024
+  ],
+  "prompt": "A single square tenant Japanese dental clinic sign: a backlit acrylic lightbox glowing at night, white face with bold blue Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading デンタル and below it a large floor number 3F, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
+ },
+ "dental.blade": {
+  "seed": 6000,
+  "size": [
+   512,
+   1536
+  ],
+  "prompt": "A single tall narrow vertical projecting Japanese dental clinic sign: a backlit acrylic lightbox glowing at night, white face with bold blue Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading デンタル written once from top to bottom, exactly 4 characters, each appearing only once and below it a badge reading 3F, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
+ },
+ "soroban.panel": {
+  "seed": 6000,
+  "size": [
+   1024,
+   1024
+  ],
+  "prompt": "A single square tenant Japanese abacus school sign: a backlit acrylic lightbox glowing at night, white face with bold dark blue Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading そろばん and below it a large floor number 4F, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  }
 }
