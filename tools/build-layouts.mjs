@@ -20,7 +20,7 @@ function assertBrowserSafe() {
 /** Sign catalog (tools/textures/build_signs.py): what the layout needs to choose and size signs. */
 export function signArt() {
   const cat = readJson(path.join(ROOT, 'art', 'textures', 'signs', 'catalog.json'), { entries: [] });
-  return cat.entries.map(({ owner, format, aspect, floor, script, brand, jp, tall }) => ({ owner, format, aspect, floor, script, brand: !!brand, jp: !!jp, tall: !!tall }));
+  return cat.entries.map(({ owner, format, aspect, floor, script, brand, jp, tall, lantern }) => ({ owner, format, aspect, floor, script, brand: !!brand, jp: !!jp, tall: !!tall, ...(lantern ? { lantern } : {}) }));
 }
 
 export async function buildLayouts() {

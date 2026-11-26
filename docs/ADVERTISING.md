@@ -78,7 +78,7 @@ Per street frontage (`hero` dense, `core` sparse, the island's ring, avenues and
   - **Blades** hang at the tenant's floor.
 - **Island (Hong Kong):** every tenant is a `zh` business. Neon overhangs reach 0.4–1.8 m clear
   of the wall and 3–6.5 m out, stacked by floor, with vertical neon blades between them.
-- **Rooftop frames** carry a brand board, lit by floodlights along the top edge.
+- **Rooftop frames** carry a brand board on a steel lattice, lit by floodlights along the top edge.
 - **Towers:** podium fascias (one per shopfront, some units left empty), a hero billboard at
   15–50 m, hero campaigns on the shaft, and crown lettering (heroes, bank, airline). Each tower
   zone keeps its own least-used count, so the brands spread evenly over billboards, shafts and
@@ -101,8 +101,19 @@ Per street frontage (`hero` dense, `core` sparse, the island's ring, avenues and
   instanced draw; the lamp heads are a third.
 - **Light map:** each sign's measured light colour feeds the sign light map (facades, wet streets).
 
-## Not yet built (from the plan)
+## Street props and roof frames (2026-11-26)
 
-- Street-level menu lightboxes, A-frames and lanterns (street props).
-- Roof lattice frames for the brand boards: they stand in the generators' existing billboard
-  frames.
+- **Standing signs** (置き看板): a shop with a blade may put a small copy of it on the pavement by
+  its door, 0.3–0.9 m in front of the wall (clear of the walkers' line), facing along the street,
+  on a weighted foot (`stand` in the hero/core configs: 0.6 / 0.35).
+- **Lanterns:** businesses with `lantern` (ramen, gyoza, yakiniku, chuka, tachinomi, tendon) hang a
+  row of 2–4 red paper lanterns under their canopy's front edge (`lantern`: 0.85 / 0.6). One sign
+  per row (kind `lantern`, `count`); bodies are one MeshBasic draw of low-poly spheres (the same
+  shader program as the floodlight heads), caps and cords are boxes in the hardware draw, and each
+  row feeds the sign light map.
+- **Rooftop lattice:** every rooftop board stands on exposed steel: columns behind the board down
+  to the roof, girts, X-bracing in every bay, raking struts back to the roof and a catwalk with a
+  rail along the bottom edge. It's all in the hardware draw (members rotated into place), so it
+  adds no draw calls.
+- **Not built:** wall menu lightboxes. They need menu art (dish photos and prices) the library
+  doesn't have; the standing signs fill that spot at the door.

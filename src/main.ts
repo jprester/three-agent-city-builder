@@ -176,6 +176,7 @@ async function main() {
       if (signs.brackets) scene.add(signs.brackets);
       if (signs.brackets && !quality.reflectBuildings) unreflected.push(signs.brackets);
       if (signs.floods) scene.add(signs.floods);
+      if (signs.lanterns) scene.add(signs.lanterns);
       if (signs.holo) scene.add(signs.holo);
       signMap = createSignLightMap(layout, signs.lights);
       facadeUniforms.uSignMap.value = signMap;

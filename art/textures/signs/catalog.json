@@ -30,6 +30,7 @@
    "sat": 0.57,
    "floor": 1,
    "script": "ja",
+   "lantern": "red",
    "atlas": 2,
    "rect": [
     0.476074,
@@ -102,6 +103,7 @@
    "sat": 0.03,
    "floor": 1,
    "script": "ja",
+   "lantern": "red",
    "atlas": 2,
    "rect": [
     0.254395,
@@ -126,6 +128,7 @@
    "sat": 0.31,
    "floor": 1,
    "script": "ja",
+   "lantern": "red",
    "atlas": 2,
    "rect": [
     0.001465,
@@ -150,6 +153,7 @@
    "sat": 0.34,
    "floor": 1,
    "script": "ja",
+   "lantern": "red",
    "atlas": 0,
    "rect": [
     0.83252,
@@ -222,6 +226,7 @@
    "sat": 0.71,
    "floor": 1,
    "script": "ja",
+   "lantern": "red",
    "atlas": 1,
    "rect": [
     0.498291,
@@ -414,6 +419,7 @@
    "sat": 0.0,
    "floor": 1,
    "script": "ja",
+   "lantern": "red",
    "atlas": 2,
    "rect": [
     0.666504,
@@ -438,6 +444,7 @@
    "sat": 0.0,
    "floor": 1,
    "script": "ja",
+   "lantern": "red",
    "atlas": 1,
    "rect": [
     0.316895,
@@ -462,6 +469,7 @@
    "sat": 0.01,
    "floor": 1,
    "script": "ja",
+   "lantern": "red",
    "atlas": 2,
    "rect": [
     0.666504,
@@ -486,6 +494,7 @@
    "sat": 0.03,
    "floor": 1,
    "script": "ja",
+   "lantern": "red",
    "atlas": 1,
    "rect": [
     0.373047,

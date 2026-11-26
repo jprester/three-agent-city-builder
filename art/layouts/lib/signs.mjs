@@ -9,7 +9,9 @@
 //   panel      upper-floor tenants' panels stacked in a tenant column at the building's edge
 //   billboard  big panel over two floors of the front, for an upper tenant (food photo, floor)
 //   overhang   Hong Kong neon boards cantilevered far over the street, stacked by floor
-//   board      brand campaign in a rooftop frame, floodlit
+//   stand      a shop's standing sign on the pavement (its blade art, small); lantern: a row of
+//              paper lanterns on the canopy edge of a food or drink shop
+//   board      brand campaign in a rooftop lattice frame, floodlit
 //   wide/tall  hero campaigns (fashion, luxury) on tower billboards and shafts; mark: crown lettering
 // No wayfinding, no sign without a tenant. Browser-safe (runs for ?seed=).
 import * as G from './geom.mjs';
@@ -20,8 +22,8 @@ export const SIGN_DEFAULTS = {
   // Per street frontage: shops at street level (count range, minimum shop width), share of
   // shops with a blade, share of upper floors let to a tenant (up to `maxFloor`), chance of a
   // tenant column (>= 2 upper tenants), of an upper tenant taking a billboard, of extra blades.
-  hero: { shops: [2, 3], shopWidth: 5, blade: 0.85, upper: 0.85, maxFloor: 8, column: 0.9, billboard: 0.45, upperBlade: 0.7 },
-  core: { shops: [1, 2], shopWidth: 6, blade: 0.4, upper: 0.4, maxFloor: 6, column: 0.45, billboard: 0.15, upperBlade: 0.35 },
+  hero: { shops: [2, 3], shopWidth: 5, stand: 0.6, lantern: 0.85, blade: 0.85, upper: 0.85, maxFloor: 8, column: 0.9, billboard: 0.45, upperBlade: 0.7 },
+  core: { shops: [1, 2], shopWidth: 6, stand: 0.35, lantern: 0.6, blade: 0.4, upper: 0.4, maxFloor: 6, column: 0.45, billboard: 0.15, upperBlade: 0.35 },
   // Island band (Hong Kong): neon overhangs, by what the building faces (buildIsland's `frontage`).
   island: {
     ring: { shops: [1, 2], shopWidth: 6, blade: 0.5, upper: 0.55, maxFloor: 5, overhang: 0.9 },
@@ -65,7 +67,7 @@ export function createSignPlacer({ S, seed, assets, art, hitsBridge }) {
   // ---- the library, by owner
   const owners = new Map();
   art.forEach((e, i) => {
-    if (!owners.has(e.owner)) owners.set(e.owner, { owner: e.owner, floor: e.floor ?? 1, script: e.script, brand: !!e.brand, jp: !!e.jp, tall: !!e.tall, f: {}, v: {} });
+    if (!owners.has(e.owner)) owners.set(e.owner, { owner: e.owner, floor: e.floor ?? 1, script: e.script, brand: !!e.brand, jp: !!e.jp, tall: !!e.tall, lantern: e.lantern, f: {}, v: {} });
     const o = owners.get(e.owner);
     o.f[e.format] ??= i;
     (o.v[e.format] ??= []).push(i);   // campaign variants (wide2, tall2: docs/ADVERTISING.md)
@@ -166,6 +168,24 @@ export function createSignPlacer({ S, seed, assets, art, hitsBridge }) {
         const sz = fit(e.aspect, shopW - 0.8, S.size.fascia * k[1]);
         const y0 = canopy > 0 ? gh - 0.1 : gh * 0.69;
         flat(F, index, o.f.fascia, o, sz, c, y0, canopy > 0 ? canopy - 0.12 : depth + 0.12, { floor: 1 });
+      }
+      if (!zh && o.lantern && canopy > 0.8 && cfg.lantern && rng() < cfg.lantern) {
+        // Paper lanterns in a row along the canopy's front edge (food and drink shops).
+        const n = Math.max(2, Math.min(4, Math.floor((shopW - 1.2) / 0.8)));
+        const idx = o.f.fascia ?? o.f.blade;
+        signs.push({
+          building: index, kind: 'lantern', lantern: o.lantern, count: n, art: idx, owner: o.owner, floor: 1,
+          position: F.at(c, canopy - 0.35, gh - 0.95 * k[1]), rotationY: r3(F.t), size: [r3(n * 0.75), r3(0.6 * k[1]), 0.42], seed: seedOf(),
+        });
+      }
+      if (!zh && o.f.blade !== undefined && cfg.stand && rng() < cfg.stand) {
+        // A standing sign (置き看板) on the pavement by the door: the shop's blade, small.
+        const sz = fit(art[o.f.blade].aspect, 0.5, 1.3);
+        const off = c + (rng() < 0.5 ? -1 : 1) * (shopW / 2 - 0.9);
+        signs.push({
+          building: index, kind: 'stand', art: o.f.blade, owner: o.owner, floor: 1,
+          position: F.at(off, depth + 0.55, 0.14 + sz.h / 2), rotationY: F.along, size: [r3(sz.w), r3(sz.h), 0.2], seed: seedOf(),
+        });
       }
       if (rng() < cfg.blade) {
         // Its blade at the shopfront's edge, above the canopy.

@@ -3,8 +3,8 @@ import signCatalog from '../../art/textures/signs/catalog.json';
 
 /** Sign facts the layout chooses and sizes signs by (same as tools/build-layouts.mjs signArt()). */
 export const SIGN_ART = signCatalog.entries.map((e) => {
-  const x = e as { floor?: number; script?: string; brand?: boolean; jp?: boolean; tall?: boolean };
-  return { owner: e.owner, format: e.format, aspect: e.aspect, floor: x.floor, script: x.script, brand: !!x.brand, jp: !!x.jp, tall: !!x.tall };
+  const x = e as { floor?: number; script?: string; brand?: boolean; jp?: boolean; tall?: boolean; lantern?: string };
+  return { owner: e.owner, format: e.format, aspect: e.aspect, floor: x.floor, script: x.script, brand: !!x.brand, jp: !!x.jp, tall: !!x.tall, ...(x.lantern ? { lantern: x.lantern } : {}) };
 });
 
 export type Vec2 = [number, number];
@@ -44,8 +44,12 @@ export interface LayoutBlock {
 export interface LayoutSign {
   /** Index into instances of the building it hangs on. */
   building: number;
-  /** blade: projects from the facade, faces along the street; panel: flat on the facade. */
-  kind: 'blade' | 'panel';
+  /** blade: projecting; panel: flat on a wall or frame; stand: on the pavement; lantern: a row of
+   *  `count` paper lanterns (the box is the row's extent). */
+  kind: 'blade' | 'panel' | 'stand' | 'lantern';
+  /** Lantern row: number of lanterns and paper colour. */
+  count?: number;
+  lantern?: 'red' | 'white';
   /** Center, meters. */
   position: Vec3;
   /** Rotation so the sign's +Z face points along its normal. */

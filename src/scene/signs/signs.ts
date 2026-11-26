@@ -51,11 +51,11 @@ vec4 signArt(int a, vec2 uv) {
  * case. Crown lettering (lit letters on black) is drawn additive with no board. Hardware
  * (case lips, blade arms, roof posts, floodlights) is one more instanced draw, lamp heads one.
  */
-export function createSigns(layout: Layout, uniforms: SignUniforms): { mesh: THREE.InstancedMesh; holo: THREE.InstancedMesh | null; brackets: THREE.InstancedMesh | null; floods: THREE.InstancedMesh | null; lights: SignLight[] } | null {
+export function createSigns(layout: Layout, uniforms: SignUniforms): { mesh: THREE.InstancedMesh; holo: THREE.InstancedMesh | null; brackets: THREE.InstancedMesh | null; floods: THREE.InstancedMesh | null; lanterns: THREE.InstancedMesh | null; lights: SignLight[] } | null {
   const signs = (layout.signs ?? []).filter((s) => ART_ENTRIES[s.art] !== undefined);
   if (!signs.length) return null;
   const lights: SignLight[] = [];
-  const boxes = signs.filter((s) => !isHolo(s));
+  const boxes = signs.filter((s) => !isHolo(s) && s.kind !== 'lantern');
   const holos = signs.filter(isHolo);
   const geometry = new THREE.BoxGeometry(1, 1, 1);
   const n = boxes.length;
@@ -90,7 +90,8 @@ export function createSigns(layout: Layout, uniforms: SignUniforms): { mesh: THR
   mesh.instanceMatrix.needsUpdate = true;
   mesh.computeBoundingSphere();
   const holo = createLettering(holos, uniforms, lights);
-  return { mesh, holo, brackets: createBrackets(signs), floods: createFloods(signs, lights), lights };
+  const lanterns = createLanterns(signs.filter((s) => s.kind === 'lantern'), lights);
+  return { mesh, holo, brackets: createBrackets(signs), floods: createFloods(signs, lights), lanterns, lights };
 }
 
 /**
@@ -161,12 +162,31 @@ function floodXs(w: number): number[] {
 
 /** Case lips, blade arms, roof posts and floodlight arms, batched into one instanced draw. */
 function createBrackets(signs: Sign[]): THREE.InstancedMesh | null {
-  const hardware: { sign: Sign; center: number[]; scale: number[] }[] = [];
+  const hardware: Part[] = [];
   for (const s of signs) {
     const [w, h, depth] = s.size;
-    const add = (x: number, y: number, z: number, sx: number, sy: number, sz: number) =>
-      hardware.push({ sign: s, center: [x, y, z], scale: [sx, sy, sz] });
+    const add = (x: number, y: number, z: number, sx: number, sy: number, sz: number, rot?: [number, number]) =>
+      hardware.push({ sign: s, center: [x, y, z], scale: [sx, sy, sz], rot });
+    /** A member from a to b (local y, z or x, y), as a box of section t rotated into place. */
+    const strut = (a: number[], b: number[], t: number) => {
+      const d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+      const len = Math.hypot(...d);
+      // Rotation about local x (pitch, y→z) then z (roll, y→x): the box's long axis is y.
+      const rx = Math.atan2(d[2], Math.hypot(d[0], d[1]));
+      const rz = -Math.atan2(d[0], d[1]);
+      add((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2, t, len, t, [rx, rz]);
+    };
     // Lettering has no frame: a frame sized to the sign box would float away from the glow.
+    if (s.kind === 'lantern') {
+      // Lacquer caps top and bottom, and the cord up to the canopy.
+      const r = lanternR(s);
+      for (const x of lanternXs(s)) {
+        add(x, h * 0.36, 0, r * 1.1, 0.06, r * 1.1);
+        add(x, -h * 0.46, 0, r * 1.1, 0.06, r * 1.1);
+        add(x, h * 0.48, 0, 0.015, 0.2, 0.015);
+      }
+      continue;
+    }
     const holo = isHolo(s);
     const t = Math.min(0.09, w * 0.045);
     if (!holo) {
@@ -186,8 +206,37 @@ function createBrackets(signs: Sign[]): THREE.InstancedMesh | null {
       // Tenant column: rails at both ends run the full floor height, so the stacked panels
       // read as one steel column.
       if (s.column && s.span) for (const x of [-w / 2 - t - 0.05, w / 2 + t + 0.05]) add(x, 0, 0, 0.1, s.span + 0.02, 0.12);
+    } else if (s.kind === 'stand') {
+      // Standing sign: a weighted foot plate and two short feet.
+      add(0, -h / 2 - 0.08, 0, w + 0.12, 0.05, 0.5);
+      for (const x of [-w / 2 + 0.04, w / 2 - 0.04]) add(x, -h / 2 - 0.04, 0, 0.05, 0.1, 0.2);
+    } else if (s.roof && s.legs !== undefined) {
+      // Rooftop board on an exposed steel lattice (Shinjuku): columns behind the board down to
+      // the roof, girts, X-bracing in every bay, raking struts back to the roof, a catwalk.
+      add(0, 0, -depth / 2 - 0.06, w, h, 0.12);
+      const legs = s.legs, zb = -depth / 2 - 0.2, yr = -h / 2 - legs;
+      const m = Math.max(2, Math.round(w / 2.6));
+      const xs = Array.from({ length: m + 1 }, (_, k) => -w / 2 + 0.1 + ((w - 0.2) * k) / m);
+      for (const x of xs) add(x, (yr + h / 2) / 2, zb, 0.14, h + legs, 0.14);
+      for (const y of [yr + 0.05, -h / 2, 0, h / 2 - 0.05]) add(0, y, zb - 0.02, w, 0.1, 0.1);
+      for (let k = 0; k < m; k++) {
+        const [x0, x1] = [xs[k], xs[k + 1]];
+        for (const [y0, y1] of [[yr, -h / 2], [-h / 2, 0], [0, h / 2]]) {
+          strut([x0, y0, zb - 0.05], [x1, y1, zb - 0.05], 0.06);
+          strut([x1, y0, zb - 0.05], [x0, y1, zb - 0.05], 0.06);
+        }
+      }
+      const back = (h + legs) * 0.42;
+      for (let k = 0; k <= m; k += 2) {
+        strut([xs[k], h * 0.2, zb - 0.1], [xs[k], yr, zb - back], 0.12);
+        add(xs[k], yr + 0.05, zb - back / 2, 0.1, 0.1, back);
+      }
+      // Catwalk along the bottom edge for the poster crew, with a low rail.
+      add(0, -h / 2 - 0.12, depth / 2 + 0.4, w, 0.05, 0.8);
+      add(0, -h / 2 + 0.75, depth / 2 + 0.78, w, 0.04, 0.04);
+      for (let x = -w / 2; x <= w / 2 + 0.01; x += w / Math.max(2, Math.round(w / 2))) add(x, -h / 2 + 0.31, depth / 2 + 0.78, 0.04, 0.86, 0.04);
     } else if (s.legs !== undefined) {
-      // Rooftop board or crown lettering: posts and a brace down to the roof.
+      // Crown lettering: posts and a brace down to the roof.
       if (!holo) add(0, 0, -depth / 2 - 0.06, w, h, 0.12);
       const legs = s.legs, n = w > 14 ? 4 : 2;
       for (let k = 0; k < n; k++) {
@@ -209,7 +258,7 @@ function createBrackets(signs: Sign[]): THREE.InstancedMesh | null {
 
 /** Floodlight heads on rooftop boards: small lit boxes at the end of each arm, aimed back. */
 function createFloods(signs: Sign[], lights: SignLight[]): THREE.InstancedMesh | null {
-  const heads: { sign: Sign; center: number[]; scale: number[] }[] = [];
+  const heads: Part[] = [];
   for (const s of signs) {
     if (!s.flood) continue;
     const [w, h, depth] = s.size;
@@ -225,12 +274,41 @@ function createFloods(signs: Sign[], lights: SignLight[]): THREE.InstancedMesh |
   return mesh;
 }
 
-function place(mesh: THREE.InstancedMesh, parts: { sign: Sign; center: number[]; scale: number[] }[]) {
+type Part = { sign: Sign; center: number[]; scale: number[]; rot?: [number, number] };
+
+/**
+ * Paper lanterns (chōchin) in rows along shop canopies: a lit body (a low-poly sphere stretched
+ * upright, one MeshBasic draw like the floodlight heads, so no new shader program). Their lacquer
+ * caps and cords are boxes in the hardware draw (createBrackets).
+ */
+function createLanterns(rows: Sign[], lights: SignLight[]): THREE.InstancedMesh | null {
+  if (!rows.length) return null;
+  const bodies: Part[] = [];
+  // Lit paper reads brighter than its pigment (x1.25; more washes it out to salmon in the grade).
+  const red = col('lantern_red').multiplyScalar(1.25);
+  for (const s of rows) {
+    const [w, h] = s.size;
+    for (const x of lanternXs(s)) bodies.push({ sign: s, center: [x, -0.05, 0], scale: [lanternR(s) * 2, h * 0.78, lanternR(s) * 2] });
+    lights.push({ x: s.position[0], y: s.position[1], z: s.position[2], size: w + 1, color: col('lantern_red'), strength: 0.35 });
+  }
+  const material = new THREE.MeshBasicMaterial({ color: red });
+  material.name = 'sign-lanterns';
+  const mesh = new THREE.InstancedMesh(new THREE.SphereGeometry(0.5, 8, 6), material, bodies.length);
+  mesh.name = 'sign-lanterns';
+  place(mesh, bodies);
+  return mesh;
+}
+
+const lanternR = (s: Sign) => Math.min(0.19, s.size[0] / (s.count ?? 2) / 2.4);
+const lanternXs = (s: Sign) => Array.from({ length: s.count ?? 2 }, (_, k) => -s.size[0] / 2 + (s.size[0] * (k + 0.5)) / (s.count ?? 2));
+
+function place(mesh: THREE.InstancedMesh, parts: Part[]) {
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
-  const p = new THREE.Vector3();
-  parts.forEach(({ sign: s, center, scale }, i) => {
+  const p = new THREE.Vector3(), local = new THREE.Quaternion(), e = new THREE.Euler();
+  parts.forEach(({ sign: s, center, scale, rot }, i) => {
     q.setFromAxisAngle(up, s.rotationY);
     p.fromArray(center).applyQuaternion(q).add(new THREE.Vector3(...s.position));
+    if (rot) q.multiply(local.setFromEuler(e.set(rot[0], 0, rot[1], 'ZXY')));
     m.compose(p, q, new THREE.Vector3().fromArray(scale));
     mesh.setMatrixAt(i, m);
   });

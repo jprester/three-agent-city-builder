@@ -1,8 +1,8 @@
 # Signs and ads: plan for a coherent system
 
-Status: **signs and hero billboards done** on branch `ads-tenant-signs` (2026-11-26); the system as
-built is described in docs/ADVERTISING.md. Remaining: street props (menu lightboxes, A-frames,
-lanterns) and dedicated roof lattice frames.
+Status: **done** on branch `ads-tenant-signs` (2026-11-26): signs, hero billboards, street props
+(standing signs, lanterns) and rooftop lattice frames; described in docs/ADVERTISING.md. Wall menu
+lightboxes were left out (no menu art).
 
 **Hero billboards (human review 2026-11-24, after the first shots):** the big downtown tower
 billboards and shaft campaigns look underwhelming: low resolution (packed at 1024 / 768 px for
@@ -13,8 +13,7 @@ screens); the big tower hero ads (`wide`, `tall`, zones billboard and shaft) com
 Midjourney, made by the human, imported into `art/external/` with a manifest entry. Built
 2026-11-26: 10 hero brands from Midjourney (`heroes` in the def), packed at 1280 px (wide) and
 1536 px (tall) in the shared sign atlases rather than an atlas of their own (they fit in three). Food, drink and loan brands then stay on the
-roofs and low buildings. Not yet built: street props (menu lightboxes, A-frames, lanterns) and
-dedicated roof lattice frames. The plan below is kept as the record of the decisions.
+roofs and low buildings. The plan below is kept as the record of the decisions.
 
 ## Decisions (human, 2026-11-23)
 

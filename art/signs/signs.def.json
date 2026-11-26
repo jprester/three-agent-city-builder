@@ -73,7 +73,7 @@
       ]
     }
   },
-  "$businesses": "floor 1: street shops (fascia over the door + blade); floor >= 2: upper tenants (a panel in the building's tenant column + a blade at their floor, optional upper-wall billboard), the floor number is part of their signs. script ja: Japanese lightboxes; zh: Hong Kong neon (overhang + blade). Colours are words in the prompt; the runtime measures each sign's light colour.",
+  "$businesses": "floor 1: street shops (fascia over the door + blade); floor >= 2: upper tenants (a panel in the building's tenant column + a blade at their floor, optional upper-wall billboard), the floor number is part of their signs. script ja: Japanese lightboxes; zh: Hong Kong neon (overhang + blade). Colours are words in the prompt; the runtime measures each sign's light colour. lantern: red paper lanterns hang along the shop's canopy edge (food and drink).",
   "businesses": [
     {
       "id": "ramen",
@@ -86,7 +86,8 @@
       "icon": "a red ramen bowl icon on the left",
       "only": [
         "fascia"
-      ]
+      ],
+      "lantern": "red"
     },
     {
       "id": "sushi",
@@ -123,7 +124,8 @@
       "ink": "red",
       "only": [
         "fascia"
-      ]
+      ],
+      "lantern": "red"
     },
     {
       "id": "yakiniku",
@@ -132,7 +134,8 @@
       "floor": 1,
       "text": "焼肉 炎",
       "face": "black",
-      "ink": "red and white"
+      "ink": "red and white",
+      "lantern": "red"
     },
     {
       "id": "kusuri",
@@ -169,7 +172,8 @@
       "ink": "yellow",
       "only": [
         "fascia"
-      ]
+      ],
+      "lantern": "red"
     },
     {
       "id": "tabako",
@@ -220,7 +224,8 @@
       "text": "酒場",
       "face": "white",
       "ink": "black",
-      "icon": "a beer mug icon"
+      "icon": "a beer mug icon",
+      "lantern": "red"
     },
     {
       "id": "tendon",
@@ -229,7 +234,8 @@
       "floor": 1,
       "text": "天ぷら",
       "face": "green",
-      "ink": "white"
+      "ink": "white",
+      "lantern": "red"
     },
     {
       "id": "kombini",

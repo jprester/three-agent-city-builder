@@ -207,6 +207,8 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
       const gap = s.kind === 'blade' ? out - s.size[0] / 2 : out + (s.inset ?? 0);
       const maxGap = s.kind === 'blade' ? (s.arm ?? 0.3) + 0.05 : Math.max(0.5, (meta.canopy ?? 0) + 0.05, (meta.depth ?? 0) + 0.3);
       const minGap = s.kind === 'blade' ? Math.max(0.05, (meta.depth ?? 0) + 0.25) : 0.05;
+      // Standing signs are on the pavement just in front of the shop (clear of the walkers' line).
+      if (s.kind === 'stand') return out < (meta.depth ?? 0) + 0.3 || out > (meta.depth ?? 0) + 0.9 || Math.abs(along) > hu;
       return gap < minGap || gap > maxGap || Math.abs(along) > hu || s.position[1] + s.size[1] / 2 > b.h!;
     });
     expect(bad.map((s) => s.position)).toEqual([]);
@@ -214,7 +216,8 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
 
   it('sizes every sign to its artwork aspect (no cropping or stretching)', async () => {
     const L = await get();
-    const wrong = L.signs!.filter((s) => {
+    // Lantern rows carry their owner's art id but draw no image.
+    const wrong = L.signs!.filter((s) => s.kind !== 'lantern').filter((s) => {
       const want = SIGN_ART[s.art]?.aspect;
       return want === undefined || Math.abs(s.size[0] / s.size[1] / want - 1) > 0.02;
     });
@@ -263,10 +266,12 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
       if (!e || s.owner !== e.owner) return true;
       if (e.brand) return !(s.roof || s.zone === 'billboard' || s.zone === 'shaft' || s.zone === 'crown');
       switch (e.format) {
-        case 'fascia': return s.kind !== 'panel' || s.floor !== 1;
+        case 'fascia': return !(s.kind === 'panel' || (s.kind === 'lantern' && e.lantern)) || s.floor !== 1;
         case 'panel': return s.kind !== 'blade' || !s.column || s.floor !== e.floor;
         case 'billboard': return s.kind !== 'panel' || s.floor !== e.floor;
-        case 'blade': return s.kind !== 'blade' || (s.zone !== 'tall' && s.floor !== e.floor);
+        case 'blade': return s.kind === 'stand' ? s.floor !== 1 || e.floor !== 1 || s.position[1] - s.size[1] / 2 > 0.3
+          : s.kind === 'lantern' ? !e.lantern
+          : s.kind !== 'blade' || (s.zone !== 'tall' && s.floor !== e.floor);
         case 'overhang': case 'hkblade': return s.kind !== 'blade' || e.script !== 'zh';
         default: return true;
       }
@@ -286,12 +291,15 @@ describe.each([def.seed, 1, 777])('city layout, seed %i', (seed) => {
     // No business twice on one building; every street of shops has a mix.
     const seen = new Set<string>(), dup: string[] = [];
     for (const s of L.signs!) {
-      const key = `${s.building}/${s.owner}/${s.art}`;
+      const key = `${s.building}/${s.owner}/${s.art}/${s.kind}`;
       if (seen.has(key) && !SIGN_ART[s.art].brand) dup.push(key);
       seen.add(key);
     }
     expect(dup).toEqual([]);
     expect(new Set(L.signs!.map((s) => s.owner)).size).toBeGreaterThan(30);
+    // Street props: standing signs and lantern rows along the shopping streets.
+    expect(L.signs!.filter((s) => s.kind === 'stand').length).toBeGreaterThan(50);
+    expect(L.signs!.filter((s) => s.kind === 'lantern').length).toBeGreaterThan(50);
   });
 
   it('keeps signs from overlapping each other or reaching into other buildings', async () => {

@@ -525,7 +525,7 @@ def pack():
         im = Image.open(src).convert('RGB')
         if it['kind'] == 'business':
             b = next(x for x in d['businesses'] if x['id'] == it['owner'])
-            add(it['id'], it['owner'], it['format'], im, GAIN[it['style']], floor=b['floor'], script=b['script'], **({'tall': True} if b.get('tall') else {}))
+            add(it['id'], it['owner'], it['format'], im, GAIN[it['style']], floor=b['floor'], script=b['script'], **({'tall': True} if b.get('tall') else {}), **({'lantern': b['lantern']} if b.get('lantern') else {}))
         else:
             br = brands[it['owner']]
             if it['format'] == 'land':
