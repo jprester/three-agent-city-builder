@@ -17,3 +17,6 @@ art/external/textures/ads-v2/
 
 # Full-resolution reference photos (GPS metadata, large); commit stripped 1600 px copies instead
 art/style/references/_raw/
+
+# Hero campaigns as delivered (PNG, large); the builder commits WebP copies
+art/external/hero-ads/*.png

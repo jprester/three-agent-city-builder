@@ -7,14 +7,6 @@
   ],
   "prompt": "A single wide horizontal shop fascia Japanese ramen shop sign: a backlit acrylic lightbox glowing at night, bright yellow face with bold black Japanese lettering reading 麺屋 龍, a red ramen bowl icon on the left, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
  },
- "ramen.blade": {
-  "seed": 5009,
-  "size": [
-   512,
-   1120
-  ],
-  "prompt": "A single tall narrow vertical projecting Japanese ramen shop sign: a backlit acrylic lightbox glowing at night, bright yellow face with bold black Japanese lettering (Japanese kanji and kana, not simplified Chinese) reading 麺屋 龍 written once from top to bottom, exactly 3 characters, each appearing only once, thin dark metal frame, isolated on a plain pure black background, centered, the entire sign visible with black margin on all sides, straight-on front view, flat orthographic, photographed at night, no building, no street, no people, no other text"
- },
  "sushi.blade": {
   "seed": 4003,
   "size": [
@@ -479,38 +471,6 @@
   ],
   "prompt": "an unlabelled amber whisky bottle and a crystal glass with ice, warm golden backlight on black, full-bleed advertising photograph filling the entire frame edge to edge, rich saturated colour, dramatic light, no text, no logo, no letters, no frame, no billboard, no border"
  },
- "arcline.land": {
-  "seed": 4095,
-  "size": [
-   1536,
-   640
-  ],
-  "prompt": "a sleek black smartphone floating at an angle above a glowing blue abstract wave, dark background, full-bleed advertising photograph filling the entire frame edge to edge, rich saturated colour, dramatic light, no text, no logo, no letters, no frame, no billboard, no border"
- },
- "arcline.tall": {
-  "seed": 4096,
-  "size": [
-   512,
-   1536
-  ],
-  "prompt": "a sleek black smartphone standing upright with a glowing blue light trail spiralling around it, dark background, full-bleed advertising photograph filling the entire frame edge to edge, rich saturated colour, dramatic light, no text, no logo, no letters, no frame, no billboard, no border"
- },
- "lumora.land": {
-  "seed": 4097,
-  "size": [
-   1536,
-   640
-  ],
-  "prompt": "a luxury gold wristwatch with a black dial lying on dark velvet, close-up, spotlight, full-bleed advertising photograph filling the entire frame edge to edge, rich saturated colour, dramatic light, no text, no logo, no letters, no frame, no billboard, no border"
- },
- "lumora.tall": {
-  "seed": 4098,
-  "size": [
-   512,
-   1536
-  ],
-  "prompt": "a luxury gold wristwatch with a black dial standing upright, close-up, spotlight on black velvet, full-bleed advertising photograph filling the entire frame edge to edge, rich saturated colour, dramatic light, no text, no logo, no letters, no frame, no billboard, no border"
- },
  "kiraku.land": {
   "seed": 4099,
   "size": [
@@ -558,22 +518,6 @@
    1536
   ],
   "prompt": "a smiling businesswoman in a teal coat walking through a modern city at dusk, full-bleed advertising photograph filling the entire frame edge to edge, rich saturated colour, dramatic light, no text, no logo, no letters, no frame, no billboard, no border"
- },
- "solenne.land": {
-  "seed": 4105,
-  "size": [
-   1536,
-   640
-  ],
-  "prompt": "an elegant glass perfume bottle among pink rose petals, soft pink light, full-bleed advertising photograph filling the entire frame edge to edge, rich saturated colour, dramatic light, no text, no logo, no letters, no frame, no billboard, no border"
- },
- "solenne.tall": {
-  "seed": 4106,
-  "size": [
-   512,
-   1536
-  ],
-  "prompt": "a fashion model with dark hair in profile with pink light on her face, beauty portrait, full-bleed advertising photograph filling the entire frame edge to edge, rich saturated colour, dramatic light, no text, no logo, no letters, no frame, no billboard, no border"
  },
  "seira.land": {
   "seed": 4107,

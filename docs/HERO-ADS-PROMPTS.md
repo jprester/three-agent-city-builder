@@ -102,6 +102,10 @@ A tall model in a sculptural black silk evening gown with a dramatic train stand
 
 ## What I do with them
 
+Done 2026-11-26 (docs/ADVERTISING.md, `heroes` in art/signs/signs.def.json). Extra images the
+human added became two more brands (VAELIS, KAGURA) and alternatives (`wide2`, `tall2`).
+
+
 1. Record the images in `art/external/manifest.json` (tool, date, prompt, the license note for
    the tool you used).
 2. Overlay each wordmark on the calm area of its image, with no dark band. For these brands I'll

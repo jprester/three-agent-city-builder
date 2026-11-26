@@ -33,8 +33,9 @@ binary in `public/` is regenerated from them.
 - `npm run assets -- --only 'buildings/*'` limits to matching asset ids.
 - `npm run assets -- --force` ignores the cache.
 - `npm run layouts` regenerates layouts and manifest only (no Blender).
-- `npm run signs` packs the sign library (`art/signs/signs.def.json`: ~45 businesses, each a
-  tenant at a fixed floor with its sign set, and 11 brands) into `art/textures/signs/`, then textures
+- `npm run signs` packs the sign library (`art/signs/signs.def.json`: ~40 businesses, each a
+  tenant at a fixed floor with its sign set, 8 rooftop brands, and 10 hero fashion/luxury brands whose
+  Midjourney campaigns in `art/external/hero-ads/` are the only tower billboards and shaft ads; `--heroes` previews them) into `art/textures/signs/`, then textures
   and layouts. Sources are Z-Image Turbo renders cropped to the sign, in `art/external/signs/`
   (committed); `python3 tools/textures/build_signs.py --render [glob]` renders missing ones,
   `--sheet` draws contact sheets (`build/previews/signs/sources-*.png`: check every sign's text),

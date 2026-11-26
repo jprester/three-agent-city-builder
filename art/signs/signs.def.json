@@ -517,7 +517,7 @@
       ]
     }
   ],
-  "$brands": "International brands (English) for rooftops and towers: a text-free Z-Image photo plus a typeset wordmark (font, colour) composited by the builder. Rooftop/billboard boards use `land`, tower shafts and screens use `tall`. Crown lettering is the wordmark alone, as neon channel letters. jp: domestic brands with a Japanese wordmark (rooftops only).",
+  "$brands": "International brands (English) for rooftops and towers: a text-free Z-Image photo plus a typeset wordmark (font, colour) composited by the builder. Rooftop boards use `land`; `tall` feeds the facade screens only (tower billboards and shafts carry the `heroes`). Crown lettering (the wordmark alone, as lit channel letters) only for `crown` brands. jp: domestic brands with a Japanese wordmark (rooftops only).",
   "brands": [
     {
       "id": "kaze",
@@ -554,40 +554,6 @@
       "tall": "an unlabelled amber whisky bottle and a crystal glass with ice, warm golden backlight on black"
     },
     {
-      "id": "arcline",
-      "name": "ARCLINE",
-      "tagline": "THE NEW ONE",
-      "colour": [
-        255,
-        255,
-        255
-      ],
-      "accent": [
-        80,
-        170,
-        255
-      ],
-      "land": "a sleek black smartphone floating at an angle above a glowing blue abstract wave, dark background",
-      "tall": "a sleek black smartphone standing upright with a glowing blue light trail spiralling around it, dark background"
-    },
-    {
-      "id": "lumora",
-      "name": "LUMORA",
-      "tagline": "SWISS MADE",
-      "colour": [
-        240,
-        225,
-        200
-      ],
-      "accent": [
-        240,
-        225,
-        200
-      ],
-      "land": "a luxury gold wristwatch with a black dial lying on dark velvet, close-up, spotlight",
-      "tall": "a luxury gold wristwatch with a black dial standing upright, close-up, spotlight on black velvet"
-    },
-    {
       "id": "kiraku",
       "name": "KIRAKU",
       "tagline": "NOODLES",
@@ -619,7 +585,8 @@
         255
       ],
       "land": "a white passenger jet flying above golden sunset clouds, wide sky",
-      "tall": "a white passenger jet climbing steeply into a deep blue sky above sunset clouds"
+      "tall": "a white passenger jet climbing steeply into a deep blue sky above sunset clouds",
+      "crown": true
     },
     {
       "id": "helix",
@@ -636,24 +603,8 @@
         160
       ],
       "land": "a smiling young couple looking at a city skyline at dusk, soft teal light",
-      "tall": "a smiling businesswoman in a teal coat walking through a modern city at dusk"
-    },
-    {
-      "id": "solenne",
-      "name": "SOLENNE",
-      "tagline": "PARIS",
-      "colour": [
-        255,
-        255,
-        255
-      ],
-      "accent": [
-        255,
-        120,
-        170
-      ],
-      "land": "an elegant glass perfume bottle among pink rose petals, soft pink light",
-      "tall": "a fashion model with dark hair in profile with pink light on her face, beauty portrait"
+      "tall": "a smiling businesswoman in a teal coat walking through a modern city at dusk",
+      "crown": true
     },
     {
       "id": "seira",
@@ -709,9 +660,377 @@
       "tall": "a cascade of shiny golden pachinko balls falling with sparkles on a red background"
     }
   ],
+  "$heroes": "Hero campaigns (2026-11-26, human: tower billboards are fashion and luxury, made in Midjourney, docs/HERO-ADS-PROMPTS.md). Text-free photos in art/external/hero-ads/ (the PNG as delivered is `src`; the builder keeps a WebP <id>.<v>.webp, committed). The builder sets the wordmark (`pre` small above, `name`, `tagline` small below) in `text` (x0,y0,x1,y1 as fractions: the image's calm area), no band; ink is light or dark by the area's brightness. font serif = Bodoni Moda, sans = Jost. Formats: wide = tower billboard (16:10), tall = tower-shaft campaign (1:3, its top also a facade screen), screen = facade video screen only. Variants (wide2, tall2) are alternatives the placer picks among. Only heroes go on tower billboards and shafts; the Z-Image brands keep the rooftop boards and screens, and `crown` brands their tower lettering.",
+  "heroes": [
+    {
+      "id": "vellard",
+      "name": "VELLARD",
+      "pre": "MAISON",
+      "tagline": "PARIS",
+      "font": "serif",
+      "images": [
+        {
+          "v": "wide",
+          "src": "vellard.wide.png",
+          "text": [
+            0.6,
+            0.3,
+            0.95,
+            0.7
+          ],
+          "format": "wide"
+        },
+        {
+          "v": "wide2",
+          "src": "thenightocean_A_tall_model_in_a_sculptural_black_silk_evening_957475f2-dc95-433c-9387-996159cd3d6e_0.png",
+          "text": [
+            0.6,
+            0.3,
+            0.95,
+            0.7
+          ],
+          "format": "wide"
+        },
+        {
+          "v": "tall",
+          "src": "vellard.tall.png",
+          "text": [
+            0.08,
+            0.04,
+            0.92,
+            0.2
+          ],
+          "format": "tall"
+        }
+      ]
+    },
+    {
+      "id": "aureline",
+      "name": "AURELINE",
+      "tagline": "HAUTE JOAILLERIE",
+      "font": "serif",
+      "images": [
+        {
+          "v": "wide",
+          "src": "aureline.wide.png",
+          "text": [
+            0.6,
+            0.32,
+            0.95,
+            0.68
+          ],
+          "format": "wide"
+        },
+        {
+          "v": "tall",
+          "src": "aureline.tall.png",
+          "text": [
+            0.08,
+            0.04,
+            0.92,
+            0.18
+          ],
+          "format": "tall"
+        }
+      ]
+    },
+    {
+      "id": "kazehana",
+      "name": "KAZEHANA",
+      "tagline": "TOKYO",
+      "font": "sans",
+      "images": [
+        {
+          "v": "wide",
+          "src": "kazehana.wide.png",
+          "text": [
+            0.66,
+            0.3,
+            0.96,
+            0.6
+          ],
+          "format": "wide"
+        },
+        {
+          "v": "tall",
+          "src": "kazehana.tall.png",
+          "text": [
+            0.08,
+            0.04,
+            0.92,
+            0.17
+          ],
+          "format": "tall"
+        }
+      ]
+    },
+    {
+      "id": "vestra",
+      "name": "VESTRA",
+      "tagline": "MILANO",
+      "font": "serif",
+      "images": [
+        {
+          "v": "wide",
+          "src": "vestra.wide.png",
+          "text": [
+            0.6,
+            0.3,
+            0.95,
+            0.7
+          ],
+          "format": "wide"
+        },
+        {
+          "v": "tall",
+          "src": "vestra.tall.png",
+          "text": [
+            0.08,
+            0.04,
+            0.92,
+            0.18
+          ],
+          "format": "tall"
+        }
+      ]
+    },
+    {
+      "id": "lumora",
+      "name": "LUMORA",
+      "tagline": "GENÈVE",
+      "font": "serif",
+      "images": [
+        {
+          "v": "wide",
+          "src": "lumora.wide.png",
+          "text": [
+            0.62,
+            0.3,
+            0.96,
+            0.7
+          ],
+          "format": "wide"
+        },
+        {
+          "v": "tall",
+          "src": "lumora.tall.png",
+          "text": [
+            0.08,
+            0.04,
+            0.92,
+            0.2
+          ],
+          "format": "tall"
+        }
+      ]
+    },
+    {
+      "id": "solenne",
+      "name": "SOLENNE",
+      "tagline": "EAU DE PARFUM",
+      "font": "serif",
+      "images": [
+        {
+          "v": "wide",
+          "src": "solenne.wide.png",
+          "text": [
+            0.6,
+            0.12,
+            0.95,
+            0.42
+          ],
+          "format": "wide"
+        },
+        {
+          "v": "tall",
+          "src": "solenne.tall.png",
+          "text": [
+            0.08,
+            0.03,
+            0.92,
+            0.15
+          ],
+          "format": "tall"
+        },
+        {
+          "v": "tall2",
+          "src": "solenne.tall2.png",
+          "text": [
+            0.08,
+            0.03,
+            0.92,
+            0.15
+          ],
+          "format": "tall"
+        },
+        {
+          "v": "screen",
+          "src": "thenightocean_Photorealistic_baked_loose_powder_beauty_campai_7afc0390-1ed1-439b-a95d-a2f82dd2036a_3.png",
+          "text": [
+            0.12,
+            0.86,
+            0.88,
+            0.97
+          ],
+          "format": "screen"
+        }
+      ]
+    },
+    {
+      "id": "valence",
+      "name": "VALENCE",
+      "tagline": "ELECTRIC",
+      "font": "sans",
+      "images": [
+        {
+          "v": "wide",
+          "src": "valence.wide.png",
+          "text": [
+            0.06,
+            0.22,
+            0.42,
+            0.5
+          ],
+          "format": "wide"
+        },
+        {
+          "v": "tall",
+          "src": "valence.tall.png",
+          "text": [
+            0.08,
+            0.04,
+            0.92,
+            0.18
+          ],
+          "format": "tall"
+        }
+      ]
+    },
+    {
+      "id": "arcline",
+      "name": "ARCLINE",
+      "tagline": "TITANIUM",
+      "font": "sans",
+      "images": [
+        {
+          "v": "wide",
+          "src": "arcline.wide.png",
+          "text": [
+            0.6,
+            0.3,
+            0.95,
+            0.7
+          ],
+          "format": "wide"
+        },
+        {
+          "v": "wide2",
+          "src": "thenightocean_A_slim_titanium_smartphone_with_an_edge-to-edge_9a59d581-18ef-4ef6-bb43-8588b1cab911_0.png",
+          "text": [
+            0.25,
+            0.8,
+            0.75,
+            0.95
+          ],
+          "format": "wide"
+        },
+        {
+          "v": "tall",
+          "src": "arcline.tall.png",
+          "text": [
+            0.08,
+            0.04,
+            0.92,
+            0.18
+          ],
+          "format": "tall"
+        }
+      ]
+    },
+    {
+      "id": "vaelis",
+      "name": "VAELIS",
+      "tagline": "RESORT COLLECTION",
+      "font": "serif",
+      "images": [
+        {
+          "v": "wide",
+          "src": "thenightocean_A_highly_realistic_fashion_editorial_photograph_o_815efd41-29bf-4c3b-b737-09970f2e9389.png",
+          "text": [
+            0.64,
+            0.06,
+            0.96,
+            0.3
+          ],
+          "format": "wide"
+        },
+        {
+          "v": "screen",
+          "src": "thenightocean_Close_up_head_and_shoulders_portrait_of_Lady_Ve_4565a138-ee0a-40ce-9b31-cb2338766583_0.png",
+          "text": [
+            0.12,
+            0.86,
+            0.88,
+            0.97
+          ],
+          "format": "screen"
+        }
+      ]
+    },
+    {
+      "id": "kagura",
+      "name": "KAGURA",
+      "tagline": "BEAUTY  TOKYO",
+      "font": "serif",
+      "images": [
+        {
+          "v": "tall",
+          "src": "thenightocean_vertical_digital_billboard_advertisement_artwor_87322d12-1b04-45ef-8840-7b781aa70dca_0.png",
+          "text": [
+            0.1,
+            0.85,
+            0.9,
+            0.96
+          ],
+          "format": "tall"
+        },
+        {
+          "v": "tall2",
+          "src": "thenightocean_vertical_digital_billboard_advertisement_artwor_d76cb82f-45a6-440e-9362-142eb7e0ed0b_3.png",
+          "text": [
+            0.1,
+            0.86,
+            0.9,
+            0.96
+          ],
+          "format": "tall"
+        },
+        {
+          "v": "screen",
+          "src": "thenightocean_close-up_portrait_of_a_Geisha_with_a_red_fan_ha_75097105-79d8-4db7-9532-87b4eccca316_3.png",
+          "text": [
+            0.12,
+            0.86,
+            0.88,
+            0.97
+          ],
+          "format": "screen"
+        },
+        {
+          "v": "screen2",
+          "src": "thenightocean_cyberpunk_poster_Japanese_woman_holographic_let_1ebb9359-6cee-466c-a9ee-a4ebdc10be02_3.png",
+          "text": [
+            0.12,
+            0.86,
+            0.88,
+            0.97
+          ],
+          "format": "screen"
+        }
+      ]
+    }
+  ],
   "seeds": {
-    "arcline.land": 4095,
-    "arcline.tall": 4096,
     "bar.blade": 5029,
     "bar.panel": 5035,
     "biyou.blade": 5023,
@@ -773,8 +1092,6 @@
     "kurose.tall": 4094,
     "kusuri.blade": 5013,
     "kusuri.fascia": 5002,
-    "lumora.land": 4097,
-    "lumora.tall": 4098,
     "mahjong.blade": 4053,
     "mahjong.panel": 5034,
     "mahjong_hk.hkblade": 5047,
@@ -808,8 +1125,6 @@
     "shika.panel": 5037,
     "snack.blade": 4049,
     "snack.panel": 4048,
-    "solenne.land": 4105,
-    "solenne.tall": 4106,
     "soroban.blade": 5027,
     "soroban.panel": 6000,
     "sushi.blade": 4003,

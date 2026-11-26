@@ -10,7 +10,7 @@
 //   billboard  big panel over two floors of the front, for an upper tenant (food photo, floor)
 //   overhang   Hong Kong neon boards cantilevered far over the street, stacked by floor
 //   board      brand campaign in a rooftop frame, floodlit
-//   wide/tall  brand campaigns on tower billboards and shafts; mark: the tower's crown lettering
+//   wide/tall  hero campaigns (fashion, luxury) on tower billboards and shafts; mark: crown lettering
 // No wayfinding, no sign without a tenant. Browser-safe (runs for ?seed=).
 import * as G from './geom.mjs';
 import { mulberry32 } from './rng.mjs';
@@ -65,8 +65,10 @@ export function createSignPlacer({ S, seed, assets, art, hitsBridge }) {
   // ---- the library, by owner
   const owners = new Map();
   art.forEach((e, i) => {
-    if (!owners.has(e.owner)) owners.set(e.owner, { owner: e.owner, floor: e.floor ?? 1, script: e.script, brand: !!e.brand, jp: !!e.jp, tall: !!e.tall, f: {} });
-    owners.get(e.owner).f[e.format] = i;
+    if (!owners.has(e.owner)) owners.set(e.owner, { owner: e.owner, floor: e.floor ?? 1, script: e.script, brand: !!e.brand, jp: !!e.jp, tall: !!e.tall, f: {}, v: {} });
+    const o = owners.get(e.owner);
+    o.f[e.format] ??= i;
+    (o.v[e.format] ??= []).push(i);   // campaign variants (wide2, tall2: docs/ADVERTISING.md)
   });
   const all = [...owners.values()];
   const pools = {
@@ -79,14 +81,16 @@ export function createSignPlacer({ S, seed, assets, art, hitsBridge }) {
     roof: all.filter((o) => o.brand && o.f.board !== undefined),
   };
   const uses = new Map();
-  /** Least-used owner of `pool` not already on this building (`taken`), or null. */
-  const pick = (pool, taken = new Set()) => {
+  /** Least-used owner of `pool` not already on this building (`taken`), or null. `zone` keeps
+   *  its own count, so brands spread evenly over each tower zone. */
+  const pick = (pool, taken = new Set(), zone = '') => {
+    const n = (o) => uses.get(zone + o.owner) ?? 0;
     const free = pool.filter((o) => !taken.has(o.owner));
     if (!free.length) return null;
-    const least = Math.min(...free.map((o) => uses.get(o.owner) ?? 0));
-    const few = free.filter((o) => (uses.get(o.owner) ?? 0) <= least);
+    const least = Math.min(...free.map(n));
+    const few = free.filter((o) => n(o) <= least);
     const o = few[Math.floor(rng() * few.length)];
-    uses.set(o.owner, (uses.get(o.owner) ?? 0) + 1);
+    uses.set(zone + o.owner, n(o) + 1);
     taken.add(o.owner);
     return o;
   };
@@ -96,6 +100,8 @@ export function createSignPlacer({ S, seed, assets, art, hitsBridge }) {
     return { w, h: w / a };
   };
   const seedOf = () => Math.floor(rng() * 2 ** 31);
+  /** One of the owner's variants of `format` (a brand may run two campaigns). */
+  const variant = (o, format) => o.v[format][Math.floor(rng() * o.v[format].length)];
 
   /** The street face of a building: point on the front at offset `off` (along it), `out` (off it). */
   const frame = (inst) => {
@@ -319,10 +325,11 @@ export function createSignPlacer({ S, seed, assets, art, hitsBridge }) {
       let frontUsed = false;
       if (!meta.landmark && rng() < Z.billboardChance) {
         const lo = Math.max(Z.billboard[0], tiers[0][0] * sy + 1);
-        const o = pick(pools.brands.filter((b) => b.f.wide !== undefined));
+        const o = pick(pools.brands.filter((b) => b.f.wide !== undefined), new Set(), 'wide:');
         if (o) {
-          const sz = fit(art[o.f.wide].aspect, faceOf(tiers[0]) - 3, Math.min(26, Z.billboard[1] - lo));
-          if (sz.h >= 10) frontUsed = place(o.f.wide, o, sz, rand(lo, Z.billboard[1] - sz.h), 'billboard');
+          const idx = variant(o, 'wide');
+          const sz = fit(art[idx].aspect, faceOf(tiers[0]) - 3, Math.min(26, Z.billboard[1] - lo));
+          if (sz.h >= 10) frontUsed = place(idx, o, sz, rand(lo, Z.billboard[1] - sz.h), 'billboard');
         }
       }
       if (!meta.landmark && rng() < Z.shaftChance) {
@@ -335,12 +342,12 @@ export function createSignPlacer({ S, seed, assets, art, hitsBridge }) {
           const sides = frontUsed ? [rng() < 0.5 ? 1 : -1] : rng() < Z.shaftSideChance ? [0, rng() < 0.5 ? 1 : -1] : [0];
           for (const side of sides) {
             const f = sideOf(tier, side);
-            const o = pick(pools.brands.filter((b) => b.f.tall !== undefined));
+            const o = pick(pools.brands.filter((b) => b.f.tall !== undefined), new Set(), 'tall:');
             if (!o) break;
-            const e = art[o.f.tall];
+            const idx = variant(o, 'tall');
             const hMax = Math.min(Z.shaftMax, b - a);
-            const sz = fit(e.aspect, (2 * f.half - 3) * Z.shaftWidthShare, rand(hMax * 0.7, hMax));
-            if (sz.h >= 30) place(o.f.tall, o, sz, a, 'shaft', side);
+            const sz = fit(art[idx].aspect, (2 * f.half - 3) * Z.shaftWidthShare, rand(hMax * 0.7, hMax));
+            if (sz.h >= 30) place(idx, o, sz, a, 'shaft', side);
           }
         }
       }
@@ -348,7 +355,7 @@ export function createSignPlacer({ S, seed, assets, art, hitsBridge }) {
         // Crown: the brand lettering stands on the roof, set back 1 m, on posts.
         const topTier = tiers[tiers.length - 1];
         const f = sideOf(topTier, 0);
-        const o = pick(pools.brands.filter((b) => b.f.mark !== undefined));
+        const o = pick(pools.brands.filter((b) => b.f.mark !== undefined), new Set(), 'mark:');
         if (o) {
           const e = art[o.f.mark];
           const w = Math.min(2 * f.half - 4, 34);

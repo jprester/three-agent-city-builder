@@ -15,11 +15,19 @@ the city no longer draws them.
     (food photo, name, floor).
   - `zh`: Hong Kong neon, each with an **overhang** board and a vertical neon **hkblade**.
   - `only` limits a business to some formats (the hotel: one tall blade).
-- **Brands** (fictional; English, two domestic ones in Japanese): a text-free campaign photo,
-  `land` and `tall`, plus a wordmark and tagline that the builder typesets in a bundled font. They
-  produce a rooftop **board** (~2.4:1), a tower billboard (**wide**, 1.6:1), a tower-shaft
-  campaign (**tall**, 1:3), a 2:3 crop for the facade video screens, and the crown lettering
-  (**mark**, lit letters on black, drawn without a board).
+- **Brands** (fictional; food, drink, airline, bank, loans; two domestic ones in Japanese): a
+  text-free Z-Image photo, `land` and `tall`, plus a wordmark and tagline that the builder typesets
+  in a bundled font (with a dark band). They produce a rooftop **board** (~2.4:1) and a 2:3 crop for
+  the facade video screens. Only `crown` brands (the bank, the airline) also get crown lettering.
+- **Heroes** (fictional fashion and luxury houses, 2026-11-26): Midjourney campaign photos made by
+  the human (`art/external/hero-ads/`, prompts in docs/HERO-ADS-PROMPTS.md). Each image names its
+  format (**wide** 16:10 tower billboard, **tall** 1:3 tower-shaft campaign, **screen** facade
+  screen only) and the calm box where the builder sets the wordmark: `pre` small above, the name,
+  `tagline` small below, tracked, in Bodoni Moda (600, optical size 11: at size 96 the hairlines
+  vanish at tower distance) or Jost, light or dark ink by the box's brightness, no band. Variants
+  (`wide2`, `tall2`) are alternatives the placer picks among. Every hero also gets crown lettering
+  in its own font. The delivered PNGs stay local (gitignored); the builder keeps a WebP of each,
+  committed. Review: `--heroes` draws `build/previews/signs/heroes.png`.
 - **Style**: one prompt template per format (`styles`, `formats`, `background`): front view,
   isolated on black, backlit acrylic lightbox (Shinjuku) or exposed glass neon on a steel frame
   (Mong Kok).
@@ -45,7 +53,8 @@ the city no longer draws them.
 3. Re-roll a failure: `--candidates <id,id> <n> <first seed>` renders n seeds side by side
    (`build/previews/signs/candidates.png`). Pin the pick in the def's `seeds`, note it in
    `rejects`, and run `--render`.
-4. Running with no flag packs the sources, longest edge per format (`SCALE`), into shelf-packed
+4. Running with no flag packs the sources and the hero campaigns, longest edge per format (`SCALE`;
+   heroes 1280 px wide, 1536 px tall), into shelf-packed
    atlases `art/textures/signs/signs_<i>.webp`: RGB colour, alpha the emission mask, at most four
    atlases of 4096 px. The atlas count must match `art/textures/ktx2.def.json` (the packer checks
    it). It also writes `screens.webp` and `catalog.json` (per sign: owner, format, floor, script,
@@ -70,8 +79,10 @@ Per street frontage (`hero` dense, `core` sparse, the island's ring, avenues and
 - **Island (Hong Kong):** every tenant is a `zh` business. Neon overhangs reach 0.4–1.8 m clear
   of the wall and 3–6.5 m out, stacked by floor, with vertical neon blades between them.
 - **Rooftop frames** carry a brand board, lit by floodlights along the top edge.
-- **Towers:** podium fascias (one per shopfront, some units left empty), a brand billboard at
-  15–50 m, tall campaigns on the shaft, and the brand's lettering on the crown.
+- **Towers:** podium fascias (one per shopfront, some units left empty), a hero billboard at
+  15–50 m, hero campaigns on the shaft, and crown lettering (heroes, bank, airline). Each tower
+  zone keeps its own least-used count, so the brands spread evenly over billboards, shafts and
+  crowns.
 - **Hotels:** a tall blade sometimes climbs an old slab (businesses marked `tall`). There is none
   at present: the ホテル blade never rendered correctly.
 - **No wayfinding** and no sign without an owner. `tests/unit/city.test.ts` checks owners,

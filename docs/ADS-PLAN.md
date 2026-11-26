@@ -1,8 +1,8 @@
 # Signs and ads: plan for a coherent system
 
-Status: **signs done** on branch `ads-tenant-signs` (2026-11-26, three render rounds); the system as
-built is described in docs/ADVERTISING.md. Remaining: the hero billboards below (last), then street
-props (menu lightboxes, A-frames, lanterns) and dedicated roof lattice frames.
+Status: **signs and hero billboards done** on branch `ads-tenant-signs` (2026-11-26); the system as
+built is described in docs/ADVERTISING.md. Remaining: street props (menu lightboxes, A-frames,
+lanterns) and dedicated roof lattice frames.
 
 **Hero billboards (human review 2026-11-24, after the first shots):** the big downtown tower
 billboards and shaft campaigns look underwhelming: low resolution (packed at 1024 / 768 px for
@@ -10,8 +10,9 @@ boards 20-70 m tall) and the wrong theme (noodles, beer, energy drink read as sm
 billboards should carry high-quality fashion and luxury campaigns (classy). Decision (human): keep
 local Z-Image for the signs and the smaller image ads (rooftop boards, street-level billboards,
 screens); the big tower hero ads (`wide`, `tall`, zones billboard and shaft) come from GPT or
-Midjourney, made by the human, imported into `art/external/` with a manifest entry. They need
-their own higher-resolution atlas (long edge ~2048 px). Food, drink and loan brands then stay on the
+Midjourney, made by the human, imported into `art/external/` with a manifest entry. Built
+2026-11-26: 10 hero brands from Midjourney (`heroes` in the def), packed at 1280 px (wide) and
+1536 px (tall) in the shared sign atlases rather than an atlas of their own (they fit in three). Food, drink and loan brands then stay on the
 roofs and low buildings. Not yet built: street props (menu lightboxes, A-frames, lanterns) and
 dedicated roof lattice frames. The plan below is kept as the record of the decisions.
 

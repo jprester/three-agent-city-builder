@@ -2,6 +2,7 @@
 
     python3 tools/textures/build_signs.py --render [pattern]   render missing takes (Z-Image Turbo, `img`)
     python3 tools/textures/build_signs.py --sheet               contact sheets for review
+    python3 tools/textures/build_signs.py --heroes              hero campaigns as composed (review)
     python3 tools/textures/build_signs.py                       pack atlases + catalog
     then: npm run textures && npm run layouts
 
@@ -39,12 +40,13 @@ SRC = ROOT / 'art' / 'external' / 'signs'
 OUT = ROOT / 'art' / 'textures' / 'signs'
 PREVIEW = ROOT / 'build' / 'previews' / 'signs'
 FONTS = ROOT / 'art' / 'external' / 'fonts'
+HEROES = ROOT / 'art' / 'external' / 'hero-ads'
 ATLAS = 4096
 MAX_ATLASES = 4          # the sign shaders bind four atlases
 GAP = 6                  # px between packed images (edge-extruded, for mip filtering)
 # Longest edge in the atlas per format: blades are seen up close, tenant panels are small.
 SCALE = {'fascia': 1024, 'blade': 768, 'panel': 448, 'billboard': 896, 'overhang': 896, 'hkblade': 768,
-         'board': 1024, 'wide': 1024, 'tall': 768, 'mark': 1024}
+         'board': 1024, 'wide': 1280, 'tall': 1536, 'mark': 1024}
 GAIN = {'lightbox': 1.05, 'neon': 1.9, 'billboard': 0.9, 'brand': 1.0, 'mark': 2.2}
 
 
@@ -267,6 +269,169 @@ def compose_mark(brand, h=200):
     return Image.fromarray(np.clip(rgb * 255, 0, 255).astype(np.uint8), 'RGB')
 
 
+# ---- hero campaigns (Midjourney photos, typeset wordmark) --------------------------------
+
+HERO_FONT = {'serif': ('BodoniModa.ttf', {'Weight': 600, 'Optical size': 11}),
+             'sans': ('Jost.ttf', {'Weight': 400})}
+TAG_FONT = ('Jost.ttf', {'Weight': 400})
+
+
+def font_at(spec, size):
+    f, axes = spec
+    font = ImageFont.truetype(str(FONTS / f), size)
+    try:
+        names = [a['name'].decode() if isinstance(a['name'], bytes) else a['name'] for a in font.get_variation_axes()]
+        font.set_variation_by_axes([axes.get(n, None) or a['default'] for n, a in zip(names, font.get_variation_axes())])
+    except Exception:
+        pass
+    return font
+
+
+def tracked(dr, xy, text, font, track, fill):
+    """Draw `text` with extra letter spacing `track` (px) from its top-left ink corner."""
+    x, y = xy
+    for ch in text:
+        l, t, r, b = font.getbbox(ch)
+        dr.text((x, y), ch, font=font, fill=fill)
+        x += font.getlength(ch) + track
+
+
+def tracked_size(text, font, track):
+    w = sum(font.getlength(ch) for ch in text) + track * (len(text) - 1)
+    l, t, r, b = font.getbbox(text)
+    return w, t, b
+
+
+def hero_source(img):
+    """The committed WebP of a hero image, made from the delivered PNG on first use."""
+    out = HEROES / f"{img['id']}.webp"
+    if not out.exists():
+        src = HEROES / img['src']
+        if not src.exists():
+            raise SystemExit(f"hero image missing: {src}")
+        Image.open(src).convert('RGB').save(out, quality=94, method=6)
+    return Image.open(out).convert('RGB')
+
+
+def wordmark(im, hero, box):
+    """Typeset the hero's wordmark into box (fractions of im): `pre` small above, `name`, `tagline`
+    small below, centred, tracked; ink light or dark by the box's brightness. No band."""
+    W, H = im.size
+    x0, y0, x1, y1 = box[0] * W, box[1] * H, box[2] * W, box[3] * H
+    area = np.asarray(im.crop((int(x0), int(y0), int(x1), int(y1))).convert('L'), dtype=np.float32) / 255.0
+    light = float(np.median(area)) < 0.55
+    ink = (246, 240, 228) if light else (18, 18, 20)
+    spec = HERO_FONT[hero.get('font', 'serif')]
+    name = hero['name']
+    bw, bh = x1 - x0, y1 - y0
+    # Name: as large as fits 100 % of the box width and 46 % of its height.
+    size = int(bh)
+    while size > 8:
+        font = font_at(spec, size)
+        track = size * (0.22 if hero.get('font') == 'sans' else 0.12)
+        w, t, b = tracked_size(name, font, track)
+        if w <= bw and (b - t) <= bh * 0.46:
+            break
+        size = int(size * 0.94)
+    small = max(8, int(size * 0.28))
+    tfont = font_at(TAG_FONT, small)
+    ttrack = small * 0.45
+    lines = []
+    if hero.get('pre'):
+        lines.append((hero['pre'], tfont, ttrack, small * 0.9))
+    lines.append((name, font, track, size * 0.32))
+    if hero.get('tagline'):
+        lines.append((hero['tagline'], tfont, ttrack, 0))
+    heights = [tracked_size(t, f, tr)[2] - tracked_size(t, f, tr)[1] for t, f, tr, _ in lines]
+    total = sum(heights) + sum(g for *_, g in lines)
+    y = y0 + (bh - total) / 2
+    layer = Image.new('L', im.size, 0)
+    dr = ImageDraw.Draw(layer)
+    for (text, f, tr, gap), hgt in zip(lines, heights):
+        w, t, b = tracked_size(text, f, tr)
+        tracked(dr, ((x0 + x1) / 2 - w / 2, y - t), text, f, tr, 255)
+        y += hgt + gap
+    # A soft shadow under light ink (and a faint halo under dark ink) keeps it legible.
+    soft = layer.filter(ImageFilter.GaussianBlur(max(2, size / 10)))
+    shade = Image.new('RGB', im.size, (0, 0, 0) if light else (255, 255, 255))
+    im = Image.composite(shade, im, soft.point(lambda v: int(v * 0.45)))
+    return Image.composite(Image.new('RGB', im.size, ink), im, layer)
+
+
+def compose_hero(hero, img):
+    """wide: 16:10 at 1280 x 800 (centre crop); tall: the delivered 1:3; screen: as delivered (the
+    screens grid crops it to 2:3 around the centre, so keep the wordmark box inside that)."""
+    im = hero_source(img)
+    if img['format'] == 'wide':
+        im = cover(im, 1280, 800, tuple(img.get('focus', (0.5, 0.5))))
+    elif img['format'] == 'screen':
+        im = cover(im, 512, 768, tuple(img.get('focus', (0.5, 0.5))))
+    return wordmark(im, hero, img['text'])
+
+
+def compose_hero_mark(hero, h=200):
+    """Crown lettering for a hero brand: its name in its own font as warm white lit letters."""
+    spec = HERO_FONT[hero.get('font', 'serif')]
+    font = font_at(spec, h)
+    track = h * (0.22 if hero.get('font') == 'sans' else 0.12)
+    w, t, b = tracked_size(hero['name'], font, track)
+    pad = h // 4
+    ink = Image.new('L', (int(w + 2 * pad), int(b - t + 2 * pad)), 0)
+    tracked(ImageDraw.Draw(ink), (pad, pad - t), hero['name'], font, track, 255)
+    col = np.array([1.0, 0.93, 0.82], dtype=np.float32)
+    core = np.asarray(ink, dtype=np.float32)[..., None] / 255.0
+    glow = np.asarray(ink.filter(ImageFilter.GaussianBlur(h / 14)), dtype=np.float32)[..., None] / 255.0
+    rgb = core * (col * 0.35 + 0.65) + glow * col * 0.55
+    return Image.fromarray(np.clip(rgb * 255, 0, 255).astype(np.uint8), 'RGB')
+
+
+def hero_images(d):
+    for hero in d.get('heroes', []):
+        for img in hero['images']:
+            yield hero, dict(img, id=f"{hero['id']}.{img['v']}")
+
+
+def hero_sheet():
+    """build/previews/signs/heroes.png: every hero campaign as composed, for review."""
+    d = load()
+    PREVIEW.mkdir(parents=True, exist_ok=True)
+    ims = [(img['id'], compose_hero(hero, img)) for hero, img in hero_images(d)]
+    font = ImageFont.truetype(str(FONTS / 'NotoSansJP.ttf'), 18)
+    rows = [[x for x in ims if x[1].width > x[1].height], [x for x in ims if x[1].width <= x[1].height]]
+    H = [400, 900]
+    sheet_w = max(sum(int(im.width * H[r] / im.height) + 10 for _, im in row) for r, row in enumerate(rows) if row)
+    sheet_w = min(sheet_w, 2 * 2600)
+    cells = []
+    for r, row in enumerate(rows):
+        x, y = 0, 0
+        for ident, im in row:
+            t = im.resize((int(im.width * H[r] / im.height), H[r]), Image.LANCZOS)
+            cells.append((r, ident, t))
+    out_rows = []
+    for r in range(2):
+        cs = [c for c in cells if c[0] == r]
+        line, lines, w = [], [], 0
+        for c in cs:
+            if w + c[2].width > 2600 and line:
+                lines.append(line); line, w = [], 0
+            line.append(c); w += c[2].width + 10
+        if line:
+            lines.append(line)
+        out_rows += lines
+    W = max(sum(c[2].width + 10 for c in l) for l in out_rows)
+    Ht = sum(l[0][2].height + 30 for l in out_rows)
+    sh = Image.new('RGB', (W, Ht), (50, 50, 52))
+    dr = ImageDraw.Draw(sh)
+    y = 0
+    for l in out_rows:
+        x = 0
+        for _, ident, t in l:
+            sh.paste(t, (x, y + 26)); dr.text((x + 4, y + 3), ident, fill=(255, 230, 80), font=font); x += t.width + 10
+        y += l[0][2].height + 30
+    sh.save(PREVIEW / 'heroes.png')
+    print('wrote', PREVIEW / 'heroes.png')
+
+
 # ---- packing ---------------------------------------------------------------------------
 
 def light_color(im):
@@ -338,6 +503,7 @@ def pack():
                             color=color, hue=hue, sat=sat, **meta))
 
     missing = []
+    screens = []     # portrait campaigns for the facade video screens
     for it in items(d):
         src = SRC / f"{it['id']}.webp"
         if not src.exists():
@@ -350,14 +516,23 @@ def pack():
         else:
             br = brands[it['owner']]
             if it['format'] == 'land':
-                # Rooftop board (~2.4:1) and the tower billboard (~1.6:1) from the same photo.
+                # Rooftop board (~2.4:1). Tower billboards and shafts carry the heroes only.
                 add(f"{br['id']}.board", br['id'], 'board', compose_board(br, im, 1536, 640, 'side'), GAIN['brand'], brand=True, jp=bool(br.get('jp')))
-                add(f"{br['id']}.wide", br['id'], 'wide', compose_board(br, im, 1280, 800, 'side'), GAIN['brand'], brand=True, jp=bool(br.get('jp')))
             else:
-                add(f"{br['id']}.tall", br['id'], 'tall', compose_board(br, im, 512, 1536, 'foot'), GAIN['brand'], brand=True, jp=bool(br.get('jp')))
+                screens.append(compose_board(br, im, 512, 1536, 'foot'))
     for br in d['brands']:
-        if not br.get('jp'):
+        if br.get('crown'):
             add(f"{br['id']}.mark", br['id'], 'mark', compose_mark(br), GAIN['mark'], holo=True, brand=True)
+    for hero, img in hero_images(d):
+        im = compose_hero(hero, img)
+        if img['format'] == 'screen':
+            screens.append(im)
+            continue
+        if img['format'] == 'tall':
+            screens.append(im)
+        add(img['id'], hero['id'], img['format'], im, GAIN['brand'], brand=True, hero=True)
+    for hero in d.get('heroes', []):
+        add(f"{hero['id']}.mark", hero['id'], 'mark', compose_hero_mark(hero), GAIN['mark'], holo=True, brand=True, hero=True)
     if missing:
         print(f'WARNING: {len(missing)} signs not rendered yet (run --render):', ' '.join(missing[:12]), '...' if len(missing) > 12 else '')
 
@@ -392,14 +567,14 @@ def pack():
         rec['rect'] = [round(x / W, 6), round(1 - (y + h) / H, 6), round(w / W, 6), round(h / H, 6)]
         catalog.append(rec)
     # Screens: the brands' tall campaigns cropped to 2:3, in a uniform grid (facade shader).
-    screens = [e for e in entries if e['format'] == 'tall']
     cols = 6
     rows = max(1, (len(screens) + cols - 1) // cols)
     sw, shh = 384, 576
     sc = Image.new('RGBA', (cols * sw, rows * shh), (0, 0, 0, 255))
-    for k, e in enumerate(screens):
-        im = e['img']
-        crop = cover(im.crop((0, 0, im.width, round(im.height * 0.62))), sw, shh)
+    for k, im in enumerate(screens):
+        if im.height > 2 * im.width:   # a 1:3 campaign: its top part
+            im = im.crop((0, 0, im.width, round(im.height * 0.62)))
+        crop = cover(im, sw, shh)
         sc.paste(crop.convert('RGBA'), ((k % cols) * sw, (k // cols) * shh))
     sc.save(OUT / 'screens.webp', quality=88, method=6, exact=True)
     (OUT / 'catalog.json').write_text(json.dumps({
@@ -449,5 +624,7 @@ if __name__ == '__main__':
         render(args[1] if len(args) > 1 else '*')
     elif args[:1] == ['--sheet']:
         sheet()
+    elif args[:1] == ['--heroes']:
+        hero_sheet()
     else:
         pack()
