@@ -47,6 +47,11 @@ GAP = 6                  # px between packed images (edge-extruded, for mip filt
 # Longest edge in the atlas per format: blades are seen up close, tenant panels are small.
 SCALE = {'fascia': 1024, 'blade': 768, 'panel': 448, 'billboard': 896, 'overhang': 896, 'hkblade': 768,
          'board': 1024, 'wide': 1280, 'tall': 1536, 'mark': 1024}
+# Photo boards dim like a real LED screen: a mostly white campaign (sky, pale concrete) would
+# otherwise emit 10-50x more light than a dark one and bloom into a slab. Gain x
+# min(1, (DIM_MEAN / mean linear luminance) ** DIM_POWER).
+DIM_FORMATS = ('board', 'wide', 'tall', 'billboard')
+DIM_MEAN, DIM_POWER = 0.12, 0.7
 GAIN = {'lightbox': 1.05, 'neon': 1.9, 'billboard': 0.9, 'brand': 1.0, 'mark': 2.2}
 
 
@@ -434,6 +439,12 @@ def hero_sheet():
 
 # ---- packing ---------------------------------------------------------------------------
 
+def dim(im):
+    a = (np.asarray(im.convert('RGB').resize((64, 64)), dtype=np.float32) / 255.0) ** 2.2
+    mean = float((a @ np.array([0.2126, 0.7152, 0.0722], dtype=np.float32)).mean())
+    return min(1.0, (DIM_MEAN / max(mean, 1e-4)) ** DIM_POWER)
+
+
 def light_color(im):
     """Mean colour of the brightest 8 %: the colour the sign throws on its surroundings."""
     a = np.asarray(im.convert('RGB').resize((96, 96)), dtype=np.float32) / 255.0
@@ -498,6 +509,8 @@ def pack():
         if s < 1:
             im = im.resize((round(im.width * s), round(im.height * s)), Image.LANCZOS)
         color, hue, sat = light_color(im)
+        if fmt in DIM_FORMATS:
+            gain = round(gain * dim(im), 3)
         entries.append(dict(id=ident, owner=owner, format=fmt, img=im.convert('RGB'),
                             aspect=round(im.width / im.height, 4), holo=holo, gain=gain,
                             color=color, hue=hue, sat=sat, **meta))

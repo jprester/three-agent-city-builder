@@ -93,7 +93,8 @@ Per street frontage (`hero` dense, `core` sparse, the island's ring, avenues and
 
 - **Boards:** every sign except crown lettering is a box in one instanced draw. The ±Z faces
   sample the sign's atlas; the black around a sign reads as its dark case. Emission is the image
-  times the catalog gain; tower campaigns get ×1.8 and everything is ×0.6 by day. A few neon
+  times the catalog gain (photo boards are dimmed at pack time like an LED screen: gain ×
+  min(1, (0.12 / mean linear luminance)^0.7), so a white-sky campaign doesn't bloom into a slab); tower campaigns get ×1.8 and everything is ×0.6 by day. A few neon
   boards (12 %) and the odd lightbox (3 %) flicker like a failing tube.
 - **Crown lettering:** additive planes with no board.
 - **Hardware:** case lips, blade arms, column rails, roof posts and floodlight arms are one more
